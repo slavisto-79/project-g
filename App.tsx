@@ -255,9 +255,29 @@ function InterviewScreen({ onBack }: { onBack: () => void }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [complete, setComplete] = useState(false);
+  const [planStage, setPlanStage] = useState<"review" | "generating" | "ready">("review");
   const question = interviewQuestions[step];
   const selected = question ? answers[question.id] : undefined;
   const progress = complete ? 1 : (step + 1) / interviewQuestions.length;
+  const goalLabels: Record<string, string> = {
+    muscle: "Build muscle",
+    "fat-loss": "Lose body fat",
+    strength: "Get stronger",
+    fitness: "Improve fitness",
+    health: "Feel healthier",
+  };
+  const equipmentLabels: Record<string, string> = {
+    gym: "Full gym",
+    "home-gym": "Home gym",
+    minimal: "Dumbbells + bands",
+    bodyweight: "Bodyweight",
+  };
+
+  useEffect(() => {
+    if (planStage !== "generating") return;
+    const timer = setTimeout(() => setPlanStage("ready"), 2300);
+    return () => clearTimeout(timer);
+  }, [planStage]);
 
   const selectAnswer = (value: string) => {
     if (!question) return;
@@ -266,6 +286,10 @@ function InterviewScreen({ onBack }: { onBack: () => void }) {
 
   const goBack = () => {
     if (complete) {
+      if (planStage !== "review") {
+        setPlanStage("review");
+        return;
+      }
       setComplete(false);
       setStep(interviewQuestions.length - 1);
       return;
@@ -298,7 +322,82 @@ function InterviewScreen({ onBack }: { onBack: () => void }) {
         <Text style={styles.progressText}>{complete ? "READY" : `${step + 1}/${interviewQuestions.length}`}</Text>
       </View>
 
-      {complete ? (
+      {complete && planStage === "ready" ? (
+        <View style={styles.planContent}>
+          <Text style={styles.completeKicker}>YOUR PLAN IS READY</Text>
+          <Text style={styles.planTitle}>
+            Built for <Text style={styles.welcomeTitleAccent}>you.</Text>
+          </Text>
+          <Text style={styles.completeBody}>
+            A focused first week based on your goal, schedule, equipment, and recovery needs.
+          </Text>
+
+          <View style={styles.planHeroCard}>
+            <View style={styles.planHeroTop}>
+              <View>
+                <Text style={styles.planMetaLabel}>WEEK 01 · FOUNDATION</Text>
+                <Text style={styles.planName}>{goalLabels[answers.goal ?? ""] ?? "Personal training"}</Text>
+              </View>
+              <View style={styles.aiBadge}>
+                <Text style={styles.aiBadgeText}>AI + COACH</Text>
+              </View>
+            </View>
+            <View style={styles.planStats}>
+              <View style={styles.planStat}>
+                <Text style={styles.planStatValue}>{answers.frequency ?? "3"}×</Text>
+                <Text style={styles.planStatLabel}>WEEKLY</Text>
+              </View>
+              <View style={styles.planStatDivider} />
+              <View style={styles.planStat}>
+                <Text style={styles.planStatValue}>{answers.duration ?? "45"}</Text>
+                <Text style={styles.planStatLabel}>MINUTES</Text>
+              </View>
+              <View style={styles.planStatDivider} />
+              <View style={styles.planStat}>
+                <Text style={styles.planStatValue}>01</Text>
+                <Text style={styles.planStatLabel}>COACH REVIEW</Text>
+              </View>
+            </View>
+          </View>
+
+          <Text style={styles.planSectionTitle}>YOUR FIRST SESSION</Text>
+          <View style={styles.sessionCard}>
+            <View style={styles.sessionNumber}><Text style={styles.sessionNumberText}>01</Text></View>
+            <View style={styles.sessionCopy}>
+              <Text style={styles.sessionTitle}>Full Body Foundation</Text>
+              <Text style={styles.sessionMeta}>
+                {answers.duration ?? "45"} min · {equipmentLabels[answers.equipment ?? ""] ?? "Your equipment"} · 6 exercises
+              </Text>
+            </View>
+            <Text style={styles.sessionArrow}>›</Text>
+          </View>
+
+          <Pressable style={styles.startButton}>
+            <Text style={styles.startButtonText}>ENTER MY DASHBOARD</Text>
+            <Text style={styles.startArrow}>↗</Text>
+          </Pressable>
+        </View>
+      ) : complete && planStage === "generating" ? (
+        <View style={styles.generatingContent}>
+          <View style={styles.analysisOrb}>
+            <BrandMark size={72} />
+            <View style={styles.analysisRing} />
+          </View>
+          <Text style={styles.completeKicker}>BUILDING YOUR PROGRAM</Text>
+          <Text style={styles.generatingTitle}>Turning your life into a plan.</Text>
+          <View style={styles.analysisList}>
+            {["Goal and experience", "Schedule and equipment", "Safety and recovery", "Coach review layer"].map(
+              (item, index) => (
+                <View style={styles.analysisRow} key={item}>
+                  <View style={styles.analysisCheck}><Text style={styles.analysisCheckText}>✓</Text></View>
+                  <Text style={styles.analysisText}>{item}</Text>
+                  <Text style={styles.analysisState}>{index < 3 ? "ANALYZED" : "PREPARING"}</Text>
+                </View>
+              ),
+            )}
+          </View>
+        </View>
+      ) : complete ? (
         <View style={styles.completeContent}>
           <BrandMark size={68} />
           <Text style={styles.completeKicker}>YOUR PROFILE IS READY</Text>
@@ -318,7 +417,7 @@ function InterviewScreen({ onBack }: { onBack: () => void }) {
               <Text style={styles.completeValue}>Included</Text>
             </View>
           </View>
-          <Pressable style={styles.startButton}>
+          <Pressable onPress={() => setPlanStage("generating")} style={styles.startButton}>
             <Text style={styles.startButtonText}>CREATE MY PLAN</Text>
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
@@ -658,4 +757,117 @@ const styles = StyleSheet.create({
   completeLabel: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 1.3 },
   completeValue: { color: colors.text, fontSize: 13, fontWeight: "700" },
   completeDivider: { height: 1, backgroundColor: "#242823", marginVertical: 15 },
+  generatingContent: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 52,
+  },
+  analysisOrb: {
+    width: 116,
+    height: 116,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  analysisRing: {
+    position: "absolute",
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.18)",
+  },
+  generatingTitle: {
+    color: colors.text,
+    fontSize: 38,
+    lineHeight: 42,
+    fontWeight: "700",
+    letterSpacing: -1.7,
+    maxWidth: 430,
+  },
+  analysisList: {
+    marginTop: 30,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0C0E0C",
+    overflow: "hidden",
+  },
+  analysisRow: {
+    minHeight: 56,
+    paddingHorizontal: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#252825",
+  },
+  analysisCheck: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+    backgroundColor: "rgba(200,255,50,0.13)",
+  },
+  analysisCheckText: { color: colors.lime, fontSize: 12, fontWeight: "900" },
+  analysisText: { color: colors.text, fontSize: 13, fontWeight: "600", flex: 1 },
+  analysisState: { color: colors.muted, fontSize: 8, fontWeight: "800", letterSpacing: 1 },
+  planContent: { flex: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 26 },
+  planTitle: {
+    color: colors.text,
+    fontSize: 43,
+    lineHeight: 46,
+    fontWeight: "700",
+    letterSpacing: -2,
+  },
+  planHeroCard: {
+    borderRadius: 22,
+    padding: 18,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.28)",
+    backgroundColor: "#11150E",
+  },
+  planHeroTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
+  planMetaLabel: { color: colors.lime, fontSize: 8, fontWeight: "800", letterSpacing: 1.3 },
+  planName: { color: colors.text, fontSize: 21, fontWeight: "700", marginTop: 6 },
+  aiBadge: {
+    paddingVertical: 6,
+    paddingHorizontal: 9,
+    borderRadius: 12,
+    backgroundColor: "rgba(200,255,50,0.12)",
+  },
+  aiBadgeText: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1 },
+  planStats: { flexDirection: "row", alignItems: "center", marginTop: 24 },
+  planStat: { flex: 1 },
+  planStatValue: { color: colors.text, fontSize: 22, fontWeight: "800" },
+  planStatLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 1, marginTop: 3 },
+  planStatDivider: { width: 1, height: 28, backgroundColor: "#34392F", marginHorizontal: 12 },
+  planSectionTitle: { color: colors.muted, fontSize: 8, fontWeight: "800", letterSpacing: 1.5, marginBottom: 10 },
+  sessionCard: {
+    minHeight: 72,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#272A27",
+    backgroundColor: "#0D0F0D",
+  },
+  sessionNumber: {
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.lime,
+  },
+  sessionNumberText: { color: colors.ink, fontSize: 12, fontWeight: "900" },
+  sessionCopy: { flex: 1, marginLeft: 13 },
+  sessionTitle: { color: colors.text, fontSize: 14, fontWeight: "700" },
+  sessionMeta: { color: colors.muted, fontSize: 10, marginTop: 5 },
+  sessionArrow: { color: colors.muted, fontSize: 25 },
 });
