@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Project G",
+    "slug": "project-g",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#050505",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#050505"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "name": "Project G"
+    }
+  }
+}
