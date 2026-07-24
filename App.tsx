@@ -24,6 +24,96 @@ const colors = {
 
 type Screen = "splash" | "welcome" | "interview";
 
+type InterviewAnswer = {
+  label: string;
+  value: string;
+};
+
+type InterviewQuestion = {
+  id: string;
+  kicker: string;
+  title: string;
+  subtitle: string;
+  answers: InterviewAnswer[];
+};
+
+const interviewQuestions: InterviewQuestion[] = [
+  {
+    id: "goal",
+    kicker: "LET’S START WITH YOUR GOAL",
+    title: "What do you want to achieve?",
+    subtitle: "Your plan will be built around the result that matters most to you.",
+    answers: [
+      { label: "Build muscle", value: "muscle" },
+      { label: "Lose body fat", value: "fat-loss" },
+      { label: "Get stronger", value: "strength" },
+      { label: "Improve fitness", value: "fitness" },
+      { label: "Feel healthier", value: "health" },
+    ],
+  },
+  {
+    id: "experience",
+    kicker: "YOUR TRAINING BACKGROUND",
+    title: "How experienced are you?",
+    subtitle: "There are no wrong answers. We’ll meet you exactly where you are.",
+    answers: [
+      { label: "I’m just starting", value: "beginner" },
+      { label: "Less than 1 year", value: "novice" },
+      { label: "1–3 years", value: "intermediate" },
+      { label: "More than 3 years", value: "advanced" },
+    ],
+  },
+  {
+    id: "frequency",
+    kicker: "YOUR WEEKLY RHYTHM",
+    title: "How often can you train?",
+    subtitle: "Consistency beats perfection. Choose a schedule you can actually maintain.",
+    answers: [
+      { label: "2 days a week", value: "2" },
+      { label: "3 days a week", value: "3" },
+      { label: "4 days a week", value: "4" },
+      { label: "5+ days a week", value: "5" },
+    ],
+  },
+  {
+    id: "duration",
+    kicker: "MAKE EVERY MINUTE COUNT",
+    title: "How long can each workout be?",
+    subtitle: "We’ll optimize the program around your available time.",
+    answers: [
+      { label: "20–30 minutes", value: "30" },
+      { label: "35–45 minutes", value: "45" },
+      { label: "50–60 minutes", value: "60" },
+      { label: "More than 60 minutes", value: "75" },
+    ],
+  },
+  {
+    id: "equipment",
+    kicker: "WHERE YOU TRAIN",
+    title: "What equipment can you use?",
+    subtitle: "Every exercise will match what is genuinely available to you.",
+    answers: [
+      { label: "Full gym", value: "gym" },
+      { label: "Home gym", value: "home-gym" },
+      { label: "Dumbbells and bands", value: "minimal" },
+      { label: "Bodyweight only", value: "bodyweight" },
+    ],
+  },
+  {
+    id: "limitations",
+    kicker: "TRAIN SMARTER, NOT THROUGH PAIN",
+    title: "Do you have any limitations?",
+    subtitle: "Your coach will adapt movements around your needs. This is not medical advice.",
+    answers: [
+      { label: "No current limitations", value: "none" },
+      { label: "Shoulder sensitivity", value: "shoulder" },
+      { label: "Back sensitivity", value: "back" },
+      { label: "Knee sensitivity", value: "knee" },
+      { label: "I’ll discuss it with my coach", value: "coach-review" },
+    ],
+  },
+];
+
 function BrandMark({ size = 92 }: { size?: number }) {
   return (
     <View style={[styles.mark, { width: size, height: size, borderRadius: size / 2 }]}>
@@ -161,20 +251,130 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
   );
 }
 
-function InterviewPreview({ onBack }: { onBack: () => void }) {
+function InterviewScreen({ onBack }: { onBack: () => void }) {
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [complete, setComplete] = useState(false);
+  const question = interviewQuestions[step];
+  const selected = question ? answers[question.id] : undefined;
+  const progress = complete ? 1 : (step + 1) / interviewQuestions.length;
+
+  const selectAnswer = (value: string) => {
+    if (!question) return;
+    setAnswers((current) => ({ ...current, [question.id]: value }));
+  };
+
+  const goBack = () => {
+    if (complete) {
+      setComplete(false);
+      setStep(interviewQuestions.length - 1);
+      return;
+    }
+    if (step === 0) {
+      onBack();
+      return;
+    }
+    setStep((current) => current - 1);
+  };
+
+  const goNext = () => {
+    if (!selected) return;
+    if (step === interviewQuestions.length - 1) {
+      setComplete(true);
+      return;
+    }
+    setStep((current) => current + 1);
+  };
+
   return (
     <SafeAreaView style={styles.preview}>
-      <Pressable onPress={onBack} style={styles.backButton}>
-        <Text style={styles.backButtonText}>‹</Text>
-      </Pressable>
-      <View style={styles.previewContent}>
-        <Text style={styles.previewStep}>NEXT · AI INTERVIEW</Text>
-        <Text style={styles.previewTitle}>Let’s build your plan.</Text>
-        <Text style={styles.previewBody}>
-          This confirms the approved Welcome flow is connected. The conversational AI interview is
-          the next screen we’ll design.
-        </Text>
+      <View style={styles.interviewHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={goBack} style={styles.backButton}>
+          <Text style={styles.backButtonText}>‹</Text>
+        </Pressable>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+        </View>
+        <Text style={styles.progressText}>{complete ? "READY" : `${step + 1}/${interviewQuestions.length}`}</Text>
       </View>
+
+      {complete ? (
+        <View style={styles.completeContent}>
+          <BrandMark size={68} />
+          <Text style={styles.completeKicker}>YOUR PROFILE IS READY</Text>
+          <Text style={styles.completeTitle}>We know where to begin.</Text>
+          <Text style={styles.completeBody}>
+            Your answers are ready for AI analysis and a real coach review. Next, we’ll turn them
+            into your first adaptive training plan.
+          </Text>
+          <View style={styles.completeCard}>
+            <View style={styles.completeRow}>
+              <Text style={styles.completeLabel}>PROFILE SIGNALS</Text>
+              <Text style={styles.completeValue}>{Object.keys(answers).length} collected</Text>
+            </View>
+            <View style={styles.completeDivider} />
+            <View style={styles.completeRow}>
+              <Text style={styles.completeLabel}>HUMAN REVIEW</Text>
+              <Text style={styles.completeValue}>Included</Text>
+            </View>
+          </View>
+          <Pressable style={styles.startButton}>
+            <Text style={styles.startButtonText}>CREATE MY PLAN</Text>
+            <Text style={styles.startArrow}>↗</Text>
+          </Pressable>
+        </View>
+      ) : question ? (
+        <>
+          <View style={styles.questionContent}>
+            <Text style={styles.previewStep}>{question.kicker}</Text>
+            <Text style={styles.previewTitle}>{question.title}</Text>
+            <Text style={styles.previewBody}>{question.subtitle}</Text>
+            <View style={styles.answerList}>
+              {question.answers.map((answer) => {
+                const isSelected = answer.value === selected;
+                return (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    key={answer.value}
+                    onPress={() => selectAnswer(answer.value)}
+                    style={({ pressed }) => [
+                      styles.answerCard,
+                      isSelected && styles.answerCardSelected,
+                      pressed && styles.answerCardPressed,
+                    ]}
+                  >
+                    <View style={[styles.answerRadio, isSelected && styles.answerRadioSelected]}>
+                      {isSelected ? <View style={styles.answerRadioDot} /> : null}
+                    </View>
+                    <Text style={[styles.answerText, isSelected && styles.answerTextSelected]}>
+                      {answer.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+          <View style={styles.interviewFooter}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Continue"
+              disabled={!selected}
+              onPress={goNext}
+              style={({ pressed }) => [
+                styles.continueButton,
+                !selected && styles.continueButtonDisabled,
+                pressed && selected ? styles.startButtonPressed : null,
+              ]}
+            >
+              <Text style={[styles.continueButtonText, !selected && styles.continueButtonTextDisabled]}>
+                CONTINUE
+              </Text>
+              <Text style={[styles.continueArrow, !selected && styles.continueButtonTextDisabled]}>→</Text>
+            </Pressable>
+          </View>
+        </>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -188,7 +388,7 @@ export default function App() {
       <ExpoStatusBar style="light" />
       {screen === "splash" && <SplashScreen onComplete={() => setScreen("welcome")} />}
       {screen === "welcome" && <WelcomeScreen onStart={() => setScreen("interview")} />}
-      {screen === "interview" && <InterviewPreview onBack={() => setScreen("welcome")} />}
+      {screen === "interview" && <InterviewScreen onBack={() => setScreen("welcome")} />}
     </View>
   );
 }
@@ -331,8 +531,13 @@ const styles = StyleSheet.create({
   startArrow: { color: colors.ink, fontSize: 23, fontWeight: "500" },
   disclaimer: { color: "#7D827A", fontSize: 10, textAlign: "center", marginTop: 13 },
   preview: { flex: 1, backgroundColor: colors.background },
+  interviewHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 18,
+    paddingTop: Platform.OS === "android" ? 12 : 2,
+  },
   backButton: {
-    margin: 20,
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -342,7 +547,24 @@ const styles = StyleSheet.create({
     borderColor: "#292C28",
   },
   backButtonText: { color: colors.text, fontSize: 34, lineHeight: 37, marginTop: -3 },
-  previewContent: { flex: 1, justifyContent: "center", padding: 28 },
+  progressTrack: {
+    flex: 1,
+    height: 3,
+    borderRadius: 2,
+    marginHorizontal: 15,
+    backgroundColor: "#222520",
+    overflow: "hidden",
+  },
+  progressFill: { height: "100%", borderRadius: 2, backgroundColor: colors.lime },
+  progressText: {
+    width: 42,
+    color: colors.muted,
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 1.1,
+    textAlign: "right",
+  },
+  questionContent: { flex: 1, paddingHorizontal: 24, paddingTop: 34 },
   previewStep: {
     color: colors.lime,
     fontSize: 10,
@@ -352,10 +574,88 @@ const styles = StyleSheet.create({
   },
   previewTitle: {
     color: colors.text,
-    fontSize: 42,
-    lineHeight: 46,
+    fontSize: 38,
+    lineHeight: 42,
     fontWeight: "700",
     letterSpacing: -1.8,
   },
-  previewBody: { color: colors.muted, fontSize: 16, lineHeight: 25, marginTop: 18, maxWidth: 480 },
+  previewBody: { color: colors.muted, fontSize: 14, lineHeight: 21, marginTop: 14, maxWidth: 480 },
+  answerList: { marginTop: 24, gap: 10 },
+  answerCard: {
+    minHeight: 58,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#262A24",
+    backgroundColor: "#0C0E0C",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 17,
+  },
+  answerCardSelected: {
+    borderColor: "rgba(200,255,50,0.72)",
+    backgroundColor: "rgba(200,255,50,0.08)",
+  },
+  answerCardPressed: { opacity: 0.8 },
+  answerRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#555B52",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+  answerRadioSelected: { borderColor: colors.lime },
+  answerRadioDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.lime },
+  answerText: { color: "#CFD3CC", fontSize: 15, fontWeight: "600" },
+  answerTextSelected: { color: colors.text },
+  interviewFooter: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 20 },
+  continueButton: {
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.lime,
+    paddingHorizontal: 21,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  continueButtonDisabled: { backgroundColor: "#171A16" },
+  continueButtonText: { color: colors.ink, fontSize: 12, fontWeight: "900", letterSpacing: 1.3 },
+  continueButtonTextDisabled: { color: "#555A52" },
+  continueArrow: { color: colors.ink, fontSize: 20 },
+  completeContent: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+  },
+  completeKicker: {
+    color: colors.lime,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 2,
+    marginTop: 30,
+    marginBottom: 12,
+  },
+  completeTitle: {
+    color: colors.text,
+    fontSize: 40,
+    lineHeight: 43,
+    fontWeight: "700",
+    letterSpacing: -1.8,
+  },
+  completeBody: { color: colors.muted, fontSize: 15, lineHeight: 23, marginTop: 16, marginBottom: 24 },
+  completeCard: {
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 22,
+    borderWidth: 1,
+    borderColor: "#272B25",
+    backgroundColor: "#0E100E",
+  },
+  completeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  completeLabel: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 1.3 },
+  completeValue: { color: colors.text, fontSize: 13, fontWeight: "700" },
+  completeDivider: { height: 1, backgroundColor: "#242823", marginVertical: 15 },
 });
