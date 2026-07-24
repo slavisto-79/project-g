@@ -22,7 +22,7 @@ const colors = {
   ink: "#0A0B09",
 };
 
-type Screen = "splash" | "welcome" | "interview";
+type Screen = "splash" | "welcome" | "interview" | "dashboard";
 
 type InterviewAnswer = {
   label: string;
@@ -251,7 +251,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
   );
 }
 
-function InterviewScreen({ onBack }: { onBack: () => void }) {
+function InterviewScreen({ onBack, onFinish }: { onBack: () => void; onFinish: () => void }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [complete, setComplete] = useState(false);
@@ -372,7 +372,7 @@ function InterviewScreen({ onBack }: { onBack: () => void }) {
             <Text style={styles.sessionArrow}>›</Text>
           </View>
 
-          <Pressable style={styles.startButton}>
+          <Pressable onPress={onFinish} style={styles.startButton}>
             <Text style={styles.startButtonText}>ENTER MY DASHBOARD</Text>
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
@@ -478,6 +478,95 @@ function InterviewScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
+function DashboardScreen() {
+  return (
+    <SafeAreaView style={styles.dashboard}>
+      <View style={styles.dashboardHeader}>
+        <View>
+          <Text style={styles.dashboardGreeting}>GOOD MORNING</Text>
+          <Text style={styles.dashboardName}>Ready to move?</Text>
+        </View>
+        <View style={styles.dashboardAvatar}>
+          <Text style={styles.dashboardAvatarText}>G</Text>
+          <View style={styles.avatarStatus} />
+        </View>
+      </View>
+
+      <View style={styles.dashboardBody}>
+        <View style={styles.readinessRow}>
+          <View>
+            <Text style={styles.sectionEyebrow}>TODAY · DAY 01</Text>
+            <Text style={styles.readinessTitle}>Your body is ready.</Text>
+          </View>
+          <View style={styles.recoveryScore}>
+            <Text style={styles.recoveryValue}>82</Text>
+            <Text style={styles.recoveryLabel}>RECOVERY</Text>
+          </View>
+        </View>
+
+        <View style={styles.workoutCard}>
+          <View style={styles.workoutCardTop}>
+            <View style={styles.workoutTypeBadge}>
+              <Text style={styles.workoutTypeText}>STRENGTH</Text>
+            </View>
+            <Text style={styles.workoutDuration}>45 MIN</Text>
+          </View>
+          <Text style={styles.workoutTitle}>Full Body{"\n"}Foundation</Text>
+          <Text style={styles.workoutMeta}>6 exercises · Moderate intensity</Text>
+          <View style={styles.workoutCoachNote}>
+            <View style={styles.coachMiniAvatar}><Text style={styles.coachMiniText}>G</Text></View>
+            <Text style={styles.workoutCoachText}>Coach note: Focus on controlled reps today.</Text>
+          </View>
+          <Pressable accessibilityRole="button" accessibilityLabel="Start workout" style={styles.workoutButton}>
+            <Text style={styles.workoutButtonText}>START WORKOUT</Text>
+            <Text style={styles.workoutButtonArrow}>→</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.metricGrid}>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricIcon}>◐</Text>
+            <Text style={styles.metricValue}>7h 24m</Text>
+            <Text style={styles.metricLabel}>SLEEP</Text>
+            <Text style={styles.metricTrend}>Good quality</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricIcon}>●</Text>
+            <Text style={styles.metricValue}>118g</Text>
+            <Text style={styles.metricLabel}>PROTEIN</Text>
+            <Text style={styles.metricTrend}>32g remaining</Text>
+          </View>
+        </View>
+
+        <View style={styles.weekCard}>
+          <View>
+            <Text style={styles.weekLabel}>THIS WEEK</Text>
+            <Text style={styles.weekValue}>1 of 3 workouts</Text>
+          </View>
+          <View style={styles.weekProgressTrack}>
+            <View style={styles.weekProgressFill} />
+          </View>
+          <Text style={styles.weekPercent}>33%</Text>
+        </View>
+      </View>
+
+      <View style={styles.bottomNav}>
+        {[
+          ["⌂", "HOME"],
+          ["◈", "TRAIN"],
+          ["◎", "COACH"],
+          ["↗", "PROGRESS"],
+        ].map(([icon, label], index) => (
+          <Pressable key={label} style={styles.navItem}>
+            <Text style={[styles.navIcon, index === 0 && styles.navActive]}>{icon}</Text>
+            <Text style={[styles.navLabel, index === 0 && styles.navActive]}>{label}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </SafeAreaView>
+  );
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>("splash");
 
@@ -487,7 +576,10 @@ export default function App() {
       <ExpoStatusBar style="light" />
       {screen === "splash" && <SplashScreen onComplete={() => setScreen("welcome")} />}
       {screen === "welcome" && <WelcomeScreen onStart={() => setScreen("interview")} />}
-      {screen === "interview" && <InterviewScreen onBack={() => setScreen("welcome")} />}
+      {screen === "interview" && (
+        <InterviewScreen onBack={() => setScreen("welcome")} onFinish={() => setScreen("dashboard")} />
+      )}
+      {screen === "dashboard" && <DashboardScreen />}
     </View>
   );
 }
@@ -870,4 +962,160 @@ const styles = StyleSheet.create({
   sessionTitle: { color: colors.text, fontSize: 14, fontWeight: "700" },
   sessionMeta: { color: colors.muted, fontSize: 10, marginTop: 5 },
   sessionArrow: { color: colors.muted, fontSize: 25 },
+  dashboard: { flex: 1, backgroundColor: colors.background },
+  dashboardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 22,
+    paddingTop: Platform.OS === "android" ? 16 : 6,
+    paddingBottom: 13,
+  },
+  dashboardGreeting: { color: colors.muted, fontSize: 8, fontWeight: "800", letterSpacing: 1.6 },
+  dashboardName: { color: colors.text, fontSize: 22, fontWeight: "700", letterSpacing: -0.7, marginTop: 4 },
+  dashboardAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#353A31",
+    backgroundColor: "#131612",
+  },
+  dashboardAvatarText: { color: colors.text, fontSize: 16, fontWeight: "800" },
+  avatarStatus: {
+    position: "absolute",
+    right: 1,
+    bottom: 2,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: colors.background,
+    backgroundColor: colors.lime,
+  },
+  dashboardBody: { flex: 1, paddingHorizontal: 18 },
+  readinessRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  sectionEyebrow: { color: colors.lime, fontSize: 8, fontWeight: "800", letterSpacing: 1.5 },
+  readinessTitle: { color: colors.text, fontSize: 17, fontWeight: "700", marginTop: 5 },
+  recoveryScore: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 3,
+    borderColor: colors.lime,
+    backgroundColor: "#10130E",
+  },
+  recoveryValue: { color: colors.text, fontSize: 19, fontWeight: "800", lineHeight: 21 },
+  recoveryLabel: { color: colors.muted, fontSize: 5, fontWeight: "800", letterSpacing: 0.7 },
+  workoutCard: {
+    borderRadius: 24,
+    padding: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#2B3126",
+    backgroundColor: "#121610",
+  },
+  workoutCardTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  workoutTypeBadge: { borderRadius: 10, paddingVertical: 5, paddingHorizontal: 8, backgroundColor: colors.lime },
+  workoutTypeText: { color: colors.ink, fontSize: 7, fontWeight: "900", letterSpacing: 1 },
+  workoutDuration: { color: colors.muted, fontSize: 8, fontWeight: "800", letterSpacing: 1.2 },
+  workoutTitle: {
+    color: colors.text,
+    fontSize: 31,
+    lineHeight: 32,
+    fontWeight: "700",
+    letterSpacing: -1.3,
+    marginTop: 15,
+  },
+  workoutMeta: { color: colors.muted, fontSize: 11, marginTop: 8 },
+  workoutCoachNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 15,
+    paddingTop: 13,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#343A30",
+  },
+  coachMiniAvatar: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.lime,
+    marginRight: 9,
+  },
+  coachMiniText: { color: colors.text, fontSize: 9, fontWeight: "800" },
+  workoutCoachText: { color: "#C6CBC2", fontSize: 10, flex: 1 },
+  workoutButton: {
+    height: 50,
+    borderRadius: 25,
+    paddingHorizontal: 18,
+    marginTop: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.lime,
+  },
+  workoutButtonText: { color: colors.ink, fontSize: 11, fontWeight: "900", letterSpacing: 1.1 },
+  workoutButtonArrow: { color: colors.ink, fontSize: 19, fontWeight: "700" },
+  metricGrid: { flexDirection: "row", gap: 10, marginBottom: 10 },
+  metricCard: {
+    flex: 1,
+    minHeight: 105,
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0D0F0D",
+  },
+  metricIcon: { color: colors.lime, fontSize: 13, marginBottom: 8 },
+  metricValue: { color: colors.text, fontSize: 18, fontWeight: "800" },
+  metricLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 1.2, marginTop: 2 },
+  metricTrend: { color: "#6F756C", fontSize: 8, marginTop: 7 },
+  weekCard: {
+    minHeight: 58,
+    borderRadius: 17,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0D0F0D",
+  },
+  weekLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 1.1 },
+  weekValue: { color: colors.text, fontSize: 11, fontWeight: "700", marginTop: 3 },
+  weekProgressTrack: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#292D27",
+    marginHorizontal: 13,
+    overflow: "hidden",
+  },
+  weekProgressFill: { width: "33%", height: "100%", backgroundColor: colors.lime },
+  weekPercent: { color: colors.lime, fontSize: 10, fontWeight: "800" },
+  bottomNav: {
+    height: 70,
+    paddingHorizontal: 12,
+    paddingTop: 9,
+    flexDirection: "row",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#242724",
+    backgroundColor: "#090A09",
+  },
+  navItem: { flex: 1, alignItems: "center" },
+  navIcon: { color: "#666C63", fontSize: 18, lineHeight: 22 },
+  navLabel: { color: "#666C63", fontSize: 6, fontWeight: "800", letterSpacing: 0.8, marginTop: 3 },
+  navActive: { color: colors.lime },
 });
