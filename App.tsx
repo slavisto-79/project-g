@@ -809,6 +809,7 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
       ...workoutExercises[2]!,
       name: "Dumbbell Romanian Deadlift",
       target: "Glutes & hamstrings · Controlled",
+      video: require("./assets/exercise-videos/female-dumbbell-deadlift.mp4"),
       phases: ["HINGE", "STRETCH", "DRIVE"],
       formFrames: [
         require("./assets/exercises/female-dumbbell-rdl/start.jpg"),
@@ -818,6 +819,10 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
     },
     {
       ...workoutExercises[1]!,
+      name: "Dumbbell Shoulder Press",
+      target: "Shoulders · Strength",
+      video: require("./assets/exercise-videos/female-shoulder-press.mp4"),
+      phases: ["LOWER", "BRACE", "PRESS"],
       formFrames: [
         require("./assets/exercises/female-dumbbell-bench-press/start.jpg"),
         require("./assets/exercises/female-dumbbell-bench-press/finish.jpg"),
@@ -827,6 +832,7 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
       ...workoutExercises[0]!,
       name: "Dumbbell Reverse Lunge",
       target: "Legs & glutes · Unilateral",
+      video: require("./assets/exercise-videos/female-dumbbell-lunge.mp4"),
       phases: ["STEP", "LOWER", "DRIVE"],
       formFrames: [
         require("./assets/exercises/female-reverse-lunge/start.jpg"),
@@ -835,9 +841,10 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
     },
     {
       ...workoutExercises[2]!,
-      name: "Supported One-Arm Row",
-      target: "Back · Controlled",
-      phases: ["REACH", "PULL", "RETURN"],
+      name: "Dumbbell Biceps Curl",
+      target: "Arms · Controlled",
+      video: require("./assets/exercise-videos/female-bicep-curl.mp4"),
+      phases: ["LOWER", "CURL", "SQUEEZE"],
       formFrames: [
         require("./assets/exercises/female-one-arm-row/start.jpg"),
         require("./assets/exercises/female-one-arm-row/finish.jpg"),
@@ -857,22 +864,29 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
       ],
       poseGuide: poseGuides.shoulder!,
     },
-    workoutExercises[2]!,
+    {
+      ...workoutExercises[2]!,
+      video: require("./assets/exercise-videos/male-seated-row.mp4"),
+    },
     {
       ...workoutExercises[1]!,
       name: "Dumbbell Bench Press",
       target: "Chest · Strength",
+      video: require("./assets/exercise-videos/male-dumbbell-bench-press.mp4"),
     },
-    workoutExercises[0]!,
     {
       ...workoutExercises[0]!,
-      name: "Dumbbell Romanian Deadlift",
-      target: "Glutes & hamstrings · Controlled",
-      phases: ["HINGE", "STRETCH", "DRIVE"],
-      formFrames: [
-        require("./assets/exercises/dumbbell-romanian-deadlift/start.jpg"),
-        require("./assets/exercises/dumbbell-romanian-deadlift/finish.jpg"),
-      ],
+      name: "Push-Up",
+      target: "Chest & triceps · Bodyweight",
+      video: require("./assets/exercise-videos/male-push-up.mp4"),
+      phases: ["LOWER", "HOLD", "PRESS"],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Dumbbell Biceps Curl",
+      target: "Arms · Controlled",
+      video: require("./assets/exercise-videos/male-bicep-curl.mp4"),
+      phases: ["LOWER", "CURL", "SQUEEZE"],
     },
   ];
   const selectedBase =
