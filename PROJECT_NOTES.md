@@ -5,6 +5,7 @@
 - Implement obvious bug fixes without repeatedly asking for confirmation.
 - Ask once only when the operating system requires permission to copy outside the protected workspace.
 - Test every visual or interaction change at a real phone viewport before handing it off.
+- Responsive screens must use both current viewport width and height, support small and large phones, and keep essential actions reachable through scrolling.
 - Never describe a change as complete until the complete user flow has been tested.
 - Every visible icon, button, card, and link must perform a meaningful action and provide visible feedback. Decorative controls that do nothing are prohibited.
 - Test information, help, close, back, next, and finish controls explicitly whenever their screen is changed.

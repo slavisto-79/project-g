@@ -1052,7 +1052,7 @@ function ActiveWorkoutScreen({
   onViewProgress: () => void;
   profile: Record<string, string>;
 }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [completedSets, setCompletedSets] = useState<boolean[]>([false, false, false]);
   const [restSeconds, setRestSeconds] = useState(0);
@@ -1061,7 +1061,10 @@ function ActiveWorkoutScreen({
   const [exerciseInfoOpen, setExerciseInfoOpen] = useState(false);
   const personalizedExercises = createWorkout(profile);
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
-  const exerciseVisualHeight = Math.min(380, Math.max(230, width * 0.38));
+  const exerciseVisualHeight = Math.min(
+    380,
+    Math.max(210, Math.min(width * 0.78, height * 0.42)),
+  );
   const workoutTitle =
     profile.sex === "female"
       ? "WOMEN’S STRENGTH FOUNDATION"
@@ -1157,6 +1160,11 @@ function ActiveWorkoutScreen({
     return (
       <SafeAreaView style={styles.workoutCompleteScreen}>
         <View style={styles.completeGlow} />
+        <ScrollView
+          style={styles.workoutCompleteScroll}
+          contentContainerStyle={styles.workoutCompleteContent}
+          showsVerticalScrollIndicator={false}
+        >
         <View style={styles.completeMark}>
           <Text style={styles.completeMarkText}>✓</Text>
         </View>
@@ -1221,6 +1229,7 @@ function ActiveWorkoutScreen({
           <Text style={styles.completeButtonText}>VIEW MY PROGRESS</Text>
           <Text style={styles.completeButtonArrow}>→</Text>
         </Pressable>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -1240,6 +1249,11 @@ function ActiveWorkoutScreen({
         <View style={styles.workoutElapsed}><Text style={styles.workoutElapsedText}>{elapsedLabel}</Text></View>
       </View>
 
+      <ScrollView
+        style={styles.activeWorkoutScroll}
+        contentContainerStyle={styles.activeWorkoutScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
       <View style={[styles.exerciseVisual, { height: exerciseVisualHeight }]}>
         <View style={styles.exerciseGlow} />
         <Text style={styles.exerciseNumber}>0{exerciseIndex + 1}</Text>
@@ -1340,6 +1354,7 @@ function ActiveWorkoutScreen({
           <Text style={[styles.nextExerciseArrow, completedCount < 3 && styles.nextExerciseTextDisabled]}>→</Text>
         </Pressable>
       </View>
+      </ScrollView>
 
       <Modal
         transparent
@@ -2154,7 +2169,19 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: "hidden",
     backgroundColor: colors.background,
+  },
+  workoutCompleteScroll: {
+    flex: 1,
+    width: "100%",
+  },
+  workoutCompleteContent: {
+    width: "100%",
+    maxWidth: 520,
+    minHeight: "100%",
+    alignSelf: "center",
     paddingHorizontal: 22,
+    paddingTop: 34,
+    paddingBottom: 34,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -2261,6 +2288,8 @@ const styles = StyleSheet.create({
   completeButtonText: { color: colors.ink, fontSize: 11, fontWeight: "900", letterSpacing: 1.4 },
   completeButtonArrow: { color: colors.ink, fontSize: 22, fontWeight: "800" },
   activeWorkout: { flex: 1, backgroundColor: colors.background },
+  activeWorkoutScroll: { flex: 1 },
+  activeWorkoutScrollContent: { flexGrow: 1, paddingBottom: 18 },
   activeHeader: {
     height: 58,
     paddingHorizontal: 16,
@@ -2489,9 +2518,10 @@ const styles = StyleSheet.create({
   formDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.lime, marginRight: 6 },
   formBadgeText: { color: colors.text, fontSize: 6, fontWeight: "800", letterSpacing: 0.8 },
   exerciseSheet: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 18,
     paddingTop: 15,
+    paddingBottom: 18,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     backgroundColor: "#090A09",
