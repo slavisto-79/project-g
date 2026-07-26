@@ -7,6 +7,7 @@ import {
   Platform,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -247,12 +248,18 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
           </View>
         </View>
 
-        <Animated.View
-          style={[
-            styles.welcomeContent,
-            { opacity: contentOpacity, transform: [{ translateY: contentY }] },
-          ]}
+        <ScrollView
+          style={styles.welcomeScroll}
+          contentContainerStyle={styles.welcomeScrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
         >
+          <Animated.View
+            style={[
+              styles.welcomeContent,
+              { opacity: contentOpacity, transform: [{ translateY: contentY }] },
+            ]}
+          >
           <Text style={styles.eyebrow}>
             AI PRECISION.{"\n"}REAL HUMAN COACHING.
           </Text>
@@ -274,7 +281,8 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
           <Text style={styles.disclaimer}>Built for your goals. Adapted to your life.</Text>
-        </Animated.View>
+          </Animated.View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -1079,10 +1087,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: "53%",
-    backgroundColor: "rgba(0,0,0,0.82)",
+    height: "32%",
+    backgroundColor: "rgba(0,0,0,0.76)",
   },
-  welcomeSafe: { flex: 1, justifyContent: "space-between" },
+  welcomeSafe: { flex: 1 },
   welcomeHeader: {
     marginTop: Platform.OS === "android" ? 14 : 4,
     paddingHorizontal: 24,
@@ -1114,7 +1122,14 @@ const styles = StyleSheet.create({
   },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.lime, marginRight: 7 },
   humanBadgeText: { color: colors.text, fontSize: 8, fontWeight: "700", letterSpacing: 1.1 },
-  welcomeContent: { paddingHorizontal: 24, paddingBottom: 24 },
+  welcomeScroll: { flex: 1 },
+  welcomeScrollContent: { paddingTop: 500 },
+  welcomeContent: {
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    paddingBottom: 24,
+    backgroundColor: "rgba(0,0,0,0.86)",
+  },
   eyebrow: {
     color: colors.lime,
     fontSize: 21,
