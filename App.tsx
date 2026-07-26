@@ -943,7 +943,8 @@ function ExerciseStill({ frame }: { frame: number }) {
   );
 }
 
-function RealExerciseVideo({ source }: { source: number }) {
+function RealExerciseVideo({ source, poster }: { source: number; poster: number }) {
+  const [firstFrameReady, setFirstFrameReady] = useState(false);
   const player = useVideoPlayer(source, (videoPlayer) => {
     videoPlayer.loop = true;
     videoPlayer.muted = true;
@@ -958,10 +959,36 @@ function RealExerciseVideo({ source }: { source: number }) {
   }, [player]);
 
   return (
+    <>
+      <ExerciseStill frame={poster} />
+      <VideoView
+        player={player}
+        style={[styles.realExerciseVideo, !firstFrameReady && styles.realExerciseVideoLoading]}
+        contentFit="cover"
+        nativeControls={false}
+        allowsFullscreen={false}
+        allowsPictureInPicture={false}
+        playsInline
+        pointerEvents="none"
+        onFirstFrameRender={() => setFirstFrameReady(true)}
+      />
+    </>
+  );
+}
+
+function PreloadExerciseVideo({ source }: { source: number }) {
+  const player = useVideoPlayer(source, (videoPlayer) => {
+    videoPlayer.muted = true;
+  });
+
+  useEffect(() => {
+    player.pause();
+  }, [player]);
+
+  return (
     <VideoView
       player={player}
-      style={styles.realExerciseVideo}
-      contentFit="cover"
+      style={styles.preloadExerciseVideo}
       nativeControls={false}
       allowsFullscreen={false}
       allowsPictureInPicture={false}
@@ -982,6 +1009,7 @@ function ExerciseDemo({
 }) {
   const [phaseIndex, setPhaseIndex] = useState(0);
   const exercise = exercises[exerciseIndex] ?? exercises[0]!;
+  const nextExercise = exercises[exerciseIndex + 1];
 
   useEffect(() => {
     const phaseTimer = setInterval(() => setPhaseIndex((value) => (value + 1) % 3), 1100);
@@ -991,10 +1019,17 @@ function ExerciseDemo({
   return (
     <View style={styles.demoStage}>
       {exercise.video ? (
-        <RealExerciseVideo key={exercise.video} source={exercise.video} />
+        <RealExerciseVideo
+          key={exercise.video}
+          source={exercise.video}
+          poster={exercise.formFrames[0]}
+        />
       ) : (
         <ExerciseStill frame={exercise.formFrames[0]} />
       )}
+      {nextExercise?.video ? (
+        <PreloadExerciseVideo key={`preload-${nextExercise.video}`} source={nextExercise.video} />
+      ) : null}
       <View style={styles.videoShade} />
       <View style={styles.videoSourceBadge}>
         <View style={styles.formDot} />
@@ -2197,6 +2232,17 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     backgroundColor: colors.background,
+  },
+  realExerciseVideoLoading: {
+    opacity: 0,
+  },
+  preloadExerciseVideo: {
+    position: "absolute",
+    width: 1,
+    height: 1,
+    opacity: 0,
+    right: 0,
+    bottom: 0,
   },
   exerciseVideo: {
     position: "absolute",

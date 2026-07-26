@@ -28,3 +28,13 @@
 - Never simulate video by flashing between still frames.
 - All exercise videos use one central playback component. On web/iPhone it must set inline playback, disable fullscreen/Picture-in-Picture controls, and ignore taps on the media surface.
 - Any future exercise video inherits this playback contract automatically; do not implement per-exercise player behavior.
+
+## Exercise video performance rules
+
+- Production exercise videos must be compressed and normally stay within 2–6 MB per clip.
+- Never download the complete exercise library when the app opens.
+- Load only the current exercise and preload no more than the next exercise.
+- Cache a downloaded exercise video for later sessions.
+- Show a matching poster image immediately while a video is loading or when the connection is too slow.
+- Use adaptive delivery or a lower-quality mobile version when network conditions require it.
+- A new exercise video is not complete until its file size, startup time, inline playback, looping, and phone behavior have been verified.
