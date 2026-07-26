@@ -253,13 +253,15 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
             { opacity: contentOpacity, transform: [{ translateY: contentY }] },
           ]}
         >
-          <Text style={styles.eyebrow}>YOUR PERSONAL PERFORMANCE SYSTEM</Text>
+          <Text style={styles.eyebrow}>
+            AI PRECISION.{"\n"}REAL HUMAN COACHING.
+          </Text>
           <Text style={styles.welcomeTitle}>
             Become the{"\n"}
             <Text style={styles.welcomeTitleAccent}>strongest</Text> version{"\n"}of yourself.
           </Text>
           <Text style={styles.welcomeBody}>
-            AI builds the plan. A real coach helps you achieve it.
+            Built around your body, your goals, and your real life.
           </Text>
 
           <Pressable
@@ -1115,11 +1117,14 @@ const styles = StyleSheet.create({
   welcomeContent: { paddingHorizontal: 24, paddingBottom: 24 },
   eyebrow: {
     color: colors.lime,
-    fontSize: 10,
-    lineHeight: 14,
-    fontWeight: "800",
-    letterSpacing: 1.8,
-    marginBottom: 14,
+    fontSize: 21,
+    lineHeight: 24,
+    fontWeight: "900",
+    letterSpacing: 1.25,
+    marginBottom: 16,
+    textShadowColor: "rgba(190,255,40,0.24)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 14,
   },
   welcomeTitle: {
     maxWidth: 520,
