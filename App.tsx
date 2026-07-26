@@ -940,27 +940,43 @@ export default function App() {
     <View style={styles.app}>
       {Platform.OS === "android" ? <StatusBar backgroundColor={colors.background} /> : null}
       <ExpoStatusBar style="light" />
-      {screen === "splash" && <SplashScreen onComplete={() => setScreen("welcome")} />}
-      {screen === "welcome" && <WelcomeScreen onStart={() => setScreen("interview")} />}
-      {screen === "interview" && (
-        <InterviewScreen
-          onBack={() => setScreen("welcome")}
-          onFinish={(answers) => {
-            setProfile(answers);
-            setScreen("dashboard");
-          }}
-        />
-      )}
-      {screen === "dashboard" && <DashboardScreen onStartWorkout={() => setScreen("workout")} />}
-      {screen === "workout" && (
-        <ActiveWorkoutScreen profile={profile} onExit={() => setScreen("dashboard")} />
-      )}
+      <View style={styles.mobileViewport}>
+        {screen === "splash" && <SplashScreen onComplete={() => setScreen("welcome")} />}
+        {screen === "welcome" && <WelcomeScreen onStart={() => setScreen("interview")} />}
+        {screen === "interview" && (
+          <InterviewScreen
+            onBack={() => setScreen("welcome")}
+            onFinish={(answers) => {
+              setProfile(answers);
+              setScreen("dashboard");
+            }}
+          />
+        )}
+        {screen === "dashboard" && <DashboardScreen onStartWorkout={() => setScreen("workout")} />}
+        {screen === "workout" && (
+          <ActiveWorkoutScreen profile={profile} onExit={() => setScreen("dashboard")} />
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  app: { flex: 1, backgroundColor: colors.background },
+  app: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "#020302",
+  },
+  mobileViewport: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 440,
+    overflow: "hidden",
+    backgroundColor: colors.background,
+    borderLeftWidth: Platform.OS === "web" ? 1 : 0,
+    borderRightWidth: Platform.OS === "web" ? 1 : 0,
+    borderColor: "#20241F",
+  },
   splash: {
     flex: 1,
     alignItems: "center",
