@@ -693,8 +693,7 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
       name: "Dumbbell Shoulder Press",
       target: "Shoulders · Strength",
       phases: ["LOWER", "BRACE", "PRESS"],
-      video: "https://www.pexels.com/download/video/4367541/",
-      clipStart: 4,
+      video: "https://www.pexels.com/download/video/11023725/",
     },
     workoutExercises[2]!,
     {
@@ -735,6 +734,9 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
         ...exercises[pressIndex]!,
         name: "Neutral-Grip Dumbbell Press",
         target: "Upper body · Shoulder-aware",
+        phases: ["LOWER", "PAUSE", "PRESS"],
+        video: "https://www.pexels.com/download/video/33515037/",
+        clipStart: 0,
       };
     }
   }
