@@ -15,7 +15,6 @@ import {
   View,
 } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
-import { useVideoPlayer, VideoView } from "expo-video";
 
 const colors = {
   background: "#050505",
@@ -643,9 +642,7 @@ type WorkoutExercise = {
   reps: string;
   tempo: string;
   phases: string[];
-  video: string;
-  clipStart?: number;
-  formFrames?: [number, number];
+  formFrames: [number, number];
 };
 
 const workoutExercises: WorkoutExercise[] = [
@@ -656,8 +653,10 @@ const workoutExercises: WorkoutExercise[] = [
     reps: "10",
     tempo: "3–1–1",
     phases: ["LOWER", "HOLD", "DRIVE"],
-    video:
-      "https://videos.pexels.com/video-files/6892968/6892968-uhd_2560_1440_25fps.mp4",
+    formFrames: [
+      require("./assets/exercises/goblet-squat/start.jpg"),
+      require("./assets/exercises/goblet-squat/finish.jpg"),
+    ],
   },
   {
     name: "Dumbbell Press",
@@ -666,8 +665,10 @@ const workoutExercises: WorkoutExercise[] = [
     reps: "10",
     tempo: "2–1–1",
     phases: ["LOWER", "PAUSE", "PRESS"],
-    video:
-      "https://videos.pexels.com/video-files/3126044/3126044-uhd_2560_1440_25fps.mp4",
+    formFrames: [
+      require("./assets/exercises/dumbbell-bench-press/start.jpg"),
+      require("./assets/exercises/dumbbell-bench-press/finish.jpg"),
+    ],
   },
   {
     name: "Seated Row",
@@ -676,8 +677,10 @@ const workoutExercises: WorkoutExercise[] = [
     reps: "12",
     tempo: "2–1–2",
     phases: ["REACH", "PULL", "RETURN"],
-    video:
-      "https://videos.pexels.com/video-files/4367635/4367635-hd_1920_1080_30fps.mp4",
+    formFrames: [
+      require("./assets/exercises/seated-cable-row/start.jpg"),
+      require("./assets/exercises/seated-cable-row/finish.jpg"),
+    ],
   },
 ];
 
@@ -694,7 +697,10 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
       name: "Dumbbell Romanian Deadlift",
       target: "Glutes & hamstrings · Controlled",
       phases: ["HINGE", "STRETCH", "DRIVE"],
-      video: "https://www.pexels.com/download/video/11121740/",
+      formFrames: [
+        require("./assets/exercises/dumbbell-romanian-deadlift/start.jpg"),
+        require("./assets/exercises/dumbbell-romanian-deadlift/finish.jpg"),
+      ],
     },
     workoutExercises[1]!,
   ];
@@ -704,14 +710,16 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
       name: "Dumbbell Shoulder Press",
       target: "Shoulders · Strength",
       phases: ["LOWER", "BRACE", "PRESS"],
-      video: "https://www.pexels.com/download/video/36623781/",
+      formFrames: [
+        require("./assets/exercises/dumbbell-shoulder-press/start.jpg"),
+        require("./assets/exercises/dumbbell-shoulder-press/finish.jpg"),
+      ],
     },
     workoutExercises[2]!,
     {
       ...workoutExercises[1]!,
       name: "Dumbbell Bench Press",
       target: "Chest · Strength",
-      video: "https://www.pexels.com/download/video/6116240/",
     },
   ];
   const selectedBase =
@@ -755,37 +763,6 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
   }
 
   return exercises;
-}
-
-function ExerciseVideo({
-  exercise,
-  resting,
-}: {
-  exercise: WorkoutExercise;
-  resting: boolean;
-}) {
-  const videoPlayer = useVideoPlayer(exercise.video, (player) => {
-    player.loop = true;
-    player.muted = true;
-    player.playbackRate = 0.75;
-    player.currentTime = exercise.clipStart ?? 0;
-    player.play();
-  });
-
-  useEffect(() => {
-    // Resting pauses the workout timer logic, never the form demonstration.
-    videoPlayer.play();
-  }, [resting, videoPlayer]);
-
-  return (
-    <VideoView
-      player={videoPlayer}
-      style={styles.exerciseVideo}
-      contentFit="cover"
-      nativeControls={false}
-      allowsFullscreen={false}
-    />
-  );
 }
 
 function ExerciseFormFrames({
@@ -839,11 +816,7 @@ function ExerciseDemo({
 
   return (
     <View style={styles.demoStage}>
-      {exercise.formFrames ? (
-        <ExerciseFormFrames frames={exercise.formFrames} phaseIndex={phaseIndex} />
-      ) : (
-        <ExerciseVideo exercise={exercise} resting={paused} />
-      )}
+      <ExerciseFormFrames frames={exercise.formFrames} phaseIndex={phaseIndex} />
       <View style={styles.videoShade} />
       <View style={styles.videoSourceBadge}>
         <View style={styles.formDot} />
@@ -870,6 +843,7 @@ function ActiveWorkoutScreen({
   const [completedSets, setCompletedSets] = useState<boolean[]>([false, false, false]);
   const [restSeconds, setRestSeconds] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [workoutComplete, setWorkoutComplete] = useState(false);
   const personalizedExercises = createWorkout(profile);
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
   const exerciseVisualHeight = Math.min(380, Math.max(230, width * 0.38));
@@ -901,6 +875,9 @@ function ActiveWorkoutScreen({
       setExerciseIndex((current) => current + 1);
       setCompletedSets([false, false, false]);
       setRestSeconds(0);
+    } else {
+      setRestSeconds(0);
+      setWorkoutComplete(true);
     }
   };
 
@@ -911,6 +888,56 @@ function ActiveWorkoutScreen({
   ).padStart(2, "0")}`;
   const remainingSeconds = Math.max(0, 45 * 60 - elapsedSeconds);
   const remainingLabel = `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, "0")}`;
+
+  if (workoutComplete) {
+    return (
+      <SafeAreaView style={styles.workoutCompleteScreen}>
+        <View style={styles.completeGlow} />
+        <View style={styles.completeMark}>
+          <Text style={styles.completeMarkText}>✓</Text>
+        </View>
+        <Text style={styles.completeEyebrow}>WORKOUT COMPLETE</Text>
+        <Text style={styles.workoutCompleteTitle}>Strong work.</Text>
+        <Text style={styles.completeSubtitle}>
+          Your session is saved. Your next plan will build from today’s performance.
+        </Text>
+
+        <View style={styles.completeStats}>
+          <View style={styles.completeStat}>
+            <Text style={styles.completeStatValue}>{personalizedExercises.length}</Text>
+            <Text style={styles.completeStatLabel}>EXERCISES</Text>
+          </View>
+          <View style={styles.completeStatDivider} />
+          <View style={styles.completeStat}>
+            <Text style={styles.completeStatValue}>{personalizedExercises.length * 3}</Text>
+            <Text style={styles.completeStatLabel}>SETS</Text>
+          </View>
+          <View style={styles.completeStatDivider} />
+          <View style={styles.completeStat}>
+            <Text style={styles.completeStatValue}>{elapsedLabel}</Text>
+            <Text style={styles.completeStatLabel}>TIME</Text>
+          </View>
+        </View>
+
+        <View style={styles.completeCoachNote}>
+          <Text style={styles.completeCoachLabel}>AI + HUMAN COACH</Text>
+          <Text style={styles.completeCoachText}>
+            Nice consistency. We’ll use this session to refine your next workout.
+          </Text>
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Return to dashboard"
+          onPress={onExit}
+          style={styles.completeButton}
+        >
+          <Text style={styles.completeButtonText}>RETURN TO DASHBOARD</Text>
+          <Text style={styles.completeButtonArrow}>→</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.activeWorkout}>
@@ -1657,6 +1684,87 @@ const styles = StyleSheet.create({
   navIcon: { color: "#666C63", fontSize: 18, lineHeight: 22 },
   navLabel: { color: "#666C63", fontSize: 6, fontWeight: "800", letterSpacing: 0.8, marginTop: 3 },
   navActive: { color: colors.lime },
+  workoutCompleteScreen: {
+    flex: 1,
+    overflow: "hidden",
+    backgroundColor: colors.background,
+    paddingHorizontal: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  completeGlow: {
+    position: "absolute",
+    top: -130,
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: "rgba(200,255,50,0.08)",
+  },
+  completeMark: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.lime,
+    marginBottom: 24,
+  },
+  completeMarkText: { color: colors.ink, fontSize: 38, lineHeight: 44, fontWeight: "900" },
+  completeEyebrow: { color: colors.lime, fontSize: 10, fontWeight: "900", letterSpacing: 1.8 },
+  workoutCompleteTitle: {
+    color: colors.text,
+    fontSize: 42,
+    lineHeight: 48,
+    fontWeight: "900",
+    letterSpacing: -1.6,
+    marginTop: 10,
+  },
+  completeSubtitle: {
+    maxWidth: 350,
+    color: colors.muted,
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: "center",
+    marginTop: 12,
+  },
+  completeStats: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.28)",
+    borderRadius: 22,
+    backgroundColor: "#0E110D",
+    paddingVertical: 22,
+    marginTop: 30,
+  },
+  completeStat: { flex: 1, alignItems: "center" },
+  completeStatValue: { color: colors.text, fontSize: 21, fontWeight: "900" },
+  completeStatLabel: { color: colors.muted, fontSize: 7, fontWeight: "900", letterSpacing: 1.1, marginTop: 5 },
+  completeStatDivider: { width: 1, height: 34, backgroundColor: "rgba(255,255,255,0.12)" },
+  completeCoachNote: {
+    width: "100%",
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    padding: 18,
+    marginTop: 14,
+  },
+  completeCoachLabel: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 1.2 },
+  completeCoachText: { color: colors.text, fontSize: 12, lineHeight: 18, marginTop: 7 },
+  completeButton: {
+    width: "100%",
+    minHeight: 62,
+    borderRadius: 31,
+    backgroundColor: colors.lime,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+    marginTop: 18,
+  },
+  completeButtonText: { color: colors.ink, fontSize: 11, fontWeight: "900", letterSpacing: 1.4 },
+  completeButtonArrow: { color: colors.ink, fontSize: 22, fontWeight: "800" },
   activeWorkout: { flex: 1, backgroundColor: colors.background },
   activeHeader: {
     height: 58,

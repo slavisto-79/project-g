@@ -44,3 +44,9 @@ the generated `dist` folder.
 Working name: **Project G**
 
 Positioning: **Powered by AI. Guided by a Real Coach.**
+
+## MVP test-mode follow-up
+
+- Before production release, lock set completion and “Next exercise” until the active
+  repetition/rest timing rules allow progression. This remains intentionally unlocked
+  during prototype testing.
