@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
+import { useVideoPlayer, VideoView } from "expo-video";
 
 const colors = {
   background: "#050505",
@@ -580,6 +581,8 @@ const workoutExercises = [
     reps: "10",
     tempo: "3–1–1",
     phases: ["LOWER", "HOLD", "DRIVE"],
+    video:
+      "https://videos.pexels.com/video-files/6892968/6892968-uhd_2560_1440_25fps.mp4",
   },
   {
     name: "Dumbbell Press",
@@ -588,6 +591,8 @@ const workoutExercises = [
     reps: "10",
     tempo: "2–1–1",
     phases: ["LOWER", "PAUSE", "PRESS"],
+    video:
+      "https://videos.pexels.com/video-files/3126044/3126044-uhd_2560_1440_25fps.mp4",
   },
   {
     name: "Seated Row",
@@ -596,6 +601,8 @@ const workoutExercises = [
     reps: "12",
     tempo: "2–1–2",
     phases: ["REACH", "PULL", "RETURN"],
+    video:
+      "https://videos.pexels.com/video-files/4367635/4367635-hd_1920_1080_30fps.mp4",
   },
 ];
 
@@ -609,32 +616,20 @@ function ExerciseDemo({
   const motion = useRef(new Animated.Value(0)).current;
   const [phaseIndex, setPhaseIndex] = useState(0);
   const exercise = workoutExercises[exerciseIndex] ?? workoutExercises[0]!;
+  const videoPlayer = useVideoPlayer(exercise.video, (player) => {
+    player.loop = true;
+    player.muted = true;
+    player.playbackRate = 0.75;
+    player.play();
+  });
 
   useEffect(() => {
-    motion.stopAnimation();
-    motion.setValue(0);
-    if (paused) return;
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(motion, {
-          toValue: 1,
-          duration: 1600,
-          easing: Easing.inOut(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.delay(450),
-        Animated.timing(motion, {
-          toValue: 0,
-          duration: 950,
-          easing: Easing.inOut(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.delay(300),
-      ]),
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [exerciseIndex, motion, paused]);
+    if (paused) {
+      videoPlayer.pause();
+    } else {
+      videoPlayer.play();
+    }
+  }, [paused, videoPlayer]);
 
   useEffect(() => {
     if (paused) return;
@@ -642,33 +637,20 @@ function ExerciseDemo({
     return () => clearInterval(phaseTimer);
   }, [paused]);
 
-  const bodyTransform =
-    exerciseIndex === 0
-      ? [{ translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [0, 27] }) }]
-      : exerciseIndex === 1
-        ? [{ translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [8, -12] }) }]
-        : [{ translateX: motion.interpolate({ inputRange: [0, 1], outputRange: [-13, 13] }) }];
-  const armTransform =
-    exerciseIndex === 2
-      ? [{ translateX: motion.interpolate({ inputRange: [0, 1], outputRange: [11, -9] }) }]
-      : [{ translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [7, -10] }) }];
-
   return (
     <View style={styles.demoStage}>
-      <View style={styles.demoFloor} />
-      <Animated.View style={[styles.demoPerson, { transform: bodyTransform }]}>
-        <View style={styles.demoHead} />
-        <View style={styles.demoTorso}>
-          <Animated.View style={[styles.demoArm, styles.demoArmLeft, { transform: armTransform }]} />
-          <Animated.View style={[styles.demoArm, styles.demoArmRight, { transform: armTransform }]} />
-          <View style={styles.demoCore} />
-        </View>
-        <View style={styles.demoLegs}>
-          <View style={[styles.demoLeg, styles.demoLegLeft]} />
-          <View style={[styles.demoLeg, styles.demoLegRight]} />
-        </View>
-        <View style={styles.demoWeight}><Text style={styles.demoWeightText}>●</Text></View>
-      </Animated.View>
+      <VideoView
+        player={videoPlayer}
+        style={styles.exerciseVideo}
+        contentFit="cover"
+        nativeControls={false}
+        allowsFullscreen={false}
+      />
+      <View style={styles.videoShade} />
+      <View style={styles.videoSourceBadge}>
+        <View style={styles.formDot} />
+        <Text style={styles.videoSourceText}>REAL FORM DEMO</Text>
+      </View>
       <View style={styles.tempoPanel}>
         <Text style={styles.tempoLabel}>REP TEMPO</Text>
         <Text style={styles.tempoValue}>{exercise.tempo}</Text>
@@ -735,7 +717,7 @@ function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
       <View style={styles.exerciseVisual}>
         <View style={styles.exerciseGlow} />
         <Text style={styles.exerciseNumber}>0{exerciseIndex + 1}</Text>
-        <ExerciseDemo exerciseIndex={exerciseIndex} paused={restSeconds > 0} />
+        <ExerciseDemo key={exerciseIndex} exerciseIndex={exerciseIndex} paused={restSeconds > 0} />
         <View style={styles.formBadge}>
           <View style={styles.formDot} />
           <Text style={styles.formBadgeText}>{remainingLabel} REMAINING</Text>
@@ -1438,7 +1420,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#11150F",
   },
   motionFigureText: { color: colors.text, fontSize: 31, fontWeight: "800" },
-  demoStage: { width: 190, height: 142, alignItems: "center", justifyContent: "center" },
+  demoStage: { width: "100%", height: 166, alignItems: "center", justifyContent: "center" },
+  exerciseVideo: { ...StyleSheet.absoluteFillObject },
+  videoShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.18)",
+  },
+  videoSourceBadge: {
+    position: "absolute",
+    left: 14,
+    bottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 9,
+    borderRadius: 12,
+    backgroundColor: "rgba(0,0,0,0.72)",
+  },
+  videoSourceText: { color: colors.text, fontSize: 6, fontWeight: "900", letterSpacing: 0.8 },
   demoFloor: {
     position: "absolute",
     left: 27,
@@ -1492,9 +1491,13 @@ const styles = StyleSheet.create({
   demoWeightText: { color: colors.ink, fontSize: 9 },
   tempoPanel: {
     position: "absolute",
-    right: -15,
-    top: 30,
+    right: 14,
+    top: 14,
     alignItems: "flex-end",
+    paddingVertical: 7,
+    paddingHorizontal: 9,
+    borderRadius: 12,
+    backgroundColor: "rgba(0,0,0,0.72)",
   },
   tempoLabel: { color: "#666D63", fontSize: 6, fontWeight: "800", letterSpacing: 1 },
   tempoValue: { color: colors.text, fontSize: 16, fontWeight: "800", marginTop: 2 },
