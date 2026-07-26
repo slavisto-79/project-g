@@ -645,6 +645,7 @@ type WorkoutExercise = {
   phases: string[];
   video: string;
   clipStart?: number;
+  formFrames?: [number, number];
 };
 
 const workoutExercises: WorkoutExercise[] = [
@@ -745,13 +746,72 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
         name: "Neutral-Grip Dumbbell Press",
         target: "Upper body · Shoulder-aware",
         phases: ["LOWER", "PAUSE", "PRESS"],
-        video: "https://www.pexels.com/download/video/6116240/",
-        clipStart: 0,
+        formFrames: [
+          require("./assets/exercises/neutral-grip-dumbbell-press/start.jpg"),
+          require("./assets/exercises/neutral-grip-dumbbell-press/finish.jpg"),
+        ],
       };
     }
   }
 
   return exercises;
+}
+
+function ExerciseVideo({ exercise, paused }: { exercise: WorkoutExercise; paused: boolean }) {
+  const videoPlayer = useVideoPlayer(exercise.video, (player) => {
+    player.loop = true;
+    player.muted = true;
+    player.playbackRate = 0.75;
+    player.currentTime = exercise.clipStart ?? 0;
+    player.play();
+  });
+
+  useEffect(() => {
+    if (paused) videoPlayer.pause();
+    else videoPlayer.play();
+  }, [paused, videoPlayer]);
+
+  return (
+    <VideoView
+      player={videoPlayer}
+      style={styles.exerciseVideo}
+      contentFit="cover"
+      nativeControls={false}
+      allowsFullscreen={false}
+    />
+  );
+}
+
+function ExerciseFormFrames({
+  frames,
+  phaseIndex,
+}: {
+  frames: [number, number];
+  phaseIndex: number;
+}) {
+  const transition = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(transition, {
+      toValue: phaseIndex < 2 ? 1 : 0,
+      duration: phaseIndex === 1 ? 180 : 900,
+      easing: Easing.inOut(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [phaseIndex, transition]);
+
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <Image source={frames[0]} style={styles.exerciseFrameBackdrop} resizeMode="cover" />
+      <View style={styles.exerciseFrameBackdropShade} />
+      <Image source={frames[0]} style={styles.exerciseVideo} resizeMode="contain" />
+      <Animated.Image
+        source={frames[1]}
+        style={[styles.exerciseVideo, { opacity: transition }]}
+        resizeMode="contain"
+      />
+    </View>
+  );
 }
 
 function ExerciseDemo({
@@ -763,24 +823,8 @@ function ExerciseDemo({
   paused: boolean;
   exercises: WorkoutExercise[];
 }) {
-  const motion = useRef(new Animated.Value(0)).current;
   const [phaseIndex, setPhaseIndex] = useState(0);
   const exercise = exercises[exerciseIndex] ?? exercises[0]!;
-  const videoPlayer = useVideoPlayer(exercise.video, (player) => {
-    player.loop = true;
-    player.muted = true;
-    player.playbackRate = 0.75;
-    player.currentTime = exercise.clipStart ?? 0;
-    player.play();
-  });
-
-  useEffect(() => {
-    if (paused) {
-      videoPlayer.pause();
-    } else {
-      videoPlayer.play();
-    }
-  }, [paused, videoPlayer]);
 
   useEffect(() => {
     if (paused) return;
@@ -790,13 +834,11 @@ function ExerciseDemo({
 
   return (
     <View style={styles.demoStage}>
-      <VideoView
-        player={videoPlayer}
-        style={styles.exerciseVideo}
-        contentFit="contain"
-        nativeControls={false}
-        allowsFullscreen={false}
-      />
+      {exercise.formFrames ? (
+        <ExerciseFormFrames frames={exercise.formFrames} phaseIndex={phaseIndex} />
+      ) : (
+        <ExerciseVideo exercise={exercise} paused={paused} />
+      )}
       <View style={styles.videoShade} />
       <View style={styles.videoSourceBadge}>
         <View style={styles.formDot} />
@@ -1680,7 +1722,26 @@ const styles = StyleSheet.create({
   },
   motionFigureText: { color: colors.text, fontSize: 31, fontWeight: "800" },
   demoStage: { width: "100%", height: "100%", alignItems: "center", justifyContent: "center" },
-  exerciseVideo: { ...StyleSheet.absoluteFillObject },
+  exerciseVideo: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+  },
+  exerciseFrameBackdrop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    opacity: 0.4,
+    transform: [{ scale: 1.08 }],
+  },
+  exerciseFrameBackdropShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.42)",
+  },
   videoShade: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.18)",
