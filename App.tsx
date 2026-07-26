@@ -9,6 +9,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
@@ -652,7 +653,36 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
     profile.age === "55-plus" ||
     profile.experience === "beginner";
   const reps = reducedLoad ? "8" : profile.goal === "strength" ? "6" : "10";
-  const exercises = workoutExercises.map((exercise) => ({
+  const femaleExercises: WorkoutExercise[] = [
+    workoutExercises[0]!,
+    {
+      ...workoutExercises[2]!,
+      name: "Dumbbell Romanian Deadlift",
+      target: "Glutes & hamstrings · Controlled",
+      phases: ["HINGE", "STRETCH", "DRIVE"],
+      video: "https://www.pexels.com/download/video/11121740/",
+    },
+    workoutExercises[1]!,
+  ];
+  const maleExercises: WorkoutExercise[] = [
+    {
+      ...workoutExercises[1]!,
+      name: "Dumbbell Shoulder Press",
+      target: "Shoulders · Strength",
+      phases: ["LOWER", "BRACE", "PRESS"],
+      video: "https://www.pexels.com/download/video/4367541/",
+    },
+    workoutExercises[2]!,
+    {
+      ...workoutExercises[1]!,
+      name: "Dumbbell Bench Press",
+      target: "Chest · Strength",
+      video: "https://www.pexels.com/download/video/6116240/",
+    },
+  ];
+  const selectedBase =
+    profile.sex === "female" ? femaleExercises : profile.sex === "male" ? maleExercises : workoutExercises;
+  const exercises = selectedBase.map((exercise) => ({
     ...exercise,
     reps,
     tempo: profile.age === "55-plus" ? "3–1–2" : exercise.tempo,
@@ -665,19 +695,26 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
   }));
 
   if (profile.limitations === "knee") {
-    exercises[0] = { ...exercises[0]!, name: "Box Goblet Squat", target: "Lower body · Knee-aware" };
+    const squatIndex = exercises.findIndex((exercise) => exercise.name.includes("Squat"));
+    if (squatIndex >= 0) {
+      exercises[squatIndex] = {
+        ...exercises[squatIndex]!,
+        name: "Box Goblet Squat",
+        target: "Lower body · Knee-aware",
+      };
+    }
   }
   if (profile.limitations === "shoulder") {
-    exercises[1] = {
-      ...exercises[1]!,
-      name: "Neutral-Grip Dumbbell Press",
-      target: "Chest · Shoulder-aware",
-    };
+    const pressIndex = exercises.findIndex((exercise) => exercise.name.includes("Press"));
+    if (pressIndex >= 0) {
+      exercises[pressIndex] = {
+        ...exercises[pressIndex]!,
+        name: "Neutral-Grip Dumbbell Press",
+        target: "Upper body · Shoulder-aware",
+      };
+    }
   }
 
-  // Different training emphasis while keeping all plans balanced.
-  if (profile.sex === "female") return [exercises[0]!, exercises[2]!, exercises[1]!];
-  if (profile.sex === "male") return [exercises[1]!, exercises[2]!, exercises[0]!];
   return exercises;
 }
 
@@ -719,7 +756,7 @@ function ExerciseDemo({
       <VideoView
         player={videoPlayer}
         style={styles.exerciseVideo}
-        contentFit="cover"
+        contentFit="contain"
         nativeControls={false}
         allowsFullscreen={false}
       />
@@ -744,12 +781,20 @@ function ActiveWorkoutScreen({
   onExit: () => void;
   profile: Record<string, string>;
 }) {
+  const { width } = useWindowDimensions();
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [completedSets, setCompletedSets] = useState<boolean[]>([false, false, false]);
   const [restSeconds, setRestSeconds] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const personalizedExercises = createWorkout(profile);
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
+  const exerciseVisualHeight = Math.min(380, Math.max(230, width * 0.38));
+  const workoutTitle =
+    profile.sex === "female"
+      ? "WOMEN’S STRENGTH FOUNDATION"
+      : profile.sex === "male"
+        ? "MEN’S STRENGTH FOUNDATION"
+        : "FULL BODY FOUNDATION";
 
   useEffect(() => {
     const workoutTimer = setInterval(() => setElapsedSeconds((value) => value + 1), 1000);
@@ -790,7 +835,7 @@ function ActiveWorkoutScreen({
           <Text style={styles.workoutCloseText}>×</Text>
         </Pressable>
         <View style={styles.activeHeaderCenter}>
-          <Text style={styles.activeHeaderLabel}>FULL BODY FOUNDATION</Text>
+          <Text style={styles.activeHeaderLabel}>{workoutTitle}</Text>
           <View style={styles.activeProgressTrack}>
             <View style={[styles.activeProgressFill, { width: `${workoutProgress * 100}%` }]} />
           </View>
@@ -798,7 +843,7 @@ function ActiveWorkoutScreen({
         <View style={styles.workoutElapsed}><Text style={styles.workoutElapsedText}>{elapsedLabel}</Text></View>
       </View>
 
-      <View style={styles.exerciseVisual}>
+      <View style={[styles.exerciseVisual, { height: exerciseVisualHeight }]}>
         <View style={styles.exerciseGlow} />
         <Text style={styles.exerciseNumber}>0{exerciseIndex + 1}</Text>
         <ExerciseDemo
@@ -1485,7 +1530,6 @@ const styles = StyleSheet.create({
   },
   workoutElapsedText: { color: colors.text, fontSize: 9, fontWeight: "700" },
   exerciseVisual: {
-    height: 166,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -1518,7 +1562,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#11150F",
   },
   motionFigureText: { color: colors.text, fontSize: 31, fontWeight: "800" },
-  demoStage: { width: "100%", height: 166, alignItems: "center", justifyContent: "center" },
+  demoStage: { width: "100%", height: "100%", alignItems: "center", justifyContent: "center" },
   exerciseVideo: { ...StyleSheet.absoluteFillObject },
   videoShade: {
     ...StyleSheet.absoluteFillObject,
