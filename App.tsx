@@ -22,7 +22,7 @@ const colors = {
   ink: "#0A0B09",
 };
 
-type Screen = "splash" | "welcome" | "interview" | "dashboard";
+type Screen = "splash" | "welcome" | "interview" | "dashboard" | "workout";
 
 type InterviewAnswer = {
   label: string;
@@ -478,7 +478,7 @@ function InterviewScreen({ onBack, onFinish }: { onBack: () => void; onFinish: (
   );
 }
 
-function DashboardScreen() {
+function DashboardScreen({ onStartWorkout }: { onStartWorkout: () => void }) {
   return (
     <SafeAreaView style={styles.dashboard}>
       <View style={styles.dashboardHeader}>
@@ -517,7 +517,12 @@ function DashboardScreen() {
             <View style={styles.coachMiniAvatar}><Text style={styles.coachMiniText}>G</Text></View>
             <Text style={styles.workoutCoachText}>Coach note: Focus on controlled reps today.</Text>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel="Start workout" style={styles.workoutButton}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Start workout"
+            onPress={onStartWorkout}
+            style={styles.workoutButton}
+          >
             <Text style={styles.workoutButtonText}>START WORKOUT</Text>
             <Text style={styles.workoutButtonArrow}>→</Text>
           </Pressable>
@@ -567,6 +572,141 @@ function DashboardScreen() {
   );
 }
 
+const workoutExercises = [
+  { name: "Goblet Squat", target: "Lower body · Compound", weight: "16 kg", reps: "10" },
+  { name: "Dumbbell Press", target: "Chest · Compound", weight: "12 kg", reps: "10" },
+  { name: "Seated Row", target: "Back · Controlled", weight: "25 kg", reps: "12" },
+];
+
+function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
+  const [exerciseIndex, setExerciseIndex] = useState(0);
+  const [completedSets, setCompletedSets] = useState<boolean[]>([false, false, false]);
+  const [restSeconds, setRestSeconds] = useState(0);
+  const exercise = workoutExercises[exerciseIndex] ?? workoutExercises[0]!;
+
+  useEffect(() => {
+    if (restSeconds <= 0) return;
+    const timer = setInterval(() => setRestSeconds((value) => Math.max(0, value - 1)), 1000);
+    return () => clearInterval(timer);
+  }, [restSeconds]);
+
+  const finishSet = (index: number) => {
+    setCompletedSets((current) => current.map((value, setIndex) => (setIndex === index ? !value : value)));
+    if (!completedSets[index]) setRestSeconds(60);
+  };
+
+  const nextExercise = () => {
+    if (exerciseIndex < workoutExercises.length - 1) {
+      setExerciseIndex((current) => current + 1);
+      setCompletedSets([false, false, false]);
+      setRestSeconds(0);
+    }
+  };
+
+  const completedCount = completedSets.filter(Boolean).length;
+  const workoutProgress = (exerciseIndex + completedCount / 3) / workoutExercises.length;
+
+  return (
+    <SafeAreaView style={styles.activeWorkout}>
+      <View style={styles.activeHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Exit workout" onPress={onExit} style={styles.workoutClose}>
+          <Text style={styles.workoutCloseText}>×</Text>
+        </Pressable>
+        <View style={styles.activeHeaderCenter}>
+          <Text style={styles.activeHeaderLabel}>FULL BODY FOUNDATION</Text>
+          <View style={styles.activeProgressTrack}>
+            <View style={[styles.activeProgressFill, { width: `${workoutProgress * 100}%` }]} />
+          </View>
+        </View>
+        <View style={styles.workoutElapsed}><Text style={styles.workoutElapsedText}>08:42</Text></View>
+      </View>
+
+      <View style={styles.exerciseVisual}>
+        <View style={styles.exerciseGlow} />
+        <Text style={styles.exerciseNumber}>0{exerciseIndex + 1}</Text>
+        <View style={styles.motionFigure}>
+          <Text style={styles.motionFigureText}>G</Text>
+        </View>
+        <View style={styles.formBadge}>
+          <View style={styles.formDot} />
+          <Text style={styles.formBadgeText}>FORM GUIDE READY</Text>
+        </View>
+      </View>
+
+      <View style={styles.exerciseSheet}>
+        <View style={styles.exerciseHeadingRow}>
+          <View>
+            <Text style={styles.exerciseStep}>EXERCISE {exerciseIndex + 1} OF {workoutExercises.length}</Text>
+            <Text style={styles.exerciseName}>{exercise.name}</Text>
+            <Text style={styles.exerciseTarget}>{exercise.target}</Text>
+          </View>
+          <Pressable style={styles.exerciseInfo}><Text style={styles.exerciseInfoText}>i</Text></Pressable>
+        </View>
+
+        {restSeconds > 0 ? (
+          <View style={styles.restBanner}>
+            <View>
+              <Text style={styles.restLabel}>REST TIMER</Text>
+              <Text style={styles.restHint}>Breathe. Your next set is ready.</Text>
+            </View>
+            <Text style={styles.restValue}>0:{String(restSeconds).padStart(2, "0")}</Text>
+          </View>
+        ) : null}
+
+        <View style={styles.setTableHeader}>
+          <Text style={[styles.setHeaderText, styles.setColumn]}>SET</Text>
+          <Text style={[styles.setHeaderText, styles.weightColumn]}>WEIGHT</Text>
+          <Text style={[styles.setHeaderText, styles.repsColumn]}>REPS</Text>
+          <View style={styles.doneColumn} />
+        </View>
+
+        <View style={styles.setList}>
+          {completedSets.map((done, index) => (
+            <View key={index} style={[styles.setRow, done && styles.setRowDone]}>
+              <Text style={[styles.setIndex, done && styles.setTextDone]}>{index + 1}</Text>
+              <View style={styles.weightColumn}>
+                <Text style={[styles.setValue, done && styles.setTextDone]}>{exercise.weight}</Text>
+              </View>
+              <View style={styles.repsColumn}>
+                <Text style={[styles.setValue, done && styles.setTextDone]}>{exercise.reps}</Text>
+              </View>
+              <Pressable
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: done }}
+                onPress={() => finishSet(index)}
+                style={[styles.setCheck, done && styles.setCheckDone]}
+              >
+                <Text style={[styles.setCheckText, done && styles.setCheckTextDone]}>{done ? "✓" : ""}</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.coachCue}>
+          <View style={styles.coachCueIcon}><Text style={styles.coachCueIconText}>G</Text></View>
+          <View style={styles.coachCueCopy}>
+            <Text style={styles.coachCueLabel}>COACH CUE</Text>
+            <Text style={styles.coachCueText}>Keep your chest tall and control the lowering phase.</Text>
+          </View>
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Next exercise"
+          disabled={completedCount < 3}
+          onPress={nextExercise}
+          style={[styles.nextExerciseButton, completedCount < 3 && styles.nextExerciseDisabled]}
+        >
+          <Text style={[styles.nextExerciseText, completedCount < 3 && styles.nextExerciseTextDisabled]}>
+            {exerciseIndex === workoutExercises.length - 1 ? "FINISH WORKOUT" : "NEXT EXERCISE"}
+          </Text>
+          <Text style={[styles.nextExerciseArrow, completedCount < 3 && styles.nextExerciseTextDisabled]}>→</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>("splash");
 
@@ -579,7 +719,8 @@ export default function App() {
       {screen === "interview" && (
         <InterviewScreen onBack={() => setScreen("welcome")} onFinish={() => setScreen("dashboard")} />
       )}
-      {screen === "dashboard" && <DashboardScreen />}
+      {screen === "dashboard" && <DashboardScreen onStartWorkout={() => setScreen("workout")} />}
+      {screen === "workout" && <ActiveWorkoutScreen onExit={() => setScreen("dashboard")} />}
     </View>
   );
 }
@@ -1118,4 +1259,193 @@ const styles = StyleSheet.create({
   navIcon: { color: "#666C63", fontSize: 18, lineHeight: 22 },
   navLabel: { color: "#666C63", fontSize: 6, fontWeight: "800", letterSpacing: 0.8, marginTop: 3 },
   navActive: { color: colors.lime },
+  activeWorkout: { flex: 1, backgroundColor: colors.background },
+  activeHeader: {
+    height: 58,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  workoutClose: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#30342F",
+  },
+  workoutCloseText: { color: colors.text, fontSize: 25, lineHeight: 27, fontWeight: "300" },
+  activeHeaderCenter: { flex: 1, marginHorizontal: 13 },
+  activeHeaderLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 1.2, textAlign: "center" },
+  activeProgressTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: "#272B26",
+    marginTop: 7,
+    overflow: "hidden",
+  },
+  activeProgressFill: { height: "100%", borderRadius: 2, backgroundColor: colors.lime },
+  workoutElapsed: {
+    minWidth: 48,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#151815",
+  },
+  workoutElapsedText: { color: colors.text, fontSize: 9, fontWeight: "700" },
+  exerciseVisual: {
+    height: 166,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    backgroundColor: "#0B0D0B",
+  },
+  exerciseGlow: {
+    position: "absolute",
+    width: 210,
+    height: 210,
+    borderRadius: 105,
+    backgroundColor: "rgba(200,255,50,0.055)",
+  },
+  exerciseNumber: {
+    position: "absolute",
+    left: 18,
+    top: 11,
+    color: "#191D18",
+    fontSize: 72,
+    lineHeight: 78,
+    fontWeight: "900",
+  },
+  motionFigure: {
+    width: 82,
+    height: 82,
+    borderRadius: 41,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.55)",
+    backgroundColor: "#11150F",
+  },
+  motionFigureText: { color: colors.text, fontSize: 31, fontWeight: "800" },
+  formBadge: {
+    position: "absolute",
+    right: 15,
+    bottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 9,
+    borderRadius: 12,
+    backgroundColor: "rgba(10,12,10,0.78)",
+  },
+  formDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.lime, marginRight: 6 },
+  formBadgeText: { color: colors.text, fontSize: 6, fontWeight: "800", letterSpacing: 0.8 },
+  exerciseSheet: {
+    flex: 1,
+    paddingHorizontal: 18,
+    paddingTop: 15,
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    backgroundColor: "#090A09",
+  },
+  exerciseHeadingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  exerciseStep: { color: colors.lime, fontSize: 7, fontWeight: "800", letterSpacing: 1.2 },
+  exerciseName: { color: colors.text, fontSize: 25, lineHeight: 28, fontWeight: "700", marginTop: 4, letterSpacing: -0.9 },
+  exerciseTarget: { color: colors.muted, fontSize: 9, marginTop: 4 },
+  exerciseInfo: {
+    width: 31,
+    height: 31,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#353A34",
+  },
+  exerciseInfoText: { color: colors.muted, fontSize: 13, fontWeight: "700" },
+  restBanner: {
+    minHeight: 52,
+    borderRadius: 15,
+    marginTop: 12,
+    paddingHorizontal: 13,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.24)",
+    backgroundColor: "rgba(200,255,50,0.065)",
+  },
+  restLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.1 },
+  restHint: { color: colors.muted, fontSize: 8, marginTop: 3 },
+  restValue: { color: colors.text, fontSize: 23, fontWeight: "800" },
+  setTableHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: 11, marginTop: 14, marginBottom: 5 },
+  setHeaderText: { color: "#666C64", fontSize: 7, fontWeight: "800", letterSpacing: 1 },
+  setColumn: { width: 42 },
+  weightColumn: { flex: 1 },
+  repsColumn: { width: 68 },
+  doneColumn: { width: 36 },
+  setList: { gap: 7 },
+  setRow: {
+    height: 47,
+    borderRadius: 14,
+    paddingHorizontal: 11,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0E100E",
+  },
+  setRowDone: { borderColor: "rgba(200,255,50,0.2)", backgroundColor: "rgba(200,255,50,0.055)" },
+  setIndex: { width: 42, color: colors.muted, fontSize: 12, fontWeight: "700" },
+  setValue: { color: colors.text, fontSize: 13, fontWeight: "700" },
+  setTextDone: { color: "#858B82" },
+  setCheck: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#3A3F38",
+  },
+  setCheckDone: { borderColor: colors.lime, backgroundColor: colors.lime },
+  setCheckText: { color: colors.ink, fontSize: 13, fontWeight: "900" },
+  setCheckTextDone: { color: colors.ink },
+  coachCue: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 11,
+    padding: 11,
+    borderRadius: 14,
+    backgroundColor: "#111310",
+  },
+  coachCueIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.lime,
+    marginRight: 10,
+  },
+  coachCueIconText: { color: colors.text, fontSize: 10, fontWeight: "800" },
+  coachCueCopy: { flex: 1 },
+  coachCueLabel: { color: colors.lime, fontSize: 6, fontWeight: "900", letterSpacing: 1 },
+  coachCueText: { color: "#BAC0B7", fontSize: 9, lineHeight: 13, marginTop: 3 },
+  nextExerciseButton: {
+    height: 51,
+    borderRadius: 26,
+    marginTop: 11,
+    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.lime,
+  },
+  nextExerciseDisabled: { backgroundColor: "#171A17" },
+  nextExerciseText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 1.1 },
+  nextExerciseArrow: { color: colors.ink, fontSize: 19, fontWeight: "700" },
+  nextExerciseTextDisabled: { color: "#50554F" },
 });
