@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
+import { useVideoPlayer, VideoView } from "expo-video";
 
 const colors = {
   background: "#050505",
@@ -644,6 +645,7 @@ type WorkoutExercise = {
   phases: string[];
   formFrames: [number, number];
   poseGuide: PoseGuide;
+  video?: number;
 };
 
 type PoseSegment = [number, number, number, number];
@@ -796,6 +798,8 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
   const femaleExercises: WorkoutExercise[] = [
     {
       ...workoutExercises[0]!,
+      name: "Dumbbell Front Squat",
+      video: require("./assets/exercise-videos/female-dumbbell-squat.mp4"),
       formFrames: [
         require("./assets/exercises/female-goblet-squat/start.jpg"),
         require("./assets/exercises/female-goblet-squat/finish.jpg"),
@@ -845,6 +849,7 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
       ...workoutExercises[1]!,
       name: "Dumbbell Shoulder Press",
       target: "Shoulders · Strength",
+      video: require("./assets/exercise-videos/male-shoulder-press.mp4"),
       phases: ["LOWER", "BRACE", "PRESS"],
       formFrames: [
         require("./assets/exercises/dumbbell-shoulder-press/start.jpg"),
@@ -877,7 +882,7 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
     reps,
     tempo: profile.age === "55-plus" ? "3–1–2" : exercise.tempo,
     weight:
-      exercise.name === "Goblet Squat"
+      exercise.name.includes("Squat")
         ? reducedLoad ? "8 kg" : profile.sex === "male" ? "20 kg" : "14 kg"
         : exercise.name === "Dumbbell Press"
           ? reducedLoad ? "6 kg" : profile.sex === "male" ? "16 kg" : "10 kg"
@@ -914,43 +919,39 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
   return exercises;
 }
 
-function ExerciseFormFrames({
-  frames,
-  phaseIndex,
-}: {
-  frames: [number, number];
-  phaseIndex: number;
-}) {
-  const isWorkingPosition = phaseIndex < 2;
-  const activeFrame = isWorkingPosition ? frames[1] : frames[0];
-  const [displayedFrame, setDisplayedFrame] = useState(activeFrame);
-  const frameOpacity = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.timing(frameOpacity, {
-      toValue: 0.18,
-      duration: 130,
-      easing: Easing.inOut(Easing.cubic),
-      useNativeDriver: true,
-    }).start(() => {
-      setDisplayedFrame(activeFrame);
-      Animated.timing(frameOpacity, {
-        toValue: 1,
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }).start();
-    });
-  }, [activeFrame, frameOpacity]);
-
+function ExerciseStill({ frame }: { frame: number }) {
   return (
     <View style={StyleSheet.absoluteFill}>
-      <Animated.View style={[StyleSheet.absoluteFill, { opacity: frameOpacity }]}>
-        <Image source={displayedFrame} style={styles.exerciseFrameBackdrop} resizeMode="cover" />
-        <View style={styles.exerciseFrameBackdropShade} />
-        <Image source={displayedFrame} style={styles.exerciseVideo} resizeMode="contain" />
-      </Animated.View>
+      <Image source={frame} style={styles.exerciseFrameBackdrop} resizeMode="cover" />
+      <View style={styles.exerciseFrameBackdropShade} />
+      <Image source={frame} style={styles.exerciseVideo} resizeMode="contain" />
     </View>
+  );
+}
+
+function RealExerciseVideo({ source }: { source: number }) {
+  const player = useVideoPlayer(source, (videoPlayer) => {
+    videoPlayer.loop = true;
+    videoPlayer.muted = true;
+  });
+
+  useEffect(() => {
+    player.loop = true;
+    player.muted = true;
+    player.play();
+    const autoplayRetry = setTimeout(() => player.play(), 300);
+    return () => clearTimeout(autoplayRetry);
+  }, [player]);
+
+  return (
+    <VideoView
+      player={player}
+      style={styles.realExerciseVideo}
+      contentFit="cover"
+      nativeControls={false}
+      allowsFullscreen={false}
+      allowsPictureInPicture={false}
+    />
   );
 }
 
@@ -973,7 +974,11 @@ function ExerciseDemo({
 
   return (
     <View style={styles.demoStage}>
-      <ExerciseFormFrames frames={exercise.formFrames} phaseIndex={phaseIndex} />
+      {exercise.video ? (
+        <RealExerciseVideo key={exercise.video} source={exercise.video} />
+      ) : (
+        <ExerciseStill frame={exercise.formFrames[0]} />
+      )}
       <View style={styles.videoShade} />
       <View style={styles.videoSourceBadge}>
         <View style={styles.formDot} />
@@ -2171,6 +2176,12 @@ const styles = StyleSheet.create({
   },
   motionFigureText: { color: colors.text, fontSize: 31, fontWeight: "800" },
   demoStage: { width: "100%", height: "100%", alignItems: "center", justifyContent: "center" },
+  realExerciseVideo: {
+    ...StyleSheet.absoluteFillObject,
+    width: "100%",
+    height: "100%",
+    backgroundColor: colors.background,
+  },
   exerciseVideo: {
     position: "absolute",
     top: 0,
