@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
+  Image,
   ImageBackground,
   Platform,
   Pressable,
@@ -227,11 +228,10 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
 
   return (
     <View style={styles.welcomeImage}>
-      <ImageBackground
+      <Image
         source={require("./assets/welcome-hero-unisex-v2.png")}
         resizeMode="contain"
-        style={styles.welcomeHeroLayer}
-        imageStyle={styles.welcomeImageAsset}
+        style={styles.welcomeHeroImage}
       />
       <View style={styles.topShade} />
       <View style={styles.bottomShade} />
@@ -1045,6 +1045,11 @@ const styles = StyleSheet.create({
   },
   welcomeImage: { flex: 1, backgroundColor: colors.background },
   welcomeHeroLayer: { ...StyleSheet.absoluteFillObject },
+  welcomeHeroImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: "100%",
+    height: "100%",
+  },
   welcomeImageAsset: { backgroundColor: colors.background },
   topShade: {
     ...StyleSheet.absoluteFillObject,
