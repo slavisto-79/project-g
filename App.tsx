@@ -208,6 +208,7 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
 function WelcomeScreen({ onStart }: { onStart: () => void }) {
   const contentY = useRef(new Animated.Value(26)).current;
   const contentOpacity = useRef(new Animated.Value(0)).current;
+  const maleHeroOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -223,15 +224,44 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [contentOpacity, contentY]);
+    const heroLoop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(3500),
+        Animated.timing(maleHeroOpacity, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.delay(3500),
+        Animated.timing(maleHeroOpacity, {
+          toValue: 0,
+          duration: 1000,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    heroLoop.start();
+    return () => heroLoop.stop();
+  }, [contentOpacity, contentY, maleHeroOpacity]);
 
   return (
-    <ImageBackground
-      source={require("./assets/welcome-hero.png")}
-      resizeMode="cover"
-      style={styles.welcomeImage}
-      imageStyle={styles.welcomeImageAsset}
-    >
+    <View style={styles.welcomeImage}>
+      <ImageBackground
+        source={require("./assets/welcome-hero.png")}
+        resizeMode="cover"
+        style={styles.welcomeHeroLayer}
+        imageStyle={styles.welcomeImageAsset}
+      />
+      <Animated.View style={[styles.welcomeHeroLayer, { opacity: maleHeroOpacity }]}>
+        <ImageBackground
+          source={require("./assets/welcome-hero-male.png")}
+          resizeMode="cover"
+          style={styles.welcomeHeroLayer}
+          imageStyle={styles.welcomeImageAsset}
+        />
+      </Animated.View>
       <View style={styles.topShade} />
       <View style={styles.bottomShade} />
       <SafeAreaView style={styles.welcomeSafe}>
@@ -273,7 +303,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
           <Text style={styles.disclaimer}>Built for your goals. Adapted to your life.</Text>
         </Animated.View>
       </SafeAreaView>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -1043,6 +1073,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   welcomeImage: { flex: 1, backgroundColor: colors.background },
+  welcomeHeroLayer: { ...StyleSheet.absoluteFillObject },
   welcomeImageAsset: { backgroundColor: colors.background },
   topShade: {
     ...StyleSheet.absoluteFillObject,
