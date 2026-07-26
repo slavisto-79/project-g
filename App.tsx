@@ -510,13 +510,26 @@ function InterviewScreen({
   );
 }
 
-function DashboardScreen({ onStartWorkout }: { onStartWorkout: () => void }) {
+function DashboardScreen({
+  onStartWorkout,
+  profile,
+}: {
+  onStartWorkout: () => void;
+  profile: Record<string, string>;
+}) {
+  const workoutName =
+    profile.sex === "female"
+      ? profile.goal === "strength" ? "Women’s Strength" : "Lower Body + Full Body"
+      : profile.sex === "male"
+        ? profile.goal === "fat-loss" ? "Metabolic Full Body" : "Strength + Muscle"
+        : "Balanced Full Body";
+
   return (
     <SafeAreaView style={styles.dashboard}>
       <View style={styles.dashboardHeader}>
         <View>
           <Text style={styles.dashboardGreeting}>GOOD MORNING</Text>
-          <Text style={styles.dashboardName}>Ready to move?</Text>
+          <Text style={styles.dashboardName}>Ready for today?</Text>
         </View>
         <View style={styles.dashboardAvatar}>
           <Text style={styles.dashboardAvatarText}>G</Text>
@@ -525,29 +538,18 @@ function DashboardScreen({ onStartWorkout }: { onStartWorkout: () => void }) {
       </View>
 
       <View style={styles.dashboardBody}>
-        <View style={styles.readinessRow}>
-          <View>
-            <Text style={styles.sectionEyebrow}>TODAY · DAY 01</Text>
-            <Text style={styles.readinessTitle}>Your body is ready.</Text>
-          </View>
-          <View style={styles.recoveryScore}>
-            <Text style={styles.recoveryValue}>82</Text>
-            <Text style={styles.recoveryLabel}>RECOVERY</Text>
-          </View>
-        </View>
-
         <View style={styles.workoutCard}>
           <View style={styles.workoutCardTop}>
             <View style={styles.workoutTypeBadge}>
-              <Text style={styles.workoutTypeText}>STRENGTH</Text>
+              <Text style={styles.workoutTypeText}>TODAY’S WORKOUT</Text>
             </View>
-            <Text style={styles.workoutDuration}>45 MIN</Text>
+            <Text style={styles.workoutDuration}>{profile.duration ?? "45"} MIN</Text>
           </View>
-          <Text style={styles.workoutTitle}>Full Body{"\n"}Foundation</Text>
-          <Text style={styles.workoutMeta}>6 exercises · Moderate intensity</Text>
+          <Text style={styles.workoutTitle}>{workoutName}</Text>
+          <Text style={styles.workoutMeta}>3 guided exercises · Personalized intensity</Text>
           <View style={styles.workoutCoachNote}>
             <View style={styles.coachMiniAvatar}><Text style={styles.coachMiniText}>G</Text></View>
-            <Text style={styles.workoutCoachText}>Coach note: Focus on controlled reps today.</Text>
+            <Text style={styles.workoutCoachText}>Adapted to your profile, recovery, and equipment.</Text>
           </View>
           <Pressable
             accessibilityRole="button"
@@ -560,39 +562,51 @@ function DashboardScreen({ onStartWorkout }: { onStartWorkout: () => void }) {
           </Pressable>
         </View>
 
-        <View style={styles.metricGrid}>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricIcon}>◐</Text>
-            <Text style={styles.metricValue}>7h 24m</Text>
-            <Text style={styles.metricLabel}>SLEEP</Text>
-            <Text style={styles.metricTrend}>Good quality</Text>
+        <View style={styles.readinessCard}>
+          <View style={styles.recoveryScore}>
+            <Text style={styles.recoveryValue}>78</Text>
+            <Text style={styles.recoveryLabel}>READY</Text>
           </View>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricIcon}>●</Text>
-            <Text style={styles.metricValue}>118g</Text>
-            <Text style={styles.metricLabel}>PROTEIN</Text>
-            <Text style={styles.metricTrend}>32g remaining</Text>
+          <View style={styles.readinessCopy}>
+            <Text style={styles.sectionEyebrow}>TODAY’S READINESS</Text>
+            <Text style={styles.readinessTitle}>Good readiness</Text>
+            <Text style={styles.readinessHint}>You’re ready for the planned session.</Text>
           </View>
+          <Text style={styles.cardChevron}>›</Text>
         </View>
 
-        <View style={styles.weekCard}>
+        <Text style={styles.quickTitle}>QUICK OVERVIEW</Text>
+        <View style={styles.metricGrid}>
+          {[
+            ["1 / 3", "WORKOUTS"],
+            ["1,840", "CALORIES"],
+            ["128g", "PROTEIN"],
+          ].map(([value, label]) => (
+            <View style={styles.metricCard} key={label}>
+              <Text style={styles.metricValue}>{value}</Text>
+              <Text style={styles.metricLabel}>{label}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.lastWorkoutCard}>
           <View>
-            <Text style={styles.weekLabel}>THIS WEEK</Text>
-            <Text style={styles.weekValue}>1 of 3 workouts</Text>
+            <Text style={styles.weekLabel}>LAST WORKOUT</Text>
+            <Text style={styles.weekValue}>Full Body · 42 min</Text>
           </View>
-          <View style={styles.weekProgressTrack}>
-            <View style={styles.weekProgressFill} />
+          <View style={styles.lastWorkoutScore}>
+            <Text style={styles.lastWorkoutScoreText}>86%</Text>
           </View>
-          <Text style={styles.weekPercent}>33%</Text>
         </View>
       </View>
 
       <View style={styles.bottomNav}>
         {[
           ["⌂", "HOME"],
-          ["◈", "TRAIN"],
-          ["◎", "COACH"],
+          ["◇", "WORKOUT"],
+          ["◉", "NUTRITION"],
           ["↗", "PROGRESS"],
+          ["○", "MORE"],
         ].map(([icon, label], index) => (
           <Pressable key={label} style={styles.navItem}>
             <Text style={[styles.navIcon, index === 0 && styles.navActive]}>{icon}</Text>
@@ -952,7 +966,9 @@ export default function App() {
             }}
           />
         )}
-        {screen === "dashboard" && <DashboardScreen onStartWorkout={() => setScreen("workout")} />}
+        {screen === "dashboard" && (
+          <DashboardScreen profile={profile} onStartWorkout={() => setScreen("workout")} />
+        )}
         {screen === "workout" && (
           <ActiveWorkoutScreen profile={profile} onExit={() => setScreen("dashboard")} />
         )}
@@ -1393,6 +1409,27 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 14,
   },
+  readinessCard: {
+    minHeight: 78,
+    borderRadius: 18,
+    paddingHorizontal: 13,
+    marginBottom: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#293128",
+    backgroundColor: "#0E120F",
+  },
+  readinessCopy: { flex: 1, marginLeft: 13 },
+  readinessHint: { color: colors.muted, fontSize: 8, marginTop: 4 },
+  cardChevron: { color: colors.muted, fontSize: 22 },
+  quickTitle: {
+    color: colors.muted,
+    fontSize: 7,
+    fontWeight: "800",
+    letterSpacing: 1.4,
+    marginBottom: 8,
+  },
   sectionEyebrow: { color: colors.lime, fontSize: 8, fontWeight: "800", letterSpacing: 1.5 },
   readinessTitle: { color: colors.text, fontSize: 17, fontWeight: "700", marginTop: 5 },
   recoveryScore: {
@@ -1460,12 +1497,12 @@ const styles = StyleSheet.create({
   },
   workoutButtonText: { color: colors.ink, fontSize: 11, fontWeight: "900", letterSpacing: 1.1 },
   workoutButtonArrow: { color: colors.ink, fontSize: 19, fontWeight: "700" },
-  metricGrid: { flexDirection: "row", gap: 10, marginBottom: 10 },
+  metricGrid: { flexDirection: "row", gap: 8, marginBottom: 10 },
   metricCard: {
     flex: 1,
-    minHeight: 105,
-    borderRadius: 18,
-    padding: 14,
+    minHeight: 68,
+    borderRadius: 15,
+    padding: 12,
     borderWidth: 1,
     borderColor: "#242824",
     backgroundColor: "#0D0F0D",
@@ -1474,6 +1511,27 @@ const styles = StyleSheet.create({
   metricValue: { color: colors.text, fontSize: 18, fontWeight: "800" },
   metricLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 1.2, marginTop: 2 },
   metricTrend: { color: "#6F756C", fontSize: 8, marginTop: 7 },
+  lastWorkoutCard: {
+    minHeight: 58,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0D0F0D",
+  },
+  lastWorkoutScore: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#37C85A",
+  },
+  lastWorkoutScoreText: { color: "#37C85A", fontSize: 10, fontWeight: "900" },
   weekCard: {
     minHeight: 58,
     borderRadius: 17,
