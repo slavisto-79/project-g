@@ -4,6 +4,7 @@ import {
   Easing,
   Image,
   ImageBackground,
+  Modal,
   Platform,
   Pressable,
   SafeAreaView,
@@ -944,7 +945,6 @@ function ExerciseStill({ frame }: { frame: number }) {
 }
 
 function RealExerciseVideo({ source, poster }: { source: number; poster: number }) {
-  const [firstFrameReady, setFirstFrameReady] = useState(false);
   const player = useVideoPlayer(source, (videoPlayer) => {
     videoPlayer.loop = true;
     videoPlayer.muted = true;
@@ -963,14 +963,13 @@ function RealExerciseVideo({ source, poster }: { source: number; poster: number 
       <ExerciseStill frame={poster} />
       <VideoView
         player={player}
-        style={[styles.realExerciseVideo, !firstFrameReady && styles.realExerciseVideoLoading]}
+        style={styles.realExerciseVideo}
         contentFit="cover"
         nativeControls={false}
         allowsFullscreen={false}
         allowsPictureInPicture={false}
         playsInline
         pointerEvents="none"
-        onFirstFrameRender={() => setFirstFrameReady(true)}
       />
     </>
   );
@@ -1059,6 +1058,7 @@ function ActiveWorkoutScreen({
   const [restSeconds, setRestSeconds] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [workoutComplete, setWorkoutComplete] = useState(false);
+  const [exerciseInfoOpen, setExerciseInfoOpen] = useState(false);
   const personalizedExercises = createWorkout(profile);
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
   const exerciseVisualHeight = Math.min(380, Math.max(230, width * 0.38));
@@ -1104,6 +1104,54 @@ function ActiveWorkoutScreen({
   ).padStart(2, "0")}`;
   const remainingSeconds = Math.max(0, 45 * 60 - elapsedSeconds);
   const remainingLabel = `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, "0")}`;
+  const exerciseGuidance = exercise.name.includes("Squat")
+    ? {
+        setup: "Hold the dumbbell close to your chest. Set your feet just outside hip width.",
+        movement: "Sit between your hips, keep your chest tall, then drive through the whole foot.",
+        breathing: "Inhale and brace before lowering. Exhale as you stand.",
+        avoid: "Do not let the knees collapse inward or the heels lift.",
+      }
+    : exercise.name.includes("Deadlift")
+      ? {
+          setup: "Stand tall with the dumbbells close to your thighs and soften your knees.",
+          movement: "Push the hips back, keep the weights close, then squeeze the glutes to stand.",
+          breathing: "Inhale and brace before the hinge. Exhale near the top.",
+          avoid: "Do not round the back or turn the movement into a squat.",
+        }
+      : exercise.name.includes("Row")
+        ? {
+            setup: "Set a neutral spine and begin with the shoulders relaxed.",
+            movement: "Pull the handle toward the lower ribs and return under control.",
+            breathing: "Exhale during the pull. Inhale during the controlled return.",
+            avoid: "Do not shrug, lean back, or use momentum.",
+          }
+        : exercise.name.includes("Curl")
+          ? {
+              setup: "Stand tall with the elbows close to your sides and wrists neutral.",
+              movement: "Curl without moving the upper arms, squeeze briefly, then lower slowly.",
+              breathing: "Exhale while curling. Inhale while lowering.",
+              avoid: "Do not swing the torso or let the elbows travel forward.",
+            }
+          : exercise.name.includes("Lunge")
+            ? {
+                setup: "Stand tall, brace your trunk, and keep the dumbbells stable by your sides.",
+                movement: "Step back, lower both knees with control, then drive through the front foot.",
+                breathing: "Inhale while lowering. Exhale as you return to standing.",
+                avoid: "Do not let the front knee collapse inward or lose balance.",
+              }
+            : exercise.name.includes("Push-Up")
+              ? {
+                  setup: "Place the hands slightly wider than the shoulders and form one straight body line.",
+                  movement: "Lower the chest between the hands and press the floor away.",
+                  breathing: "Inhale while lowering. Exhale while pressing.",
+                  avoid: "Do not drop the hips, flare the elbows, or shorten the range.",
+                }
+              : {
+                  setup: "Set your feet firmly, brace your trunk, and keep the wrists stacked.",
+                  movement: "Lower the dumbbells with control and press smoothly without bouncing.",
+                  breathing: "Inhale while lowering. Exhale through the press.",
+                  avoid: "Do not overarch the back or let the elbows move out of control.",
+                };
 
   if (workoutComplete) {
     return (
@@ -1214,7 +1262,14 @@ function ActiveWorkoutScreen({
             <Text style={styles.exerciseName}>{exercise.name}</Text>
             <Text style={styles.exerciseTarget}>{exercise.target}</Text>
           </View>
-          <Pressable style={styles.exerciseInfo}><Text style={styles.exerciseInfoText}>i</Text></Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Exercise guidance for ${exercise.name}`}
+            onPress={() => setExerciseInfoOpen(true)}
+            style={styles.exerciseInfo}
+          >
+            <Text style={styles.exerciseInfoText}>i</Text>
+          </Pressable>
         </View>
 
         {restSeconds > 0 ? (
@@ -1285,6 +1340,54 @@ function ActiveWorkoutScreen({
           <Text style={[styles.nextExerciseArrow, completedCount < 3 && styles.nextExerciseTextDisabled]}>→</Text>
         </Pressable>
       </View>
+
+      <Modal
+        transparent
+        animationType="slide"
+        visible={exerciseInfoOpen}
+        statusBarTranslucent
+        onRequestClose={() => setExerciseInfoOpen(false)}
+      >
+        <Pressable style={styles.exerciseInfoBackdrop} onPress={() => setExerciseInfoOpen(false)}>
+          <Pressable style={styles.exerciseInfoPanel} onPress={(event) => event.stopPropagation()}>
+            <View style={styles.exerciseInfoHandle} />
+            <View style={styles.exerciseInfoPanelHeader}>
+              <View style={styles.exerciseInfoPanelTitleWrap}>
+                <Text style={styles.exerciseInfoPanelEyebrow}>FORM GUIDE</Text>
+                <Text style={styles.exerciseInfoPanelTitle}>{exercise.name}</Text>
+                <Text style={styles.exerciseInfoPanelTempo}>Tempo {exercise.tempo}</Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close exercise guidance"
+                onPress={() => setExerciseInfoOpen(false)}
+                style={styles.exerciseInfoClose}
+              >
+                <Text style={styles.exerciseInfoCloseText}>×</Text>
+              </Pressable>
+            </View>
+
+            {[
+              ["SETUP", exerciseGuidance.setup],
+              ["MOVEMENT", exerciseGuidance.movement],
+              ["BREATHING", exerciseGuidance.breathing],
+              ["AVOID", exerciseGuidance.avoid],
+            ].map(([label, copy]) => (
+              <View key={label} style={styles.exerciseInfoGuideRow}>
+                <View style={styles.exerciseInfoGuideDot} />
+                <View style={styles.exerciseInfoGuideCopy}>
+                  <Text style={styles.exerciseInfoGuideLabel}>{label}</Text>
+                  <Text style={styles.exerciseInfoGuideText}>{copy}</Text>
+                </View>
+              </View>
+            ))}
+
+            <Pressable onPress={() => setExerciseInfoOpen(false)} style={styles.exerciseInfoDone}>
+              <Text style={styles.exerciseInfoDoneText}>GOT IT</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -2231,10 +2334,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     width: "100%",
     height: "100%",
-    backgroundColor: colors.background,
-  },
-  realExerciseVideoLoading: {
-    opacity: 0,
+    backgroundColor: "transparent",
   },
   preloadExerciseVideo: {
     position: "absolute",
@@ -2410,6 +2510,78 @@ const styles = StyleSheet.create({
     borderColor: "#353A34",
   },
   exerciseInfoText: { color: colors.muted, fontSize: 13, fontWeight: "700" },
+  exerciseInfoBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.72)",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  exerciseInfoPanel: {
+    width: "100%",
+    maxWidth: 520,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 28,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderColor: "#2A3028",
+    backgroundColor: "#0D100D",
+  },
+  exerciseInfoHandle: {
+    width: 42,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: 18,
+    backgroundColor: "#343A32",
+  },
+  exerciseInfoPanelHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 18,
+  },
+  exerciseInfoPanelTitleWrap: { flex: 1, paddingRight: 16 },
+  exerciseInfoPanelEyebrow: { color: colors.lime, fontSize: 9, fontWeight: "900", letterSpacing: 1.6 },
+  exerciseInfoPanelTitle: { color: colors.text, fontSize: 27, lineHeight: 31, fontWeight: "800", marginTop: 5 },
+  exerciseInfoPanelTempo: { color: colors.muted, fontSize: 11, marginTop: 5 },
+  exerciseInfoClose: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    borderColor: "#353A34",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  exerciseInfoCloseText: { color: colors.text, fontSize: 23, lineHeight: 25, fontWeight: "300" },
+  exerciseInfoGuideRow: {
+    flexDirection: "row",
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#20251F",
+  },
+  exerciseInfoGuideDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    marginTop: 5,
+    marginRight: 12,
+    backgroundColor: colors.lime,
+  },
+  exerciseInfoGuideCopy: { flex: 1 },
+  exerciseInfoGuideLabel: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 1.25 },
+  exerciseInfoGuideText: { color: "#D4D8D1", fontSize: 13, lineHeight: 19, marginTop: 4 },
+  exerciseInfoDone: {
+    minHeight: 52,
+    borderRadius: 26,
+    marginTop: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.lime,
+  },
+  exerciseInfoDoneText: { color: colors.ink, fontSize: 12, fontWeight: "900", letterSpacing: 1.7 },
   restBanner: {
     minHeight: 52,
     borderRadius: 15,

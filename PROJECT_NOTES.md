@@ -6,6 +6,8 @@
 - Ask once only when the operating system requires permission to copy outside the protected workspace.
 - Test every visual or interaction change at a real phone viewport before handing it off.
 - Never describe a change as complete until the complete user flow has been tested.
+- Every visible icon, button, card, and link must perform a meaningful action and provide visible feedback. Decorative controls that do nothing are prohibited.
+- Test information, help, close, back, next, and finish controls explicitly whenever their screen is changed.
 
 ## Product rules
 
@@ -36,5 +38,6 @@
 - Load only the current exercise and preload no more than the next exercise.
 - Cache a downloaded exercise video for later sessions.
 - Show a matching poster image immediately while a video is loading or when the connection is too slow.
+- Do not hide the video while waiting for a first-frame callback; iPhone Safari may not emit that callback reliably. Keep the poster underneath and let the video replace it naturally.
 - Use adaptive delivery or a lower-quality mobile version when network conditions require it.
 - A new exercise video is not complete until its file size, startup time, inline playback, looping, and phone behavior have been verified.
