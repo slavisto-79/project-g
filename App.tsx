@@ -208,7 +208,6 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
 function WelcomeScreen({ onStart }: { onStart: () => void }) {
   const contentY = useRef(new Animated.Value(26)).current;
   const contentOpacity = useRef(new Animated.Value(0)).current;
-  const maleHeroOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -224,27 +223,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
         useNativeDriver: true,
       }),
     ]).start();
-    const heroLoop = Animated.loop(
-      Animated.sequence([
-        Animated.delay(3500),
-        Animated.timing(maleHeroOpacity, {
-          toValue: 1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.delay(3500),
-        Animated.timing(maleHeroOpacity, {
-          toValue: 0,
-          duration: 1000,
-          easing: Easing.inOut(Easing.cubic),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    heroLoop.start();
-    return () => heroLoop.stop();
-  }, [contentOpacity, contentY, maleHeroOpacity]);
+  }, [contentOpacity, contentY]);
 
   return (
     <View style={styles.welcomeImage}>
@@ -254,14 +233,6 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
         style={styles.welcomeHeroLayer}
         imageStyle={styles.welcomeImageAsset}
       />
-      <Animated.View style={[styles.welcomeHeroLayer, { opacity: maleHeroOpacity }]}>
-        <ImageBackground
-          source={require("./assets/welcome-hero-male.png")}
-          resizeMode="cover"
-          style={styles.welcomeHeroLayer}
-          imageStyle={styles.welcomeImageAsset}
-        />
-      </Animated.View>
       <View style={styles.topShade} />
       <View style={styles.bottomShade} />
       <SafeAreaView style={styles.welcomeSafe}>
