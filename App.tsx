@@ -922,39 +922,19 @@ function ExerciseFormFrames({
   phaseIndex: number;
   guide: PoseGuide;
 }) {
-  const transition = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(transition, {
-      toValue: phaseIndex < 2 ? 1 : 0,
-      duration: phaseIndex === 1 ? 180 : 900,
-      easing: Easing.inOut(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [phaseIndex, transition]);
+  const isWorkingPosition = phaseIndex < 2;
+  const activeFrame = isWorkingPosition ? frames[1] : frames[0];
+  const activeGuide = isWorkingPosition ? guide.finish : guide.start;
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      <Image source={frames[0]} style={styles.exerciseFrameBackdrop} resizeMode="cover" />
+      <Image source={activeFrame} style={styles.exerciseFrameBackdrop} resizeMode="cover" />
       <View style={styles.exerciseFrameBackdropShade} />
-      <Image source={frames[0]} style={styles.exerciseVideo} resizeMode="contain" />
-      <Animated.Image
-        source={frames[1]}
-        style={[styles.exerciseVideo, { opacity: transition }]}
-        resizeMode="contain"
-      />
+      <Image source={activeFrame} style={styles.exerciseVideo} resizeMode="contain" />
       <View pointerEvents="none" style={styles.poseFrameHost}>
-        <Animated.View
-          style={[
-            styles.poseFrame,
-            { opacity: transition.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) },
-          ]}
-        >
-          <PoseLayer segments={guide.start} />
-        </Animated.View>
-        <Animated.View style={[styles.poseFrame, styles.poseFrameOverlay, { opacity: transition }]}>
-          <PoseLayer segments={guide.finish} />
-        </Animated.View>
+        <View style={styles.poseFrame}>
+          <PoseLayer segments={activeGuide} />
+        </View>
       </View>
     </View>
   );
@@ -2082,10 +2062,6 @@ const styles = StyleSheet.create({
     height: "100%",
     aspectRatio: 850 / 567,
     maxWidth: "100%",
-  },
-  poseFrameOverlay: {
-    position: "absolute",
-    top: 0,
   },
   poseCanvas: { width: "100%", height: "100%" },
   poseLine: {
