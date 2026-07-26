@@ -643,6 +643,106 @@ type WorkoutExercise = {
   tempo: string;
   phases: string[];
   formFrames: [number, number];
+  poseGuide: PoseGuide;
+};
+
+type PoseSegment = [number, number, number, number];
+type PoseGuide = {
+  start: PoseSegment[];
+  finish: PoseSegment[];
+};
+
+const poseGuides: Record<string, PoseGuide> = {
+  squat: {
+    start: [
+      [0.5, 0.29, 0.5, 0.49],
+      [0.5, 0.36, 0.43, 0.42],
+      [0.43, 0.42, 0.47, 0.49],
+      [0.5, 0.36, 0.57, 0.42],
+      [0.57, 0.42, 0.53, 0.49],
+      [0.47, 0.49, 0.53, 0.49],
+      [0.5, 0.49, 0.42, 0.64],
+      [0.42, 0.64, 0.42, 0.86],
+      [0.5, 0.49, 0.58, 0.64],
+      [0.58, 0.64, 0.58, 0.86],
+    ],
+    finish: [
+      [0.5, 0.31, 0.5, 0.57],
+      [0.5, 0.43, 0.43, 0.48],
+      [0.43, 0.48, 0.48, 0.55],
+      [0.5, 0.43, 0.57, 0.48],
+      [0.57, 0.48, 0.52, 0.55],
+      [0.48, 0.55, 0.52, 0.55],
+      [0.5, 0.57, 0.42, 0.66],
+      [0.42, 0.66, 0.43, 0.83],
+      [0.5, 0.57, 0.59, 0.66],
+      [0.59, 0.66, 0.58, 0.83],
+    ],
+  },
+  bench: {
+    start: [
+      [0.36, 0.52, 0.5, 0.52],
+      [0.5, 0.52, 0.54, 0.6],
+      [0.54, 0.6, 0.57, 0.39],
+      [0.61, 0.52, 0.68, 0.63],
+      [0.68, 0.63, 0.75, 0.75],
+    ],
+    finish: [
+      [0.36, 0.52, 0.5, 0.52],
+      [0.5, 0.52, 0.53, 0.33],
+      [0.53, 0.33, 0.54, 0.16],
+      [0.61, 0.52, 0.68, 0.63],
+      [0.68, 0.63, 0.75, 0.75],
+    ],
+  },
+  row: {
+    start: [
+      [0.25, 0.36, 0.31, 0.57],
+      [0.31, 0.57, 0.46, 0.61],
+      [0.46, 0.61, 0.6, 0.64],
+      [0.6, 0.64, 0.69, 0.64],
+      [0.31, 0.43, 0.46, 0.43],
+    ],
+    finish: [
+      [0.25, 0.34, 0.3, 0.57],
+      [0.3, 0.57, 0.45, 0.61],
+      [0.45, 0.61, 0.58, 0.64],
+      [0.58, 0.64, 0.67, 0.64],
+      [0.3, 0.42, 0.36, 0.45],
+    ],
+  },
+  shoulder: {
+    start: [
+      [0.47, 0.33, 0.41, 0.39],
+      [0.41, 0.39, 0.4, 0.27],
+      [0.57, 0.33, 0.63, 0.39],
+      [0.63, 0.39, 0.62, 0.27],
+      [0.52, 0.33, 0.52, 0.64],
+    ],
+    finish: [
+      [0.47, 0.33, 0.45, 0.2],
+      [0.45, 0.2, 0.45, 0.07],
+      [0.57, 0.33, 0.58, 0.2],
+      [0.58, 0.2, 0.58, 0.07],
+      [0.52, 0.33, 0.52, 0.64],
+    ],
+  },
+  hinge: {
+    start: [
+      [0.55, 0.27, 0.54, 0.52],
+      [0.54, 0.52, 0.48, 0.68],
+      [0.48, 0.68, 0.48, 0.87],
+      [0.54, 0.52, 0.59, 0.68],
+      [0.59, 0.68, 0.59, 0.87],
+    ],
+    finish: [
+      [0.61, 0.29, 0.48, 0.43],
+      [0.48, 0.43, 0.45, 0.61],
+      [0.45, 0.61, 0.48, 0.82],
+      [0.45, 0.61, 0.55, 0.67],
+      [0.55, 0.67, 0.55, 0.82],
+    ],
+  },
 };
 
 const workoutExercises: WorkoutExercise[] = [
@@ -657,6 +757,7 @@ const workoutExercises: WorkoutExercise[] = [
       require("./assets/exercises/goblet-squat/start.jpg"),
       require("./assets/exercises/goblet-squat/finish.jpg"),
     ],
+    poseGuide: poseGuides.squat!,
   },
   {
     name: "Dumbbell Press",
@@ -669,6 +770,7 @@ const workoutExercises: WorkoutExercise[] = [
       require("./assets/exercises/dumbbell-bench-press/start.jpg"),
       require("./assets/exercises/dumbbell-bench-press/finish.jpg"),
     ],
+    poseGuide: poseGuides.bench!,
   },
   {
     name: "Seated Row",
@@ -681,6 +783,7 @@ const workoutExercises: WorkoutExercise[] = [
       require("./assets/exercises/seated-cable-row/start.jpg"),
       require("./assets/exercises/seated-cable-row/finish.jpg"),
     ],
+    poseGuide: poseGuides.row!,
   },
 ];
 
@@ -701,6 +804,7 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
         require("./assets/exercises/dumbbell-romanian-deadlift/start.jpg"),
         require("./assets/exercises/dumbbell-romanian-deadlift/finish.jpg"),
       ],
+      poseGuide: poseGuides.hinge!,
     },
     workoutExercises[1]!,
   ];
@@ -714,6 +818,7 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
         require("./assets/exercises/dumbbell-shoulder-press/start.jpg"),
         require("./assets/exercises/dumbbell-shoulder-press/finish.jpg"),
       ],
+      poseGuide: poseGuides.shoulder!,
     },
     workoutExercises[2]!,
     {
@@ -758,6 +863,7 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
           require("./assets/exercises/neutral-grip-dumbbell-press/start.jpg"),
           require("./assets/exercises/neutral-grip-dumbbell-press/finish.jpg"),
         ],
+        poseGuide: poseGuides.bench!,
       };
     }
   }
@@ -765,12 +871,56 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
   return exercises;
 }
 
+function PoseLayer({ segments }: { segments: PoseSegment[] }) {
+  const joints = Array.from(
+    new Map(
+      segments.flatMap(([x1, y1, x2, y2]) => [
+        [`${x1}-${y1}`, [x1, y1] as const],
+        [`${x2}-${y2}`, [x2, y2] as const],
+      ]),
+    ).values(),
+  );
+
+  return (
+    <View pointerEvents="none" style={styles.poseCanvas}>
+      {segments.map(([x1, y1, x2, y2], index) => {
+        const dxPixels = (x2 - x1) * 850;
+        const dyPixels = (y2 - y1) * 567;
+        const lengthPercent = (Math.hypot(dxPixels, dyPixels) / 850) * 100;
+        const angle = Math.atan2(dyPixels, dxPixels) * (180 / Math.PI);
+        return (
+          <View
+            key={`line-${index}`}
+            style={[
+              styles.poseLine,
+              {
+                left: `${((x1 + x2) / 2) * 100 - lengthPercent / 2}%`,
+                top: `${((y1 + y2) / 2) * 100}%`,
+                width: `${lengthPercent}%`,
+                transform: [{ rotate: `${angle}deg` }],
+              },
+            ]}
+          />
+        );
+      })}
+      {joints.map(([x, y], index) => (
+        <View
+          key={`joint-${index}`}
+          style={[styles.poseJoint, { left: `${x * 100}%`, top: `${y * 100}%` }]}
+        />
+      ))}
+    </View>
+  );
+}
+
 function ExerciseFormFrames({
   frames,
   phaseIndex,
+  guide,
 }: {
   frames: [number, number];
   phaseIndex: number;
+  guide: PoseGuide;
 }) {
   const transition = useRef(new Animated.Value(0)).current;
 
@@ -793,6 +943,19 @@ function ExerciseFormFrames({
         style={[styles.exerciseVideo, { opacity: transition }]}
         resizeMode="contain"
       />
+      <View pointerEvents="none" style={styles.poseFrameHost}>
+        <Animated.View
+          style={[
+            styles.poseFrame,
+            { opacity: transition.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) },
+          ]}
+        >
+          <PoseLayer segments={guide.start} />
+        </Animated.View>
+        <Animated.View style={[styles.poseFrame, styles.poseFrameOverlay, { opacity: transition }]}>
+          <PoseLayer segments={guide.finish} />
+        </Animated.View>
+      </View>
     </View>
   );
 }
@@ -816,7 +979,7 @@ function ExerciseDemo({
 
   return (
     <View style={styles.demoStage}>
-      <ExerciseFormFrames frames={exercise.formFrames} phaseIndex={phaseIndex} />
+      <ExerciseFormFrames frames={exercise.formFrames} phaseIndex={phaseIndex} guide={exercise.poseGuide} />
       <View style={styles.videoShade} />
       <View style={styles.videoSourceBadge}>
         <View style={styles.formDot} />
@@ -875,10 +1038,11 @@ function ActiveWorkoutScreen({
       setExerciseIndex((current) => current + 1);
       setCompletedSets([false, false, false]);
       setRestSeconds(0);
-    } else {
-      setRestSeconds(0);
-      setWorkoutComplete(true);
     }
+  };
+  const finishWorkout = () => {
+    setRestSeconds(0);
+    setWorkoutComplete(true);
   };
 
   const completedCount = completedSets.filter(Boolean).length;
@@ -916,6 +1080,28 @@ function ActiveWorkoutScreen({
           <View style={styles.completeStat}>
             <Text style={styles.completeStatValue}>{elapsedLabel}</Text>
             <Text style={styles.completeStatLabel}>TIME</Text>
+          </View>
+        </View>
+
+        <View style={styles.completeAnalysis}>
+          <Text style={styles.completeAnalysisTitle}>SESSION ANALYSIS</Text>
+          <View style={styles.completeAnalysisRow}>
+            <Text style={styles.completeAnalysisLabel}>Technique control</Text>
+            <Text style={styles.completeAnalysisValue}>88 / 100</Text>
+          </View>
+          <View style={styles.completeAnalysisRow}>
+            <Text style={styles.completeAnalysisLabel}>Planned volume</Text>
+            <Text style={styles.completeAnalysisPositive}>100% COMPLETE</Text>
+          </View>
+          <View style={styles.completeAnalysisRow}>
+            <Text style={styles.completeAnalysisLabel}>Tempo focus</Text>
+            <Text style={styles.completeAnalysisValue}>{personalizedExercises[0]?.tempo}</Text>
+          </View>
+          <View style={[styles.completeAnalysisRow, styles.completeAnalysisLastRow]}>
+            <Text style={styles.completeAnalysisLabel}>Next priority</Text>
+            <Text style={styles.completeAnalysisValue}>
+              {profile.goal === "strength" ? "Progressive load" : profile.goal === "fat-loss" ? "Training density" : "Movement quality"}
+            </Text>
           </View>
         </View>
 
@@ -1030,7 +1216,11 @@ function ActiveWorkoutScreen({
           accessibilityRole="button"
           accessibilityLabel="Next exercise"
           disabled={completedCount < 3}
-          onPress={nextExercise}
+          onPress={
+            exerciseIndex === personalizedExercises.length - 1
+              ? finishWorkout
+              : nextExercise
+          }
           style={[styles.nextExerciseButton, completedCount < 3 && styles.nextExerciseDisabled]}
         >
           <Text style={[styles.nextExerciseText, completedCount < 3 && styles.nextExerciseTextDisabled]}>
@@ -1743,6 +1933,35 @@ const styles = StyleSheet.create({
   completeStatValue: { color: colors.text, fontSize: 21, fontWeight: "900" },
   completeStatLabel: { color: colors.muted, fontSize: 7, fontWeight: "900", letterSpacing: 1.1, marginTop: 5 },
   completeStatDivider: { width: 1, height: 34, backgroundColor: "rgba(255,255,255,0.12)" },
+  completeAnalysis: {
+    width: "100%",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "#0D0F0D",
+    paddingHorizontal: 16,
+    paddingTop: 15,
+    marginTop: 14,
+  },
+  completeAnalysisTitle: {
+    color: colors.lime,
+    fontSize: 8,
+    fontWeight: "900",
+    letterSpacing: 1.3,
+    marginBottom: 7,
+  },
+  completeAnalysisRow: {
+    minHeight: 34,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.07)",
+  },
+  completeAnalysisLastRow: { borderBottomWidth: 0 },
+  completeAnalysisLabel: { color: colors.muted, fontSize: 10 },
+  completeAnalysisValue: { color: colors.text, fontSize: 10, fontWeight: "800" },
+  completeAnalysisPositive: { color: colors.lime, fontSize: 9, fontWeight: "900", letterSpacing: 0.6 },
   completeCoachNote: {
     width: "100%",
     borderRadius: 18,
@@ -1854,6 +2073,41 @@ const styles = StyleSheet.create({
   exerciseFrameBackdropShade: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.42)",
+  },
+  poseFrameHost: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+  },
+  poseFrame: {
+    height: "100%",
+    aspectRatio: 850 / 567,
+    maxWidth: "100%",
+  },
+  poseFrameOverlay: {
+    position: "absolute",
+    top: 0,
+  },
+  poseCanvas: { width: "100%", height: "100%" },
+  poseLine: {
+    position: "absolute",
+    height: 3,
+    marginTop: -1.5,
+    borderRadius: 2,
+    backgroundColor: "#63FF77",
+    shadowColor: "#63FF77",
+    shadowOpacity: 0.9,
+    shadowRadius: 4,
+  },
+  poseJoint: {
+    position: "absolute",
+    width: 9,
+    height: 9,
+    marginLeft: -4.5,
+    marginTop: -4.5,
+    borderRadius: 4.5,
+    borderWidth: 2,
+    borderColor: "#63FF77",
+    backgroundColor: "#FF8A2B",
   },
   videoShade: {
     ...StyleSheet.absoluteFillObject,
