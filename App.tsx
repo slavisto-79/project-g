@@ -40,6 +40,30 @@ type InterviewQuestion = {
 
 const interviewQuestions: InterviewQuestion[] = [
   {
+    id: "sex",
+    kicker: "PERSONALIZE YOUR TRAINING",
+    title: "How should we personalize your plan?",
+    subtitle: "This helps tailor training emphasis and coaching. You can change it later.",
+    answers: [
+      { label: "Woman", value: "female" },
+      { label: "Man", value: "male" },
+      { label: "Prefer not to say", value: "neutral" },
+    ],
+  },
+  {
+    id: "age",
+    kicker: "TRAIN FOR YOUR CURRENT STAGE",
+    title: "What is your age range?",
+    subtitle: "Age helps us adjust recovery, exercise progression, and training volume.",
+    answers: [
+      { label: "16–24", value: "16-24" },
+      { label: "25–34", value: "25-34" },
+      { label: "35–44", value: "35-44" },
+      { label: "45–54", value: "45-54" },
+      { label: "55+", value: "55-plus" },
+    ],
+  },
+  {
     id: "goal",
     kicker: "LET’S START WITH YOUR GOAL",
     title: "What do you want to achieve?",
@@ -252,7 +276,13 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
   );
 }
 
-function InterviewScreen({ onBack, onFinish }: { onBack: () => void; onFinish: () => void }) {
+function InterviewScreen({
+  onBack,
+  onFinish,
+}: {
+  onBack: () => void;
+  onFinish: (profile: Record<string, string>) => void;
+}) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [complete, setComplete] = useState(false);
@@ -373,7 +403,7 @@ function InterviewScreen({ onBack, onFinish }: { onBack: () => void; onFinish: (
             <Text style={styles.sessionArrow}>›</Text>
           </View>
 
-          <Pressable onPress={onFinish} style={styles.startButton}>
+          <Pressable onPress={() => onFinish(answers)} style={styles.startButton}>
             <Text style={styles.startButtonText}>ENTER MY DASHBOARD</Text>
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
@@ -573,7 +603,17 @@ function DashboardScreen({ onStartWorkout }: { onStartWorkout: () => void }) {
   );
 }
 
-const workoutExercises = [
+type WorkoutExercise = {
+  name: string;
+  target: string;
+  weight: string;
+  reps: string;
+  tempo: string;
+  phases: string[];
+  video: string;
+};
+
+const workoutExercises: WorkoutExercise[] = [
   {
     name: "Goblet Squat",
     target: "Lower body · Compound",
@@ -606,16 +646,53 @@ const workoutExercises = [
   },
 ];
 
+function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
+  const reducedLoad =
+    profile.age === "45-54" ||
+    profile.age === "55-plus" ||
+    profile.experience === "beginner";
+  const reps = reducedLoad ? "8" : profile.goal === "strength" ? "6" : "10";
+  const exercises = workoutExercises.map((exercise) => ({
+    ...exercise,
+    reps,
+    tempo: profile.age === "55-plus" ? "3–1–2" : exercise.tempo,
+    weight:
+      exercise.name === "Goblet Squat"
+        ? reducedLoad ? "8 kg" : profile.sex === "male" ? "20 kg" : "14 kg"
+        : exercise.name === "Dumbbell Press"
+          ? reducedLoad ? "6 kg" : profile.sex === "male" ? "16 kg" : "10 kg"
+          : reducedLoad ? "15 kg" : profile.sex === "male" ? "30 kg" : "22 kg",
+  }));
+
+  if (profile.limitations === "knee") {
+    exercises[0] = { ...exercises[0]!, name: "Box Goblet Squat", target: "Lower body · Knee-aware" };
+  }
+  if (profile.limitations === "shoulder") {
+    exercises[1] = {
+      ...exercises[1]!,
+      name: "Neutral-Grip Dumbbell Press",
+      target: "Chest · Shoulder-aware",
+    };
+  }
+
+  // Different training emphasis while keeping all plans balanced.
+  if (profile.sex === "female") return [exercises[0]!, exercises[2]!, exercises[1]!];
+  if (profile.sex === "male") return [exercises[1]!, exercises[2]!, exercises[0]!];
+  return exercises;
+}
+
 function ExerciseDemo({
   exerciseIndex,
   paused,
+  exercises,
 }: {
   exerciseIndex: number;
   paused: boolean;
+  exercises: WorkoutExercise[];
 }) {
   const motion = useRef(new Animated.Value(0)).current;
   const [phaseIndex, setPhaseIndex] = useState(0);
-  const exercise = workoutExercises[exerciseIndex] ?? workoutExercises[0]!;
+  const exercise = exercises[exerciseIndex] ?? exercises[0]!;
   const videoPlayer = useVideoPlayer(exercise.video, (player) => {
     player.loop = true;
     player.muted = true;
@@ -660,12 +737,19 @@ function ExerciseDemo({
   );
 }
 
-function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
+function ActiveWorkoutScreen({
+  onExit,
+  profile,
+}: {
+  onExit: () => void;
+  profile: Record<string, string>;
+}) {
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [completedSets, setCompletedSets] = useState<boolean[]>([false, false, false]);
   const [restSeconds, setRestSeconds] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const exercise = workoutExercises[exerciseIndex] ?? workoutExercises[0]!;
+  const personalizedExercises = createWorkout(profile);
+  const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
 
   useEffect(() => {
     const workoutTimer = setInterval(() => setElapsedSeconds((value) => value + 1), 1000);
@@ -684,7 +768,7 @@ function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
   };
 
   const nextExercise = () => {
-    if (exerciseIndex < workoutExercises.length - 1) {
+    if (exerciseIndex < personalizedExercises.length - 1) {
       setExerciseIndex((current) => current + 1);
       setCompletedSets([false, false, false]);
       setRestSeconds(0);
@@ -692,7 +776,7 @@ function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
   };
 
   const completedCount = completedSets.filter(Boolean).length;
-  const workoutProgress = (exerciseIndex + completedCount / 3) / workoutExercises.length;
+  const workoutProgress = (exerciseIndex + completedCount / 3) / personalizedExercises.length;
   const elapsedLabel = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(
     elapsedSeconds % 60,
   ).padStart(2, "0")}`;
@@ -717,7 +801,12 @@ function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
       <View style={styles.exerciseVisual}>
         <View style={styles.exerciseGlow} />
         <Text style={styles.exerciseNumber}>0{exerciseIndex + 1}</Text>
-        <ExerciseDemo key={exerciseIndex} exerciseIndex={exerciseIndex} paused={restSeconds > 0} />
+        <ExerciseDemo
+          key={exerciseIndex}
+          exerciseIndex={exerciseIndex}
+          paused={restSeconds > 0}
+          exercises={personalizedExercises}
+        />
         <View style={styles.formBadge}>
           <View style={styles.formDot} />
           <Text style={styles.formBadgeText}>{remainingLabel} REMAINING</Text>
@@ -727,7 +816,7 @@ function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
       <View style={styles.exerciseSheet}>
         <View style={styles.exerciseHeadingRow}>
           <View>
-            <Text style={styles.exerciseStep}>EXERCISE {exerciseIndex + 1} OF {workoutExercises.length}</Text>
+            <Text style={styles.exerciseStep}>EXERCISE {exerciseIndex + 1} OF {personalizedExercises.length}</Text>
             <Text style={styles.exerciseName}>{exercise.name}</Text>
             <Text style={styles.exerciseTarget}>{exercise.target}</Text>
           </View>
@@ -789,7 +878,7 @@ function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
           style={[styles.nextExerciseButton, completedCount < 3 && styles.nextExerciseDisabled]}
         >
           <Text style={[styles.nextExerciseText, completedCount < 3 && styles.nextExerciseTextDisabled]}>
-            {exerciseIndex === workoutExercises.length - 1 ? "FINISH WORKOUT" : "NEXT EXERCISE"}
+            {exerciseIndex === personalizedExercises.length - 1 ? "FINISH WORKOUT" : "NEXT EXERCISE"}
           </Text>
           <Text style={[styles.nextExerciseArrow, completedCount < 3 && styles.nextExerciseTextDisabled]}>→</Text>
         </Pressable>
@@ -800,6 +889,7 @@ function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("splash");
+  const [profile, setProfile] = useState<Record<string, string>>({});
 
   return (
     <View style={styles.app}>
@@ -808,10 +898,18 @@ export default function App() {
       {screen === "splash" && <SplashScreen onComplete={() => setScreen("welcome")} />}
       {screen === "welcome" && <WelcomeScreen onStart={() => setScreen("interview")} />}
       {screen === "interview" && (
-        <InterviewScreen onBack={() => setScreen("welcome")} onFinish={() => setScreen("dashboard")} />
+        <InterviewScreen
+          onBack={() => setScreen("welcome")}
+          onFinish={(answers) => {
+            setProfile(answers);
+            setScreen("dashboard");
+          }}
+        />
       )}
       {screen === "dashboard" && <DashboardScreen onStartWorkout={() => setScreen("workout")} />}
-      {screen === "workout" && <ActiveWorkoutScreen onExit={() => setScreen("dashboard")} />}
+      {screen === "workout" && (
+        <ActiveWorkoutScreen profile={profile} onExit={() => setScreen("dashboard")} />
+      )}
     </View>
   );
 }
