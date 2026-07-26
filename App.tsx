@@ -634,6 +634,7 @@ type WorkoutExercise = {
   tempo: string;
   phases: string[];
   video: string;
+  clipStart?: number;
 };
 
 const workoutExercises: WorkoutExercise[] = [
@@ -693,6 +694,7 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
       target: "Shoulders · Strength",
       phases: ["LOWER", "BRACE", "PRESS"],
       video: "https://www.pexels.com/download/video/4367541/",
+      clipStart: 4,
     },
     workoutExercises[2]!,
     {
@@ -756,6 +758,7 @@ function ExerciseDemo({
     player.loop = true;
     player.muted = true;
     player.playbackRate = 0.75;
+    player.currentTime = exercise.clipStart ?? 0;
     player.play();
   });
 
