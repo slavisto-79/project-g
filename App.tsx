@@ -757,7 +757,13 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
   return exercises;
 }
 
-function ExerciseVideo({ exercise, paused }: { exercise: WorkoutExercise; paused: boolean }) {
+function ExerciseVideo({
+  exercise,
+  resting,
+}: {
+  exercise: WorkoutExercise;
+  resting: boolean;
+}) {
   const videoPlayer = useVideoPlayer(exercise.video, (player) => {
     player.loop = true;
     player.muted = true;
@@ -767,9 +773,9 @@ function ExerciseVideo({ exercise, paused }: { exercise: WorkoutExercise; paused
   });
 
   useEffect(() => {
-    if (paused) videoPlayer.pause();
-    else videoPlayer.play();
-  }, [paused, videoPlayer]);
+    // Resting pauses the workout timer logic, never the form demonstration.
+    videoPlayer.play();
+  }, [resting, videoPlayer]);
 
   return (
     <VideoView
@@ -827,17 +833,16 @@ function ExerciseDemo({
   const exercise = exercises[exerciseIndex] ?? exercises[0]!;
 
   useEffect(() => {
-    if (paused) return;
     const phaseTimer = setInterval(() => setPhaseIndex((value) => (value + 1) % 3), 1100);
     return () => clearInterval(phaseTimer);
-  }, [paused]);
+  }, []);
 
   return (
     <View style={styles.demoStage}>
       {exercise.formFrames ? (
         <ExerciseFormFrames frames={exercise.formFrames} phaseIndex={phaseIndex} />
       ) : (
-        <ExerciseVideo exercise={exercise} paused={paused} />
+        <ExerciseVideo exercise={exercise} resting={paused} />
       )}
       <View style={styles.videoShade} />
       <View style={styles.videoSourceBadge}>
