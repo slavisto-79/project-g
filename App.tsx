@@ -573,16 +573,122 @@ function DashboardScreen({ onStartWorkout }: { onStartWorkout: () => void }) {
 }
 
 const workoutExercises = [
-  { name: "Goblet Squat", target: "Lower body · Compound", weight: "16 kg", reps: "10" },
-  { name: "Dumbbell Press", target: "Chest · Compound", weight: "12 kg", reps: "10" },
-  { name: "Seated Row", target: "Back · Controlled", weight: "25 kg", reps: "12" },
+  {
+    name: "Goblet Squat",
+    target: "Lower body · Compound",
+    weight: "16 kg",
+    reps: "10",
+    tempo: "3–1–1",
+    phases: ["LOWER", "HOLD", "DRIVE"],
+  },
+  {
+    name: "Dumbbell Press",
+    target: "Chest · Compound",
+    weight: "12 kg",
+    reps: "10",
+    tempo: "2–1–1",
+    phases: ["LOWER", "PAUSE", "PRESS"],
+  },
+  {
+    name: "Seated Row",
+    target: "Back · Controlled",
+    weight: "25 kg",
+    reps: "12",
+    tempo: "2–1–2",
+    phases: ["REACH", "PULL", "RETURN"],
+  },
 ];
+
+function ExerciseDemo({
+  exerciseIndex,
+  paused,
+}: {
+  exerciseIndex: number;
+  paused: boolean;
+}) {
+  const motion = useRef(new Animated.Value(0)).current;
+  const [phaseIndex, setPhaseIndex] = useState(0);
+  const exercise = workoutExercises[exerciseIndex] ?? workoutExercises[0]!;
+
+  useEffect(() => {
+    motion.stopAnimation();
+    motion.setValue(0);
+    if (paused) return;
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(motion, {
+          toValue: 1,
+          duration: 1600,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.delay(450),
+        Animated.timing(motion, {
+          toValue: 0,
+          duration: 950,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.delay(300),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [exerciseIndex, motion, paused]);
+
+  useEffect(() => {
+    if (paused) return;
+    const phaseTimer = setInterval(() => setPhaseIndex((value) => (value + 1) % 3), 1100);
+    return () => clearInterval(phaseTimer);
+  }, [paused]);
+
+  const bodyTransform =
+    exerciseIndex === 0
+      ? [{ translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [0, 27] }) }]
+      : exerciseIndex === 1
+        ? [{ translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [8, -12] }) }]
+        : [{ translateX: motion.interpolate({ inputRange: [0, 1], outputRange: [-13, 13] }) }];
+  const armTransform =
+    exerciseIndex === 2
+      ? [{ translateX: motion.interpolate({ inputRange: [0, 1], outputRange: [11, -9] }) }]
+      : [{ translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [7, -10] }) }];
+
+  return (
+    <View style={styles.demoStage}>
+      <View style={styles.demoFloor} />
+      <Animated.View style={[styles.demoPerson, { transform: bodyTransform }]}>
+        <View style={styles.demoHead} />
+        <View style={styles.demoTorso}>
+          <Animated.View style={[styles.demoArm, styles.demoArmLeft, { transform: armTransform }]} />
+          <Animated.View style={[styles.demoArm, styles.demoArmRight, { transform: armTransform }]} />
+          <View style={styles.demoCore} />
+        </View>
+        <View style={styles.demoLegs}>
+          <View style={[styles.demoLeg, styles.demoLegLeft]} />
+          <View style={[styles.demoLeg, styles.demoLegRight]} />
+        </View>
+        <View style={styles.demoWeight}><Text style={styles.demoWeightText}>●</Text></View>
+      </Animated.View>
+      <View style={styles.tempoPanel}>
+        <Text style={styles.tempoLabel}>REP TEMPO</Text>
+        <Text style={styles.tempoValue}>{exercise.tempo}</Text>
+        <Text style={styles.phaseValue}>{paused ? "REST" : exercise.phases[phaseIndex]}</Text>
+      </View>
+    </View>
+  );
+}
 
 function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [completedSets, setCompletedSets] = useState<boolean[]>([false, false, false]);
   const [restSeconds, setRestSeconds] = useState(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const exercise = workoutExercises[exerciseIndex] ?? workoutExercises[0]!;
+
+  useEffect(() => {
+    const workoutTimer = setInterval(() => setElapsedSeconds((value) => value + 1), 1000);
+    return () => clearInterval(workoutTimer);
+  }, []);
 
   useEffect(() => {
     if (restSeconds <= 0) return;
@@ -605,6 +711,11 @@ function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
 
   const completedCount = completedSets.filter(Boolean).length;
   const workoutProgress = (exerciseIndex + completedCount / 3) / workoutExercises.length;
+  const elapsedLabel = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(
+    elapsedSeconds % 60,
+  ).padStart(2, "0")}`;
+  const remainingSeconds = Math.max(0, 45 * 60 - elapsedSeconds);
+  const remainingLabel = `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, "0")}`;
 
   return (
     <SafeAreaView style={styles.activeWorkout}>
@@ -618,18 +729,16 @@ function ActiveWorkoutScreen({ onExit }: { onExit: () => void }) {
             <View style={[styles.activeProgressFill, { width: `${workoutProgress * 100}%` }]} />
           </View>
         </View>
-        <View style={styles.workoutElapsed}><Text style={styles.workoutElapsedText}>08:42</Text></View>
+        <View style={styles.workoutElapsed}><Text style={styles.workoutElapsedText}>{elapsedLabel}</Text></View>
       </View>
 
       <View style={styles.exerciseVisual}>
         <View style={styles.exerciseGlow} />
         <Text style={styles.exerciseNumber}>0{exerciseIndex + 1}</Text>
-        <View style={styles.motionFigure}>
-          <Text style={styles.motionFigureText}>G</Text>
-        </View>
+        <ExerciseDemo exerciseIndex={exerciseIndex} paused={restSeconds > 0} />
         <View style={styles.formBadge}>
           <View style={styles.formDot} />
-          <Text style={styles.formBadgeText}>FORM GUIDE READY</Text>
+          <Text style={styles.formBadgeText}>{remainingLabel} REMAINING</Text>
         </View>
       </View>
 
@@ -1329,6 +1438,67 @@ const styles = StyleSheet.create({
     backgroundColor: "#11150F",
   },
   motionFigureText: { color: colors.text, fontSize: 31, fontWeight: "800" },
+  demoStage: { width: 190, height: 142, alignItems: "center", justifyContent: "center" },
+  demoFloor: {
+    position: "absolute",
+    left: 27,
+    right: 27,
+    bottom: 15,
+    height: 1,
+    backgroundColor: "rgba(200,255,50,0.2)",
+  },
+  demoPerson: { width: 78, height: 112, alignItems: "center", marginTop: -8 },
+  demoHead: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: colors.lime,
+    backgroundColor: "#171B15",
+  },
+  demoTorso: {
+    width: 36,
+    height: 44,
+    borderRadius: 12,
+    marginTop: 3,
+    alignItems: "center",
+    backgroundColor: "#30372B",
+  },
+  demoCore: { width: 4, height: 29, borderRadius: 2, marginTop: 7, backgroundColor: colors.lime },
+  demoArm: {
+    position: "absolute",
+    top: 4,
+    width: 10,
+    height: 39,
+    borderRadius: 5,
+    backgroundColor: "#687060",
+  },
+  demoArmLeft: { left: -9, transform: [{ rotate: "17deg" }] },
+  demoArmRight: { right: -9, transform: [{ rotate: "-17deg" }] },
+  demoLegs: { flexDirection: "row", width: 46, height: 42, justifyContent: "space-between" },
+  demoLeg: { width: 11, height: 42, borderRadius: 6, backgroundColor: "#4B5247" },
+  demoLegLeft: { transform: [{ rotate: "7deg" }] },
+  demoLegRight: { transform: [{ rotate: "-7deg" }] },
+  demoWeight: {
+    position: "absolute",
+    top: 35,
+    width: 25,
+    height: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.lime,
+  },
+  demoWeightText: { color: colors.ink, fontSize: 9 },
+  tempoPanel: {
+    position: "absolute",
+    right: -15,
+    top: 30,
+    alignItems: "flex-end",
+  },
+  tempoLabel: { color: "#666D63", fontSize: 6, fontWeight: "800", letterSpacing: 1 },
+  tempoValue: { color: colors.text, fontSize: 16, fontWeight: "800", marginTop: 2 },
+  phaseValue: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1, marginTop: 3 },
   formBadge: {
     position: "absolute",
     right: 15,
