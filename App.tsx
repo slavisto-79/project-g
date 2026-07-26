@@ -281,9 +281,11 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
 function InterviewScreen({
   onBack,
   onFinish,
+  onStartWorkout,
 }: {
   onBack: () => void;
   onFinish: (profile: Record<string, string>) => void;
+  onStartWorkout: (profile: Record<string, string>) => void;
 }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -394,7 +396,12 @@ function InterviewScreen({
           </View>
 
           <Text style={styles.planSectionTitle}>YOUR FIRST SESSION</Text>
-          <View style={styles.sessionCard}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Open Full Body Foundation workout"
+            onPress={() => onStartWorkout(answers)}
+            style={({ pressed }) => [styles.sessionCard, pressed && { opacity: 0.78 }]}
+          >
             <View style={styles.sessionNumber}><Text style={styles.sessionNumberText}>01</Text></View>
             <View style={styles.sessionCopy}>
               <Text style={styles.sessionTitle}>Full Body Foundation</Text>
@@ -403,7 +410,7 @@ function InterviewScreen({
               </Text>
             </View>
             <Text style={styles.sessionArrow}>›</Text>
-          </View>
+          </Pressable>
 
           <Pressable onPress={() => onFinish(answers)} style={styles.startButton}>
             <Text style={styles.startButtonText}>ENTER MY DASHBOARD</Text>
@@ -964,6 +971,10 @@ export default function App() {
             onFinish={(answers) => {
               setProfile(answers);
               setScreen("dashboard");
+            }}
+            onStartWorkout={(answers) => {
+              setProfile(answers);
+              setScreen("workout");
             }}
           />
         )}
