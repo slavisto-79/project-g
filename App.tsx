@@ -794,19 +794,31 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
     profile.experience === "beginner";
   const reps = reducedLoad ? "8" : profile.goal === "strength" ? "6" : "10";
   const femaleExercises: WorkoutExercise[] = [
-    workoutExercises[0]!,
+    {
+      ...workoutExercises[0]!,
+      formFrames: [
+        require("./assets/exercises/female-goblet-squat/start.jpg"),
+        require("./assets/exercises/female-goblet-squat/finish.jpg"),
+      ],
+    },
     {
       ...workoutExercises[2]!,
       name: "Dumbbell Romanian Deadlift",
       target: "Glutes & hamstrings · Controlled",
       phases: ["HINGE", "STRETCH", "DRIVE"],
       formFrames: [
-        require("./assets/exercises/dumbbell-romanian-deadlift/start.jpg"),
-        require("./assets/exercises/dumbbell-romanian-deadlift/finish.jpg"),
+        require("./assets/exercises/female-dumbbell-rdl/start.jpg"),
+        require("./assets/exercises/female-dumbbell-rdl/finish.jpg"),
       ],
       poseGuide: poseGuides.hinge!,
     },
-    workoutExercises[1]!,
+    {
+      ...workoutExercises[1]!,
+      formFrames: [
+        require("./assets/exercises/female-dumbbell-bench-press/start.jpg"),
+        require("./assets/exercises/female-dumbbell-bench-press/finish.jpg"),
+      ],
+    },
   ];
   const maleExercises: WorkoutExercise[] = [
     {
@@ -871,71 +883,21 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
   return exercises;
 }
 
-function PoseLayer({ segments }: { segments: PoseSegment[] }) {
-  const joints = Array.from(
-    new Map(
-      segments.flatMap(([x1, y1, x2, y2]) => [
-        [`${x1}-${y1}`, [x1, y1] as const],
-        [`${x2}-${y2}`, [x2, y2] as const],
-      ]),
-    ).values(),
-  );
-
-  return (
-    <View pointerEvents="none" style={styles.poseCanvas}>
-      {segments.map(([x1, y1, x2, y2], index) => {
-        const dxPixels = (x2 - x1) * 850;
-        const dyPixels = (y2 - y1) * 567;
-        const lengthPercent = (Math.hypot(dxPixels, dyPixels) / 850) * 100;
-        const angle = Math.atan2(dyPixels, dxPixels) * (180 / Math.PI);
-        return (
-          <View
-            key={`line-${index}`}
-            style={[
-              styles.poseLine,
-              {
-                left: `${((x1 + x2) / 2) * 100 - lengthPercent / 2}%`,
-                top: `${((y1 + y2) / 2) * 100}%`,
-                width: `${lengthPercent}%`,
-                transform: [{ rotate: `${angle}deg` }],
-              },
-            ]}
-          />
-        );
-      })}
-      {joints.map(([x, y], index) => (
-        <View
-          key={`joint-${index}`}
-          style={[styles.poseJoint, { left: `${x * 100}%`, top: `${y * 100}%` }]}
-        />
-      ))}
-    </View>
-  );
-}
-
 function ExerciseFormFrames({
   frames,
   phaseIndex,
-  guide,
 }: {
   frames: [number, number];
   phaseIndex: number;
-  guide: PoseGuide;
 }) {
   const isWorkingPosition = phaseIndex < 2;
   const activeFrame = isWorkingPosition ? frames[1] : frames[0];
-  const activeGuide = isWorkingPosition ? guide.finish : guide.start;
 
   return (
     <View style={StyleSheet.absoluteFill}>
       <Image source={activeFrame} style={styles.exerciseFrameBackdrop} resizeMode="cover" />
       <View style={styles.exerciseFrameBackdropShade} />
       <Image source={activeFrame} style={styles.exerciseVideo} resizeMode="contain" />
-      <View pointerEvents="none" style={styles.poseFrameHost}>
-        <View style={styles.poseFrame}>
-          <PoseLayer segments={activeGuide} />
-        </View>
-      </View>
     </View>
   );
 }
@@ -959,7 +921,7 @@ function ExerciseDemo({
 
   return (
     <View style={styles.demoStage}>
-      <ExerciseFormFrames frames={exercise.formFrames} phaseIndex={phaseIndex} guide={exercise.poseGuide} />
+      <ExerciseFormFrames frames={exercise.formFrames} phaseIndex={phaseIndex} />
       <View style={styles.videoShade} />
       <View style={styles.videoSourceBadge}>
         <View style={styles.formDot} />

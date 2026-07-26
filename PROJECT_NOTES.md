@@ -13,7 +13,8 @@
 - Onboarding profile data must meaningfully affect the generated workout.
 - Exercise media must play or animate inside the workout screen and never open an external player.
 - The athlete must remain fully visible and the exercise media must use the available space well.
-- Form guidance must show one active pose and one aligned skeleton only. Never crossfade two athletes or two skeletons.
+- Do not show pose contours/skeletons in the prototype. They were removed because manually aligned overlays were inaccurate.
+- Selecting a woman or man must also select matching exercise demonstrators, not only different weights and exercise names.
 - Exercise phases, visual guidance, tempo, and rest state must remain synchronized.
 - Completing the final exercise must always open a complete session analysis.
 
