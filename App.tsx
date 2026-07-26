@@ -229,7 +229,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
     <View style={styles.welcomeImage}>
       <ImageBackground
         source={require("./assets/welcome-hero-unisex-v2.png")}
-        resizeMode="cover"
+        resizeMode="contain"
         style={styles.welcomeHeroLayer}
         imageStyle={styles.welcomeImageAsset}
       />
