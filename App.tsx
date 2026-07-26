@@ -25,7 +25,7 @@ const colors = {
   ink: "#0A0B09",
 };
 
-type Screen = "splash" | "welcome" | "interview" | "dashboard" | "workout";
+type Screen = "splash" | "welcome" | "interview" | "dashboard" | "workout" | "progress";
 
 type InterviewAnswer = {
   label: string;
@@ -415,7 +415,7 @@ function InterviewScreen({
             <View style={styles.sessionCopy}>
               <Text style={styles.sessionTitle}>Full Body Foundation</Text>
               <Text style={styles.sessionMeta}>
-                {answers.duration ?? "45"} min · {equipmentLabels[answers.equipment ?? ""] ?? "Your equipment"} · 6 exercises
+                {answers.duration ?? "45"} min · {equipmentLabels[answers.equipment ?? ""] ?? "Your equipment"} · 5 exercises
               </Text>
             </View>
             <Text style={styles.sessionArrow}>›</Text>
@@ -563,7 +563,7 @@ function DashboardScreen({
             <Text style={styles.workoutDuration}>{profile.duration ?? "45"} MIN</Text>
           </View>
           <Text style={styles.workoutTitle}>{workoutName}</Text>
-          <Text style={styles.workoutMeta}>3 guided exercises · Personalized intensity</Text>
+          <Text style={styles.workoutMeta}>5 guided exercises · Personalized intensity</Text>
           <View style={styles.workoutCoachNote}>
             <View style={styles.coachMiniAvatar}><Text style={styles.coachMiniText}>G</Text></View>
             <Text style={styles.workoutCoachText}>Adapted to your profile, recovery, and equipment.</Text>
@@ -819,6 +819,26 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
         require("./assets/exercises/female-dumbbell-bench-press/finish.jpg"),
       ],
     },
+    {
+      ...workoutExercises[0]!,
+      name: "Dumbbell Reverse Lunge",
+      target: "Legs & glutes · Unilateral",
+      phases: ["STEP", "LOWER", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/female-reverse-lunge/start.jpg"),
+        require("./assets/exercises/female-reverse-lunge/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[2]!,
+      name: "Supported One-Arm Row",
+      target: "Back · Controlled",
+      phases: ["REACH", "PULL", "RETURN"],
+      formFrames: [
+        require("./assets/exercises/female-one-arm-row/start.jpg"),
+        require("./assets/exercises/female-one-arm-row/finish.jpg"),
+      ],
+    },
   ];
   const maleExercises: WorkoutExercise[] = [
     {
@@ -837,6 +857,17 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
       ...workoutExercises[1]!,
       name: "Dumbbell Bench Press",
       target: "Chest · Strength",
+    },
+    workoutExercises[0]!,
+    {
+      ...workoutExercises[0]!,
+      name: "Dumbbell Romanian Deadlift",
+      target: "Glutes & hamstrings · Controlled",
+      phases: ["HINGE", "STRETCH", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/dumbbell-romanian-deadlift/start.jpg"),
+        require("./assets/exercises/dumbbell-romanian-deadlift/finish.jpg"),
+      ],
     },
   ];
   const selectedBase =
@@ -892,12 +923,33 @@ function ExerciseFormFrames({
 }) {
   const isWorkingPosition = phaseIndex < 2;
   const activeFrame = isWorkingPosition ? frames[1] : frames[0];
+  const [displayedFrame, setDisplayedFrame] = useState(activeFrame);
+  const frameOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.timing(frameOpacity, {
+      toValue: 0.18,
+      duration: 130,
+      easing: Easing.inOut(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => {
+      setDisplayedFrame(activeFrame);
+      Animated.timing(frameOpacity, {
+        toValue: 1,
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [activeFrame, frameOpacity]);
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      <Image source={activeFrame} style={styles.exerciseFrameBackdrop} resizeMode="cover" />
-      <View style={styles.exerciseFrameBackdropShade} />
-      <Image source={activeFrame} style={styles.exerciseVideo} resizeMode="contain" />
+      <Animated.View style={[StyleSheet.absoluteFill, { opacity: frameOpacity }]}>
+        <Image source={displayedFrame} style={styles.exerciseFrameBackdrop} resizeMode="cover" />
+        <View style={styles.exerciseFrameBackdropShade} />
+        <Image source={displayedFrame} style={styles.exerciseVideo} resizeMode="contain" />
+      </Animated.View>
     </View>
   );
 }
@@ -938,9 +990,11 @@ function ExerciseDemo({
 
 function ActiveWorkoutScreen({
   onExit,
+  onViewProgress,
   profile,
 }: {
   onExit: () => void;
+  onViewProgress: () => void;
   profile: Record<string, string>;
 }) {
   const { width } = useWindowDimensions();
@@ -1056,11 +1110,11 @@ function ActiveWorkoutScreen({
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Return to dashboard"
-          onPress={onExit}
+          accessibilityLabel="View progress"
+          onPress={onViewProgress}
           style={styles.completeButton}
         >
-          <Text style={styles.completeButtonText}>RETURN TO DASHBOARD</Text>
+          <Text style={styles.completeButtonText}>VIEW MY PROGRESS</Text>
           <Text style={styles.completeButtonArrow}>→</Text>
         </Pressable>
       </SafeAreaView>
@@ -1156,7 +1210,11 @@ function ActiveWorkoutScreen({
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Next exercise"
+          accessibilityLabel={
+            exerciseIndex === personalizedExercises.length - 1
+              ? "Finish workout"
+              : "Next exercise"
+          }
           disabled={completedCount < 3}
           onPress={
             exerciseIndex === personalizedExercises.length - 1
@@ -1171,6 +1229,116 @@ function ActiveWorkoutScreen({
           <Text style={[styles.nextExerciseArrow, completedCount < 3 && styles.nextExerciseTextDisabled]}>→</Text>
         </Pressable>
       </View>
+    </SafeAreaView>
+  );
+}
+
+function ProgressScreen({
+  onDashboard,
+  profile,
+}: {
+  onDashboard: () => void;
+  profile: Record<string, string>;
+}) {
+  const nextFocus =
+    profile.goal === "strength"
+      ? "Progressive load"
+      : profile.goal === "fat-loss"
+        ? "Training density"
+        : "Movement quality";
+
+  return (
+    <SafeAreaView style={styles.progressScreen}>
+      <ScrollView contentContainerStyle={styles.progressContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.progressHeader}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back to dashboard"
+            onPress={onDashboard}
+            style={styles.progressBack}
+          >
+            <Text style={styles.progressBackText}>‹</Text>
+          </Pressable>
+          <Text style={styles.progressHeaderTitle}>PROGRESS</Text>
+          <View style={styles.progressHeaderSpacer} />
+        </View>
+
+        <Text style={styles.progressEyebrow}>FOUNDATION WEEK · SESSION 01</Text>
+        <Text style={styles.progressTitle}>Your baseline is set.</Text>
+        <Text style={styles.progressSubtitle}>
+          Project G will use today’s performance to personalize what comes next.
+        </Text>
+
+        <View style={styles.progressHero}>
+          <View>
+            <Text style={styles.progressScoreValue}>100%</Text>
+            <Text style={styles.progressScoreLabel}>SESSION COMPLETE</Text>
+          </View>
+          <View style={styles.progressHeroBadge}>
+            <Text style={styles.progressHeroBadgeValue}>88</Text>
+            <Text style={styles.progressHeroBadgeLabel}>FORM SCORE</Text>
+          </View>
+        </View>
+
+        <View style={styles.progressMetrics}>
+          <View style={styles.progressMetric}>
+            <Text style={styles.progressMetricValue}>5</Text>
+            <Text style={styles.progressMetricLabel}>EXERCISES</Text>
+          </View>
+          <View style={styles.progressMetricDivider} />
+          <View style={styles.progressMetric}>
+            <Text style={styles.progressMetricValue}>15</Text>
+            <Text style={styles.progressMetricLabel}>SETS</Text>
+          </View>
+          <View style={styles.progressMetricDivider} />
+          <View style={styles.progressMetric}>
+            <Text style={styles.progressMetricValue}>1</Text>
+            <Text style={styles.progressMetricLabel}>WORKOUT</Text>
+          </View>
+        </View>
+
+        <View style={styles.progressSection}>
+          <Text style={styles.progressSectionTitle}>TODAY’S ANALYSIS</Text>
+          <View style={styles.progressRowTop}>
+            <Text style={styles.progressRowLabel}>Movement control</Text>
+            <Text style={styles.progressRowValue}>88 / 100</Text>
+          </View>
+          <View style={styles.analysisProgressTrack}>
+            <View style={[styles.analysisProgressFill, { width: "88%" }]} />
+          </View>
+          <View style={styles.progressRowTop}>
+            <Text style={styles.progressRowLabel}>Planned volume</Text>
+            <Text style={styles.progressRowPositive}>100%</Text>
+          </View>
+          <View style={styles.analysisProgressTrack}>
+            <View style={[styles.analysisProgressFill, { width: "100%" }]} />
+          </View>
+          <View style={styles.progressPriority}>
+            <Text style={styles.progressPriorityLabel}>NEXT TRAINING FOCUS</Text>
+            <Text style={styles.progressPriorityValue}>{nextFocus}</Text>
+          </View>
+        </View>
+
+        <View style={styles.progressCoachCard}>
+          <View style={styles.progressCoachMark}><Text style={styles.progressCoachMarkText}>G</Text></View>
+          <View style={styles.progressCoachCopy}>
+            <Text style={styles.progressCoachLabel}>AI + HUMAN COACH INSIGHT</Text>
+            <Text style={styles.progressCoachText}>
+              Baseline established. Your next session will adjust load, exercise selection, and tempo from today’s result.
+            </Text>
+          </View>
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Back to dashboard"
+          onPress={onDashboard}
+          style={styles.progressButton}
+        >
+          <Text style={styles.progressButtonText}>BACK TO DASHBOARD</Text>
+          <Text style={styles.progressButtonArrow}>→</Text>
+        </Pressable>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -1203,7 +1371,14 @@ export default function App() {
           <DashboardScreen profile={profile} onStartWorkout={() => setScreen("workout")} />
         )}
         {screen === "workout" && (
-          <ActiveWorkoutScreen profile={profile} onExit={() => setScreen("dashboard")} />
+          <ActiveWorkoutScreen
+            profile={profile}
+            onExit={() => setScreen("dashboard")}
+            onViewProgress={() => setScreen("progress")}
+          />
+        )}
+        {screen === "progress" && (
+          <ProgressScreen profile={profile} onDashboard={() => setScreen("dashboard")} />
         )}
       </View>
     </View>
@@ -2246,4 +2421,139 @@ const styles = StyleSheet.create({
   nextExerciseText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 1.1 },
   nextExerciseArrow: { color: colors.ink, fontSize: 19, fontWeight: "700" },
   nextExerciseTextDisabled: { color: "#50554F" },
+  progressScreen: { flex: 1, backgroundColor: colors.background },
+  progressContent: { paddingHorizontal: 20, paddingBottom: 28 },
+  progressHeader: {
+    height: 58,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  progressBack: {
+    width: 35,
+    height: 35,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#30352F",
+  },
+  progressBackText: { color: colors.text, fontSize: 28, lineHeight: 29, marginTop: -2 },
+  progressHeaderTitle: { color: colors.text, fontSize: 10, fontWeight: "900", letterSpacing: 2 },
+  progressHeaderSpacer: { width: 35 },
+  progressEyebrow: {
+    color: colors.lime,
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 1.4,
+    marginTop: 14,
+  },
+  progressTitle: {
+    color: colors.text,
+    fontSize: 38,
+    lineHeight: 41,
+    fontWeight: "800",
+    letterSpacing: -1.5,
+    marginTop: 10,
+  },
+  progressSubtitle: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 9 },
+  progressHero: {
+    minHeight: 118,
+    borderRadius: 22,
+    marginTop: 22,
+    paddingHorizontal: 19,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.28)",
+    backgroundColor: "rgba(200,255,50,0.07)",
+  },
+  progressScoreValue: { color: colors.text, fontSize: 40, fontWeight: "900", letterSpacing: -1.5 },
+  progressScoreLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.3, marginTop: 2 },
+  progressHeroBadge: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 5,
+    borderColor: colors.lime,
+    backgroundColor: "#0C0F0B",
+  },
+  progressHeroBadgeValue: { color: colors.text, fontSize: 24, fontWeight: "900" },
+  progressHeroBadgeLabel: { color: colors.muted, fontSize: 5, fontWeight: "900", letterSpacing: 0.7 },
+  progressMetrics: {
+    minHeight: 86,
+    borderRadius: 20,
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#252A24",
+    backgroundColor: colors.surface,
+  },
+  progressMetric: { flex: 1, alignItems: "center" },
+  progressMetricDivider: { width: 1, height: 37, backgroundColor: "#2C312B" },
+  progressMetricValue: { color: colors.text, fontSize: 23, fontWeight: "900" },
+  progressMetricLabel: { color: colors.muted, fontSize: 6, fontWeight: "900", letterSpacing: 1, marginTop: 4 },
+  progressSection: {
+    borderRadius: 20,
+    marginTop: 12,
+    padding: 17,
+    borderWidth: 1,
+    borderColor: "#252A24",
+    backgroundColor: colors.surface,
+  },
+  progressSectionTitle: { color: colors.text, fontSize: 9, fontWeight: "900", letterSpacing: 1.4, marginBottom: 14 },
+  progressRowTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 },
+  progressRowLabel: { color: colors.muted, fontSize: 10 },
+  progressRowValue: { color: colors.text, fontSize: 10, fontWeight: "800" },
+  progressRowPositive: { color: colors.lime, fontSize: 10, fontWeight: "900" },
+  analysisProgressTrack: { height: 5, borderRadius: 3, backgroundColor: "#242924", marginTop: 8, overflow: "hidden" },
+  analysisProgressFill: { height: "100%", borderRadius: 3, backgroundColor: colors.lime },
+  progressPriority: {
+    marginTop: 18,
+    paddingTop: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderTopWidth: 1,
+    borderTopColor: "#292D28",
+  },
+  progressPriorityLabel: { color: colors.muted, fontSize: 7, fontWeight: "900", letterSpacing: 1 },
+  progressPriorityValue: { color: colors.text, fontSize: 10, fontWeight: "800" },
+  progressCoachCard: {
+    borderRadius: 20,
+    marginTop: 12,
+    padding: 15,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#111510",
+  },
+  progressCoachMark: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.lime,
+  },
+  progressCoachMarkText: { color: colors.text, fontSize: 11, fontWeight: "900" },
+  progressCoachCopy: { flex: 1, marginLeft: 12 },
+  progressCoachLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1 },
+  progressCoachText: { color: "#C4CAC1", fontSize: 10, lineHeight: 15, marginTop: 5 },
+  progressButton: {
+    height: 57,
+    borderRadius: 29,
+    marginTop: 14,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.lime,
+  },
+  progressButtonText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 1.2 },
+  progressButtonArrow: { color: colors.ink, fontSize: 20, fontWeight: "800" },
 });

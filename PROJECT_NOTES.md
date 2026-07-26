@@ -15,10 +15,13 @@
 - The athlete must remain fully visible and the exercise media must use the available space well.
 - Do not show pose contours/skeletons in the prototype. They were removed because manually aligned overlays were inaccurate.
 - Selecting a woman or man must also select matching exercise demonstrators, not only different weights and exercise names.
+- The test plan contains five gender-matched exercises and fifteen sets for both women and men.
 - Exercise phases, visual guidance, tempo, and rest state must remain synchronized.
 - Completing the final exercise must always open a complete session analysis.
+- The session analysis must lead to a dedicated progress screen and then back to the dashboard.
 
 ## Known prototype exception
 
 - Test mode currently permits sets to be completed before the timer expires.
 - Before production release, lock completion to the prescribed tempo/rest rules and add an explicit test-mode switch.
+- The current exercise demonstrations use softened phase transitions between still frames. Production must replace them with locally hosted, professionally filmed or 3D motion clips for truly fluid movement.
