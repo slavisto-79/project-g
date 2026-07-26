@@ -951,6 +951,8 @@ function RealExerciseVideo({ source }: { source: number }) {
       nativeControls={false}
       allowsFullscreen={false}
       allowsPictureInPicture={false}
+      playsInline
+      pointerEvents="none"
     />
   );
 }

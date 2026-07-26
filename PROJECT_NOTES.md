@@ -26,3 +26,5 @@
 - Before production release, lock completion to the prescribed tempo/rest rules and add an explicit test-mode switch.
 - The first female and male exercises use locally hosted MP4 demonstrations with autoplay, loop, muted audio, and no external player.
 - Remaining prototype exercises use one stable still image until each has a verified matching video. Never simulate video by flashing between still frames.
+- All exercise videos use one central playback component. On web/iPhone it must set inline playback, disable fullscreen/Picture-in-Picture controls, and ignore taps on the media surface.
+- Any future exercise video inherits this playback contract automatically; do not implement per-exercise player behavior.
