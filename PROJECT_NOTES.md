@@ -62,3 +62,11 @@
 - Portion corrections recalculate every macro and the meal total.
 - Saved meals update the dashboard calorie and protein totals.
 - The OpenAI key remains server-side in the Vercel nutrition function.
+## Test mode and future accounts
+
+- Keep prototype testing separate from future production accounts and database records.
+- Test mode persists the selected profile, nutrition totals, and AI coach adjustment after a browser refresh.
+- The Dashboard must always provide a one-tap `RESET PROFILE` action so male, female, age, goal, equipment, and duration scenarios can be retested quickly.
+- Resetting a test profile returns to onboarding and clears the locally saved test state.
+- Never write test-mode data into the production user database.
+- Do not automatically resume an active workout after refresh; only stable profile-level test data is persisted.

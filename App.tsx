@@ -535,12 +535,14 @@ function DashboardScreen({
   onStartWorkout,
   onOpenCoach,
   onOpenNutrition,
+  onResetTestProfile,
   profile,
   nutritionTotals,
 }: {
   onStartWorkout: () => void;
   onOpenCoach: () => void;
   onOpenNutrition: () => void;
+  onResetTestProfile: () => void;
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
 }) {
@@ -565,6 +567,21 @@ function DashboardScreen({
       </View>
 
       <View style={styles.dashboardBody}>
+        <View style={styles.testModeBar}>
+          <View style={styles.testModeIdentity}>
+            <View style={styles.testModeDot} />
+            <Text style={styles.testModeLabel}>TEST MODE</Text>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Reset test profile"
+            onPress={onResetTestProfile}
+            style={styles.testModeReset}
+          >
+            <Text style={styles.testModeResetText}>RESET PROFILE</Text>
+          </Pressable>
+        </View>
+
         <View style={styles.workoutCard}>
           <View style={styles.workoutCardTop}>
             <View style={styles.workoutTypeBadge}>
@@ -2087,12 +2104,58 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>("splash");
   const [profile, setProfile] = useState<Record<string, string>>({});
   const [coachAdjustment, setCoachAdjustment] = useState<CoachScenario | null>(null);
+  const [hasLoadedTestState, setHasLoadedTestState] = useState(false);
   const [nutritionTotals, setNutritionTotals] = useState<NutritionTotals>({
     calories: 0,
     protein: 0,
     carbs: 0,
     fat: 0,
   });
+
+  useEffect(() => {
+    if (Platform.OS !== "web") {
+      setHasLoadedTestState(true);
+      return;
+    }
+    try {
+      const savedState = window.localStorage.getItem("project-g-test-state");
+      if (savedState) {
+        const parsed = JSON.parse(savedState) as {
+          profile?: Record<string, string>;
+          nutritionTotals?: NutritionTotals;
+          coachAdjustment?: CoachScenario | null;
+        };
+        if (parsed.profile && Object.keys(parsed.profile).length > 0) {
+          setProfile(parsed.profile);
+          setNutritionTotals(parsed.nutritionTotals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 });
+          setCoachAdjustment(parsed.coachAdjustment ?? null);
+          setScreen("dashboard");
+        }
+      }
+    } catch {
+      window.localStorage.removeItem("project-g-test-state");
+    } finally {
+      setHasLoadedTestState(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedTestState || Platform.OS !== "web" || Object.keys(profile).length === 0) return;
+    window.localStorage.setItem(
+      "project-g-test-state",
+      JSON.stringify({ profile, nutritionTotals, coachAdjustment }),
+    );
+  }, [coachAdjustment, hasLoadedTestState, nutritionTotals, profile]);
+
+  const resetTestProfile = () => {
+    if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
+    setProfile({});
+    setCoachAdjustment(null);
+    setNutritionTotals({ calories: 0, protein: 0, carbs: 0, fat: 0 });
+    setScreen("welcome");
+  };
+
+  if (!hasLoadedTestState) return <View style={styles.app} />;
 
   return (
     <View style={styles.app}>
@@ -2121,6 +2184,7 @@ export default function App() {
             onStartWorkout={() => setScreen("workout")}
             onOpenCoach={() => setScreen("coach")}
             onOpenNutrition={() => setScreen("nutrition")}
+            onResetTestProfile={resetTestProfile}
           />
         )}
         {screen === "nutrition" && (
@@ -2602,6 +2666,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lime,
   },
   dashboardBody: { flex: 1, paddingHorizontal: 18 },
+  testModeBar: {
+    minHeight: 38,
+    marginBottom: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#30382A",
+    backgroundColor: "#0D1209",
+  },
+  testModeIdentity: { flexDirection: "row", alignItems: "center" },
+  testModeDot: { width: 6, height: 6, borderRadius: 3, marginRight: 7, backgroundColor: colors.lime },
+  testModeLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.2 },
+  testModeReset: { minHeight: 30, paddingHorizontal: 8, alignItems: "center", justifyContent: "center" },
+  testModeResetText: { color: "#B6BDB2", fontSize: 7, fontWeight: "900", letterSpacing: 0.8 },
   readinessRow: {
     flexDirection: "row",
     alignItems: "center",
