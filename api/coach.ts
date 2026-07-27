@@ -48,6 +48,14 @@ function readOutputText(response: {
   );
 }
 
+const safeScenarioChanges = {
+  tired: ["Reduce working volume by 20%", "Keep technique-focused sets", "Add 30 seconds recovery"],
+  pain: ["Stop the aggravating movement", "Use only pain-free alternatives", "Request human coach review"],
+  time: ["Keep three priority exercises", "Remove low-priority accessory work", "Target 30 minutes total"],
+  equipment: ["Use available-equipment alternatives", "Preserve the planned movement patterns", "Match the planned effort"],
+  general: ["Keep todayâ€™s planned session", "Prioritize controlled technique", "Review progress after training"],
+} as const;
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Cache-Control", "no-store");
 
@@ -152,7 +160,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       requiresHumanReview: boolean;
     };
 
-    res.status(200).json(result);
+    res.status(200).json({
+      ...result,
+      changes: safeScenarioChanges[result.scenario],
+    });
   } catch (error) {
     console.error("AI Coach error", error);
     res.status(500).json({ error: "AI Coach could not complete the request." });
