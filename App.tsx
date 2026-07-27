@@ -789,7 +789,7 @@ function NutritionScreen({
     <SafeAreaView style={styles.nutritionScreen}>
       <View style={styles.nutritionHeader}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
-          <Text style={styles.coachBackText}>â€¹</Text>
+          <Text style={styles.coachBackText}>‹</Text>
         </Pressable>
         <View>
           <Text style={styles.nutritionHeaderTitle}>NUTRITION</Text>
