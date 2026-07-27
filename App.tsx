@@ -637,6 +637,8 @@ function DashboardScreen({
         ].map(([icon, label], index) => (
           <Pressable
             key={label}
+            accessibilityRole="button"
+            accessibilityLabel={label}
             onPress={
               label === "COACH"
                 ? onOpenCoach
@@ -835,7 +837,13 @@ function NutritionScreen({
         </View>
 
         {imageData ? (
-          <Pressable onPress={analyzeMeal} disabled={isAnalyzing} style={styles.nutritionAnalyzeButton}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Analyze meal with AI"
+            onPress={analyzeMeal}
+            disabled={isAnalyzing}
+            style={styles.nutritionAnalyzeButton}
+          >
             <Text style={styles.nutritionAnalyzeButtonText}>
               {isAnalyzing ? "ANALYZING MEALâ€¦" : result ? "ANALYZE AGAIN" : "ANALYZE WITH AI"}
             </Text>
@@ -861,11 +869,21 @@ function NutritionScreen({
                   </Text>
                 </View>
                 <View style={styles.portionControl}>
-                  <Pressable onPress={() => adjustGrams(index, -10)} style={styles.portionButton}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Reduce ${item.name} portion`}
+                    onPress={() => adjustGrams(index, -10)}
+                    style={styles.portionButton}
+                  >
                     <Text style={styles.portionButtonText}>âˆ’</Text>
                   </Pressable>
                   <Text style={styles.portionValue}>{item.grams}g</Text>
-                  <Pressable onPress={() => adjustGrams(index, 10)} style={styles.portionButton}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Increase ${item.name} portion`}
+                    onPress={() => adjustGrams(index, 10)}
+                    style={styles.portionButton}
+                  >
                     <Text style={styles.portionButtonText}>+</Text>
                   </Pressable>
                 </View>
@@ -891,6 +909,8 @@ function NutritionScreen({
 
             <Text style={styles.nutritionNote}>Estimate only. {result.note}</Text>
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Save meal"
               onPress={() => {
                 onSave(result.totals);
                 setSaved(true);
