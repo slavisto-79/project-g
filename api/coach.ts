@@ -121,8 +121,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!openAIResponse.ok) {
       const errorText = await openAIResponse.text();
+      let providerCode = "unknown";
+      try {
+        const providerError = JSON.parse(errorText) as {
+          error?: { code?: string; type?: string };
+        };
+        providerCode = providerError.error?.code ?? providerError.error?.type ?? "unknown";
+      } catch {
+        // Keep the public error generic when the provider returns a non-JSON response.
+      }
       console.error("OpenAI request failed", openAIResponse.status, errorText.slice(0, 500));
-      res.status(502).json({ error: "AI Coach is temporarily unavailable." });
+      res.status(502).json({
+        error: "AI Coach is temporarily unavailable.",
+        providerStatus: openAIResponse.status,
+        providerCode,
+      });
       return;
     }
 
