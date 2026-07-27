@@ -789,7 +789,7 @@ function NutritionScreen({
     <SafeAreaView style={styles.nutritionScreen}>
       <View style={styles.nutritionHeader}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
-          <Text style={styles.coachBackText}>‹</Text>
+          <Text style={styles.coachBackText}>{"<"}</Text>
         </Pressable>
         <View>
           <Text style={styles.nutritionHeaderTitle}>NUTRITION</Text>
@@ -845,9 +845,9 @@ function NutritionScreen({
             style={styles.nutritionAnalyzeButton}
           >
             <Text style={styles.nutritionAnalyzeButtonText}>
-              {isAnalyzing ? "ANALYZING MEALâ€¦" : result ? "ANALYZE AGAIN" : "ANALYZE WITH AI"}
+              {isAnalyzing ? "ANALYZING MEAL..." : result ? "ANALYZE AGAIN" : "ANALYZE WITH AI"}
             </Text>
-            <Text style={styles.nutritionAnalyzeArrow}>â†’</Text>
+            <Text style={styles.nutritionAnalyzeArrow}>{"->"}</Text>
           </Pressable>
         ) : null}
 
@@ -865,7 +865,7 @@ function NutritionScreen({
                 <View style={styles.foodItemCopy}>
                   <Text style={styles.foodItemName}>{item.name}</Text>
                   <Text style={styles.foodItemMacros}>
-                    {item.calories} kcal Â· P {item.protein}g Â· C {item.carbs}g Â· F {item.fat}g
+                    {item.calories} kcal | P {item.protein}g | C {item.carbs}g | F {item.fat}g
                   </Text>
                 </View>
                 <View style={styles.portionControl}>
@@ -875,7 +875,7 @@ function NutritionScreen({
                     onPress={() => adjustGrams(index, -10)}
                     style={styles.portionButton}
                   >
-                    <Text style={styles.portionButtonText}>âˆ’</Text>
+                    <Text style={styles.portionButtonText}>-</Text>
                   </Pressable>
                   <Text style={styles.portionValue}>{item.grams}g</Text>
                   <Pressable
@@ -918,7 +918,7 @@ function NutritionScreen({
               disabled={saved}
               style={[styles.nutritionSaveButton, saved && styles.nutritionSaveButtonDone]}
             >
-              <Text style={styles.nutritionSaveButtonText}>{saved ? "MEAL SAVED âœ“" : "SAVE MEAL"}</Text>
+              <Text style={styles.nutritionSaveButtonText}>{saved ? "MEAL SAVED" : "SAVE MEAL"}</Text>
             </Pressable>
           </View>
         ) : null}
