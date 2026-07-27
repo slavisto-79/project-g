@@ -79,7 +79,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-5.6",
+        model: "gpt-5.4-mini",
+        reasoning: { effort: "none" },
+        max_output_tokens: 500,
         instructions: [
           "You are Project G AI Coach, a concise, supportive fitness coach backed by a real human coach.",
           "Adapt training conservatively using the user's profile and current message.",
@@ -87,6 +89,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "For ordinary discomfort, recommend stopping the aggravating movement, a pain-free alternative, and human coach review.",
           "Do not prescribe medication, supplements, or extreme calorie restriction.",
           "Reply in the same language as the user's message.",
+          "Keep the reply under 80 words and each proposed change under 12 words.",
+          "Do not include drafting notes, self-critique, alternatives, or hidden reasoning.",
           "Return only JSON matching the requested schema.",
         ].join(" "),
         input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nCURRENT MESSAGE:\n${message}`,
