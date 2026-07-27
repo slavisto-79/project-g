@@ -41,6 +41,8 @@
 - Applying a 30-minute adjustment reduces the session to three priority exercises and a 30-minute target.
 - The current responses are deterministic prototype logic, not a connected language model.
 - Pain-related advice must remain conservative, avoid diagnosis, and recommend stopping or human review when symptoms increase.
+- The live AI Coach uses a server-side Vercel function; `OPENAI_API_KEY` must never be exposed to the client or committed.
+- If the live AI request fails, the app must remain usable and show the safe deterministic coaching fallback.
 
 ## Exercise video performance rules
 

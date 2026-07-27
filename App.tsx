@@ -696,6 +696,10 @@ function AICoachScreen({
   const [scenario, setScenario] = useState<CoachScenario | null>(null);
   const [customMessage, setCustomMessage] = useState("");
   const [applied, setApplied] = useState(false);
+  const [aiReply, setAiReply] = useState("");
+  const [aiChanges, setAiChanges] = useState<string[]>([]);
+  const [isThinking, setIsThinking] = useState(false);
+  const [coachError, setCoachError] = useState("");
   const scrollRef = useRef<ScrollView>(null);
 
   const selected = scenario ? coachScenarios[scenario] : null;
@@ -708,11 +712,45 @@ function AICoachScreen({
           ? "muscle-building"
           : "fitness";
 
+  const askCoach = async (message: string, fallbackScenario: CoachScenario) => {
+    setIsThinking(true);
+    setCoachError("");
+    setAiReply("");
+    setAiChanges([]);
+    setApplied(false);
+    try {
+      const response = await fetch("/api/coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, profile }),
+      });
+      if (!response.ok) throw new Error("Coach request failed");
+      const result = (await response.json()) as {
+        reply?: string;
+        scenario?: CoachScenario | "general";
+        changes?: string[];
+      };
+      const resolvedScenario =
+        result.scenario && result.scenario !== "general" ? result.scenario : fallbackScenario;
+      setScenario(resolvedScenario);
+      setAiReply(result.reply ?? coachScenarios[resolvedScenario].reply);
+      setAiChanges(result.changes?.length ? result.changes : coachScenarios[resolvedScenario].changes);
+    } catch {
+      setScenario(fallbackScenario);
+      setAiReply(coachScenarios[fallbackScenario].reply);
+      setAiChanges(coachScenarios[fallbackScenario].changes);
+      setCoachError("Live AI is unavailable. Safe coaching mode is active.");
+    } finally {
+      setIsThinking(false);
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
+    }
+  };
+
   const chooseScenario = (next: CoachScenario) => {
     setScenario(next);
-    setCustomMessage("");
-    setApplied(false);
-    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
+    const message = coachScenarios[next].user;
+    setCustomMessage(message);
+    void askCoach(message, next);
   };
 
   const sendCustomMessage = () => {
@@ -731,7 +769,7 @@ function AICoachScreen({
     setDraft("");
     setScenario(inferredScenario);
     setApplied(false);
-    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
+    void askCoach(message, inferredScenario);
   };
 
   return (
@@ -794,7 +832,16 @@ function AICoachScreen({
             ))}
           </View>
 
-          {selected ? (
+          {isThinking ? (
+            <View style={styles.coachBubbleRow}>
+              <View style={styles.coachBubbleMark}><Text style={styles.coachBubbleMarkText}>G</Text></View>
+              <View style={styles.coachBubble}>
+                <Text style={styles.coachBubbleText}>Thinking about the safest useful adjustmentâ€¦</Text>
+              </View>
+            </View>
+          ) : null}
+
+          {selected && !isThinking ? (
             <>
               <View style={styles.userBubble}>
                 <Text style={styles.userBubbleText}>{customMessage || selected.user}</Text>
@@ -802,15 +849,16 @@ function AICoachScreen({
               <View style={styles.coachBubbleRow}>
                 <View style={styles.coachBubbleMark}><Text style={styles.coachBubbleMarkText}>G</Text></View>
                 <View style={styles.coachBubble}>
-                  <Text style={styles.coachBubbleText}>{selected.reply}</Text>
+                  <Text style={styles.coachBubbleText}>{aiReply || selected.reply}</Text>
                 </View>
               </View>
+              {coachError ? <Text style={styles.coachFallbackText}>{coachError}</Text> : null}
               <View style={styles.coachAdjustmentCard}>
                 <View style={styles.coachAdjustmentTop}>
                   <Text style={styles.coachAdjustmentLabel}>ADJUSTED WORKOUT</Text>
                   <Text style={styles.coachAdjustmentBadge}>AI PROPOSAL</Text>
                 </View>
-                {selected.changes.map((change) => (
+                {(aiChanges.length ? aiChanges : selected.changes).map((change) => (
                   <View key={change} style={styles.coachChangeRow}>
                     <Text style={styles.coachChangeCheck}>✓</Text>
                     <Text style={styles.coachChangeText}>{change}</Text>
@@ -855,7 +903,8 @@ function AICoachScreen({
             accessibilityRole="button"
             accessibilityLabel="Send message"
             onPress={sendCustomMessage}
-            style={[styles.coachSend, !draft.trim() && styles.coachSendDisabled]}
+            disabled={!draft.trim() || isThinking}
+            style={[styles.coachSend, (!draft.trim() || isThinking) && styles.coachSendDisabled]}
           >
             <Text style={styles.coachSendText}>↑</Text>
           </Pressable>
@@ -3009,6 +3058,13 @@ const styles = StyleSheet.create({
   coachBubbleMarkText: { color: colors.text, fontSize: 9, fontWeight: "900" },
   coachBubble: { flexShrink: 1, backgroundColor: "#171A17", borderRadius: 16, borderBottomLeftRadius: 4, padding: 13 },
   coachBubbleText: { color: "#E5E9E3", fontSize: 11, lineHeight: 16 },
+  coachFallbackText: {
+    color: "#A7ADA5",
+    fontSize: 9,
+    lineHeight: 13,
+    marginLeft: 44,
+    marginTop: -4,
+  },
   coachQuickActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginLeft: 36, marginBottom: 20 },
   coachQuickAction: {
     borderRadius: 18,
