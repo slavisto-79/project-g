@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { createElement, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -29,7 +29,7 @@ const colors = {
   ink: "#0A0B09",
 };
 
-type Screen = "splash" | "welcome" | "interview" | "dashboard" | "workout" | "progress" | "coach";
+type Screen = "splash" | "welcome" | "interview" | "dashboard" | "workout" | "progress" | "coach" | "nutrition";
 
 type InterviewAnswer = {
   label: string;
@@ -534,11 +534,15 @@ function InterviewScreen({
 function DashboardScreen({
   onStartWorkout,
   onOpenCoach,
+  onOpenNutrition,
   profile,
+  nutritionTotals,
 }: {
   onStartWorkout: () => void;
   onOpenCoach: () => void;
+  onOpenNutrition: () => void;
   profile: Record<string, string>;
+  nutritionTotals: NutritionTotals;
 }) {
   const workoutName =
     profile.sex === "female"
@@ -602,8 +606,8 @@ function DashboardScreen({
         <View style={styles.metricGrid}>
           {[
             ["1 / 3", "WORKOUTS"],
-            ["1,840", "CALORIES"],
-            ["128g", "PROTEIN"],
+            [nutritionTotals.calories ? nutritionTotals.calories.toLocaleString() : "0", "CALORIES"],
+            [`${nutritionTotals.protein}g`, "PROTEIN"],
           ].map(([value, label]) => (
             <View style={styles.metricCard} key={label}>
               <Text style={styles.metricValue}>{value}</Text>
@@ -633,7 +637,15 @@ function DashboardScreen({
         ].map(([icon, label], index) => (
           <Pressable
             key={label}
-            onPress={label === "COACH" ? onOpenCoach : undefined}
+            onPress={
+              label === "COACH"
+                ? onOpenCoach
+                : label === "NUTRITION"
+                  ? onOpenNutrition
+                  : label === "WORKOUT"
+                    ? onStartWorkout
+                    : undefined
+            }
             style={styles.navItem}
           >
             <Text style={[styles.navIcon, index === 0 && styles.navActive]}>{icon}</Text>
@@ -641,6 +653,256 @@ function DashboardScreen({
           </Pressable>
         ))}
       </View>
+    </SafeAreaView>
+  );
+}
+
+type NutritionTotals = {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+
+type NutritionItem = NutritionTotals & {
+  name: string;
+  grams: number;
+};
+
+type NutritionResult = {
+  items: NutritionItem[];
+  totals: NutritionTotals;
+  confidence: "low" | "medium" | "high";
+  note: string;
+};
+
+async function resizeFoodImage(file: any): Promise<string> {
+  const rawData = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("The image could not be read."));
+    reader.readAsDataURL(file);
+  });
+
+  return new Promise<string>((resolve, reject) => {
+    const imageElement = document.createElement("img");
+    imageElement.onload = () => {
+      const maxSide = 1280;
+      const scale = Math.min(1, maxSide / Math.max(imageElement.width, imageElement.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(imageElement.width * scale));
+      canvas.height = Math.max(1, Math.round(imageElement.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("The image could not be prepared."));
+        return;
+      }
+      context.drawImage(imageElement, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", 0.78));
+    };
+    imageElement.onerror = () => reject(new Error("The image could not be opened."));
+    imageElement.src = rawData;
+  });
+}
+
+function sumNutrition(items: NutritionItem[]): NutritionTotals {
+  return items.reduce(
+    (total, item) => ({
+      calories: total.calories + item.calories,
+      protein: total.protein + item.protein,
+      carbs: total.carbs + item.carbs,
+      fat: total.fat + item.fat,
+    }),
+    { calories: 0, protein: 0, carbs: 0, fat: 0 },
+  );
+}
+
+function NutritionScreen({
+  onBack,
+  onSave,
+}: {
+  onBack: () => void;
+  onSave: (totals: NutritionTotals) => void;
+}) {
+  const [imageData, setImageData] = useState("");
+  const [result, setResult] = useState<NutritionResult | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  const choosePhoto = async (event: any) => {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+    setError("");
+    setResult(null);
+    setSaved(false);
+    try {
+      setImageData(await resizeFoodImage(file));
+    } catch {
+      setError("This photo could not be prepared. Please choose another one.");
+    }
+  };
+
+  const analyzeMeal = async () => {
+    if (!imageData || isAnalyzing) return;
+    setIsAnalyzing(true);
+    setError("");
+    setSaved(false);
+    try {
+      const response = await fetch("/api/nutrition", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imageData }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error ?? "Analysis failed");
+      setResult(data as NutritionResult);
+    } catch {
+      setError("The meal could not be analyzed. Check your connection and try again.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const adjustGrams = (index: number, delta: number) => {
+    if (!result) return;
+    const items = result.items.map((item, itemIndex) => {
+      if (itemIndex !== index) return item;
+      const nextGrams = Math.max(10, item.grams + delta);
+      const ratio = nextGrams / Math.max(1, item.grams);
+      return {
+        ...item,
+        grams: nextGrams,
+        calories: Math.round(item.calories * ratio),
+        protein: Math.round(item.protein * ratio),
+        carbs: Math.round(item.carbs * ratio),
+        fat: Math.round(item.fat * ratio),
+      };
+    });
+    setResult({ ...result, items, totals: sumNutrition(items) });
+    setSaved(false);
+  };
+
+  return (
+    <SafeAreaView style={styles.nutritionScreen}>
+      <View style={styles.nutritionHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
+          <Text style={styles.coachBackText}>â€¹</Text>
+        </Pressable>
+        <View>
+          <Text style={styles.nutritionHeaderTitle}>NUTRITION</Text>
+          <Text style={styles.nutritionHeaderSubtitle}>AI meal analysis</Text>
+        </View>
+        <View style={styles.coachHeaderSpacer} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.nutritionContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.nutritionIntro}>
+          <Text style={styles.nutritionEyebrow}>SCAN YOUR MEAL</Text>
+          <Text style={styles.nutritionTitle}>Know what is on your plate.</Text>
+          <Text style={styles.nutritionSubtitle}>
+            Take a clear overhead photo. You can correct every portion before saving.
+          </Text>
+        </View>
+
+        <View style={styles.foodPhotoCard}>
+          {imageData ? (
+            <Image source={{ uri: imageData }} resizeMode="cover" style={styles.foodPhoto} />
+          ) : (
+            <View style={styles.foodPhotoEmpty}>
+              <Text style={styles.foodPhotoIcon}>+</Text>
+              <Text style={styles.foodPhotoEmptyTitle}>ADD A FOOD PHOTO</Text>
+              <Text style={styles.foodPhotoEmptyText}>Camera or photo library</Text>
+            </View>
+          )}
+          {Platform.OS === "web"
+            ? createElement("input", {
+                type: "file",
+                accept: "image/*",
+                capture: "environment",
+                "aria-label": "Choose food photo",
+                onChange: choosePhoto,
+                style: {
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  opacity: 0,
+                  cursor: "pointer",
+                },
+              })
+            : null}
+        </View>
+
+        {imageData ? (
+          <Pressable onPress={analyzeMeal} disabled={isAnalyzing} style={styles.nutritionAnalyzeButton}>
+            <Text style={styles.nutritionAnalyzeButtonText}>
+              {isAnalyzing ? "ANALYZING MEALâ€¦" : result ? "ANALYZE AGAIN" : "ANALYZE WITH AI"}
+            </Text>
+            <Text style={styles.nutritionAnalyzeArrow}>â†’</Text>
+          </Pressable>
+        ) : null}
+
+        {error ? <Text style={styles.nutritionError}>{error}</Text> : null}
+
+        {result ? (
+          <View style={styles.nutritionResults}>
+            <View style={styles.nutritionResultHeader}>
+              <Text style={styles.nutritionResultTitle}>AI ANALYSIS</Text>
+              <Text style={styles.nutritionConfidence}>{result.confidence.toUpperCase()} CONFIDENCE</Text>
+            </View>
+
+            {result.items.map((item, index) => (
+              <View key={`${item.name}-${index}`} style={styles.foodItemRow}>
+                <View style={styles.foodItemCopy}>
+                  <Text style={styles.foodItemName}>{item.name}</Text>
+                  <Text style={styles.foodItemMacros}>
+                    {item.calories} kcal Â· P {item.protein}g Â· C {item.carbs}g Â· F {item.fat}g
+                  </Text>
+                </View>
+                <View style={styles.portionControl}>
+                  <Pressable onPress={() => adjustGrams(index, -10)} style={styles.portionButton}>
+                    <Text style={styles.portionButtonText}>âˆ’</Text>
+                  </Pressable>
+                  <Text style={styles.portionValue}>{item.grams}g</Text>
+                  <Pressable onPress={() => adjustGrams(index, 10)} style={styles.portionButton}>
+                    <Text style={styles.portionButtonText}>+</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+
+            <View style={styles.nutritionTotalCard}>
+              <Text style={styles.nutritionTotalLabel}>MEAL TOTAL</Text>
+              <Text style={styles.nutritionCalories}>{result.totals.calories} kcal</Text>
+              <View style={styles.nutritionMacroRow}>
+                {[
+                  ["PROTEIN", `${result.totals.protein}g`],
+                  ["CARBS", `${result.totals.carbs}g`],
+                  ["FAT", `${result.totals.fat}g`],
+                ].map(([label, value]) => (
+                  <View key={label} style={styles.nutritionMacro}>
+                    <Text style={styles.nutritionMacroValue}>{value}</Text>
+                    <Text style={styles.nutritionMacroLabel}>{label}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <Text style={styles.nutritionNote}>Estimate only. {result.note}</Text>
+            <Pressable
+              onPress={() => {
+                onSave(result.totals);
+                setSaved(true);
+              }}
+              disabled={saved}
+              style={[styles.nutritionSaveButton, saved && styles.nutritionSaveButtonDone]}
+            >
+              <Text style={styles.nutritionSaveButtonText}>{saved ? "MEAL SAVED âœ“" : "SAVE MEAL"}</Text>
+            </Pressable>
+          </View>
+        ) : null}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -1805,6 +2067,12 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>("splash");
   const [profile, setProfile] = useState<Record<string, string>>({});
   const [coachAdjustment, setCoachAdjustment] = useState<CoachScenario | null>(null);
+  const [nutritionTotals, setNutritionTotals] = useState<NutritionTotals>({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  });
 
   return (
     <View style={styles.app}>
@@ -1829,8 +2097,23 @@ export default function App() {
         {screen === "dashboard" && (
           <DashboardScreen
             profile={profile}
+            nutritionTotals={nutritionTotals}
             onStartWorkout={() => setScreen("workout")}
             onOpenCoach={() => setScreen("coach")}
+            onOpenNutrition={() => setScreen("nutrition")}
+          />
+        )}
+        {screen === "nutrition" && (
+          <NutritionScreen
+            onBack={() => setScreen("dashboard")}
+            onSave={(meal) =>
+              setNutritionTotals((current) => ({
+                calories: current.calories + meal.calories,
+                protein: current.protein + meal.protein,
+                carbs: current.carbs + meal.carbs,
+                fat: current.fat + meal.fat,
+              }))
+            }
           />
         )}
         {screen === "coach" && (
@@ -2463,6 +2746,152 @@ const styles = StyleSheet.create({
   navIcon: { color: "#666C63", fontSize: 18, lineHeight: 22 },
   navLabel: { color: "#666C63", fontSize: 6, fontWeight: "800", letterSpacing: 0.8, marginTop: 3 },
   navActive: { color: colors.lime },
+  nutritionScreen: { flex: 1, backgroundColor: colors.background },
+  nutritionHeader: {
+    minHeight: 66,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#252925",
+  },
+  nutritionHeaderTitle: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 1.5,
+    textAlign: "center",
+  },
+  nutritionHeaderSubtitle: { color: colors.muted, fontSize: 8, marginTop: 2, textAlign: "center" },
+  nutritionContent: {
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
+    paddingHorizontal: 18,
+    paddingTop: 24,
+    paddingBottom: 42,
+  },
+  nutritionIntro: { marginBottom: 18 },
+  nutritionEyebrow: { color: colors.lime, fontSize: 9, fontWeight: "900", letterSpacing: 1.6 },
+  nutritionTitle: {
+    color: colors.text,
+    fontSize: 32,
+    lineHeight: 36,
+    fontWeight: "900",
+    letterSpacing: -1.1,
+    marginTop: 8,
+  },
+  nutritionSubtitle: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 8 },
+  foodPhotoCard: {
+    position: "relative",
+    width: "100%",
+    aspectRatio: 1.35,
+    minHeight: 230,
+    maxHeight: 350,
+    borderRadius: 24,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#303630",
+    backgroundColor: "#101310",
+  },
+  foodPhoto: { width: "100%", height: "100%" },
+  foodPhotoEmpty: { flex: 1, alignItems: "center", justifyContent: "center" },
+  foodPhotoIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    color: colors.ink,
+    backgroundColor: colors.lime,
+    fontSize: 34,
+    lineHeight: 52,
+    fontWeight: "300",
+    textAlign: "center",
+  },
+  foodPhotoEmptyTitle: { color: colors.text, fontSize: 11, fontWeight: "900", letterSpacing: 1.2, marginTop: 16 },
+  foodPhotoEmptyText: { color: colors.muted, fontSize: 9, marginTop: 5 },
+  nutritionAnalyzeButton: {
+    minHeight: 58,
+    borderRadius: 29,
+    marginTop: 14,
+    paddingHorizontal: 22,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.lime,
+  },
+  nutritionAnalyzeButtonText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 1.3 },
+  nutritionAnalyzeArrow: { color: colors.ink, fontSize: 20, fontWeight: "700" },
+  nutritionError: {
+    color: "#FF9A82",
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 14,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,90,65,0.1)",
+  },
+  nutritionResults: { marginTop: 22 },
+  nutritionResultHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  nutritionResultTitle: { color: colors.lime, fontSize: 10, fontWeight: "900", letterSpacing: 1.5 },
+  nutritionConfidence: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 0.8 },
+  foodItemRow: {
+    minHeight: 74,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 8,
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#282D28",
+    backgroundColor: "#0E110E",
+  },
+  foodItemCopy: { flex: 1, paddingRight: 8 },
+  foodItemName: { color: colors.text, fontSize: 12, fontWeight: "800" },
+  foodItemMacros: { color: colors.muted, fontSize: 7, lineHeight: 11, marginTop: 4 },
+  portionControl: { flexDirection: "row", alignItems: "center" },
+  portionButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#3A4138",
+  },
+  portionButtonText: { color: colors.lime, fontSize: 16, lineHeight: 18, fontWeight: "700" },
+  portionValue: { minWidth: 48, color: colors.text, fontSize: 9, fontWeight: "800", textAlign: "center" },
+  nutritionTotalCard: {
+    marginTop: 6,
+    padding: 18,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#557117",
+    backgroundColor: "#121A08",
+  },
+  nutritionTotalLabel: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 1.4 },
+  nutritionCalories: { color: colors.text, fontSize: 30, fontWeight: "900", marginTop: 5 },
+  nutritionMacroRow: { flexDirection: "row", marginTop: 15 },
+  nutritionMacro: { flex: 1 },
+  nutritionMacroValue: { color: colors.text, fontSize: 14, fontWeight: "900" },
+  nutritionMacroLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 0.8, marginTop: 2 },
+  nutritionNote: { color: "#7F867C", fontSize: 8, lineHeight: 12, marginTop: 12 },
+  nutritionSaveButton: {
+    minHeight: 56,
+    borderRadius: 28,
+    marginTop: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.lime,
+  },
+  nutritionSaveButtonDone: { backgroundColor: "#8EAE35" },
+  nutritionSaveButtonText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 1.3 },
   workoutCompleteScreen: {
     flex: 1,
     overflow: "hidden",

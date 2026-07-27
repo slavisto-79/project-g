@@ -54,3 +54,11 @@
 - Do not hide the video while waiting for a first-frame callback; iPhone Safari may not emit that callback reliably. Keep the poster underneath and let the video replace it naturally.
 - Use adaptive delivery or a lower-quality mobile version when network conditions require it.
 - A new exercise video is not complete until its file size, startup time, inline playback, looping, and phone behavior have been verified.
+
+## Nutrition tracker
+
+- Food photos are resized and compressed on-device before analysis; never upload the full original photo.
+- AI nutrition values are estimates and must remain editable before saving.
+- Portion corrections recalculate every macro and the meal total.
+- Saved meals update the dashboard calorie and protein totals.
+- The OpenAI key remains server-side in the Vercel nutrition function.
