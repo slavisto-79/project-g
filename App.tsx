@@ -4,6 +4,7 @@ import {
   Easing,
   Image,
   ImageBackground,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -12,6 +13,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -27,7 +29,7 @@ const colors = {
   ink: "#0A0B09",
 };
 
-type Screen = "splash" | "welcome" | "interview" | "dashboard" | "workout" | "progress";
+type Screen = "splash" | "welcome" | "interview" | "dashboard" | "workout" | "progress" | "coach";
 
 type InterviewAnswer = {
   label: string;
@@ -531,9 +533,11 @@ function InterviewScreen({
 
 function DashboardScreen({
   onStartWorkout,
+  onOpenCoach,
   profile,
 }: {
   onStartWorkout: () => void;
+  onOpenCoach: () => void;
   profile: Record<string, string>;
 }) {
   const workoutName =
@@ -625,14 +629,238 @@ function DashboardScreen({
           ["◇", "WORKOUT"],
           ["◉", "NUTRITION"],
           ["↗", "PROGRESS"],
-          ["○", "MORE"],
+          ["○", "COACH"],
         ].map(([icon, label], index) => (
-          <Pressable key={label} style={styles.navItem}>
+          <Pressable
+            key={label}
+            onPress={label === "COACH" ? onOpenCoach : undefined}
+            style={styles.navItem}
+          >
             <Text style={[styles.navIcon, index === 0 && styles.navActive]}>{icon}</Text>
             <Text style={[styles.navLabel, index === 0 && styles.navActive]}>{label}</Text>
           </Pressable>
         ))}
       </View>
+    </SafeAreaView>
+  );
+}
+
+type CoachScenario = "tired" | "pain" | "time" | "equipment";
+
+const coachScenarios: Record<
+  CoachScenario,
+  { label: string; user: string; reply: string; changes: string[] }
+> = {
+  tired: {
+    label: "I feel tired",
+    user: "I’m feeling more tired than usual today.",
+    reply:
+      "Thanks for telling me. I’ll keep the session useful without forcing intensity your recovery cannot support today.",
+    changes: ["Reduce working volume by 20%", "Keep technique-focused sets", "Add 30 sec recovery"],
+  },
+  pain: {
+    label: "Something hurts",
+    user: "I have some discomfort and need a safer session.",
+    reply:
+      "We won’t train through pain. I’ll remove aggravating movements and flag this for a real coach review. Stop if symptoms increase.",
+    changes: ["Replace sensitive movements", "Use a controlled range", "Request coach review"],
+  },
+  time: {
+    label: "Only 30 minutes",
+    user: "I only have 30 minutes to train today.",
+    reply:
+      "That’s enough for a focused session. I’ll preserve the main work, combine accessories, and remove low-priority volume.",
+    changes: ["Keep 3 priority exercises", "Pair accessory movements", "Target 30 min total"],
+  },
+  equipment: {
+    label: "Limited equipment",
+    user: "I don’t have access to my usual equipment.",
+    reply:
+      "No problem. I’ll rebuild today’s session around what you have while keeping the same movement goals.",
+    changes: ["Use equipment-free alternatives", "Preserve movement patterns", "Match planned effort"],
+  },
+};
+
+function AICoachScreen({
+  profile,
+  onBack,
+  onApply,
+  onStartWorkout,
+}: {
+  profile: Record<string, string>;
+  onBack: () => void;
+  onApply: (scenario: CoachScenario) => void;
+  onStartWorkout: () => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const [scenario, setScenario] = useState<CoachScenario | null>(null);
+  const [customMessage, setCustomMessage] = useState("");
+  const [applied, setApplied] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+
+  const selected = scenario ? coachScenarios[scenario] : null;
+  const goalLabel =
+    profile.goal === "fat-loss"
+      ? "fat-loss"
+      : profile.goal === "strength"
+        ? "strength"
+        : profile.goal === "muscle"
+          ? "muscle-building"
+          : "fitness";
+
+  const chooseScenario = (next: CoachScenario) => {
+    setScenario(next);
+    setCustomMessage("");
+    setApplied(false);
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
+  };
+
+  const sendCustomMessage = () => {
+    const message = draft.trim();
+    if (!message) return;
+    const normalized = message.toLowerCase();
+    const inferredScenario: CoachScenario =
+      normalized.includes("pain") || normalized.includes("hurt") || normalized.includes("бол")
+        ? "pain"
+        : normalized.includes("minute") || normalized.includes("time") || normalized.includes("врем")
+          ? "time"
+          : normalized.includes("equipment") || normalized.includes("gym") || normalized.includes("уред")
+            ? "equipment"
+            : "tired";
+    setCustomMessage(message);
+    setDraft("");
+    setScenario(inferredScenario);
+    setApplied(false);
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
+  };
+
+  return (
+    <SafeAreaView style={styles.coachScreen}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.coachKeyboard}
+      >
+        <View style={styles.coachHeader}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
+            <Text style={styles.coachBackText}>‹</Text>
+          </Pressable>
+          <View style={styles.coachIdentity}>
+            <View style={styles.coachPortrait}><Text style={styles.coachPortraitText}>G</Text></View>
+            <View>
+              <Text style={styles.coachName}>AI COACH</Text>
+              <View style={styles.coachOnlineRow}>
+                <View style={styles.coachOnlineDot} />
+                <Text style={styles.coachOnlineText}>ONLINE · HUMAN BACKED</Text>
+              </View>
+            </View>
+          </View>
+          <View style={styles.coachHeaderSpacer} />
+        </View>
+
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={styles.coachConversation}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.coachContextCard}>
+            <Text style={styles.coachContextEyebrow}>TODAY’S CONTEXT</Text>
+            <Text style={styles.coachContextTitle}>Your {goalLabel} plan is ready.</Text>
+            <Text style={styles.coachContextText}>
+              Tell me what changed. I’ll adapt the session while protecting its purpose.
+            </Text>
+          </View>
+
+          <View style={styles.coachBubbleRow}>
+            <View style={styles.coachBubbleMark}><Text style={styles.coachBubbleMarkText}>G</Text></View>
+            <View style={styles.coachBubble}>
+              <Text style={styles.coachBubbleText}>
+                How are you feeling before today’s workout?
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.coachQuickActions}>
+            {(Object.keys(coachScenarios) as CoachScenario[]).map((key) => (
+              <Pressable
+                key={key}
+                onPress={() => chooseScenario(key)}
+                style={[styles.coachQuickAction, scenario === key && styles.coachQuickActionActive]}
+              >
+                <Text style={[styles.coachQuickActionText, scenario === key && styles.coachQuickActionTextActive]}>
+                  {coachScenarios[key].label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {selected ? (
+            <>
+              <View style={styles.userBubble}>
+                <Text style={styles.userBubbleText}>{customMessage || selected.user}</Text>
+              </View>
+              <View style={styles.coachBubbleRow}>
+                <View style={styles.coachBubbleMark}><Text style={styles.coachBubbleMarkText}>G</Text></View>
+                <View style={styles.coachBubble}>
+                  <Text style={styles.coachBubbleText}>{selected.reply}</Text>
+                </View>
+              </View>
+              <View style={styles.coachAdjustmentCard}>
+                <View style={styles.coachAdjustmentTop}>
+                  <Text style={styles.coachAdjustmentLabel}>ADJUSTED WORKOUT</Text>
+                  <Text style={styles.coachAdjustmentBadge}>AI PROPOSAL</Text>
+                </View>
+                {selected.changes.map((change) => (
+                  <View key={change} style={styles.coachChangeRow}>
+                    <Text style={styles.coachChangeCheck}>✓</Text>
+                    <Text style={styles.coachChangeText}>{change}</Text>
+                  </View>
+                ))}
+                <Pressable
+                  onPress={() => {
+                    if (!scenario) return;
+                    onApply(scenario);
+                    setApplied(true);
+                  }}
+                  disabled={applied}
+                  style={[styles.coachApplyButton, applied && styles.coachApplyButtonDone]}
+                >
+                  <Text style={styles.coachApplyButtonText}>
+                    {applied ? "PLAN UPDATED ✓" : "APPLY CHANGES"}
+                  </Text>
+                </Pressable>
+                {applied ? (
+                  <Pressable onPress={onStartWorkout} style={styles.coachStartButton}>
+                    <Text style={styles.coachStartButtonText}>START ADAPTED WORKOUT</Text>
+                    <Text style={styles.coachStartButtonArrow}>→</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            </>
+          ) : null}
+        </ScrollView>
+
+        <View style={styles.coachComposer}>
+          <TextInput
+            accessibilityLabel="Message AI Coach"
+            value={draft}
+            onChangeText={setDraft}
+            onSubmitEditing={sendCustomMessage}
+            placeholder="Message your AI Coach..."
+            placeholderTextColor="#747A72"
+            returnKeyType="send"
+            style={styles.coachInput}
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Send message"
+            onPress={sendCustomMessage}
+            style={[styles.coachSend, !draft.trim() && styles.coachSendDisabled]}
+          >
+            <Text style={styles.coachSendText}>↑</Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -1044,22 +1272,28 @@ function ExerciseDemo({
 }
 
 function ActiveWorkoutScreen({
+  adjustment,
   onExit,
   onViewProgress,
   profile,
 }: {
+  adjustment?: CoachScenario | null;
   onExit: () => void;
   onViewProgress: () => void;
   profile: Record<string, string>;
 }) {
   const { width, height } = useWindowDimensions();
   const [exerciseIndex, setExerciseIndex] = useState(0);
-  const [completedSets, setCompletedSets] = useState<boolean[]>([false, false, false]);
+  const [completedSets, setCompletedSets] = useState<boolean[]>(
+    Array(adjustment === "tired" ? 2 : 3).fill(false),
+  );
   const [restSeconds, setRestSeconds] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [workoutComplete, setWorkoutComplete] = useState(false);
   const [exerciseInfoOpen, setExerciseInfoOpen] = useState(false);
-  const personalizedExercises = createWorkout(profile);
+  const baseExercises = createWorkout(profile);
+  const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
+  const targetSetCount = adjustment === "tired" ? 2 : 3;
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
   const exerciseVisualHeight = Math.min(
     380,
@@ -1085,13 +1319,13 @@ function ActiveWorkoutScreen({
 
   const finishSet = (index: number) => {
     setCompletedSets((current) => current.map((value, setIndex) => (setIndex === index ? !value : value)));
-    if (!completedSets[index]) setRestSeconds(60);
+    if (!completedSets[index]) setRestSeconds(adjustment === "tired" ? 90 : 60);
   };
 
   const nextExercise = () => {
     if (exerciseIndex < personalizedExercises.length - 1) {
       setExerciseIndex((current) => current + 1);
-      setCompletedSets([false, false, false]);
+      setCompletedSets(Array(targetSetCount).fill(false));
       setRestSeconds(0);
     }
   };
@@ -1101,11 +1335,12 @@ function ActiveWorkoutScreen({
   };
 
   const completedCount = completedSets.filter(Boolean).length;
-  const workoutProgress = (exerciseIndex + completedCount / 3) / personalizedExercises.length;
+  const workoutProgress = (exerciseIndex + completedCount / targetSetCount) / personalizedExercises.length;
   const elapsedLabel = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(
     elapsedSeconds % 60,
   ).padStart(2, "0")}`;
-  const remainingSeconds = Math.max(0, 45 * 60 - elapsedSeconds);
+  const plannedMinutes = adjustment === "time" ? 30 : Number(profile.duration ?? 45);
+  const remainingSeconds = Math.max(0, plannedMinutes * 60 - elapsedSeconds);
   const remainingLabel = `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, "0")}`;
   const exerciseGuidance = exercise.name.includes("Squat")
     ? {
@@ -1520,6 +1755,7 @@ function ProgressScreen({
 export default function App() {
   const [screen, setScreen] = useState<Screen>("splash");
   const [profile, setProfile] = useState<Record<string, string>>({});
+  const [coachAdjustment, setCoachAdjustment] = useState<CoachScenario | null>(null);
 
   return (
     <View style={styles.app}>
@@ -1542,10 +1778,23 @@ export default function App() {
           />
         )}
         {screen === "dashboard" && (
-          <DashboardScreen profile={profile} onStartWorkout={() => setScreen("workout")} />
+          <DashboardScreen
+            profile={profile}
+            onStartWorkout={() => setScreen("workout")}
+            onOpenCoach={() => setScreen("coach")}
+          />
+        )}
+        {screen === "coach" && (
+          <AICoachScreen
+            profile={profile}
+            onBack={() => setScreen("dashboard")}
+            onApply={setCoachAdjustment}
+            onStartWorkout={() => setScreen("workout")}
+          />
         )}
         {screen === "workout" && (
           <ActiveWorkoutScreen
+            adjustment={coachAdjustment}
             profile={profile}
             onExit={() => setScreen("dashboard")}
             onViewProgress={() => setScreen("progress")}
@@ -2696,6 +2945,170 @@ const styles = StyleSheet.create({
   nextExerciseText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 1.1 },
   nextExerciseArrow: { color: colors.ink, fontSize: 19, fontWeight: "700" },
   nextExerciseTextDisabled: { color: "#50554F" },
+  coachScreen: { flex: 1, backgroundColor: colors.background },
+  coachKeyboard: { flex: 1 },
+  coachHeader: {
+    height: 68,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#20231F",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  coachBack: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    borderColor: "#343934",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  coachBackText: { color: colors.text, fontSize: 27, lineHeight: 28, marginTop: -3 },
+  coachIdentity: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center" },
+  coachPortrait: {
+    width: 35,
+    height: 35,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.lime,
+    backgroundColor: "#131713",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  coachPortraitText: { color: colors.text, fontSize: 12, fontWeight: "900" },
+  coachName: { color: colors.text, fontSize: 10, fontWeight: "900", letterSpacing: 1.5 },
+  coachOnlineRow: { flexDirection: "row", alignItems: "center", marginTop: 4 },
+  coachOnlineDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.lime, marginRight: 5 },
+  coachOnlineText: { color: colors.muted, fontSize: 6, fontWeight: "800", letterSpacing: 0.8 },
+  coachHeaderSpacer: { width: 38 },
+  coachConversation: { padding: 16, paddingBottom: 24 },
+  coachContextCard: {
+    backgroundColor: "#101310",
+    borderWidth: 1,
+    borderColor: "#2A3028",
+    borderRadius: 20,
+    padding: 17,
+    marginBottom: 20,
+  },
+  coachContextEyebrow: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.4 },
+  coachContextTitle: { color: colors.text, fontSize: 20, fontWeight: "900", marginTop: 7, letterSpacing: -0.5 },
+  coachContextText: { color: colors.muted, fontSize: 11, lineHeight: 16, marginTop: 7 },
+  coachBubbleRow: { flexDirection: "row", alignItems: "flex-end", marginBottom: 12, maxWidth: "91%" },
+  coachBubbleMark: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.lime,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  coachBubbleMarkText: { color: colors.text, fontSize: 9, fontWeight: "900" },
+  coachBubble: { flexShrink: 1, backgroundColor: "#171A17", borderRadius: 16, borderBottomLeftRadius: 4, padding: 13 },
+  coachBubbleText: { color: "#E5E9E3", fontSize: 11, lineHeight: 16 },
+  coachQuickActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginLeft: 36, marginBottom: 20 },
+  coachQuickAction: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#343A33",
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  coachQuickActionActive: { borderColor: colors.lime, backgroundColor: "#18200E" },
+  coachQuickActionText: { color: "#C7CCC4", fontSize: 9, fontWeight: "700" },
+  coachQuickActionTextActive: { color: colors.lime },
+  userBubble: {
+    alignSelf: "flex-end",
+    maxWidth: "82%",
+    backgroundColor: "#315E1D",
+    borderRadius: 16,
+    borderBottomRightRadius: 4,
+    padding: 13,
+    marginBottom: 14,
+  },
+  userBubbleText: { color: "#F6FAF2", fontSize: 11, lineHeight: 16 },
+  coachAdjustmentCard: {
+    marginLeft: 36,
+    backgroundColor: "#101310",
+    borderRadius: 19,
+    borderWidth: 1,
+    borderColor: "#354719",
+    padding: 15,
+    marginBottom: 10,
+  },
+  coachAdjustmentTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 13 },
+  coachAdjustmentLabel: { color: colors.text, fontSize: 9, fontWeight: "900", letterSpacing: 1.1 },
+  coachAdjustmentBadge: {
+    color: colors.lime,
+    backgroundColor: "#25330F",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    fontSize: 6,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+  },
+  coachChangeRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+  coachChangeCheck: { color: colors.lime, fontSize: 12, fontWeight: "900", width: 22 },
+  coachChangeText: { color: "#C8CDC6", fontSize: 10, flex: 1 },
+  coachApplyButton: {
+    height: 43,
+    borderRadius: 13,
+    backgroundColor: colors.lime,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 6,
+  },
+  coachApplyButtonDone: { backgroundColor: "#91B927" },
+  coachApplyButtonText: { color: colors.ink, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  coachStartButton: {
+    height: 43,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: colors.lime,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    marginTop: 9,
+  },
+  coachStartButtonText: { color: colors.text, fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
+  coachStartButtonArrow: { color: colors.lime, fontSize: 17, fontWeight: "900" },
+  coachComposer: {
+    minHeight: 70,
+    borderTopWidth: 1,
+    borderTopColor: "#222622",
+    backgroundColor: "#090A09",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  coachInput: {
+    flex: 1,
+    minHeight: 45,
+    borderRadius: 23,
+    backgroundColor: "#151815",
+    borderWidth: 1,
+    borderColor: "#2B302B",
+    color: colors.text,
+    fontSize: 11,
+    paddingHorizontal: 16,
+  },
+  coachSend: {
+    width: 43,
+    height: 43,
+    borderRadius: 22,
+    backgroundColor: colors.lime,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
+  },
+  coachSendDisabled: { opacity: 0.35 },
+  coachSendText: { color: colors.ink, fontSize: 20, fontWeight: "900", marginTop: -2 },
   progressScreen: { flex: 1, backgroundColor: colors.background },
   progressContent: { paddingHorizontal: 20, paddingBottom: 28 },
   progressHeader: {

@@ -32,6 +32,16 @@
 - All exercise videos use one central playback component. On web/iPhone it must set inline playback, disable fullscreen/Picture-in-Picture controls, and ignore taps on the media surface.
 - Any future exercise video inherits this playback contract automatically; do not implement per-exercise player behavior.
 
+## AI Coach prototype
+
+- The dashboard Coach tab opens a dedicated interactive AI Coach screen.
+- Quick scenarios cover fatigue, discomfort, limited time, and limited equipment.
+- Free-text messages are classified into the same safe prototype scenarios.
+- Applying a fatigue adjustment reduces the session to two working sets and extends recovery.
+- Applying a 30-minute adjustment reduces the session to three priority exercises and a 30-minute target.
+- The current responses are deterministic prototype logic, not a connected language model.
+- Pain-related advice must remain conservative, avoid diagnosis, and recommend stopping or human review when symptoms increase.
+
 ## Exercise video performance rules
 
 - Production exercise videos must be compressed and normally stay within 2–6 MB per clip.
