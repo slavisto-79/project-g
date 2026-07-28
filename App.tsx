@@ -31,7 +31,18 @@ const colors = {
   ink: "#0A0B09",
 };
 
-type Screen = "splash" | "welcome" | "interview" | "dashboard" | "workout" | "progress" | "coach" | "nutrition";
+type Screen =
+  | "splash"
+  | "welcome"
+  | "interview"
+  | "dashboard"
+  | "workout"
+  | "progress"
+  | "coach"
+  | "nutrition"
+  | "recipes"
+  | "recipeLibrary"
+  | "recipeDetail";
 
 type InterviewAnswer = {
   label: string;
@@ -862,6 +873,268 @@ type NutritionResult = {
   note: string;
 };
 
+type Recipe = NutritionTotals & {
+  name: string;
+  description: string;
+  minutes: number;
+  ingredients: string[];
+};
+
+const fallbackProteinRecipes: Recipe[] = [
+  {
+    name: "Greek Yogurt Protein Bowl",
+    description: "A quick no-cook bowl with yogurt, berries, and nuts.",
+    minutes: 5,
+    ingredients: ["Greek yogurt", "Mixed berries", "Almonds", "Honey"],
+    calories: 320,
+    protein: 28,
+    carbs: 26,
+    fat: 12,
+  },
+  {
+    name: "Grilled Chicken and Quinoa",
+    description: "Grilled chicken breast over quinoa with roasted vegetables.",
+    minutes: 25,
+    ingredients: ["Chicken breast", "Quinoa", "Broccoli", "Olive oil", "Lemon"],
+    calories: 480,
+    protein: 42,
+    carbs: 38,
+    fat: 16,
+  },
+  {
+    name: "Tofu and Vegetable Stir-Fry",
+    description: "Pan-seared tofu with mixed vegetables in a light soy glaze.",
+    minutes: 20,
+    ingredients: ["Firm tofu", "Bell peppers", "Broccoli", "Soy sauce", "Garlic", "Rice"],
+    calories: 410,
+    protein: 26,
+    carbs: 44,
+    fat: 14,
+  },
+];
+
+type MealCategory = "breakfast" | "lunch" | "dinner";
+
+type LibraryRecipe = NutritionTotals & {
+  id: string;
+  name: string;
+  category: MealCategory;
+  photo: number;
+  minutes: number;
+  ingredients: string[];
+  steps: string[];
+};
+
+const recipeLibrary: LibraryRecipe[] = [
+  {
+    id: "greek-yogurt-parfait",
+    name: "Greek Yogurt Berry Parfait",
+    category: "breakfast",
+    photo: require("./assets/recipes/greek-yogurt-parfait.jpg"),
+    minutes: 5,
+    ingredients: ["Greek yogurt", "Mixed berries", "Granola", "Honey"],
+    steps: [
+      "Layer yogurt and berries in a glass.",
+      "Top with granola and a drizzle of honey.",
+      "Serve chilled.",
+    ],
+    calories: 310,
+    protein: 22,
+    carbs: 38,
+    fat: 8,
+  },
+  {
+    id: "veggie-egg-scramble",
+    name: "Veggie Egg Scramble",
+    category: "breakfast",
+    photo: require("./assets/recipes/veggie-egg-scramble.jpg"),
+    minutes: 12,
+    ingredients: ["Eggs", "Spinach", "Cherry tomatoes", "Feta cheese", "Olive oil"],
+    steps: [
+      "Heat olive oil in a pan.",
+      "Sauté spinach and tomatoes until soft.",
+      "Add beaten eggs and scramble until set.",
+      "Top with crumbled feta.",
+    ],
+    calories: 360,
+    protein: 24,
+    carbs: 10,
+    fat: 22,
+  },
+  {
+    id: "banana-peanut-butter-oatmeal",
+    name: "Banana Peanut Butter Oatmeal",
+    category: "breakfast",
+    photo: require("./assets/recipes/banana-peanut-butter-oatmeal.jpg"),
+    minutes: 8,
+    ingredients: ["Rolled oats", "Milk", "Banana", "Peanut butter", "Cinnamon"],
+    steps: [
+      "Cook oats with milk until creamy.",
+      "Stir in sliced banana and a spoon of peanut butter.",
+      "Sprinkle with cinnamon.",
+    ],
+    calories: 380,
+    protein: 14,
+    carbs: 52,
+    fat: 14,
+  },
+  {
+    id: "avocado-toast-eggs",
+    name: "Avocado Toast with Eggs",
+    category: "breakfast",
+    photo: require("./assets/recipes/avocado-toast-eggs.jpg"),
+    minutes: 10,
+    ingredients: ["Whole-grain bread", "Avocado", "Eggs", "Lemon juice", "Chili flakes"],
+    steps: [
+      "Toast the bread.",
+      "Mash avocado with lemon juice and spread on toast.",
+      "Top with a fried or poached egg and chili flakes.",
+    ],
+    calories: 340,
+    protein: 16,
+    carbs: 28,
+    fat: 20,
+  },
+  {
+    id: "grilled-chicken-salad",
+    name: "Grilled Chicken Salad",
+    category: "lunch",
+    photo: require("./assets/recipes/grilled-chicken-salad.jpg"),
+    minutes: 20,
+    ingredients: ["Chicken breast", "Mixed greens", "Cherry tomatoes", "Cucumber", "Olive oil", "Balsamic vinegar"],
+    steps: [
+      "Grill the chicken and slice.",
+      "Toss greens, tomatoes, and cucumber with olive oil and vinegar.",
+      "Top with sliced chicken.",
+    ],
+    calories: 420,
+    protein: 38,
+    carbs: 16,
+    fat: 20,
+  },
+  {
+    id: "quinoa-chickpea-bowl",
+    name: "Quinoa Chickpea Bowl",
+    category: "lunch",
+    photo: require("./assets/recipes/quinoa-chickpea-bowl.jpg"),
+    minutes: 20,
+    ingredients: ["Quinoa", "Chickpeas", "Cucumber", "Bell pepper", "Tahini", "Lemon juice"],
+    steps: [
+      "Cook quinoa and let cool slightly.",
+      "Toss with chickpeas, cucumber, and bell pepper.",
+      "Drizzle with tahini and lemon juice.",
+    ],
+    calories: 430,
+    protein: 18,
+    carbs: 58,
+    fat: 14,
+  },
+  {
+    id: "turkey-hummus-wrap",
+    name: "Turkey and Hummus Wrap",
+    category: "lunch",
+    photo: require("./assets/recipes/turkey-hummus-wrap.jpg"),
+    minutes: 10,
+    ingredients: ["Whole-wheat wrap", "Turkey breast", "Hummus", "Spinach", "Shredded carrot"],
+    steps: [
+      "Spread hummus over the wrap.",
+      "Layer turkey, spinach, and carrot.",
+      "Roll tightly and slice in half.",
+    ],
+    calories: 400,
+    protein: 30,
+    carbs: 36,
+    fat: 14,
+  },
+  {
+    id: "salmon-rice-bowl",
+    name: "Salmon and Rice Bowl",
+    category: "lunch",
+    photo: require("./assets/recipes/salmon-rice-bowl.jpg"),
+    minutes: 25,
+    ingredients: ["Salmon fillet", "Cooked rice", "Edamame", "Cucumber", "Soy sauce", "Sesame seeds"],
+    steps: [
+      "Pan-sear the salmon until cooked through.",
+      "Serve over rice with edamame and cucumber.",
+      "Drizzle with soy sauce and sesame seeds.",
+    ],
+    calories: 480,
+    protein: 34,
+    carbs: 46,
+    fat: 18,
+  },
+  {
+    id: "baked-salmon-vegetables",
+    name: "Baked Salmon with Vegetables",
+    category: "dinner",
+    photo: require("./assets/recipes/baked-salmon-vegetables.jpg"),
+    minutes: 30,
+    ingredients: ["Salmon fillet", "Broccoli", "Carrots", "Olive oil", "Garlic", "Lemon"],
+    steps: [
+      "Toss vegetables with olive oil and garlic on a tray.",
+      "Place salmon alongside.",
+      "Bake until the salmon flakes easily.",
+      "Finish with a squeeze of lemon.",
+    ],
+    calories: 460,
+    protein: 36,
+    carbs: 20,
+    fat: 24,
+  },
+  {
+    id: "grilled-chicken-sweet-potato",
+    name: "Grilled Chicken with Sweet Potato",
+    category: "dinner",
+    photo: require("./assets/recipes/grilled-chicken-sweet-potato.jpg"),
+    minutes: 35,
+    ingredients: ["Chicken breast", "Sweet potato", "Green beans", "Olive oil", "Paprika"],
+    steps: [
+      "Season chicken with paprika and grill until cooked through.",
+      "Roast sweet potato wedges and steam green beans.",
+      "Serve together.",
+    ],
+    calories: 470,
+    protein: 40,
+    carbs: 42,
+    fat: 14,
+  },
+  {
+    id: "beef-vegetable-stir-fry",
+    name: "Beef and Vegetable Stir-Fry",
+    category: "dinner",
+    photo: require("./assets/recipes/beef-vegetable-stir-fry.jpg"),
+    minutes: 20,
+    ingredients: ["Beef strips", "Broccoli", "Bell pepper", "Carrot", "Soy sauce", "Garlic", "Ginger"],
+    steps: [
+      "Stir-fry beef in a hot pan until browned.",
+      "Add vegetables, garlic, and ginger.",
+      "Stir in soy sauce and cook until vegetables are tender-crisp.",
+    ],
+    calories: 480,
+    protein: 32,
+    carbs: 34,
+    fat: 22,
+  },
+  {
+    id: "tofu-vegetable-curry",
+    name: "Vegetable and Tofu Curry",
+    category: "dinner",
+    photo: require("./assets/recipes/tofu-vegetable-curry.jpg"),
+    minutes: 30,
+    ingredients: ["Firm tofu", "Coconut milk", "Curry paste", "Mixed vegetables", "Rice"],
+    steps: [
+      "Pan-sear tofu until golden.",
+      "Simmer curry paste with coconut milk.",
+      "Add vegetables and tofu, simmer until tender.",
+      "Serve over rice.",
+    ],
+    calories: 420,
+    protein: 20,
+    carbs: 38,
+    fat: 20,
+  },
+];
+
 async function resizeFoodImage(file: any): Promise<string> {
   const rawData = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -906,10 +1179,20 @@ function sumNutrition(items: NutritionItem[]): NutritionTotals {
 function NutritionScreen({
   onBack,
   onSave,
+  onOpenRecipes,
+  onOpenRecipeLibrary,
+  profile,
+  nutritionTotals,
 }: {
   onBack: () => void;
   onSave: (totals: NutritionTotals) => void;
+  onOpenRecipes: () => void;
+  onOpenRecipeLibrary: () => void;
+  profile: Record<string, string>;
+  nutritionTotals: NutritionTotals;
 }) {
+  const proteinTarget = dailyProteinTargetGrams(profile);
+  const proteinRemaining = Math.max(0, proteinTarget - nutritionTotals.protein);
   const [imageData, setImageData] = useState("");
   const [result, setResult] = useState<NutritionResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -990,6 +1273,38 @@ function NutritionScreen({
             Take a clear overhead photo. You can correct every portion before saving.
           </Text>
         </View>
+
+        {proteinRemaining > 5 ? (
+          <View style={styles.proteinGapCard}>
+            <View style={styles.proteinGapCopy}>
+              <Text style={styles.proteinGapEyebrow}>TODAY’S PROTEIN GAP</Text>
+              <Text style={styles.proteinGapTitle}>You need {proteinRemaining}g more protein today.</Text>
+              <Text style={styles.proteinGapSubtitle}>Estimate only, based on your goal and body weight.</Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="See recipe suggestions"
+              onPress={onOpenRecipes}
+              style={styles.proteinGapButton}
+            >
+              <Text style={styles.proteinGapButtonText}>SEE RECIPES</Text>
+              <Text style={styles.proteinGapButtonArrow}>→</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Browse recipe library"
+          onPress={onOpenRecipeLibrary}
+          style={styles.libraryEntryCard}
+        >
+          <View>
+            <Text style={styles.libraryEntryEyebrow}>BREAKFAST · LUNCH · DINNER</Text>
+            <Text style={styles.libraryEntryTitle}>Browse the recipe library</Text>
+          </View>
+          <Text style={styles.cardChevron}>›</Text>
+        </Pressable>
 
         <View style={styles.foodPhotoCard}>
           {imageData ? (
@@ -1106,6 +1421,256 @@ function NutritionScreen({
             </Pressable>
           </View>
         ) : null}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function RecipesScreen({
+  onBack,
+  profile,
+  nutritionTotals,
+}: {
+  onBack: () => void;
+  profile: Record<string, string>;
+  nutritionTotals: NutritionTotals;
+}) {
+  const proteinRemaining = Math.max(0, dailyProteinTargetGrams(profile) - nutritionTotals.protein);
+  const [recipes, setRecipes] = useState<Recipe[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFallback, setIsFallback] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadRecipes = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/api/recipes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            proteinRemaining,
+            profile: { goal: profile.goal, sex: profile.sex, equipment: profile.equipment },
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error ?? "Recipe request failed");
+        if (!cancelled) {
+          setRecipes(data.recipes as Recipe[]);
+          setIsFallback(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setRecipes(fallbackProteinRecipes);
+          setIsFallback(true);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    void loadRecipes();
+    return () => {
+      cancelled = true;
+    };
+  }, [proteinRemaining, profile.goal, profile.sex, profile.equipment]);
+
+  return (
+    <SafeAreaView style={styles.recipesScreen}>
+      <View style={styles.nutritionHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
+          <Text style={styles.coachBackText}>{"<"}</Text>
+        </Pressable>
+        <View>
+          <Text style={styles.nutritionHeaderTitle}>RECIPES</Text>
+          <Text style={styles.nutritionHeaderSubtitle}>Close today’s protein gap</Text>
+        </View>
+        <View style={styles.coachHeaderSpacer} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.nutritionContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.nutritionIntro}>
+          <Text style={styles.nutritionEyebrow}>~{proteinRemaining}G PROTEIN NEEDED</Text>
+          <Text style={styles.nutritionTitle}>A few ideas for today.</Text>
+          <Text style={styles.nutritionSubtitle}>
+            General food inspiration, not medical or nutritional advice.
+          </Text>
+        </View>
+
+        {isLoading ? (
+          <View style={styles.recipeLoading}>
+            <Text style={styles.recipeLoadingText}>Finding recipes for you…</Text>
+          </View>
+        ) : (
+          <>
+            {isFallback ? (
+              <Text style={styles.nutritionError}>Live suggestions are unavailable. Showing saved ideas instead.</Text>
+            ) : null}
+            {(recipes ?? []).map((recipe) => (
+              <View key={recipe.name} style={styles.recipeCard}>
+                <View style={styles.recipeCardHeader}>
+                  <Text style={styles.recipeName}>{recipe.name}</Text>
+                  <Text style={styles.recipeMinutes}>{recipe.minutes} MIN</Text>
+                </View>
+                <Text style={styles.recipeDescription}>{recipe.description}</Text>
+                <View style={styles.recipeIngredients}>
+                  {recipe.ingredients.map((ingredient) => (
+                    <View key={ingredient} style={styles.recipeIngredientPill}>
+                      <Text style={styles.recipeIngredientText}>{ingredient}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={styles.recipeMacroRow}>
+                  <Text style={styles.recipeMacroText}>{recipe.calories} kcal</Text>
+                  <Text style={styles.recipeMacroDivider}>·</Text>
+                  <Text style={styles.recipeMacroTextHighlight}>P {recipe.protein}g</Text>
+                  <Text style={styles.recipeMacroDivider}>·</Text>
+                  <Text style={styles.recipeMacroText}>C {recipe.carbs}g</Text>
+                  <Text style={styles.recipeMacroDivider}>·</Text>
+                  <Text style={styles.recipeMacroText}>F {recipe.fat}g</Text>
+                </View>
+              </View>
+            ))}
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const mealCategoryLabels: Record<MealCategory, string> = {
+  breakfast: "BREAKFAST",
+  lunch: "LUNCH",
+  dinner: "DINNER",
+};
+
+function RecipeLibraryScreen({
+  onBack,
+  onSelectRecipe,
+}: {
+  onBack: () => void;
+  onSelectRecipe: (recipeId: string) => void;
+}) {
+  const [category, setCategory] = useState<MealCategory>("breakfast");
+  const visibleRecipes = recipeLibrary.filter((recipe) => recipe.category === category);
+
+  return (
+    <SafeAreaView style={styles.recipesScreen}>
+      <View style={styles.nutritionHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
+          <Text style={styles.coachBackText}>{"<"}</Text>
+        </Pressable>
+        <View>
+          <Text style={styles.nutritionHeaderTitle}>RECIPE LIBRARY</Text>
+          <Text style={styles.nutritionHeaderSubtitle}>Browse by meal</Text>
+        </View>
+        <View style={styles.coachHeaderSpacer} />
+      </View>
+
+      <View style={styles.libraryTabs}>
+        {(["breakfast", "lunch", "dinner"] as MealCategory[]).map((cat) => {
+          const isActive = cat === category;
+          return (
+            <Pressable
+              key={cat}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              onPress={() => setCategory(cat)}
+              style={[styles.libraryTab, isActive && styles.libraryTabActive]}
+            >
+              <Text style={[styles.libraryTabText, isActive && styles.libraryTabTextActive]}>
+                {mealCategoryLabels[cat]}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <ScrollView contentContainerStyle={styles.nutritionContent} showsVerticalScrollIndicator={false}>
+        {visibleRecipes.map((recipe) => (
+          <Pressable
+            key={recipe.id}
+            accessibilityRole="button"
+            accessibilityLabel={`Open ${recipe.name}`}
+            onPress={() => onSelectRecipe(recipe.id)}
+            style={styles.libraryCard}
+          >
+            <Image source={recipe.photo} style={styles.libraryCardPhoto} resizeMode="cover" />
+            <View style={styles.libraryCardBody}>
+              <Text style={styles.libraryCardName}>{recipe.name}</Text>
+              <Text style={styles.libraryCardMeta}>
+                {recipe.minutes} MIN · {recipe.calories} kcal · P {recipe.protein}g
+              </Text>
+            </View>
+            <Text style={styles.cardChevron}>›</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function RecipeLibraryDetailScreen({
+  recipe,
+  onBack,
+}: {
+  recipe: LibraryRecipe;
+  onBack: () => void;
+}) {
+  return (
+    <SafeAreaView style={styles.recipesScreen}>
+      <View style={styles.nutritionHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
+          <Text style={styles.coachBackText}>{"<"}</Text>
+        </Pressable>
+        <View>
+          <Text style={styles.nutritionHeaderTitle}>{mealCategoryLabels[recipe.category]}</Text>
+          <Text style={styles.nutritionHeaderSubtitle}>{recipe.minutes} min recipe</Text>
+        </View>
+        <View style={styles.coachHeaderSpacer} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.recipeDetailContent} showsVerticalScrollIndicator={false}>
+        <Image source={recipe.photo} style={styles.recipeDetailPhoto} resizeMode="cover" />
+        <View style={styles.recipeDetailBody}>
+          <Text style={styles.recipeDetailName}>{recipe.name}</Text>
+
+          <View style={styles.nutritionFactsBar}>
+            {[
+              ["🔥", recipe.calories, "KCAL"],
+              ["💪", `${recipe.protein}g`, "PROTEIN"],
+              ["🌾", `${recipe.carbs}g`, "CARBS"],
+              ["💧", `${recipe.fat}g`, "FAT"],
+            ].map(([icon, value, label], index) => (
+              <View key={label} style={styles.nutritionFactsRow}>
+                <View style={styles.nutritionFactsItem}>
+                  <Text style={styles.nutritionFactsIcon}>{icon}</Text>
+                  <Text style={styles.nutritionFactsValue}>{value}</Text>
+                  <Text style={styles.nutritionFactsLabel}>{label}</Text>
+                </View>
+                {index < 3 ? <View style={styles.nutritionFactsDivider} /> : null}
+              </View>
+            ))}
+          </View>
+
+          <Text style={styles.recipeSectionTitle}>INGREDIENTS</Text>
+          <View style={styles.recipeIngredients}>
+            {recipe.ingredients.map((ingredient) => (
+              <View key={ingredient} style={styles.recipeIngredientPill}>
+                <Text style={styles.recipeIngredientText}>{ingredient}</Text>
+              </View>
+            ))}
+          </View>
+
+          <Text style={styles.recipeSectionTitle}>STEPS</Text>
+          {recipe.steps.map((step, index) => (
+            <View key={step} style={styles.recipeStepRow}>
+              <Text style={styles.recipeStepNumber}>{index + 1}</Text>
+              <Text style={styles.recipeStepText}>{step}</Text>
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -1554,6 +2119,16 @@ function estimateSessionCalories(bodyWeightKg: number, elapsedSeconds: number): 
   const weightKg = Number.isFinite(bodyWeightKg) && bodyWeightKg > 0 ? bodyWeightKg : REFERENCE_BODY_WEIGHT_KG;
   const hours = elapsedSeconds / 3600;
   return Math.max(0, Math.round(RESISTANCE_TRAINING_MET * weightKg * hours));
+}
+
+// Standard sports-nutrition range for active adults is roughly 1.6-2.2g of
+// protein per kg of body weight; this is a general heuristic, not medical
+// or dietary advice.
+function dailyProteinTargetGrams(profile: Record<string, string>): number {
+  const bodyWeightKg = Number(profile.weight);
+  const weightKg = Number.isFinite(bodyWeightKg) && bodyWeightKg > 0 ? bodyWeightKg : REFERENCE_BODY_WEIGHT_KG;
+  const factor = profile.goal === "muscle" || profile.goal === "strength" ? 2.0 : profile.goal === "fat-loss" ? 1.8 : 1.6;
+  return Math.round(weightKg * factor);
 }
 
 function scaledStartingWeightLabel(baseKg: number, bodyWeightKg: number): string {
@@ -2402,6 +2977,7 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>("splash");
   const [profile, setProfile] = useState<Record<string, string>>({});
   const [coachAdjustment, setCoachAdjustment] = useState<CoachScenario | null>(null);
+  const [selectedLibraryRecipeId, setSelectedLibraryRecipeId] = useState<string | null>(null);
   const [hasLoadedTestState, setHasLoadedTestState] = useState(false);
   const [nutritionTotals, setNutritionTotals] = useState<NutritionTotals>({
     calories: 0,
@@ -2487,7 +3063,11 @@ export default function App() {
         )}
         {screen === "nutrition" && (
           <NutritionScreen
+            profile={profile}
+            nutritionTotals={nutritionTotals}
             onBack={() => setScreen("dashboard")}
+            onOpenRecipes={() => setScreen("recipes")}
+            onOpenRecipeLibrary={() => setScreen("recipeLibrary")}
             onSave={(meal) =>
               setNutritionTotals((current) => ({
                 calories: current.calories + meal.calories,
@@ -2496,6 +3076,28 @@ export default function App() {
                 fat: current.fat + meal.fat,
               }))
             }
+          />
+        )}
+        {screen === "recipes" && (
+          <RecipesScreen
+            profile={profile}
+            nutritionTotals={nutritionTotals}
+            onBack={() => setScreen("nutrition")}
+          />
+        )}
+        {screen === "recipeLibrary" && (
+          <RecipeLibraryScreen
+            onBack={() => setScreen("nutrition")}
+            onSelectRecipe={(recipeId) => {
+              setSelectedLibraryRecipeId(recipeId);
+              setScreen("recipeDetail");
+            }}
+          />
+        )}
+        {screen === "recipeDetail" && (
+          <RecipeLibraryDetailScreen
+            recipe={recipeLibrary.find((recipe) => recipe.id === selectedLibraryRecipeId) ?? recipeLibrary[0]!}
+            onBack={() => setScreen("recipeLibrary")}
           />
         )}
         {screen === "coach" && (
@@ -3318,6 +3920,147 @@ const styles = StyleSheet.create({
   },
   nutritionSaveButtonDone: { backgroundColor: "#8EAE35" },
   nutritionSaveButtonText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 1.3 },
+  proteinGapCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.3)",
+    backgroundColor: "rgba(200,255,50,0.07)",
+    padding: 18,
+    marginBottom: 20,
+    gap: 14,
+  },
+  proteinGapCopy: { gap: 4 },
+  proteinGapEyebrow: { color: colors.lime, fontSize: 9, fontWeight: "800", letterSpacing: 1.4 },
+  proteinGapTitle: { color: colors.text, fontSize: 16, fontWeight: "700", lineHeight: 21 },
+  proteinGapSubtitle: { color: colors.muted, fontSize: 11 },
+  proteinGapButton: {
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.lime,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  proteinGapButtonText: { color: colors.ink, fontSize: 11, fontWeight: "900", letterSpacing: 1.2 },
+  proteinGapButtonArrow: { color: colors.ink, fontSize: 15, fontWeight: "900" },
+  recipesScreen: { flex: 1, backgroundColor: colors.background },
+  recipeLoading: { paddingVertical: 40, alignItems: "center" },
+  recipeLoadingText: { color: colors.muted, fontSize: 13 },
+  recipeCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#262A24",
+    backgroundColor: "#0C0E0C",
+    padding: 18,
+    marginBottom: 14,
+    gap: 10,
+  },
+  recipeCardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  recipeName: { color: colors.text, fontSize: 16, fontWeight: "800", flexShrink: 1, paddingRight: 8 },
+  recipeMinutes: { color: colors.lime, fontSize: 10, fontWeight: "900", letterSpacing: 0.8 },
+  recipeDescription: { color: colors.muted, fontSize: 12, lineHeight: 17 },
+  recipeIngredients: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  recipeIngredientPill: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#2A2F28",
+    backgroundColor: "#141712",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  recipeIngredientText: { color: "#CFD3CC", fontSize: 10, fontWeight: "600" },
+  recipeMacroRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 },
+  recipeMacroText: { color: colors.muted, fontSize: 11, fontWeight: "700" },
+  recipeMacroTextHighlight: { color: colors.lime, fontSize: 11, fontWeight: "800" },
+  recipeMacroDivider: { color: "#3A3F38", fontSize: 11 },
+  libraryEntryCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#262A24",
+    backgroundColor: "#0C0E0C",
+    padding: 18,
+    marginBottom: 20,
+  },
+  libraryEntryEyebrow: { color: colors.lime, fontSize: 9, fontWeight: "800", letterSpacing: 1.2 },
+  libraryEntryTitle: { color: colors.text, fontSize: 15, fontWeight: "700", marginTop: 4 },
+  libraryTabs: {
+    flexDirection: "row",
+    paddingHorizontal: 24,
+    gap: 10,
+    marginBottom: 14,
+  },
+  libraryTab: {
+    flex: 1,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#262A24",
+    backgroundColor: "#0C0E0C",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  libraryTabActive: { borderColor: colors.lime, backgroundColor: "rgba(200,255,50,0.1)" },
+  libraryTabText: { color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 0.8 },
+  libraryTabTextActive: { color: colors.lime },
+  libraryCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#262A24",
+    backgroundColor: "#0C0E0C",
+    padding: 10,
+    marginBottom: 12,
+    gap: 12,
+  },
+  libraryCardPhoto: { width: 64, height: 64, borderRadius: 12 },
+  libraryCardBody: { flex: 1 },
+  libraryCardName: { color: colors.text, fontSize: 14, fontWeight: "700" },
+  libraryCardMeta: { color: colors.muted, fontSize: 10, fontWeight: "600", marginTop: 4 },
+  recipeDetailContent: { paddingBottom: 40 },
+  recipeDetailPhoto: { width: "100%", height: 220 },
+  recipeDetailBody: { paddingHorizontal: 24, paddingTop: 20 },
+  recipeDetailName: { color: colors.text, fontSize: 24, fontWeight: "800", letterSpacing: -0.5 },
+  nutritionFactsBar: {
+    flexDirection: "row",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#262A24",
+    backgroundColor: "#0C0E0C",
+    paddingVertical: 16,
+    marginTop: 18,
+  },
+  nutritionFactsRow: { flex: 1, flexDirection: "row", alignItems: "center" },
+  nutritionFactsItem: { flex: 1, alignItems: "center", gap: 3 },
+  nutritionFactsIcon: { fontSize: 16 },
+  nutritionFactsValue: { color: colors.text, fontSize: 15, fontWeight: "800" },
+  nutritionFactsLabel: { color: colors.muted, fontSize: 8, fontWeight: "800", letterSpacing: 0.6 },
+  nutritionFactsDivider: { width: 1, height: 32, backgroundColor: "rgba(255,255,255,0.12)" },
+  recipeSectionTitle: {
+    color: colors.lime,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    marginTop: 22,
+    marginBottom: 10,
+  },
+  recipeStepRow: { flexDirection: "row", gap: 10, marginBottom: 10 },
+  recipeStepNumber: {
+    color: colors.ink,
+    backgroundColor: colors.lime,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    textAlign: "center",
+    fontSize: 11,
+    fontWeight: "900",
+    lineHeight: 20,
+  },
+  recipeStepText: { color: "#CFD3CC", fontSize: 12, lineHeight: 18, flex: 1 },
   workoutCompleteScreen: {
     flex: 1,
     overflow: "hidden",

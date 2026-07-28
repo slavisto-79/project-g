@@ -33,6 +33,13 @@
 - Any future exercise video inherits this playback contract automatically; do not implement per-exercise player behavior.
 - The session-complete CALORIES stat is a MET-based formula (MET x body weight x session duration), not a measurement. It is an estimate only, not medical or nutritional advice, and falls back to a 70kg reference weight when the profile has none.
 
+## Nutrition recipes
+
+- The daily protein target (1.6-2.2g per kg body weight depending on goal) is a general sports-nutrition heuristic, not medical or dietary advice.
+- The Nutrition screen's "SEE RECIPES" card and the `/api/recipes` function suggest recipes to help close the day's remaining protein gap; these are AI-generated and framed as general food inspiration only, never a guarantee.
+- The Recipe Library (Breakfast/Lunch/Dinner) is a separate, fixed set of 12 recipes with real photos. It does not respond to the protein gap or any other profile data; it is a static browse-only reference.
+- Do not merge these two recipe systems: the library must stay fixed and category-organized, while the protein-gap suggestions must stay dynamic and AI-generated.
+
 ## AI Coach prototype
 
 - The dashboard Coach tab opens a dedicated interactive AI Coach screen.
