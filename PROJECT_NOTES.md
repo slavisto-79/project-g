@@ -31,6 +31,7 @@
 - Never simulate video by flashing between still frames.
 - All exercise videos use one central playback component. On web/iPhone it must set inline playback, disable fullscreen/Picture-in-Picture controls, and ignore taps on the media surface.
 - Any future exercise video inherits this playback contract automatically; do not implement per-exercise player behavior.
+- The session-complete CALORIES stat is a MET-based formula (MET x body weight x session duration), not a measurement. It is an estimate only, not medical or nutritional advice, and falls back to a 70kg reference weight when the profile has none.
 
 ## AI Coach prototype
 

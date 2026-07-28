@@ -1546,6 +1546,15 @@ function setCountForProfile(profile: Record<string, string>, adjustment?: CoachS
 }
 
 const REFERENCE_BODY_WEIGHT_KG = 70;
+// MET (metabolic equivalent) for moderate-effort resistance training,
+// per the Compendium of Physical Activities. calories ≈ MET × kg × hours.
+const RESISTANCE_TRAINING_MET = 5;
+
+function estimateSessionCalories(bodyWeightKg: number, elapsedSeconds: number): number {
+  const weightKg = Number.isFinite(bodyWeightKg) && bodyWeightKg > 0 ? bodyWeightKg : REFERENCE_BODY_WEIGHT_KG;
+  const hours = elapsedSeconds / 3600;
+  return Math.max(0, Math.round(RESISTANCE_TRAINING_MET * weightKg * hours));
+}
 
 function scaledStartingWeightLabel(baseKg: number, bodyWeightKg: number): string {
   if (!Number.isFinite(bodyWeightKg) || bodyWeightKg <= 0) return `${baseKg} kg`;
@@ -2046,13 +2055,20 @@ function ActiveWorkoutScreen({
           </View>
           <View style={styles.completeStatDivider} />
           <View style={styles.completeStat}>
-            <Text style={styles.completeStatValue}>{personalizedExercises.length * 3}</Text>
+            <Text style={styles.completeStatValue}>{personalizedExercises.length * targetSetCount}</Text>
             <Text style={styles.completeStatLabel}>SETS</Text>
           </View>
           <View style={styles.completeStatDivider} />
           <View style={styles.completeStat}>
             <Text style={styles.completeStatValue}>{elapsedLabel}</Text>
             <Text style={styles.completeStatLabel}>TIME</Text>
+          </View>
+          <View style={styles.completeStatDivider} />
+          <View style={styles.completeStat}>
+            <Text style={styles.completeStatValue}>
+              {estimateSessionCalories(Number(profile.weight), elapsedSeconds)}
+            </Text>
+            <Text style={styles.completeStatLabel}>CALORIES</Text>
           </View>
         </View>
 

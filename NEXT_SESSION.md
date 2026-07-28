@@ -17,6 +17,7 @@
 - Fixed two double-encoded (mojibake) characters in AI Coach text that were showing garbled output.
 - Onboarding now asks for exact age, current weight, and height via a scrollable number picker (a new question type alongside the existing tap-to-choose buttons), instead of an age range bucket. Weight scales the suggested starting dumbbell weight (0.75x-1.3x vs a 70kg reference); height is captured but not yet used in any calculation.
 - Weekly training frequency now scales sets per exercise (4 sets at 2 days/week, 3 at 3-4 days/week, 2 at 5+ days/week) instead of a fixed three, so total plan volume adapts to how often the user trains.
+- Workout completion now shows an estimated CALORIES stat (MET x body weight x session duration), and the SETS stat was fixed to reflect the actual per-exercise set count instead of an always-times-3 assumption.
 
 ## Must be verified on the deployed iPhone version
 
@@ -33,6 +34,7 @@
 11. Confirm the Coach Cue text changes per exercise and the AI Coach screen (quick scenarios and free text) replies and applies changes correctly.
 12. Confirm all three new exercises per gender (women: Dumbbell Row, Glute Bridge, Plank; men: Dumbbell Lunge, Calf Raise, Plank) play their correct video, show correct form-guide stills and text, and that the workout still completes correctly with eight exercises instead of five.
 13. Confirm the age/weight/height scroll pickers work smoothly on a real phone (live tracking while dragging, correct snap, no lag), and that choosing 2 vs 5 training days produces 4 vs 2 sets per exercise in the actual workout.
+14. Confirm the session-complete screen shows a sensible SETS count (exercises x actual set count, not a hardcoded x3) and a CALORIES estimate that changes with session length and with the entered body weight.
 
 ## Implemented rules that still need production infrastructure
 
