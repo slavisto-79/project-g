@@ -1427,6 +1427,42 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
         require("./assets/exercises/female-one-arm-row/finish.jpg"),
       ],
     },
+    {
+      ...workoutExercises[2]!,
+      name: "Dumbbell Row",
+      target: "Back · Controlled",
+      video: require("./assets/exercise-videos/female-dumbbell-row.mp4"),
+      phases: ["REACH", "PULL", "RETURN"],
+      formFrames: [
+        require("./assets/exercises/female-dumbbell-row/start.jpg"),
+        require("./assets/exercises/female-dumbbell-row/finish.jpg"),
+      ],
+      poseGuide: poseGuides.row!,
+    },
+    {
+      ...workoutExercises[2]!,
+      name: "Glute Bridge",
+      target: "Glutes · Isolation",
+      video: require("./assets/exercise-videos/female-glute-bridge.mp4"),
+      phases: ["LOWER", "HOLD", "LIFT"],
+      formFrames: [
+        require("./assets/exercises/female-glute-bridge/start.jpg"),
+        require("./assets/exercises/female-glute-bridge/finish.jpg"),
+      ],
+      poseGuide: poseGuides.hinge!,
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Plank",
+      target: "Core · Isometric",
+      tempo: "HOLD",
+      video: require("./assets/exercise-videos/female-plank.mp4"),
+      phases: ["BRACE", "HOLD", "HOLD"],
+      formFrames: [
+        require("./assets/exercises/female-plank/start.jpg"),
+        require("./assets/exercises/female-plank/finish.jpg"),
+      ],
+    },
   ];
   const maleExercises: WorkoutExercise[] = [
     {
@@ -1464,6 +1500,40 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
       target: "Arms · Controlled",
       video: require("./assets/exercise-videos/male-bicep-curl.mp4"),
       phases: ["LOWER", "CURL", "SQUEEZE"],
+    },
+    {
+      ...workoutExercises[0]!,
+      name: "Dumbbell Lunge",
+      target: "Legs & glutes · Unilateral",
+      video: require("./assets/exercise-videos/male-dumbbell-lunge.mp4"),
+      phases: ["STEP", "LOWER", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/male-dumbbell-lunge/start.jpg"),
+        require("./assets/exercises/male-dumbbell-lunge/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[0]!,
+      name: "Calf Raise",
+      target: "Calves · Isolation",
+      video: require("./assets/exercise-videos/male-calf-raise.mp4"),
+      phases: ["LOWER", "HOLD", "RAISE"],
+      formFrames: [
+        require("./assets/exercises/male-calf-raise/start.jpg"),
+        require("./assets/exercises/male-calf-raise/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Plank",
+      target: "Core · Isometric",
+      tempo: "HOLD",
+      video: require("./assets/exercise-videos/male-plank.mp4"),
+      phases: ["BRACE", "HOLD", "HOLD"],
+      formFrames: [
+        require("./assets/exercises/male-plank/start.jpg"),
+        require("./assets/exercises/male-plank/finish.jpg"),
+      ],
     },
   ];
   const selectedBase =
@@ -1732,12 +1802,33 @@ function ActiveWorkoutScreen({
                   breathing: "Inhale while lowering. Exhale while pressing.",
                   avoid: "Do not drop the hips, flare the elbows, or shorten the range.",
                 }
-              : {
-                  setup: "Set your feet firmly, brace your trunk, and keep the wrists stacked.",
-                  movement: "Lower the dumbbells with control and press smoothly without bouncing.",
-                  breathing: "Inhale while lowering. Exhale through the press.",
-                  avoid: "Do not overarch the back or let the elbows move out of control.",
-                };
+              : exercise.name.includes("Glute Bridge")
+                ? {
+                    setup: "Lie on your back with knees bent and feet flat, hip-width apart.",
+                    movement: "Drive through your heels and lift your hips until your body forms a straight line, then lower with control.",
+                    breathing: "Exhale as you lift. Inhale as you lower.",
+                    avoid: "Do not overarch the lower back or let the knees splay outward.",
+                  }
+                : exercise.name.includes("Calf Raise")
+                  ? {
+                      setup: "Stand tall with the balls of your feet on a raised edge, heels free to drop.",
+                      movement: "Rise onto your toes as high as possible, pause, then lower your heels below the step under control.",
+                      breathing: "Exhale as you rise. Inhale as you lower.",
+                      avoid: "Do not bounce at the bottom or rush the lowering phase.",
+                    }
+                  : exercise.name.includes("Plank")
+                    ? {
+                        setup: "Rest on your forearms or hands with your body in one straight line from head to heels.",
+                        movement: "Brace your core and hold the position without letting your hips sag or pike up.",
+                        breathing: "Breathe steadily throughout the hold. Do not hold your breath.",
+                        avoid: "Do not let the hips drop or the head jut forward.",
+                      }
+                    : {
+                        setup: "Set your feet firmly, brace your trunk, and keep the wrists stacked.",
+                        movement: "Lower the dumbbells with control and press smoothly without bouncing.",
+                        breathing: "Inhale while lowering. Exhale through the press.",
+                        avoid: "Do not overarch the back or let the elbows move out of control.",
+                      };
 
   if (workoutComplete) {
     return (

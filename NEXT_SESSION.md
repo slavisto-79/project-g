@@ -3,12 +3,13 @@
 ## Implemented and build-verified
 
 - Unisex onboarding with age and sex affecting the generated workout.
-- Separate five-exercise test plans and matching demonstrators for women and men.
+- Separate eight-exercise test plans and matching demonstrators for women and men.
 - Real inline exercise videos for all ten test exercises.
 - Videos compressed from about 176 MB to 6.9 MB total.
 - Only the current video is displayed and only the next exercise is preloaded.
 - Matching poster image remains visible while video playback starts.
-- Three sets per exercise, five exercises, workout completion analysis, and progress screen.
+- Three sets per exercise, eight exercises, workout completion analysis, and progress screen.
+- Roster expanded from five to eight exercises per gender: added Dumbbell Row, Glute Bridge, and Plank for women, and Dumbbell Lunge, Calf Raise, and Plank for men, each with dedicated gender-matched video and form-guide stills.
 - Exercise information icon opens a form guide with setup, movement, breathing, tempo, and mistakes.
 - Durable Project G rules and shared QA rules were recorded.
 - The workout screen's Coach Cue now shows an exercise-specific movement cue instead of one static line for every exercise.
@@ -28,6 +29,7 @@
 9. Confirm Finish Workout opens the session analysis.
 10. Confirm View My Progress opens Progress and the dashboard return control works.
 11. Confirm the Coach Cue text changes per exercise and the AI Coach screen (quick scenarios and free text) replies and applies changes correctly.
+12. Confirm all three new exercises per gender (women: Dumbbell Row, Glute Bridge, Plank; men: Dumbbell Lunge, Calf Raise, Plank) play their correct video, show correct form-guide stills and text, and that the workout still completes correctly with eight exercises instead of five.
 
 ## Implemented rules that still need production infrastructure
 
