@@ -6,9 +6,9 @@ The following prototype exercise videos are downloaded and hosted locally so the
   https://www.pexels.com/video/a-woman-doing-squats-6892968/
 - Male dumbbell shoulder press: “A Man Doing Dumbbell Shoulder Press” by Pavel Danilyuk  
   https://www.pexels.com/video/a-man-doing-dumbbell-shoulder-press-4367541/
-- Male dumbbell bench press: “Intense Dumbbell Workout at Home Gym” by Jullian Production  
-  https://www.pexels.com/video/intense-dumbbell-workout-at-home-gym-33515036/  
-  (replaces a previous clip that incorrectly showed a woman for this male-labeled exercise)
+- Male dumbbell bench press: “Intense Dumbbell Press Workout in Home Gym” by Jullian Production  
+  https://www.pexels.com/video/intense-dumbbell-press-workout-in-home-gym-33261218/  
+  (this exercise's video has been replaced twice: first for showing the wrong gender, then because the replacement turned out to be a triceps extension, not a bench press)
 - Female dumbbell row: “A Woman Exercising” by Ketut Subiyanto  
   https://www.pexels.com/video/a-woman-exercising-4867634/
 - Female glute bridge: “Woman Doing Glute Bridge Exercise” by Polina Tankilevitch  
