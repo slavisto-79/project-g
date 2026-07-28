@@ -1533,6 +1533,18 @@ const workoutExercises: WorkoutExercise[] = [
   },
 ];
 
+const BASE_SET_COUNT_BY_FREQUENCY: Record<string, number> = {
+  "2": 4,
+  "3": 3,
+  "4": 3,
+  "5": 2,
+};
+
+function setCountForProfile(profile: Record<string, string>, adjustment?: CoachScenario | null): number {
+  const baseSetCount = BASE_SET_COUNT_BY_FREQUENCY[profile.frequency ?? "3"] ?? 3;
+  return Math.max(2, baseSetCount - (adjustment === "tired" ? 1 : 0));
+}
+
 const REFERENCE_BODY_WEIGHT_KG = 70;
 
 function scaledStartingWeightLabel(baseKg: number, bodyWeightKg: number): string {
@@ -1882,7 +1894,7 @@ function ActiveWorkoutScreen({
   const { width, height } = useWindowDimensions();
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [completedSets, setCompletedSets] = useState<boolean[]>(
-    Array(adjustment === "tired" ? 2 : 3).fill(false),
+    Array(setCountForProfile(profile, adjustment)).fill(false),
   );
   const [restSeconds, setRestSeconds] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -1890,7 +1902,7 @@ function ActiveWorkoutScreen({
   const [exerciseInfoOpen, setExerciseInfoOpen] = useState(false);
   const baseExercises = createWorkout(profile);
   const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
-  const targetSetCount = adjustment === "tired" ? 2 : 3;
+  const targetSetCount = setCountForProfile(profile, adjustment);
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
   const exerciseVisualHeight = Math.min(
     380,
