@@ -1912,7 +1912,7 @@ function ActiveWorkoutScreen({
           <View style={styles.coachCueIcon}><Text style={styles.coachCueIconText}>G</Text></View>
           <View style={styles.coachCueCopy}>
             <Text style={styles.coachCueLabel}>COACH CUE</Text>
-            <Text style={styles.coachCueText}>Keep your chest tall and control the lowering phase.</Text>
+            <Text style={styles.coachCueText}>{exerciseGuidance.movement}</Text>
           </View>
         </View>
 
