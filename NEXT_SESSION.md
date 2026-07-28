@@ -11,6 +11,9 @@
 - Three sets per exercise, five exercises, workout completion analysis, and progress screen.
 - Exercise information icon opens a form guide with setup, movement, breathing, tempo, and mistakes.
 - Durable Project G rules and shared QA rules were recorded.
+- The workout screen's Coach Cue now shows an exercise-specific movement cue instead of one static line for every exercise.
+- The AI Coach screen is fully wired: quick scenarios and free-text messages call the live `/api/coach` function, fall back to the safe deterministic reply if the live call fails, and Apply Changes actually adjusts the session (the fatigue scenario reduces to two sets with longer rest, the 30-minute scenario trims to three priority exercises).
+- Fixed two double-encoded (mojibake) characters in AI Coach text that were showing garbled output.
 
 ## Must be verified on the deployed iPhone version
 
@@ -24,6 +27,7 @@
 8. Confirm Next Exercise remains disabled until all three test sets are selected.
 9. Confirm Finish Workout opens the session analysis.
 10. Confirm View My Progress opens Progress and the dashboard return control works.
+11. Confirm the Coach Cue text changes per exercise and the AI Coach screen (quick scenarios and free text) replies and applies changes correctly.
 
 ## Implemented rules that still need production infrastructure
 
@@ -38,7 +42,5 @@
 
 ## Recommended next build task
 
-1. Complete the deployed iPhone regression test above.
+1. Complete the deployed iPhone regression test above, including the new Coach Cue and AI Coach checks.
 2. Fix any failed item before adding a new feature.
-3. Replace generic coaching copy with exercise-specific cues everywhere.
-4. Add the AI Coach interaction flow without changing the approved visual concept.
