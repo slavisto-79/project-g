@@ -2315,14 +2315,17 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
     ...exercise,
     reps,
     tempo: Number.isFinite(ageYears) && ageYears >= 55 ? "3–1–2" : exercise.tempo,
-    weight: scaledStartingWeightLabel(
-      exercise.name.includes("Squat")
-        ? reducedLoad ? 8 : profile.sex === "male" ? 20 : 14
-        : exercise.name === "Dumbbell Press"
-          ? reducedLoad ? 6 : profile.sex === "male" ? 16 : 10
-          : reducedLoad ? 15 : profile.sex === "male" ? 30 : 22,
-      bodyWeightKg,
-    ),
+    weight:
+      exercise.name.includes("Push-Up") || exercise.name.includes("Plank")
+        ? "Bodyweight"
+        : scaledStartingWeightLabel(
+            exercise.name.includes("Squat")
+              ? reducedLoad ? 8 : profile.sex === "male" ? 20 : 14
+              : exercise.name === "Dumbbell Press"
+                ? reducedLoad ? 6 : profile.sex === "male" ? 16 : 10
+                : reducedLoad ? 15 : profile.sex === "male" ? 30 : 22,
+            bodyWeightKg,
+          ),
   }));
 
   if (profile.limitations === "knee") {
