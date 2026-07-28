@@ -1135,7 +1135,7 @@ function AICoachScreen({
             <View style={styles.coachBubbleRow}>
               <View style={styles.coachBubbleMark}><Text style={styles.coachBubbleMarkText}>G</Text></View>
               <View style={styles.coachBubble}>
-                <Text style={styles.coachBubbleText}>Thinking about the safest useful adjustmentâ€¦</Text>
+                <Text style={styles.coachBubbleText}>Thinking about the safest useful adjustment…</Text>
               </View>
             </View>
           ) : null}

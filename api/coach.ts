@@ -53,7 +53,7 @@ const safeScenarioChanges = {
   pain: ["Stop the aggravating movement", "Use only pain-free alternatives", "Request human coach review"],
   time: ["Keep three priority exercises", "Remove low-priority accessory work", "Target 30 minutes total"],
   equipment: ["Use available-equipment alternatives", "Preserve the planned movement patterns", "Match the planned effort"],
-  general: ["Keep todayâ€™s planned session", "Prioritize controlled technique", "Review progress after training"],
+  general: ["Keep today’s planned session", "Prioritize controlled technique", "Review progress after training"],
 } as const;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
