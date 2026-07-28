@@ -2796,18 +2796,18 @@ function ActiveWorkoutScreen({
               ? "Finish workout"
               : "Next exercise"
           }
-          disabled={completedCount < 3}
+          disabled={completedCount < targetSetCount}
           onPress={
             exerciseIndex === personalizedExercises.length - 1
               ? finishWorkout
               : nextExercise
           }
-          style={[styles.nextExerciseButton, completedCount < 3 && styles.nextExerciseDisabled]}
+          style={[styles.nextExerciseButton, completedCount < targetSetCount && styles.nextExerciseDisabled]}
         >
-          <Text style={[styles.nextExerciseText, completedCount < 3 && styles.nextExerciseTextDisabled]}>
+          <Text style={[styles.nextExerciseText, completedCount < targetSetCount && styles.nextExerciseTextDisabled]}>
             {exerciseIndex === personalizedExercises.length - 1 ? "FINISH WORKOUT" : "NEXT EXERCISE"}
           </Text>
-          <Text style={[styles.nextExerciseArrow, completedCount < 3 && styles.nextExerciseTextDisabled]}>→</Text>
+          <Text style={[styles.nextExerciseArrow, completedCount < targetSetCount && styles.nextExerciseTextDisabled]}>→</Text>
         </Pressable>
       </View>
       </ScrollView>
