@@ -2500,9 +2500,10 @@ function ActiveWorkoutScreen({
         : "FULL BODY FOUNDATION";
 
   useEffect(() => {
+    if (workoutComplete) return;
     const workoutTimer = setInterval(() => setElapsedSeconds((value) => value + 1), 1000);
     return () => clearInterval(workoutTimer);
-  }, []);
+  }, [workoutComplete]);
 
   useEffect(() => {
     if (restSeconds <= 0) return;
