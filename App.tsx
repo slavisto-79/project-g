@@ -1,4 +1,4 @@
-import { createElement, useEffect, useRef, useState } from "react";
+import { createElement, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -6,6 +6,8 @@ import {
   ImageBackground,
   KeyboardAvoidingView,
   Modal,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Platform,
   Pressable,
   SafeAreaView,
@@ -36,7 +38,8 @@ type InterviewAnswer = {
   value: string;
 };
 
-type InterviewQuestion = {
+type ChoiceQuestion = {
+  kind: "choice";
   id: string;
   kicker: string;
   title: string;
@@ -44,8 +47,24 @@ type InterviewQuestion = {
   answers: InterviewAnswer[];
 };
 
+type PickerQuestion = {
+  kind: "picker";
+  id: string;
+  kicker: string;
+  title: string;
+  subtitle: string;
+  min: number;
+  max: number;
+  step: number;
+  unit: string;
+  defaultValue: number;
+};
+
+type InterviewQuestion = ChoiceQuestion | PickerQuestion;
+
 const interviewQuestions: InterviewQuestion[] = [
   {
+    kind: "choice",
     id: "sex",
     kicker: "PERSONALIZE YOUR TRAINING",
     title: "How should we personalize your plan?",
@@ -57,19 +76,43 @@ const interviewQuestions: InterviewQuestion[] = [
     ],
   },
   {
+    kind: "picker",
     id: "age",
     kicker: "TRAIN FOR YOUR CURRENT STAGE",
-    title: "What is your age range?",
+    title: "What is your age?",
     subtitle: "Age helps us adjust recovery, exercise progression, and training volume.",
-    answers: [
-      { label: "16–24", value: "16-24" },
-      { label: "25–34", value: "25-34" },
-      { label: "35–44", value: "35-44" },
-      { label: "45–54", value: "45-54" },
-      { label: "55+", value: "55-plus" },
-    ],
+    unit: "yrs",
+    min: 16,
+    max: 90,
+    step: 1,
+    defaultValue: 30,
   },
   {
+    kind: "picker",
+    id: "weight",
+    kicker: "BUILD YOUR ACCURATE PLAN",
+    title: "What is your current weight?",
+    subtitle: "This helps us recommend a more accurate starting dumbbell weight.",
+    unit: "kg",
+    min: 40,
+    max: 150,
+    step: 1,
+    defaultValue: 70,
+  },
+  {
+    kind: "picker",
+    id: "height",
+    kicker: "BUILD YOUR ACCURATE PLAN",
+    title: "What is your height?",
+    subtitle: "Height helps us fine-tune your training setup.",
+    unit: "cm",
+    min: 140,
+    max: 210,
+    step: 1,
+    defaultValue: 175,
+  },
+  {
+    kind: "choice",
     id: "goal",
     kicker: "LET’S START WITH YOUR GOAL",
     title: "What do you want to achieve?",
@@ -83,6 +126,7 @@ const interviewQuestions: InterviewQuestion[] = [
     ],
   },
   {
+    kind: "choice",
     id: "experience",
     kicker: "YOUR TRAINING BACKGROUND",
     title: "How experienced are you?",
@@ -95,6 +139,7 @@ const interviewQuestions: InterviewQuestion[] = [
     ],
   },
   {
+    kind: "choice",
     id: "frequency",
     kicker: "YOUR WEEKLY RHYTHM",
     title: "How often can you train?",
@@ -107,6 +152,7 @@ const interviewQuestions: InterviewQuestion[] = [
     ],
   },
   {
+    kind: "choice",
     id: "duration",
     kicker: "MAKE EVERY MINUTE COUNT",
     title: "How long can each workout be?",
@@ -119,6 +165,7 @@ const interviewQuestions: InterviewQuestion[] = [
     ],
   },
   {
+    kind: "choice",
     id: "equipment",
     kicker: "WHERE YOU TRAIN",
     title: "What equipment can you use?",
@@ -131,6 +178,7 @@ const interviewQuestions: InterviewQuestion[] = [
     ],
   },
   {
+    kind: "choice",
     id: "limitations",
     kicker: "TRAIN SMARTER, NOT THROUGH PAIN",
     title: "Do you have any limitations?",
@@ -144,6 +192,106 @@ const interviewQuestions: InterviewQuestion[] = [
     ],
   },
 ];
+
+const WHEEL_ITEM_HEIGHT = 52;
+const WHEEL_VISIBLE_ITEMS = 5;
+
+function NumberWheelPicker({
+  min,
+  max,
+  step,
+  unit,
+  value,
+  onChange,
+}: {
+  min: number;
+  max: number;
+  step: number;
+  unit: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  const numbers = useMemo(() => {
+    const list: number[] = [];
+    for (let n = min; n <= max; n += step) list.push(n);
+    return list;
+  }, [min, max, step]);
+  const scrollRef = useRef<ScrollView>(null);
+  const initialIndex = Math.max(0, numbers.indexOf(value));
+  const [liveIndex, setLiveIndex] = useState(initialIndex);
+  const lastOffsetY = useRef(initialIndex * WHEEL_ITEM_HEIGHT);
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: initialIndex * WHEEL_ITEM_HEIGHT, animated: false });
+    return () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+    };
+    // Only snap to the initial position once, when this picker mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const indexFromOffset = (offsetY: number) =>
+    Math.max(0, Math.min(numbers.length - 1, Math.round(offsetY / WHEEL_ITEM_HEIGHT)));
+
+  // Mouse-wheel scrolling on web never fires onMomentumScrollEnd/onScrollEndDrag
+  // (those are touch-fling events), so relying on them left the wheel stuck
+  // between numbers. Instead, treat "no scroll event for a short beat" as
+  // settled, regardless of input method, and force the snap ourselves.
+  const commitSettledScroll = () => {
+    const clampedIndex = indexFromOffset(lastOffsetY.current);
+    const nextValue = numbers[clampedIndex];
+    setLiveIndex(clampedIndex);
+    scrollRef.current?.scrollTo({ y: clampedIndex * WHEEL_ITEM_HEIGHT, animated: true });
+    if (nextValue !== undefined && nextValue !== value) onChange(nextValue);
+  };
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    lastOffsetY.current = offsetY;
+    setLiveIndex(indexFromOffset(offsetY));
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    idleTimer.current = setTimeout(commitSettledScroll, 120);
+  };
+
+  const paddingVertical = WHEEL_ITEM_HEIGHT * Math.floor(WHEEL_VISIBLE_ITEMS / 2);
+
+  return (
+    <View style={[styles.wheelPicker, { height: WHEEL_ITEM_HEIGHT * WHEEL_VISIBLE_ITEMS }]}>
+      <View
+        pointerEvents="none"
+        style={[styles.wheelPickerHighlight, { top: paddingVertical, height: WHEEL_ITEM_HEIGHT }]}
+      />
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={WHEEL_ITEM_HEIGHT}
+        decelerationRate="fast"
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={{ paddingVertical }}
+      >
+        {numbers.map((number, index) => {
+          const distance = Math.abs(index - liveIndex);
+          const rowOpacity = distance === 0 ? 1 : distance === 1 ? 0.55 : 0.28;
+          return (
+            <View key={number} style={styles.wheelPickerRow}>
+              <Text
+                style={[
+                  styles.wheelPickerText,
+                  { opacity: rowOpacity },
+                  distance === 0 && styles.wheelPickerTextSelected,
+                ]}
+              >
+                {number} {unit}
+              </Text>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
 
 function BrandMark({ size = 92 }: { size?: number }) {
   return (
@@ -327,6 +475,12 @@ function InterviewScreen({
     return () => clearTimeout(timer);
   }, [planStage]);
 
+  useEffect(() => {
+    if (question?.kind === "picker" && answers[question.id] === undefined) {
+      setAnswers((current) => ({ ...current, [question.id]: String(question.defaultValue) }));
+    }
+  }, [question, answers]);
+
   const selectAnswer = (value: string) => {
     if (!question) return;
     setAnswers((current) => ({ ...current, [question.id]: value }));
@@ -481,6 +635,18 @@ function InterviewScreen({
             <Text style={styles.previewStep}>{question.kicker}</Text>
             <Text style={styles.previewTitle}>{question.title}</Text>
             <Text style={styles.previewBody}>{question.subtitle}</Text>
+            {question.kind === "picker" ? (
+              <View style={styles.wheelPickerWrap}>
+                <NumberWheelPicker
+                  min={question.min}
+                  max={question.max}
+                  step={question.step}
+                  unit={question.unit}
+                  value={Number(selected ?? question.defaultValue)}
+                  onChange={(next) => selectAnswer(String(next))}
+                />
+              </View>
+            ) : (
             <View style={styles.answerList}>
               {question.answers.map((answer) => {
                 const isSelected = answer.value === selected;
@@ -506,6 +672,7 @@ function InterviewScreen({
                 );
               })}
             </View>
+            )}
           </View>
           <View style={styles.interviewFooter}>
             <Pressable
@@ -1366,10 +1533,20 @@ const workoutExercises: WorkoutExercise[] = [
   },
 ];
 
+const REFERENCE_BODY_WEIGHT_KG = 70;
+
+function scaledStartingWeightLabel(baseKg: number, bodyWeightKg: number): string {
+  if (!Number.isFinite(bodyWeightKg) || bodyWeightKg <= 0) return `${baseKg} kg`;
+  const factor = Math.min(1.3, Math.max(0.75, bodyWeightKg / REFERENCE_BODY_WEIGHT_KG));
+  const scaledKg = Math.max(2, Math.round(baseKg * factor));
+  return `${scaledKg} kg`;
+}
+
 function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
+  const bodyWeightKg = Number(profile.weight);
+  const ageYears = Number(profile.age);
   const reducedLoad =
-    profile.age === "45-54" ||
-    profile.age === "55-plus" ||
+    (Number.isFinite(ageYears) && ageYears >= 45) ||
     profile.experience === "beginner";
   const reps = reducedLoad ? "8" : profile.goal === "strength" ? "6" : "10";
   const femaleExercises: WorkoutExercise[] = [
@@ -1541,13 +1718,15 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
   const exercises = selectedBase.map((exercise) => ({
     ...exercise,
     reps,
-    tempo: profile.age === "55-plus" ? "3–1–2" : exercise.tempo,
-    weight:
+    tempo: Number.isFinite(ageYears) && ageYears >= 55 ? "3–1–2" : exercise.tempo,
+    weight: scaledStartingWeightLabel(
       exercise.name.includes("Squat")
-        ? reducedLoad ? "8 kg" : profile.sex === "male" ? "20 kg" : "14 kg"
+        ? reducedLoad ? 8 : profile.sex === "male" ? 20 : 14
         : exercise.name === "Dumbbell Press"
-          ? reducedLoad ? "6 kg" : profile.sex === "male" ? "16 kg" : "10 kg"
-          : reducedLoad ? "15 kg" : profile.sex === "male" ? "30 kg" : "22 kg",
+          ? reducedLoad ? 6 : profile.sex === "male" ? 16 : 10
+          : reducedLoad ? 15 : profile.sex === "male" ? 30 : 22,
+      bodyWeightKg,
+    ),
   }));
 
   if (profile.limitations === "knee") {
@@ -2562,6 +2741,33 @@ const styles = StyleSheet.create({
   answerRadioDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.lime },
   answerText: { color: "#CFD3CC", fontSize: 15, fontWeight: "600" },
   answerTextSelected: { color: colors.text },
+  wheelPickerWrap: { marginTop: 24, alignItems: "center" },
+  wheelPicker: {
+    width: "100%",
+    maxWidth: 280,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#262A24",
+    backgroundColor: "#0C0E0C",
+    overflow: "hidden",
+  },
+  wheelPickerHighlight: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "rgba(200,255,50,0.35)",
+    backgroundColor: "rgba(200,255,50,0.06)",
+  },
+  wheelPickerRow: { height: WHEEL_ITEM_HEIGHT, alignItems: "center", justifyContent: "center" },
+  wheelPickerText: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: "600",
+    lineHeight: WHEEL_ITEM_HEIGHT,
+  },
+  wheelPickerTextSelected: { fontWeight: "800" },
   interviewFooter: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 20 },
   continueButton: {
     height: 56,
