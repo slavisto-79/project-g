@@ -214,6 +214,9 @@ function NumberWheelPicker({
   unit,
   value,
   onChange,
+  itemHeight = WHEEL_ITEM_HEIGHT,
+  visibleItems = WHEEL_VISIBLE_ITEMS,
+  fontSize = 20,
 }: {
   min: number;
   max: number;
@@ -221,6 +224,9 @@ function NumberWheelPicker({
   unit: string;
   value: number;
   onChange: (value: number) => void;
+  itemHeight?: number;
+  visibleItems?: number;
+  fontSize?: number;
 }) {
   const numbers = useMemo(() => {
     const list: number[] = [];
@@ -230,11 +236,11 @@ function NumberWheelPicker({
   const scrollRef = useRef<ScrollView>(null);
   const initialIndex = Math.max(0, numbers.indexOf(value));
   const [liveIndex, setLiveIndex] = useState(initialIndex);
-  const lastOffsetY = useRef(initialIndex * WHEEL_ITEM_HEIGHT);
+  const lastOffsetY = useRef(initialIndex * itemHeight);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ y: initialIndex * WHEEL_ITEM_HEIGHT, animated: false });
+    scrollRef.current?.scrollTo({ y: initialIndex * itemHeight, animated: false });
     return () => {
       if (idleTimer.current) clearTimeout(idleTimer.current);
     };
@@ -242,8 +248,20 @@ function NumberWheelPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Re-sync if `value` changes from outside (e.g. switching exercises without
+  // remounting this picker, or a dev hot-reload) rather than from the user's
+  // own scroll gesture, which already keeps liveIndex in step via handleScroll.
+  useEffect(() => {
+    const nextIndex = Math.max(0, numbers.indexOf(value));
+    if (nextIndex === liveIndex) return;
+    lastOffsetY.current = nextIndex * itemHeight;
+    setLiveIndex(nextIndex);
+    scrollRef.current?.scrollTo({ y: nextIndex * itemHeight, animated: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
   const indexFromOffset = (offsetY: number) =>
-    Math.max(0, Math.min(numbers.length - 1, Math.round(offsetY / WHEEL_ITEM_HEIGHT)));
+    Math.max(0, Math.min(numbers.length - 1, Math.round(offsetY / itemHeight)));
 
   // Mouse-wheel scrolling on web never fires onMomentumScrollEnd/onScrollEndDrag
   // (those are touch-fling events), so relying on them left the wheel stuck
@@ -253,7 +271,7 @@ function NumberWheelPicker({
     const clampedIndex = indexFromOffset(lastOffsetY.current);
     const nextValue = numbers[clampedIndex];
     setLiveIndex(clampedIndex);
-    scrollRef.current?.scrollTo({ y: clampedIndex * WHEEL_ITEM_HEIGHT, animated: true });
+    scrollRef.current?.scrollTo({ y: clampedIndex * itemHeight, animated: true });
     if (nextValue !== undefined && nextValue !== value) onChange(nextValue);
   };
 
@@ -265,18 +283,27 @@ function NumberWheelPicker({
     idleTimer.current = setTimeout(commitSettledScroll, 120);
   };
 
-  const paddingVertical = WHEEL_ITEM_HEIGHT * Math.floor(WHEEL_VISIBLE_ITEMS / 2);
+  const selectIndex = (index: number) => {
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    const nextValue = numbers[index];
+    lastOffsetY.current = index * itemHeight;
+    setLiveIndex(index);
+    scrollRef.current?.scrollTo({ y: index * itemHeight, animated: true });
+    if (nextValue !== undefined && nextValue !== value) onChange(nextValue);
+  };
+
+  const paddingVertical = itemHeight * Math.floor(visibleItems / 2);
 
   return (
-    <View style={[styles.wheelPicker, { height: WHEEL_ITEM_HEIGHT * WHEEL_VISIBLE_ITEMS }]}>
+    <View style={[styles.wheelPicker, { height: itemHeight * visibleItems }]}>
       <View
         pointerEvents="none"
-        style={[styles.wheelPickerHighlight, { top: paddingVertical, height: WHEEL_ITEM_HEIGHT }]}
+        style={[styles.wheelPickerHighlight, { top: paddingVertical, height: itemHeight }]}
       />
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
-        snapToInterval={WHEEL_ITEM_HEIGHT}
+        snapToInterval={itemHeight}
         decelerationRate="fast"
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -286,17 +313,23 @@ function NumberWheelPicker({
           const distance = Math.abs(index - liveIndex);
           const rowOpacity = distance === 0 ? 1 : distance === 1 ? 0.55 : 0.28;
           return (
-            <View key={number} style={styles.wheelPickerRow}>
+            <Pressable
+              key={number}
+              accessibilityRole="button"
+              accessibilityLabel={`${number} ${unit}`}
+              onPress={() => selectIndex(index)}
+              style={[styles.wheelPickerRow, { height: itemHeight }]}
+            >
               <Text
                 style={[
                   styles.wheelPickerText,
-                  { opacity: rowOpacity },
+                  { opacity: rowOpacity, fontSize, lineHeight: itemHeight },
                   distance === 0 && styles.wheelPickerTextSelected,
                 ]}
               >
                 {number} {unit}
               </Text>
-            </View>
+            </Pressable>
           );
         })}
       </ScrollView>
@@ -859,6 +892,11 @@ type NutritionTotals = {
   protein: number;
   carbs: number;
   fat: number;
+};
+
+type ExerciseProgress = {
+  weightKg: number;
+  reps: number;
 };
 
 type NutritionItem = NutritionTotals & {
@@ -2138,13 +2176,28 @@ function scaledStartingWeightLabel(baseKg: number, bodyWeightKg: number): string
   return `${scaledKg} kg`;
 }
 
-function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
+function baseRepsForProfile(profile: Record<string, string>): number {
+  const ageYears = Number(profile.age);
+  const reducedLoad =
+    (Number.isFinite(ageYears) && ageYears >= 45) ||
+    profile.experience === "beginner";
+  return reducedLoad ? 8 : profile.goal === "strength" ? 6 : 10;
+}
+
+function isBodyweightExerciseName(name: string): boolean {
+  return name.includes("Push-Up") || name.includes("Plank");
+}
+
+function createWorkout(
+  profile: Record<string, string>,
+  exerciseProgress: Record<string, ExerciseProgress> = {},
+): WorkoutExercise[] {
   const bodyWeightKg = Number(profile.weight);
   const ageYears = Number(profile.age);
   const reducedLoad =
     (Number.isFinite(ageYears) && ageYears >= 45) ||
     profile.experience === "beginner";
-  const reps = reducedLoad ? "8" : profile.goal === "strength" ? "6" : "10";
+  const reps = String(baseRepsForProfile(profile));
   const femaleExercises: WorkoutExercise[] = [
     {
       ...workoutExercises[0]!,
@@ -2311,22 +2364,27 @@ function createWorkout(profile: Record<string, string>): WorkoutExercise[] {
   ];
   const selectedBase =
     profile.sex === "female" ? femaleExercises : profile.sex === "male" ? maleExercises : workoutExercises;
-  const exercises = selectedBase.map((exercise) => ({
-    ...exercise,
-    reps,
-    tempo: Number.isFinite(ageYears) && ageYears >= 55 ? "3–1–2" : exercise.tempo,
-    weight:
-      exercise.name.includes("Push-Up") || exercise.name.includes("Plank")
+  const exercises = selectedBase.map((exercise) => {
+    const isBodyweight = isBodyweightExerciseName(exercise.name);
+    const saved = exerciseProgress[exercise.name];
+    return {
+      ...exercise,
+      reps: saved ? String(saved.reps) : reps,
+      tempo: Number.isFinite(ageYears) && ageYears >= 55 ? "3–1–2" : exercise.tempo,
+      weight: isBodyweight
         ? "Bodyweight"
-        : scaledStartingWeightLabel(
-            exercise.name.includes("Squat")
-              ? reducedLoad ? 8 : profile.sex === "male" ? 20 : 14
-              : exercise.name === "Dumbbell Press"
-                ? reducedLoad ? 6 : profile.sex === "male" ? 16 : 10
-                : reducedLoad ? 15 : profile.sex === "male" ? 30 : 22,
-            bodyWeightKg,
-          ),
-  }));
+        : saved
+          ? `${saved.weightKg} kg`
+          : scaledStartingWeightLabel(
+              exercise.name.includes("Squat")
+                ? reducedLoad ? 8 : profile.sex === "male" ? 20 : 14
+                : exercise.name === "Dumbbell Press"
+                  ? reducedLoad ? 6 : profile.sex === "male" ? 16 : 10
+                  : reducedLoad ? 15 : profile.sex === "male" ? 30 : 22,
+              bodyWeightKg,
+            ),
+    };
+  });
 
   if (profile.limitations === "knee") {
     const squatIndex = exercises.findIndex((exercise) => exercise.name.includes("Squat"));
@@ -2472,25 +2530,31 @@ function ActiveWorkoutScreen({
   onExit,
   onViewProgress,
   profile,
+  exerciseProgress,
+  onUpdateExerciseProgress,
 }: {
   adjustment?: CoachScenario | null;
   onExit: () => void;
   onViewProgress: () => void;
   profile: Record<string, string>;
+  exerciseProgress: Record<string, ExerciseProgress>;
+  onUpdateExerciseProgress: (name: string, next: ExerciseProgress) => void;
 }) {
   const { width, height } = useWindowDimensions();
+  const baseExercises = createWorkout(profile, exerciseProgress);
+  const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
+  const targetSetCount = setCountForProfile(profile, adjustment);
+
   const [exerciseIndex, setExerciseIndex] = useState(0);
-  const [completedSets, setCompletedSets] = useState<boolean[]>(
-    Array(setCountForProfile(profile, adjustment)).fill(false),
-  );
+  const [completedSets, setCompletedSets] = useState<boolean[]>(Array(targetSetCount).fill(false));
   const [restSeconds, setRestSeconds] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [workoutComplete, setWorkoutComplete] = useState(false);
   const [exerciseInfoOpen, setExerciseInfoOpen] = useState(false);
-  const baseExercises = createWorkout(profile);
-  const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
-  const targetSetCount = setCountForProfile(profile, adjustment);
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
+  const isBodyweight = exercise.weight === "Bodyweight";
+  const currentWeightKg = isBodyweight ? null : parseInt(exercise.weight, 10);
+  const currentReps = parseInt(exercise.reps, 10);
   const exerciseVisualHeight = Math.min(
     380,
     Math.max(210, Math.min(width * 0.78, height * 0.42)),
@@ -2515,23 +2579,55 @@ function ActiveWorkoutScreen({
   }, [restSeconds]);
 
   const finishSet = (index: number) => {
+    const wasDone = completedSets[index];
+    const doneAfter = completedSets.filter(Boolean).length + (wasDone ? -1 : 1);
     setCompletedSets((current) => current.map((value, setIndex) => (setIndex === index ? !value : value)));
-    if (!completedSets[index]) setRestSeconds(adjustment === "tired" ? 90 : 60);
+    if (!wasDone) {
+      setRestSeconds(doneAfter >= targetSetCount ? 0 : adjustment === "tired" ? 90 : 60);
+    }
+  };
+
+  const saveExerciseAdjustment = (nextWeightKg: number, nextReps: number) => {
+    onUpdateExerciseProgress(exercise.name, { weightKg: nextWeightKg, reps: nextReps });
+  };
+
+  // Called when leaving an exercise (moving on, or finishing the workout on
+  // the last one). Double progression: add a rep each session until a small
+  // ceiling above the profile's base reps, then reset reps and add weight.
+  const commitExerciseProgress = (finishedExercise: WorkoutExercise) => {
+    const reps = parseInt(finishedExercise.reps, 10);
+    if (!Number.isFinite(reps)) return;
+    if (finishedExercise.weight === "Bodyweight") {
+      onUpdateExerciseProgress(finishedExercise.name, { weightKg: 0, reps: reps + 1 });
+      return;
+    }
+    const weightKg = parseInt(finishedExercise.weight, 10);
+    if (!Number.isFinite(weightKg)) return;
+    const baseReps = baseRepsForProfile(profile);
+    const repCeiling = baseReps + 2;
+    onUpdateExerciseProgress(
+      finishedExercise.name,
+      reps < repCeiling ? { weightKg, reps: reps + 1 } : { weightKg: weightKg + 1, reps: baseReps },
+    );
   };
 
   const nextExercise = () => {
+    commitExerciseProgress(exercise);
     if (exerciseIndex < personalizedExercises.length - 1) {
       setExerciseIndex((current) => current + 1);
       setCompletedSets(Array(targetSetCount).fill(false));
       setRestSeconds(0);
     }
   };
+
   const finishWorkout = () => {
+    commitExerciseProgress(exercise);
     setRestSeconds(0);
     setWorkoutComplete(true);
   };
 
   const completedCount = completedSets.filter(Boolean).length;
+  const nextSetIndex = completedSets.findIndex((done) => !done);
   const workoutProgress = (exerciseIndex + completedCount / targetSetCount) / personalizedExercises.length;
   const elapsedLabel = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(
     elapsedSeconds % 60,
@@ -2767,22 +2863,81 @@ function ActiveWorkoutScreen({
           {completedSets.map((done, index) => (
             <View key={index} style={[styles.setRow, done && styles.setRowDone]}>
               <Text style={[styles.setIndex, done && styles.setTextDone]}>{index + 1}</Text>
-              <View style={styles.weightColumn}>
-                <Text style={[styles.setValue, done && styles.setTextDone]}>{exercise.weight}</Text>
-              </View>
-              <View style={styles.repsColumn}>
-                <Text style={[styles.setValue, done && styles.setTextDone]}>{exercise.reps}</Text>
-              </View>
-              <Pressable
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: done }}
-                onPress={() => finishSet(index)}
+              <Text style={[styles.setValue, styles.weightColumn, done && styles.setTextDone]}>
+                {isBodyweight ? "Bodyweight" : `${currentWeightKg} kg`}
+              </Text>
+              <Text style={[styles.setValue, styles.repsColumn, done && styles.setTextDone]}>{exercise.reps}</Text>
+              <View
+                accessibilityRole="text"
+                accessibilityLabel={done ? `Set ${index + 1} done` : `Set ${index + 1} not done yet`}
                 style={[styles.setCheck, done && styles.setCheckDone]}
               >
                 <Text style={[styles.setCheckText, done && styles.setCheckTextDone]}>{done ? "✓" : ""}</Text>
-              </Pressable>
+              </View>
             </View>
           ))}
+        </View>
+
+        <View style={styles.adjustPanel}>
+          <Text style={styles.adjustPanelLabel}>HOW MANY KG & REPS DID YOU DO</Text>
+          <View style={styles.adjustPanelPickers}>
+            {!isBodyweight ? (
+              <View style={styles.weightColumn}>
+                <Text style={styles.adjustPanelColumnLabel}>WEIGHT</Text>
+                <NumberWheelPicker
+                  key={`${exercise.name}-weight`}
+                  itemHeight={30}
+                  visibleItems={3}
+                  fontSize={16}
+                  min={2}
+                  max={100}
+                  step={1}
+                  unit="kg"
+                  value={currentWeightKg ?? 20}
+                  onChange={(next) => saveExerciseAdjustment(next, currentReps)}
+                />
+              </View>
+            ) : null}
+            <View style={styles.repsColumn}>
+              <Text style={styles.adjustPanelColumnLabel}>REPS</Text>
+              <NumberWheelPicker
+                key={`${exercise.name}-reps`}
+                itemHeight={30}
+                visibleItems={3}
+                fontSize={16}
+                min={1}
+                max={30}
+                step={1}
+                unit=""
+                value={currentReps}
+                onChange={(next) => saveExerciseAdjustment(isBodyweight ? 0 : currentWeightKg ?? 20, next)}
+              />
+            </View>
+          </View>
+          <View style={styles.adjustPanelMarkRow}>
+            <Text style={styles.adjustPanelMarkText}>
+              {completedCount === 0
+                ? `0 OF ${targetSetCount} SETS DONE`
+                : nextSetIndex === -1
+                  ? "ALL SETS DONE"
+                  : `SET ${completedCount} OF ${targetSetCount} DONE`}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={nextSetIndex === -1 ? "All sets done" : `Mark set ${nextSetIndex + 1} done`}
+              disabled={nextSetIndex === -1}
+              onPress={() => {
+                if (nextSetIndex !== -1) finishSet(nextSetIndex);
+              }}
+              style={[styles.adjustPanelMarkButton, nextSetIndex === -1 && styles.adjustPanelMarkButtonDone]}
+            >
+              <Text
+                style={[styles.adjustPanelMarkButtonText, nextSetIndex === -1 && styles.adjustPanelMarkButtonTextDone]}
+              >
+                {nextSetIndex === -1 ? "✓" : `MARK SET ${nextSetIndex + 1} DONE`}
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.coachCue}>
@@ -2989,6 +3144,7 @@ export default function App() {
     carbs: 0,
     fat: 0,
   });
+  const [exerciseProgress, setExerciseProgress] = useState<Record<string, ExerciseProgress>>({});
 
   useEffect(() => {
     if (Platform.OS !== "web") {
@@ -3002,11 +3158,13 @@ export default function App() {
           profile?: Record<string, string>;
           nutritionTotals?: NutritionTotals;
           coachAdjustment?: CoachScenario | null;
+          exerciseProgress?: Record<string, ExerciseProgress>;
         };
         if (parsed.profile && Object.keys(parsed.profile).length > 0) {
           setProfile(parsed.profile);
           setNutritionTotals(parsed.nutritionTotals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 });
           setCoachAdjustment(parsed.coachAdjustment ?? null);
+          setExerciseProgress(parsed.exerciseProgress ?? {});
           setScreen("dashboard");
         }
       }
@@ -3021,15 +3179,16 @@ export default function App() {
     if (!hasLoadedTestState || Platform.OS !== "web" || Object.keys(profile).length === 0) return;
     window.localStorage.setItem(
       "project-g-test-state",
-      JSON.stringify({ profile, nutritionTotals, coachAdjustment }),
+      JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress }),
     );
-  }, [coachAdjustment, hasLoadedTestState, nutritionTotals, profile]);
+  }, [coachAdjustment, exerciseProgress, hasLoadedTestState, nutritionTotals, profile]);
 
   const resetTestProfile = () => {
     if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
     setProfile({});
     setCoachAdjustment(null);
     setNutritionTotals({ calories: 0, protein: 0, carbs: 0, fat: 0 });
+    setExerciseProgress({});
     setScreen("welcome");
   };
 
@@ -3116,6 +3275,10 @@ export default function App() {
           <ActiveWorkoutScreen
             adjustment={coachAdjustment}
             profile={profile}
+            exerciseProgress={exerciseProgress}
+            onUpdateExerciseProgress={(name, next) =>
+              setExerciseProgress((current) => ({ ...current, [name]: next }))
+            }
             onExit={() => setScreen("dashboard")}
             onViewProgress={() => setScreen("progress")}
           />
@@ -4533,6 +4696,38 @@ const styles = StyleSheet.create({
   weightColumn: { flex: 1 },
   repsColumn: { width: 68 },
   doneColumn: { width: 36 },
+  adjustPanel: {
+    borderRadius: 14,
+    padding: 11,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0E100E",
+  },
+  adjustPanelLabel: { color: colors.lime, fontSize: 12, fontWeight: "900", letterSpacing: 1, marginBottom: 8, textAlign: "center" },
+  adjustPanelPickers: { flexDirection: "row", alignItems: "flex-start" },
+  adjustPanelColumnLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 1, marginBottom: 4 },
+  adjustPanelMarkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 11,
+    paddingTop: 11,
+    borderTopWidth: 1,
+    borderTopColor: "#242824",
+  },
+  adjustPanelMarkText: { color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
+  adjustPanelMarkButton: {
+    height: 34,
+    paddingHorizontal: 16,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.lime,
+  },
+  adjustPanelMarkButtonDone: { backgroundColor: "#171A17", paddingHorizontal: 12 },
+  adjustPanelMarkButtonText: { color: colors.ink, fontSize: 11, fontWeight: "900", letterSpacing: 0.5 },
+  adjustPanelMarkButtonTextDone: { color: colors.lime },
   setList: { gap: 7 },
   setRow: {
     height: 47,
