@@ -2782,7 +2782,7 @@ function ActiveWorkoutScreen({
     if (exerciseIndex < personalizedExercises.length - 1) {
       setExerciseIndex((current) => current + 1);
       setCompletedSets(Array(targetSetCount).fill(false));
-      setRestSeconds(adjustment === "tired" ? 90 : 60);
+      setRestSeconds(0);
     }
   };
 
