@@ -857,11 +857,11 @@ function DashboardScreen({
 
       <View style={styles.bottomNav}>
         {[
-          ["⌂", "HOME"],
-          ["◇", "WORKOUT"],
-          ["◉", "NUTRITION"],
-          ["↗", "PROGRESS"],
-          ["○", "COACH"],
+          ["🏠", "HOME"],
+          ["🏋️", "WORKOUT"],
+          ["🥗", "NUTRITION"],
+          ["📈", "PROGRESS"],
+          ["🎯", "COACH"],
         ].map(([icon, label], index) => (
           <Pressable
             key={label}
@@ -878,7 +878,9 @@ function DashboardScreen({
             }
             style={styles.navItem}
           >
-            <Text style={[styles.navIcon, index === 0 && styles.navActive]}>{icon}</Text>
+            <View style={[styles.navIconWrap, index === 0 && styles.navIconWrapActive]}>
+              <Text style={[styles.navIcon, index !== 0 && styles.navIconInactive]}>{icon}</Text>
+            </View>
             <Text style={[styles.navLabel, index === 0 && styles.navActive]}>{label}</Text>
           </Pressable>
         ))}
@@ -911,6 +913,34 @@ type NutritionResult = {
   note: string;
 };
 
+type RecipeIngredient = {
+  name: string;
+  metric: string;
+  imperial: string;
+};
+
+// The US (and a couple of small holdouts) cook in cups/oz/lb; the rest of the
+// world uses metric. Detected once from the device/browser locale's region.
+function detectUnitSystem(): "metric" | "imperial" {
+  try {
+    const locale =
+      (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.language) ||
+      Intl.DateTimeFormat().resolvedOptions().locale ||
+      "en-US";
+    const region = locale.split(/[-_]/)[1]?.toUpperCase();
+    return region === "US" || region === "LR" || region === "MM" ? "imperial" : "metric";
+  } catch {
+    return "metric";
+  }
+}
+
+const unitSystem = detectUnitSystem();
+
+function formatIngredient(ingredient: RecipeIngredient): string {
+  const amount = unitSystem === "imperial" ? ingredient.imperial : ingredient.metric;
+  return `${amount} ${ingredient.name}`;
+}
+
 type Recipe = NutritionTotals & {
   name: string;
   description: string;
@@ -923,7 +953,12 @@ const fallbackProteinRecipes: Recipe[] = [
     name: "Greek Yogurt Protein Bowl",
     description: "A quick no-cook bowl with yogurt, berries, and nuts.",
     minutes: 5,
-    ingredients: ["Greek yogurt", "Mixed berries", "Almonds", "Honey"],
+    ingredients: [
+      formatIngredient({ name: "Greek yogurt", metric: "200 g", imperial: "3/4 cup" }),
+      formatIngredient({ name: "Mixed berries", metric: "100 g", imperial: "2/3 cup" }),
+      formatIngredient({ name: "Almonds", metric: "20 g", imperial: "2 tbsp" }),
+      formatIngredient({ name: "Honey", metric: "15 g", imperial: "1 tbsp" }),
+    ],
     calories: 320,
     protein: 28,
     carbs: 26,
@@ -933,7 +968,13 @@ const fallbackProteinRecipes: Recipe[] = [
     name: "Grilled Chicken and Quinoa",
     description: "Grilled chicken breast over quinoa with roasted vegetables.",
     minutes: 25,
-    ingredients: ["Chicken breast", "Quinoa", "Broccoli", "Olive oil", "Lemon"],
+    ingredients: [
+      formatIngredient({ name: "Chicken breast", metric: "180 g", imperial: "6 oz" }),
+      formatIngredient({ name: "Quinoa", metric: "60 g", imperial: "1/3 cup" }),
+      formatIngredient({ name: "Broccoli", metric: "100 g", imperial: "1 cup" }),
+      formatIngredient({ name: "Olive oil", metric: "10 ml", imperial: "2 tsp" }),
+      formatIngredient({ name: "Lemon", metric: "1/2 lemon", imperial: "1/2 lemon" }),
+    ],
     calories: 480,
     protein: 42,
     carbs: 38,
@@ -943,7 +984,14 @@ const fallbackProteinRecipes: Recipe[] = [
     name: "Tofu and Vegetable Stir-Fry",
     description: "Pan-seared tofu with mixed vegetables in a light soy glaze.",
     minutes: 20,
-    ingredients: ["Firm tofu", "Bell peppers", "Broccoli", "Soy sauce", "Garlic", "Rice"],
+    ingredients: [
+      formatIngredient({ name: "Firm tofu", metric: "150 g", imperial: "5 oz" }),
+      formatIngredient({ name: "Bell peppers", metric: "80 g", imperial: "2/3 cup" }),
+      formatIngredient({ name: "Broccoli", metric: "80 g", imperial: "3/4 cup" }),
+      formatIngredient({ name: "Soy sauce", metric: "15 ml", imperial: "1 tbsp" }),
+      formatIngredient({ name: "Garlic", metric: "2 cloves", imperial: "2 cloves" }),
+      formatIngredient({ name: "Rice", metric: "150 g", imperial: "3/4 cup" }),
+    ],
     calories: 410,
     protein: 26,
     carbs: 44,
@@ -959,7 +1007,7 @@ type LibraryRecipe = NutritionTotals & {
   category: MealCategory;
   photo: number;
   minutes: number;
-  ingredients: string[];
+  ingredients: RecipeIngredient[];
   steps: string[];
 };
 
@@ -970,7 +1018,12 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "breakfast",
     photo: require("./assets/recipes/greek-yogurt-parfait.jpg"),
     minutes: 5,
-    ingredients: ["Greek yogurt", "Mixed berries", "Granola", "Honey"],
+    ingredients: [
+      { name: "Greek yogurt", metric: "200 g", imperial: "3/4 cup" },
+      { name: "Mixed berries", metric: "100 g", imperial: "2/3 cup" },
+      { name: "Granola", metric: "30 g", imperial: "1/4 cup" },
+      { name: "Honey", metric: "15 g", imperial: "1 tbsp" },
+    ],
     steps: [
       "Layer yogurt and berries in a glass.",
       "Top with granola and a drizzle of honey.",
@@ -987,7 +1040,13 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "breakfast",
     photo: require("./assets/recipes/veggie-egg-scramble.jpg"),
     minutes: 12,
-    ingredients: ["Eggs", "Spinach", "Cherry tomatoes", "Feta cheese", "Olive oil"],
+    ingredients: [
+      { name: "Eggs", metric: "3 eggs", imperial: "3 eggs" },
+      { name: "Spinach", metric: "60 g", imperial: "2 cups" },
+      { name: "Cherry tomatoes", metric: "80 g", imperial: "1/2 cup" },
+      { name: "Feta cheese", metric: "40 g", imperial: "1/3 cup" },
+      { name: "Olive oil", metric: "10 ml", imperial: "2 tsp" },
+    ],
     steps: [
       "Heat olive oil in a pan.",
       "Sauté spinach and tomatoes until soft.",
@@ -1005,7 +1064,13 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "breakfast",
     photo: require("./assets/recipes/banana-peanut-butter-oatmeal.jpg"),
     minutes: 8,
-    ingredients: ["Rolled oats", "Milk", "Banana", "Peanut butter", "Cinnamon"],
+    ingredients: [
+      { name: "Rolled oats", metric: "50 g", imperial: "1/2 cup" },
+      { name: "Milk", metric: "200 ml", imperial: "3/4 cup" },
+      { name: "Banana", metric: "1 banana", imperial: "1 banana" },
+      { name: "Peanut butter", metric: "16 g", imperial: "1 tbsp" },
+      { name: "Cinnamon", metric: "1/2 tsp", imperial: "1/2 tsp" },
+    ],
     steps: [
       "Cook oats with milk until creamy.",
       "Stir in sliced banana and a spoon of peanut butter.",
@@ -1022,7 +1087,13 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "breakfast",
     photo: require("./assets/recipes/avocado-toast-eggs.jpg"),
     minutes: 10,
-    ingredients: ["Whole-grain bread", "Avocado", "Eggs", "Lemon juice", "Chili flakes"],
+    ingredients: [
+      { name: "Whole-grain bread", metric: "2 slices", imperial: "2 slices" },
+      { name: "Avocado", metric: "1/2 avocado", imperial: "1/2 avocado" },
+      { name: "Eggs", metric: "2 eggs", imperial: "2 eggs" },
+      { name: "Lemon juice", metric: "5 ml", imperial: "1 tsp" },
+      { name: "Chili flakes", metric: "1/4 tsp", imperial: "1/4 tsp" },
+    ],
     steps: [
       "Toast the bread.",
       "Mash avocado with lemon juice and spread on toast.",
@@ -1039,7 +1110,14 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "lunch",
     photo: require("./assets/recipes/grilled-chicken-salad.jpg"),
     minutes: 20,
-    ingredients: ["Chicken breast", "Mixed greens", "Cherry tomatoes", "Cucumber", "Olive oil", "Balsamic vinegar"],
+    ingredients: [
+      { name: "Chicken breast", metric: "150 g", imperial: "5 oz" },
+      { name: "Mixed greens", metric: "80 g", imperial: "3 cups" },
+      { name: "Cherry tomatoes", metric: "70 g", imperial: "1/2 cup" },
+      { name: "Cucumber", metric: "60 g", imperial: "1/2 cup" },
+      { name: "Olive oil", metric: "10 ml", imperial: "2 tsp" },
+      { name: "Balsamic vinegar", metric: "10 ml", imperial: "2 tsp" },
+    ],
     steps: [
       "Grill the chicken and slice.",
       "Toss greens, tomatoes, and cucumber with olive oil and vinegar.",
@@ -1056,7 +1134,14 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "lunch",
     photo: require("./assets/recipes/quinoa-chickpea-bowl.jpg"),
     minutes: 20,
-    ingredients: ["Quinoa", "Chickpeas", "Cucumber", "Bell pepper", "Tahini", "Lemon juice"],
+    ingredients: [
+      { name: "Quinoa", metric: "60 g", imperial: "1/3 cup" },
+      { name: "Chickpeas", metric: "120 g", imperial: "3/4 cup" },
+      { name: "Cucumber", metric: "60 g", imperial: "1/2 cup" },
+      { name: "Bell pepper", metric: "70 g", imperial: "1/2 cup" },
+      { name: "Tahini", metric: "15 g", imperial: "1 tbsp" },
+      { name: "Lemon juice", metric: "10 ml", imperial: "2 tsp" },
+    ],
     steps: [
       "Cook quinoa and let cool slightly.",
       "Toss with chickpeas, cucumber, and bell pepper.",
@@ -1073,7 +1158,13 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "lunch",
     photo: require("./assets/recipes/turkey-hummus-wrap.jpg"),
     minutes: 10,
-    ingredients: ["Whole-wheat wrap", "Turkey breast", "Hummus", "Spinach", "Shredded carrot"],
+    ingredients: [
+      { name: "Whole-wheat wrap", metric: "1 large wrap", imperial: "1 large wrap" },
+      { name: "Turkey breast", metric: "100 g", imperial: "3.5 oz" },
+      { name: "Hummus", metric: "40 g", imperial: "3 tbsp" },
+      { name: "Spinach", metric: "20 g", imperial: "1/2 cup" },
+      { name: "Shredded carrot", metric: "30 g", imperial: "1/4 cup" },
+    ],
     steps: [
       "Spread hummus over the wrap.",
       "Layer turkey, spinach, and carrot.",
@@ -1090,7 +1181,14 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "lunch",
     photo: require("./assets/recipes/salmon-rice-bowl.jpg"),
     minutes: 25,
-    ingredients: ["Salmon fillet", "Cooked rice", "Edamame", "Cucumber", "Soy sauce", "Sesame seeds"],
+    ingredients: [
+      { name: "Salmon fillet", metric: "150 g", imperial: "5 oz" },
+      { name: "Cooked rice", metric: "150 g", imperial: "3/4 cup" },
+      { name: "Edamame", metric: "60 g", imperial: "1/2 cup" },
+      { name: "Cucumber", metric: "50 g", imperial: "1/3 cup" },
+      { name: "Soy sauce", metric: "10 ml", imperial: "2 tsp" },
+      { name: "Sesame seeds", metric: "1 tsp", imperial: "1 tsp" },
+    ],
     steps: [
       "Pan-sear the salmon until cooked through.",
       "Serve over rice with edamame and cucumber.",
@@ -1107,7 +1205,14 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "dinner",
     photo: require("./assets/recipes/baked-salmon-vegetables.jpg"),
     minutes: 30,
-    ingredients: ["Salmon fillet", "Broccoli", "Carrots", "Olive oil", "Garlic", "Lemon"],
+    ingredients: [
+      { name: "Salmon fillet", metric: "180 g", imperial: "6 oz" },
+      { name: "Broccoli", metric: "100 g", imperial: "1 cup" },
+      { name: "Carrots", metric: "80 g", imperial: "2/3 cup" },
+      { name: "Olive oil", metric: "10 ml", imperial: "2 tsp" },
+      { name: "Garlic", metric: "2 cloves", imperial: "2 cloves" },
+      { name: "Lemon", metric: "1/2 lemon", imperial: "1/2 lemon" },
+    ],
     steps: [
       "Toss vegetables with olive oil and garlic on a tray.",
       "Place salmon alongside.",
@@ -1125,7 +1230,13 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "dinner",
     photo: require("./assets/recipes/grilled-chicken-sweet-potato.jpg"),
     minutes: 35,
-    ingredients: ["Chicken breast", "Sweet potato", "Green beans", "Olive oil", "Paprika"],
+    ingredients: [
+      { name: "Chicken breast", metric: "180 g", imperial: "6 oz" },
+      { name: "Sweet potato", metric: "200 g", imperial: "1 medium" },
+      { name: "Green beans", metric: "100 g", imperial: "1 cup" },
+      { name: "Olive oil", metric: "10 ml", imperial: "2 tsp" },
+      { name: "Paprika", metric: "1/2 tsp", imperial: "1/2 tsp" },
+    ],
     steps: [
       "Season chicken with paprika and grill until cooked through.",
       "Roast sweet potato wedges and steam green beans.",
@@ -1142,7 +1253,15 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "dinner",
     photo: require("./assets/recipes/beef-vegetable-stir-fry.jpg"),
     minutes: 20,
-    ingredients: ["Beef strips", "Broccoli", "Bell pepper", "Carrot", "Soy sauce", "Garlic", "Ginger"],
+    ingredients: [
+      { name: "Beef strips", metric: "150 g", imperial: "5 oz" },
+      { name: "Broccoli", metric: "80 g", imperial: "3/4 cup" },
+      { name: "Bell pepper", metric: "70 g", imperial: "1/2 cup" },
+      { name: "Carrot", metric: "50 g", imperial: "1/3 cup" },
+      { name: "Soy sauce", metric: "15 ml", imperial: "1 tbsp" },
+      { name: "Garlic", metric: "2 cloves", imperial: "2 cloves" },
+      { name: "Ginger", metric: "1 tsp grated", imperial: "1 tsp grated" },
+    ],
     steps: [
       "Stir-fry beef in a hot pan until browned.",
       "Add vegetables, garlic, and ginger.",
@@ -1159,7 +1278,13 @@ const recipeLibrary: LibraryRecipe[] = [
     category: "dinner",
     photo: require("./assets/recipes/tofu-vegetable-curry.jpg"),
     minutes: 30,
-    ingredients: ["Firm tofu", "Coconut milk", "Curry paste", "Mixed vegetables", "Rice"],
+    ingredients: [
+      { name: "Firm tofu", metric: "150 g", imperial: "5 oz" },
+      { name: "Coconut milk", metric: "150 ml", imperial: "2/3 cup" },
+      { name: "Curry paste", metric: "15 g", imperial: "1 tbsp" },
+      { name: "Mixed vegetables", metric: "150 g", imperial: "1 1/2 cups" },
+      { name: "Rice", metric: "150 g", imperial: "3/4 cup" },
+    ],
     steps: [
       "Pan-sear tofu until golden.",
       "Simmer curry paste with coconut milk.",
@@ -1294,7 +1419,7 @@ function NutritionScreen({
     <SafeAreaView style={styles.nutritionScreen}>
       <View style={styles.nutritionHeader}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
-          <Text style={styles.coachBackText}>{"<"}</Text>
+          <Text style={styles.coachBackText}>‹</Text>
         </Pressable>
         <View>
           <Text style={styles.nutritionHeaderTitle}>NUTRITION</Text>
@@ -1337,11 +1462,17 @@ function NutritionScreen({
           onPress={onOpenRecipeLibrary}
           style={styles.libraryEntryCard}
         >
-          <View>
+          <View style={styles.libraryEntryIcon}>
+            <Text style={styles.libraryEntryIconText}>🍽️</Text>
+          </View>
+          <View style={styles.libraryEntryCopy}>
             <Text style={styles.libraryEntryEyebrow}>BREAKFAST · LUNCH · DINNER</Text>
             <Text style={styles.libraryEntryTitle}>Browse the recipe library</Text>
+            <Text style={styles.libraryEntrySubtitle}>12 meals with macros, ready to cook</Text>
           </View>
-          <Text style={styles.cardChevron}>›</Text>
+          <View style={styles.libraryEntryArrow}>
+            <Text style={styles.libraryEntryArrowText}>→</Text>
+          </View>
         </Pressable>
 
         <View style={styles.foodPhotoCard}>
@@ -1490,6 +1621,7 @@ function RecipesScreen({
           body: JSON.stringify({
             proteinRemaining,
             profile: { goal: profile.goal, sex: profile.sex, equipment: profile.equipment },
+            unitSystem,
           }),
         });
         const data = await response.json();
@@ -1518,7 +1650,7 @@ function RecipesScreen({
     <SafeAreaView style={styles.recipesScreen}>
       <View style={styles.nutritionHeader}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
-          <Text style={styles.coachBackText}>{"<"}</Text>
+          <Text style={styles.coachBackText}>‹</Text>
         </Pressable>
         <View>
           <Text style={styles.nutritionHeaderTitle}>RECIPES</Text>
@@ -1597,7 +1729,7 @@ function RecipeLibraryScreen({
     <SafeAreaView style={styles.recipesScreen}>
       <View style={styles.nutritionHeader}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
-          <Text style={styles.coachBackText}>{"<"}</Text>
+          <Text style={styles.coachBackText}>‹</Text>
         </Pressable>
         <View>
           <Text style={styles.nutritionHeaderTitle}>RECIPE LIBRARY</Text>
@@ -1660,7 +1792,7 @@ function RecipeLibraryDetailScreen({
     <SafeAreaView style={styles.recipesScreen}>
       <View style={styles.nutritionHeader}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
-          <Text style={styles.coachBackText}>{"<"}</Text>
+          <Text style={styles.coachBackText}>‹</Text>
         </Pressable>
         <View>
           <Text style={styles.nutritionHeaderTitle}>{mealCategoryLabels[recipe.category]}</Text>
@@ -1695,8 +1827,8 @@ function RecipeLibraryDetailScreen({
           <Text style={styles.recipeSectionTitle}>INGREDIENTS</Text>
           <View style={styles.recipeIngredients}>
             {recipe.ingredients.map((ingredient) => (
-              <View key={ingredient} style={styles.recipeIngredientPill}>
-                <Text style={styles.recipeIngredientText}>{ingredient}</Text>
+              <View key={ingredient.name} style={styles.recipeIngredientPill}>
+                <Text style={styles.recipeIngredientText}>{formatIngredient(ingredient)}</Text>
               </View>
             ))}
           </View>
@@ -3938,8 +4070,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#090A09",
   },
   navItem: { flex: 1, alignItems: "center" },
-  navIcon: { color: "#666C63", fontSize: 18, lineHeight: 22 },
-  navLabel: { color: "#666C63", fontSize: 6, fontWeight: "800", letterSpacing: 0.8, marginTop: 3 },
+  navIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navIconWrapActive: { backgroundColor: "rgba(200,255,50,0.16)" },
+  navIcon: { fontSize: 18, lineHeight: 22 },
+  navIconInactive: { opacity: 0.4 },
+  navLabel: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 0.6, marginTop: 4 },
   navActive: { color: colors.lime },
   nutritionScreen: { flex: 1, backgroundColor: colors.background },
   nutritionHeader: {
@@ -4144,16 +4285,36 @@ const styles = StyleSheet.create({
   libraryEntryCard: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#262A24",
-    backgroundColor: "#0C0E0C",
-    padding: 18,
+    borderColor: "rgba(200,255,50,0.3)",
+    backgroundColor: "rgba(200,255,50,0.07)",
+    padding: 16,
     marginBottom: 20,
+    gap: 12,
   },
+  libraryEntryIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.lime,
+  },
+  libraryEntryIconText: { fontSize: 20 },
+  libraryEntryCopy: { flex: 1 },
   libraryEntryEyebrow: { color: colors.lime, fontSize: 9, fontWeight: "800", letterSpacing: 1.2 },
-  libraryEntryTitle: { color: colors.text, fontSize: 15, fontWeight: "700", marginTop: 4 },
+  libraryEntryTitle: { color: colors.text, fontSize: 16, fontWeight: "800", marginTop: 3 },
+  libraryEntrySubtitle: { color: colors.muted, fontSize: 11, marginTop: 2 },
+  libraryEntryArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(200,255,50,0.15)",
+  },
+  libraryEntryArrowText: { color: colors.lime, fontSize: 16, fontWeight: "900" },
   libraryTabs: {
     flexDirection: "row",
     paddingHorizontal: 24,
@@ -4806,11 +4967,12 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     borderWidth: 1,
-    borderColor: "#343934",
+    borderColor: "#2A2F28",
+    backgroundColor: "#171A17",
     alignItems: "center",
     justifyContent: "center",
   },
-  coachBackText: { color: colors.text, fontSize: 27, lineHeight: 28, marginTop: -3 },
+  coachBackText: { color: colors.lime, fontSize: 20, fontWeight: "700" },
   coachIdentity: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center" },
   coachPortrait: {
     width: 35,
