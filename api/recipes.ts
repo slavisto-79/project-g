@@ -12,6 +12,7 @@ type VercelResponse = {
 type RecipesRequest = {
   proteinRemaining?: number;
   profile?: Record<string, string>;
+  unitSystem?: "metric" | "imperial";
 };
 
 const allowedProfileFields = ["goal", "sex", "equipment"] as const;
@@ -64,6 +65,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const profile = safeProfile(body.profile);
+  const unitSystem = body.unitSystem === "imperial" ? "imperial" : "metric";
+  const unitInstruction =
+    unitSystem === "imperial"
+      ? "US customary units (cups, tbsp, tsp, oz, lb) or whole pieces where natural (e.g. \"2 eggs\")"
+      : "metric units (g, ml) or whole pieces where natural (e.g. \"2 eggs\")";
 
   try {
     const openAIResponse = await fetch("https://api.openai.com/v1/responses", {
@@ -83,6 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "Respect the user's equipment and stated goal when relevant.",
           "Never claim medical, nutritional, or weight-loss guarantees; this is general food inspiration only.",
           "Keep descriptions under 20 words. List 3-8 ingredients per recipe.",
+          `Each ingredient must start with a realistic single-serving quantity, using ${unitInstruction}, followed by the ingredient name (e.g. "200g Greek yogurt" or "3/4 cup rolled oats").`,
           "Return only JSON matching the requested schema.",
         ].join(" "),
         input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nREMAINING PROTEIN TARGET FOR TODAY: ${proteinRemaining}g`,
