@@ -2708,7 +2708,7 @@ function ActiveWorkoutScreen({
   onUpdateExerciseProgress: (name: string, next: ExerciseProgress) => void;
   onCompleteWorkout: (entry: WorkoutHistoryEntry) => void;
 }) {
-  const { width, height } = useWindowDimensions();
+  const { height } = useWindowDimensions();
   const baseExercises = createWorkout(profile, exerciseProgress);
   const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
   const targetSetCount = setCountForProfile(profile, adjustment);
@@ -2724,10 +2724,7 @@ function ActiveWorkoutScreen({
   const isBodyweight = exercise.weight === "Bodyweight";
   const currentWeightKg = isBodyweight ? null : parseInt(exercise.weight, 10);
   const currentReps = parseInt(exercise.reps, 10);
-  const exerciseVisualHeight = Math.min(
-    380,
-    Math.max(210, Math.min(width * 0.78, height * 0.42)),
-  );
+  const exerciseVisualHeight = Math.min(170, Math.max(130, height * 0.18));
   const workoutTitle =
     profile.sex === "female"
       ? "WOMEN’S STRENGTH FOUNDATION"
@@ -3069,9 +3066,9 @@ function ActiveWorkoutScreen({
                 <Text style={styles.adjustPanelColumnLabel}>WEIGHT</Text>
                 <NumberWheelPicker
                   key={`${exercise.name}-weight`}
-                  itemHeight={30}
+                  itemHeight={24}
                   visibleItems={3}
-                  fontSize={16}
+                  fontSize={15}
                   min={2}
                   max={100}
                   step={1}
@@ -4816,16 +4813,16 @@ const styles = StyleSheet.create({
   exerciseSheet: {
     flexGrow: 1,
     paddingHorizontal: 18,
-    paddingTop: 15,
-    paddingBottom: 18,
+    paddingTop: 10,
+    paddingBottom: 12,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     backgroundColor: "#090A09",
   },
   exerciseHeadingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   exerciseStep: { color: colors.lime, fontSize: 7, fontWeight: "800", letterSpacing: 1.2 },
-  exerciseName: { color: colors.text, fontSize: 25, lineHeight: 28, fontWeight: "700", marginTop: 4, letterSpacing: -0.9 },
-  exerciseTarget: { color: colors.muted, fontSize: 9, marginTop: 4 },
+  exerciseName: { color: colors.text, fontSize: 19, lineHeight: 22, fontWeight: "700", marginTop: 3, letterSpacing: -0.7 },
+  exerciseTarget: { color: colors.muted, fontSize: 9, marginTop: 2 },
   exerciseInfo: {
     width: 31,
     height: 31,
@@ -4909,10 +4906,11 @@ const styles = StyleSheet.create({
   },
   exerciseInfoDoneText: { color: colors.ink, fontSize: 12, fontWeight: "900", letterSpacing: 1.7 },
   restBanner: {
-    minHeight: 52,
-    borderRadius: 15,
-    marginTop: 12,
-    paddingHorizontal: 13,
+    minHeight: 40,
+    borderRadius: 13,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -4921,9 +4919,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(200,255,50,0.065)",
   },
   restLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.1 },
-  restHint: { color: colors.muted, fontSize: 8, marginTop: 3 },
-  restValue: { color: colors.text, fontSize: 23, fontWeight: "800" },
-  setTableHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: 11, marginTop: 14, marginBottom: 5 },
+  restHint: { color: colors.muted, fontSize: 8, marginTop: 2 },
+  restValue: { color: colors.text, fontSize: 18, fontWeight: "800" },
+  setTableHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: 11, marginTop: 8, marginBottom: 4 },
   setHeaderText: { color: "#666C64", fontSize: 7, fontWeight: "800", letterSpacing: 1 },
   setColumn: { width: 42 },
   weightColumn: { flex: 1 },
@@ -4931,13 +4929,13 @@ const styles = StyleSheet.create({
   doneColumn: { width: 36 },
   adjustPanel: {
     borderRadius: 14,
-    padding: 11,
-    marginTop: 12,
+    padding: 9,
+    marginTop: 8,
     borderWidth: 1,
     borderColor: "#242824",
     backgroundColor: "#0E100E",
   },
-  adjustPanelLabel: { color: colors.lime, fontSize: 12, fontWeight: "900", letterSpacing: 1, marginBottom: 8, textAlign: "center" },
+  adjustPanelLabel: { color: colors.lime, fontSize: 11, fontWeight: "900", letterSpacing: 1, marginBottom: 5, textAlign: "center" },
   adjustPanelPickers: { flexDirection: "row", alignItems: "flex-start" },
   adjustPanelColumn: { alignItems: "center" },
   adjustPanelColumnLabel: {
@@ -4945,23 +4943,23 @@ const styles = StyleSheet.create({
     fontSize: 7,
     fontWeight: "800",
     letterSpacing: 1,
-    marginBottom: 4,
+    marginBottom: 3,
     textAlign: "center",
   },
   adjustPanelMarkRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 11,
-    paddingTop: 11,
+    marginTop: 8,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: "#242824",
   },
   adjustPanelMarkText: { color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
   adjustPanelMarkButton: {
-    height: 34,
-    paddingHorizontal: 16,
-    borderRadius: 17,
+    height: 30,
+    paddingHorizontal: 14,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.lime,
@@ -4969,9 +4967,9 @@ const styles = StyleSheet.create({
   adjustPanelMarkButtonDone: { backgroundColor: "#171A17", paddingHorizontal: 12 },
   adjustPanelMarkButtonText: { color: colors.ink, fontSize: 11, fontWeight: "900", letterSpacing: 0.5 },
   adjustPanelMarkButtonTextDone: { color: colors.lime },
-  setList: { gap: 7 },
+  setList: { gap: 5 },
   setRow: {
-    height: 47,
+    height: 38,
     borderRadius: 14,
     paddingHorizontal: 11,
     flexDirection: "row",
@@ -4985,9 +4983,9 @@ const styles = StyleSheet.create({
   setValue: { color: colors.text, fontSize: 13, fontWeight: "700" },
   setTextDone: { color: "#858B82" },
   setCheck: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
@@ -4997,9 +4995,9 @@ const styles = StyleSheet.create({
   setCheckText: { color: colors.ink, fontSize: 13, fontWeight: "900" },
   setCheckTextDone: { color: colors.ink },
   nextExerciseButton: {
-    height: 51,
-    borderRadius: 26,
-    marginTop: 11,
+    height: 46,
+    borderRadius: 23,
+    marginTop: 8,
     paddingHorizontal: 18,
     flexDirection: "row",
     alignItems: "center",
