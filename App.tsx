@@ -2972,7 +2972,15 @@ function ActiveWorkoutScreen({
   return (
     <SafeAreaView style={styles.activeWorkout}>
       <View style={styles.activeHeader}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Exit workout" onPress={onExit} style={styles.workoutClose}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Exit workout"
+          onPress={() => {
+            if (completedCount > 0) commitExerciseProgress(exercise);
+            onExit();
+          }}
+          style={styles.workoutClose}
+        >
           <Text style={styles.workoutCloseText}>×</Text>
         </Pressable>
         <View style={styles.activeHeaderCenter}>
@@ -3121,22 +3129,23 @@ function ActiveWorkoutScreen({
         </View>
 
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={
-            exerciseIndex === personalizedExercises.length - 1
-              ? "Finish workout"
-              : "Next exercise"
-          }
-          disabled={completedCount < targetSetCount}
-          onPress={exerciseIndex === personalizedExercises.length - 1 ? finishWorkout : nextExercise}
-          style={[styles.nextExerciseButton, completedCount < targetSetCount && styles.nextExerciseDisabled]}
-        >
-          <Text style={[styles.nextExerciseText, completedCount < targetSetCount && styles.nextExerciseTextDisabled]}>
-            {exerciseIndex === personalizedExercises.length - 1 ? "FINISH WORKOUT" : "NEXT EXERCISE"}
-          </Text>
-          <Text style={[styles.nextExerciseArrow, completedCount < targetSetCount && styles.nextExerciseTextDisabled]}>→</Text>
-        </Pressable>
+        {completedCount >= targetSetCount ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              exerciseIndex === personalizedExercises.length - 1
+                ? "Finish workout"
+                : "Next exercise"
+            }
+            onPress={exerciseIndex === personalizedExercises.length - 1 ? finishWorkout : nextExercise}
+            style={styles.nextExerciseButton}
+          >
+            <Text style={styles.nextExerciseText}>
+              {exerciseIndex === personalizedExercises.length - 1 ? "FINISH WORKOUT" : "NEXT EXERCISE"}
+            </Text>
+            <Text style={styles.nextExerciseArrow}>→</Text>
+          </Pressable>
+        ) : null}
       </View>
       </ScrollView>
 
@@ -5004,10 +5013,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     backgroundColor: colors.lime,
   },
-  nextExerciseDisabled: { backgroundColor: "#171A17" },
   nextExerciseText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 1.1 },
   nextExerciseArrow: { color: colors.ink, fontSize: 19, fontWeight: "700" },
-  nextExerciseTextDisabled: { color: "#50554F" },
   coachScreen: { flex: 1, backgroundColor: colors.background },
   coachKeyboard: { flex: 1 },
   coachHeader: {
