@@ -2676,6 +2676,7 @@ function ActiveWorkoutScreen({
   const baseExercises = createWorkout(profile, exerciseProgress);
   const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
   const targetSetCount = setCountForProfile(profile, adjustment);
+  const scrollRef = useRef<ScrollView>(null);
 
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [completedSets, setCompletedSets] = useState<boolean[]>(Array(targetSetCount).fill(false));
@@ -2751,6 +2752,10 @@ function ActiveWorkoutScreen({
       setRestSeconds(0);
     }
   };
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, [exerciseIndex]);
 
   const finishWorkout = () => {
     commitExerciseProgress(exercise);
@@ -2938,6 +2943,7 @@ function ActiveWorkoutScreen({
       </View>
 
       <ScrollView
+        ref={scrollRef}
         style={styles.activeWorkoutScroll}
         contentContainerStyle={styles.activeWorkoutScrollContent}
         showsVerticalScrollIndicator={false}
@@ -3014,7 +3020,7 @@ function ActiveWorkoutScreen({
           <Text style={styles.adjustPanelLabel}>HOW MANY KG & REPS DID YOU DO</Text>
           <View style={styles.adjustPanelPickers}>
             {!isBodyweight ? (
-              <View style={styles.weightColumn}>
+              <View style={[styles.weightColumn, styles.adjustPanelColumn]}>
                 <Text style={styles.adjustPanelColumnLabel}>WEIGHT</Text>
                 <NumberWheelPicker
                   key={`${exercise.name}-weight`}
@@ -3030,7 +3036,7 @@ function ActiveWorkoutScreen({
                 />
               </View>
             ) : null}
-            <View style={styles.repsColumn}>
+            <View style={[styles.repsColumn, styles.adjustPanelColumn]}>
               <Text style={styles.adjustPanelColumnLabel}>REPS</Text>
               <NumberWheelPicker
                 key={`${exercise.name}-reps`}
@@ -3088,11 +3094,7 @@ function ActiveWorkoutScreen({
               : "Next exercise"
           }
           disabled={completedCount < targetSetCount}
-          onPress={
-            exerciseIndex === personalizedExercises.length - 1
-              ? finishWorkout
-              : nextExercise
-          }
+          onPress={exerciseIndex === personalizedExercises.length - 1 ? finishWorkout : nextExercise}
           style={[styles.nextExerciseButton, completedCount < targetSetCount && styles.nextExerciseDisabled]}
         >
           <Text style={[styles.nextExerciseText, completedCount < targetSetCount && styles.nextExerciseTextDisabled]}>
@@ -4867,7 +4869,15 @@ const styles = StyleSheet.create({
   },
   adjustPanelLabel: { color: colors.lime, fontSize: 12, fontWeight: "900", letterSpacing: 1, marginBottom: 8, textAlign: "center" },
   adjustPanelPickers: { flexDirection: "row", alignItems: "flex-start" },
-  adjustPanelColumnLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 1, marginBottom: 4 },
+  adjustPanelColumn: { alignItems: "center" },
+  adjustPanelColumnLabel: {
+    color: colors.muted,
+    fontSize: 7,
+    fontWeight: "800",
+    letterSpacing: 1,
+    marginBottom: 4,
+    textAlign: "center",
+  },
   adjustPanelMarkRow: {
     flexDirection: "row",
     alignItems: "center",
