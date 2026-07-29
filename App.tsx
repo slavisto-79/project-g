@@ -402,6 +402,8 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
 }
 
 function WelcomeScreen({ onStart }: { onStart: () => void }) {
+  const { height } = useWindowDimensions();
+  const heroContentOffset = Math.max(160, Math.min(420, height * 0.38));
   const contentY = useRef(new Animated.Value(26)).current;
   const contentOpacity = useRef(new Animated.Value(0)).current;
 
@@ -444,7 +446,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
 
         <ScrollView
           style={styles.welcomeScroll}
-          contentContainerStyle={styles.welcomeScrollContent}
+          contentContainerStyle={[styles.welcomeScrollContent, { paddingTop: heroContentOffset }]}
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
@@ -3619,20 +3621,20 @@ const styles = StyleSheet.create({
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.lime, marginRight: 7 },
   humanBadgeText: { color: colors.text, fontSize: 8, fontWeight: "700", letterSpacing: 1.1 },
   welcomeScroll: { flex: 1 },
-  welcomeScrollContent: { paddingTop: 500 },
+  welcomeScrollContent: {},
   welcomeContent: {
     paddingHorizontal: 24,
-    paddingTop: 18,
-    paddingBottom: 24,
+    paddingTop: 16,
+    paddingBottom: 18,
     backgroundColor: "rgba(0,0,0,0.86)",
   },
   eyebrow: {
     color: colors.lime,
-    fontSize: 21,
-    lineHeight: 24,
+    fontSize: 19,
+    lineHeight: 22,
     fontWeight: "900",
     letterSpacing: 1.25,
-    marginBottom: 16,
+    marginBottom: 12,
     textShadowColor: "rgba(190,255,40,0.24)",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 14,
@@ -3640,23 +3642,23 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     maxWidth: 520,
     color: colors.text,
-    fontSize: 45,
-    lineHeight: 48,
-    letterSpacing: -2.2,
+    fontSize: 38,
+    lineHeight: 40,
+    letterSpacing: -1.8,
     fontWeight: "700",
   },
   welcomeTitleAccent: { color: colors.lime },
   welcomeBody: {
     color: "#C7CBC4",
     maxWidth: 390,
-    fontSize: 15,
-    lineHeight: 22,
-    marginTop: 17,
-    marginBottom: 24,
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 14,
+    marginBottom: 18,
   },
   startButton: {
-    height: 58,
-    borderRadius: 29,
+    height: 54,
+    borderRadius: 27,
     backgroundColor: colors.lime,
     paddingHorizontal: 22,
     flexDirection: "row",
@@ -3666,7 +3668,7 @@ const styles = StyleSheet.create({
   startButtonPressed: { opacity: 0.82, transform: [{ scale: 0.99 }] },
   startButtonText: { color: colors.ink, fontSize: 13, fontWeight: "900", letterSpacing: 1.35 },
   startArrow: { color: colors.ink, fontSize: 23, fontWeight: "500" },
-  disclaimer: { color: "#7D827A", fontSize: 10, textAlign: "center", marginTop: 13 },
+  disclaimer: { color: "#7D827A", fontSize: 10, textAlign: "center", marginTop: 10 },
   preview: { flex: 1, backgroundColor: colors.background },
   interviewHeader: {
     flexDirection: "row",
