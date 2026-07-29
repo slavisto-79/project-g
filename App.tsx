@@ -83,7 +83,6 @@ const interviewQuestions: InterviewQuestion[] = [
     answers: [
       { label: "Woman", value: "female" },
       { label: "Man", value: "male" },
-      { label: "Prefer not to say", value: "neutral" },
     ],
   },
   {
