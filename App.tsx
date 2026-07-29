@@ -746,6 +746,7 @@ function DashboardScreen({
   onStartWorkout,
   onOpenCoach,
   onOpenNutrition,
+  onOpenProgress,
   onResetTestProfile,
   profile,
   nutritionTotals,
@@ -753,6 +754,7 @@ function DashboardScreen({
   onStartWorkout: () => void;
   onOpenCoach: () => void;
   onOpenNutrition: () => void;
+  onOpenProgress: () => void;
   onResetTestProfile: () => void;
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
@@ -874,7 +876,9 @@ function DashboardScreen({
                   ? onOpenNutrition
                   : label === "WORKOUT"
                     ? onStartWorkout
-                    : undefined
+                    : label === "PROGRESS"
+                      ? onOpenProgress
+                      : undefined
             }
             style={styles.navItem}
           >
@@ -900,6 +904,36 @@ type ExerciseProgress = {
   weightKg: number;
   reps: number;
 };
+
+type WorkoutHistoryEntry = {
+  id: string;
+  date: string;
+  title: string;
+  exercises: number;
+  sets: number;
+  seconds: number;
+  calories: number;
+};
+
+function formatHistoryDate(iso: string): string {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function formatHistoryDuration(seconds: number): string {
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+}
+
+function isWithinLastDays(iso: string, days: number): boolean {
+  const parsed = new Date(iso).getTime();
+  if (Number.isNaN(parsed)) return false;
+  return Date.now() - parsed <= days * 24 * 60 * 60 * 1000;
+}
 
 type NutritionItem = NutritionTotals & {
   name: string;
@@ -2664,6 +2698,7 @@ function ActiveWorkoutScreen({
   profile,
   exerciseProgress,
   onUpdateExerciseProgress,
+  onCompleteWorkout,
 }: {
   adjustment?: CoachScenario | null;
   onExit: () => void;
@@ -2671,6 +2706,7 @@ function ActiveWorkoutScreen({
   profile: Record<string, string>;
   exerciseProgress: Record<string, ExerciseProgress>;
   onUpdateExerciseProgress: (name: string, next: ExerciseProgress) => void;
+  onCompleteWorkout: (entry: WorkoutHistoryEntry) => void;
 }) {
   const { width, height } = useWindowDimensions();
   const baseExercises = createWorkout(profile, exerciseProgress);
@@ -2761,6 +2797,15 @@ function ActiveWorkoutScreen({
     commitExerciseProgress(exercise);
     setRestSeconds(0);
     setWorkoutComplete(true);
+    onCompleteWorkout({
+      id: `${Date.now()}`,
+      date: new Date().toISOString(),
+      title: workoutTitle,
+      exercises: personalizedExercises.length,
+      sets: personalizedExercises.length * targetSetCount,
+      seconds: elapsedSeconds,
+      calories: estimateSessionCalories(Number(profile.weight), elapsedSeconds),
+    });
   };
 
   const completedCount = completedSets.filter(Boolean).length;
@@ -3078,13 +3123,6 @@ function ActiveWorkoutScreen({
           </View>
         </View>
 
-        <View style={styles.coachCue}>
-          <View style={styles.coachCueIcon}><Text style={styles.coachCueIconText}>G</Text></View>
-          <View style={styles.coachCueCopy}>
-            <Text style={styles.coachCueLabel}>COACH CUE</Text>
-            <Text style={styles.coachCueText}>{exerciseGuidance.movement}</Text>
-          </View>
-        </View>
 
         <Pressable
           accessibilityRole="button"
@@ -3159,9 +3197,11 @@ function ActiveWorkoutScreen({
 function ProgressScreen({
   onDashboard,
   profile,
+  workoutHistory,
 }: {
   onDashboard: () => void;
   profile: Record<string, string>;
+  workoutHistory: WorkoutHistoryEntry[];
 }) {
   const nextFocus =
     profile.goal === "strength"
@@ -3169,6 +3209,12 @@ function ProgressScreen({
       : profile.goal === "fat-loss"
         ? "Training density"
         : "Movement quality";
+
+  const totalWorkouts = workoutHistory.length;
+  const hasHistory = totalWorkouts > 0;
+  const thisWeekCount = workoutHistory.filter((entry) => isWithinLastDays(entry.date, 7)).length;
+  const totalSets = workoutHistory.reduce((sum, entry) => sum + entry.sets, 0);
+  const totalSeconds = workoutHistory.reduce((sum, entry) => sum + entry.seconds, 0);
 
   return (
     <SafeAreaView style={styles.progressScreen}>
@@ -3186,56 +3232,69 @@ function ProgressScreen({
           <View style={styles.progressHeaderSpacer} />
         </View>
 
-        <Text style={styles.progressEyebrow}>FOUNDATION WEEK · SESSION 01</Text>
-        <Text style={styles.progressTitle}>Your baseline is set.</Text>
+        <Text style={styles.progressEyebrow}>{hasHistory ? "YOUR TRAINING HISTORY" : "FOUNDATION WEEK"}</Text>
+        <Text style={styles.progressTitle}>
+          {hasHistory ? "You’re building consistency." : "Your baseline is set."}
+        </Text>
         <Text style={styles.progressSubtitle}>
-          Project G will use today’s performance to personalize what comes next.
+          {hasHistory
+            ? "Every completed workout adjusts your plan’s load and volume."
+            : "Complete your first workout to start tracking real progress here."}
         </Text>
 
         <View style={styles.progressHero}>
           <View>
-            <Text style={styles.progressScoreValue}>100%</Text>
-            <Text style={styles.progressScoreLabel}>SESSION COMPLETE</Text>
+            <Text style={styles.progressScoreValue}>{totalWorkouts}</Text>
+            <Text style={styles.progressScoreLabel}>WORKOUTS COMPLETED</Text>
           </View>
           <View style={styles.progressHeroBadge}>
-            <Text style={styles.progressHeroBadgeValue}>88</Text>
-            <Text style={styles.progressHeroBadgeLabel}>FORM SCORE</Text>
+            <Text style={styles.progressHeroBadgeValue}>{thisWeekCount}</Text>
+            <Text style={styles.progressHeroBadgeLabel}>THIS WEEK</Text>
           </View>
         </View>
 
         <View style={styles.progressMetrics}>
           <View style={styles.progressMetric}>
-            <Text style={styles.progressMetricValue}>5</Text>
-            <Text style={styles.progressMetricLabel}>EXERCISES</Text>
+            <Text style={styles.progressMetricValue}>{totalSets}</Text>
+            <Text style={styles.progressMetricLabel}>TOTAL SETS</Text>
           </View>
           <View style={styles.progressMetricDivider} />
           <View style={styles.progressMetric}>
-            <Text style={styles.progressMetricValue}>15</Text>
-            <Text style={styles.progressMetricLabel}>SETS</Text>
+            <Text style={styles.progressMetricValue}>{formatHistoryDuration(totalSeconds)}</Text>
+            <Text style={styles.progressMetricLabel}>TOTAL TIME</Text>
           </View>
           <View style={styles.progressMetricDivider} />
           <View style={styles.progressMetric}>
-            <Text style={styles.progressMetricValue}>1</Text>
-            <Text style={styles.progressMetricLabel}>WORKOUT</Text>
+            <Text style={styles.progressMetricValue}>
+              {hasHistory ? formatHistoryDuration(Math.round(totalSeconds / totalWorkouts)) : "–"}
+            </Text>
+            <Text style={styles.progressMetricLabel}>AVG SESSION</Text>
           </View>
         </View>
 
         <View style={styles.progressSection}>
-          <Text style={styles.progressSectionTitle}>TODAY’S ANALYSIS</Text>
-          <View style={styles.progressRowTop}>
-            <Text style={styles.progressRowLabel}>Movement control</Text>
-            <Text style={styles.progressRowValue}>88 / 100</Text>
-          </View>
-          <View style={styles.analysisProgressTrack}>
-            <View style={[styles.analysisProgressFill, { width: "88%" }]} />
-          </View>
-          <View style={styles.progressRowTop}>
-            <Text style={styles.progressRowLabel}>Planned volume</Text>
-            <Text style={styles.progressRowPositive}>100%</Text>
-          </View>
-          <View style={styles.analysisProgressTrack}>
-            <View style={[styles.analysisProgressFill, { width: "100%" }]} />
-          </View>
+          <Text style={styles.progressSectionTitle}>RECENT WORKOUTS</Text>
+          {hasHistory ? (
+            workoutHistory.slice(0, 10).map((entry) => (
+              <View key={entry.id} style={styles.historyRow}>
+                <View style={styles.historyDateChip}>
+                  <Text style={styles.historyDateText}>{formatHistoryDate(entry.date)}</Text>
+                </View>
+                <View style={styles.historyRowCopy}>
+                  <Text style={styles.historyTitleText} numberOfLines={1}>
+                    {entry.title}
+                  </Text>
+                  <Text style={styles.historyMetaText}>
+                    {entry.exercises} exercises · {entry.sets} sets · {formatHistoryDuration(entry.seconds)}
+                  </Text>
+                </View>
+                <Text style={styles.historyCaloriesText}>{entry.calories} kcal</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.progressEmptyText}>No workouts logged yet — finish one to see it here.</Text>
+          )}
+
           <View style={styles.progressPriority}>
             <Text style={styles.progressPriorityLabel}>NEXT TRAINING FOCUS</Text>
             <Text style={styles.progressPriorityValue}>{nextFocus}</Text>
@@ -3247,7 +3306,9 @@ function ProgressScreen({
           <View style={styles.progressCoachCopy}>
             <Text style={styles.progressCoachLabel}>AI + HUMAN COACH INSIGHT</Text>
             <Text style={styles.progressCoachText}>
-              Baseline established. Your next session will adjust load, exercise selection, and tempo from today’s result.
+              {hasHistory
+                ? `You’ve logged ${totalWorkouts} session${totalWorkouts === 1 ? "" : "s"} so far. Keep the frequency steady and we’ll keep adjusting load and volume from here.`
+                : "Baseline established. Your next session will adjust load, exercise selection, and tempo from today’s result."}
             </Text>
           </View>
         </View>
@@ -3279,6 +3340,7 @@ export default function App() {
     fat: 0,
   });
   const [exerciseProgress, setExerciseProgress] = useState<Record<string, ExerciseProgress>>({});
+  const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistoryEntry[]>([]);
 
   useEffect(() => {
     if (Platform.OS !== "web") {
@@ -3293,12 +3355,14 @@ export default function App() {
           nutritionTotals?: NutritionTotals;
           coachAdjustment?: CoachScenario | null;
           exerciseProgress?: Record<string, ExerciseProgress>;
+          workoutHistory?: WorkoutHistoryEntry[];
         };
         if (parsed.profile && Object.keys(parsed.profile).length > 0) {
           setProfile(parsed.profile);
           setNutritionTotals(parsed.nutritionTotals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 });
           setCoachAdjustment(parsed.coachAdjustment ?? null);
           setExerciseProgress(parsed.exerciseProgress ?? {});
+          setWorkoutHistory(parsed.workoutHistory ?? []);
           setScreen("dashboard");
         }
       }
@@ -3313,9 +3377,9 @@ export default function App() {
     if (!hasLoadedTestState || Platform.OS !== "web" || Object.keys(profile).length === 0) return;
     window.localStorage.setItem(
       "project-g-test-state",
-      JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress }),
+      JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory }),
     );
-  }, [coachAdjustment, exerciseProgress, hasLoadedTestState, nutritionTotals, profile]);
+  }, [coachAdjustment, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, workoutHistory]);
 
   const resetTestProfile = () => {
     if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
@@ -3355,6 +3419,7 @@ export default function App() {
             onStartWorkout={() => setScreen("workout")}
             onOpenCoach={() => setScreen("coach")}
             onOpenNutrition={() => setScreen("nutrition")}
+            onOpenProgress={() => setScreen("progress")}
             onResetTestProfile={resetTestProfile}
           />
         )}
@@ -3413,12 +3478,17 @@ export default function App() {
             onUpdateExerciseProgress={(name, next) =>
               setExerciseProgress((current) => ({ ...current, [name]: next }))
             }
+            onCompleteWorkout={(entry) => setWorkoutHistory((current) => [entry, ...current])}
             onExit={() => setScreen("dashboard")}
             onViewProgress={() => setScreen("progress")}
           />
         )}
         {screen === "progress" && (
-          <ProgressScreen profile={profile} onDashboard={() => setScreen("dashboard")} />
+          <ProgressScreen
+            profile={profile}
+            workoutHistory={workoutHistory}
+            onDashboard={() => setScreen("dashboard")}
+          />
         )}
       </View>
     </View>
@@ -4926,28 +4996,6 @@ const styles = StyleSheet.create({
   setCheckDone: { borderColor: colors.lime, backgroundColor: colors.lime },
   setCheckText: { color: colors.ink, fontSize: 13, fontWeight: "900" },
   setCheckTextDone: { color: colors.ink },
-  coachCue: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 11,
-    padding: 11,
-    borderRadius: 14,
-    backgroundColor: "#111310",
-  },
-  coachCueIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.lime,
-    marginRight: 10,
-  },
-  coachCueIconText: { color: colors.text, fontSize: 10, fontWeight: "800" },
-  coachCueCopy: { flex: 1 },
-  coachCueLabel: { color: colors.lime, fontSize: 6, fontWeight: "900", letterSpacing: 1 },
-  coachCueText: { color: "#BAC0B7", fontSize: 9, lineHeight: 13, marginTop: 3 },
   nextExerciseButton: {
     height: 51,
     borderRadius: 26,
@@ -5225,6 +5273,28 @@ const styles = StyleSheet.create({
   progressRowPositive: { color: colors.lime, fontSize: 10, fontWeight: "900" },
   analysisProgressTrack: { height: 5, borderRadius: 3, backgroundColor: "#242924", marginTop: 8, overflow: "hidden" },
   analysisProgressFill: { height: "100%", borderRadius: 3, backgroundColor: colors.lime },
+  progressEmptyText: { color: colors.muted, fontSize: 11, lineHeight: 16 },
+  historyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#212620",
+  },
+  historyDateChip: {
+    width: 44,
+    height: 34,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#171A17",
+  },
+  historyDateText: { color: colors.lime, fontSize: 9, fontWeight: "800" },
+  historyRowCopy: { flex: 1 },
+  historyTitleText: { color: colors.text, fontSize: 11, fontWeight: "800" },
+  historyMetaText: { color: colors.muted, fontSize: 9, marginTop: 2 },
+  historyCaloriesText: { color: colors.muted, fontSize: 9, fontWeight: "700" },
   progressPriority: {
     marginTop: 18,
     paddingTop: 14,
