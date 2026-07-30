@@ -54,6 +54,7 @@ const safeScenarioChanges = {
   pain: ["Stop the aggravating movement", "Use only pain-free alternatives", "Request human coach review"],
   time: ["Keep three priority exercises", "Remove low-priority accessory work", "Target 30 minutes total"],
   equipment: ["Use available-equipment alternatives", "Preserve the planned movement patterns", "Match the planned effort"],
+  nutrition: ["Answer a few quick questions there", "Get a sample day sized to your goal", "Revisit it anytime in Nutrition"],
   general: ["Keep today’s planned session", "Prioritize controlled technique", "Review progress after training"],
 } as const;
 
@@ -99,6 +100,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "Never diagnose an injury or disease. For severe, sudden, worsening, chest-related, neurological, or unexplained pain, tell the user to stop training and seek qualified medical help.",
           "For ordinary discomfort, recommend stopping the aggravating movement, a pain-free alternative, and human coach review.",
           "Do not prescribe medication, supplements, or extreme calorie restriction.",
+          "If the user asks about diet, nutrition, meal plans, or what to eat, do not build a diet plan yourself in this chat -- this app already has a dedicated Nutrition -> \"Build a diet plan\" feature that asks the right questions and builds a real one sized to their profile. Classify this as the 'nutrition' scenario and reply with a brief, friendly acknowledgement that points them there instead.",
           "Reply in the same language as the user's message.",
           "Keep the reply under 80 words and each proposed change under 12 words.",
           "Do not include drafting notes, self-critique, alternatives, or hidden reasoning.",
@@ -117,7 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 reply: { type: "string" },
                 scenario: {
                   type: "string",
-                  enum: ["tired", "pain", "time", "equipment", "general"],
+                  enum: ["tired", "pain", "time", "equipment", "nutrition", "general"],
                 },
                 changes: {
                   type: "array",
@@ -158,7 +160,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const outputText = readOutputText(responseData);
     const result = JSON.parse(outputText) as {
       reply: string;
-      scenario: "tired" | "pain" | "time" | "equipment" | "general";
+      scenario: "tired" | "pain" | "time" | "equipment" | "nutrition" | "general";
       changes: string[];
       requiresHumanReview: boolean;
     };
