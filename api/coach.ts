@@ -79,7 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const profile = safeProfile(body.profile);
-  const memory = typeof body.memory === "string" ? body.memory.slice(0, 500) : "No workouts logged yet.";
+  const memory = typeof body.memory === "string" ? body.memory.slice(0, 700) : "No workouts logged yet.";
 
   try {
     const openAIResponse = await fetch("https://api.openai.com/v1/responses", {
