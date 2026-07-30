@@ -3910,6 +3910,15 @@ function AuthScreen({
     if (authError) setError(authError.message);
   };
 
+  const continueWithGoogle = async () => {
+    setError("");
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: Platform.OS === "web" ? { redirectTo: window.location.origin } : undefined,
+    });
+    if (authError) setError(authError.message);
+  };
+
   return (
     <SafeAreaView style={styles.recipesScreen}>
       <View style={styles.nutritionHeader}>
@@ -4006,14 +4015,24 @@ function AuthScreen({
             </Pressable>
 
             {mode !== "forgot" ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Continue with Facebook"
-                onPress={continueWithFacebook}
-                style={[styles.dietRebuildButton, { marginTop: 10 }]}
-              >
-                <Text style={styles.dietRebuildButtonText}>CONTINUE WITH FACEBOOK</Text>
-              </Pressable>
+              <>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Continue with Google"
+                  onPress={continueWithGoogle}
+                  style={[styles.dietRebuildButton, { marginTop: 10 }]}
+                >
+                  <Text style={styles.dietRebuildButtonText}>CONTINUE WITH GOOGLE</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Continue with Facebook"
+                  onPress={continueWithFacebook}
+                  style={[styles.dietRebuildButton, { marginTop: 10 }]}
+                >
+                  <Text style={styles.dietRebuildButtonText}>CONTINUE WITH FACEBOOK</Text>
+                </Pressable>
+              </>
             ) : null}
           </>
         )}
