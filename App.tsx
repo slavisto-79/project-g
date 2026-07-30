@@ -3682,6 +3682,10 @@ function ProgressScreen({
   );
 }
 
+function isMediumPassword(password: string): boolean {
+  return password.length >= 8 && /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
+}
+
 function AuthScreen({
   onBack,
   onAuthSuccess,
@@ -3699,6 +3703,10 @@ function AuthScreen({
     if (isSubmitting) return;
     setError("");
     const trimmedEmail = email.trim().toLowerCase();
+    if (mode === "signup" && !isMediumPassword(password)) {
+      setError("Password must be at least 8 characters and include both letters and numbers.");
+      return;
+    }
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/auth/${mode}`, {
@@ -3743,6 +3751,31 @@ function AuthScreen({
           </Text>
         </View>
 
+        <View style={styles.authModeRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: mode === "signup" }}
+            onPress={() => {
+              setMode("signup");
+              setError("");
+            }}
+            style={[styles.libraryTab, mode === "signup" && styles.libraryTabActive]}
+          >
+            <Text style={[styles.libraryTabText, mode === "signup" && styles.libraryTabTextActive]}>SIGN UP</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: mode === "login" }}
+            onPress={() => {
+              setMode("login");
+              setError("");
+            }}
+            style={[styles.libraryTab, mode === "login" && styles.libraryTabActive]}
+          >
+            <Text style={[styles.libraryTabText, mode === "login" && styles.libraryTabTextActive]}>LOG IN</Text>
+          </Pressable>
+        </View>
+
         <Text style={styles.dietGroupLabel}>EMAIL</Text>
         <TextInput
           value={email}
@@ -3759,7 +3792,7 @@ function AuthScreen({
         <TextInput
           value={password}
           onChangeText={setPassword}
-          placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+          placeholder={mode === "signup" ? "8+ characters, letters & numbers" : "Your password"}
           placeholderTextColor="#5B6058"
           secureTextEntry
           style={styles.dietAvoidInput}
@@ -3776,20 +3809,6 @@ function AuthScreen({
         >
           <Text style={styles.dietBuildButtonText}>
             {isSubmitting ? "PLEASE WAIT…" : mode === "signup" ? "CREATE ACCOUNT" : "LOG IN"}
-          </Text>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={mode === "signup" ? "Already have an account? Log in" : "Need an account? Sign up"}
-          onPress={() => {
-            setMode((current) => (current === "signup" ? "login" : "signup"));
-            setError("");
-          }}
-          style={[styles.dietRebuildButton, { marginTop: 10 }]}
-        >
-          <Text style={styles.dietRebuildButtonText}>
-            {mode === "signup" ? "ALREADY HAVE AN ACCOUNT? LOG IN" : "NEED AN ACCOUNT? SIGN UP"}
           </Text>
         </Pressable>
       </ScrollView>
@@ -5004,6 +5023,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   dietRebuildButtonText: { color: colors.text, fontSize: 11, fontWeight: "800", letterSpacing: 1 },
+  authModeRow: { flexDirection: "row", gap: 10, marginBottom: 16 },
   libraryEntryCard: {
     flexDirection: "row",
     alignItems: "center",
