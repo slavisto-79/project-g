@@ -102,17 +102,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         model: "gpt-5.4-mini",
         reasoning: { effort: "none" },
-        max_output_tokens: 1100,
+        max_output_tokens: 8000,
         instructions: [
-          "You are Project G's nutrition assistant, building a single sample day of meals.",
-          `Build exactly ${mealsPerDay} meals for one day, following a ${dietaryStyle} eating style.`,
+          "You are Project G's nutrition assistant, building a full week (7 days) of varied sample meals so the user never has to eat the exact same thing every day.",
+          `Build exactly ${mealsPerDay} meals per day, for 7 distinct days, following a ${dietaryStyle} eating style.`,
+          "Make the 7 days meaningfully different from each other: rotate protein sources, cuisines, cooking methods, and ingredients. Do not reuse the same meal name or near-identical dish across days.",
           `Respect roughly ${prepTime}.`,
           avoid ? `Avoid these foods entirely: ${avoid}.` : "",
-          `Size the whole day to approximately ${calorieTarget} kcal and ${proteinTarget}g of protein in total; distribute reasonably across meals.`,
+          `Size each day to approximately ${calorieTarget} kcal and ${proteinTarget}g of protein in total; distribute reasonably across that day's meals.`,
           "Use simple, realistic, common ingredients a home cook can find easily.",
           `Each meal's description must mention a realistic portion size using ${unitInstruction}.`,
           "Never claim medical, clinical, or weight-loss guarantees; this is general food inspiration only, not a prescribed diet.",
-          "Keep each meal description under 22 words.",
+          "Keep each meal description under 22 words and each day's note under 16 words.",
           "Return only JSON matching the requested schema.",
         ]
           .filter(Boolean)
@@ -121,34 +122,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         text: {
           format: {
             type: "json_schema",
-            name: "diet_plan",
+            name: "diet_plan_week",
             strict: true,
             schema: {
               type: "object",
               additionalProperties: false,
               properties: {
-                meals: {
+                days: {
                   type: "array",
-                  minItems: 3,
-                  maxItems: 5,
+                  minItems: 7,
+                  maxItems: 7,
                   items: {
                     type: "object",
                     additionalProperties: false,
                     properties: {
-                      time: { type: "string" },
-                      name: { type: "string" },
-                      description: { type: "string" },
-                      calories: { type: "integer" },
-                      protein: { type: "integer" },
-                      carbs: { type: "integer" },
-                      fat: { type: "integer" },
+                      meals: {
+                        type: "array",
+                        minItems: 3,
+                        maxItems: 5,
+                        items: {
+                          type: "object",
+                          additionalProperties: false,
+                          properties: {
+                            time: { type: "string" },
+                            name: { type: "string" },
+                            description: { type: "string" },
+                            calories: { type: "integer" },
+                            protein: { type: "integer" },
+                            carbs: { type: "integer" },
+                            fat: { type: "integer" },
+                          },
+                          required: ["time", "name", "description", "calories", "protein", "carbs", "fat"],
+                        },
+                      },
+                      note: { type: "string" },
                     },
-                    required: ["time", "name", "description", "calories", "protein", "carbs", "fat"],
+                    required: ["meals", "note"],
                   },
                 },
-                note: { type: "string" },
               },
-              required: ["meals", "note"],
+              required: ["days"],
             },
           },
         },
@@ -178,16 +191,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const responseData = await openAIResponse.json();
     const outputText = readOutputText(responseData);
     const result = JSON.parse(outputText) as {
-      meals: Array<{
-        time: string;
-        name: string;
-        description: string;
-        calories: number;
-        protein: number;
-        carbs: number;
-        fat: number;
+      days: Array<{
+        meals: Array<{
+          time: string;
+          name: string;
+          description: string;
+          calories: number;
+          protein: number;
+          carbs: number;
+          fat: number;
+        }>;
+        note: string;
       }>;
-      note: string;
     };
 
     res.status(200).json(result);
