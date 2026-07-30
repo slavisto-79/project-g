@@ -747,6 +747,54 @@ function InterviewScreen({
   );
 }
 
+type BottomNavKey = "dashboard" | "nutrition" | "progress" | "coach";
+
+function BottomNav({
+  active,
+  onHome,
+  onWorkout,
+  onNutrition,
+  onProgress,
+  onCoach,
+}: {
+  active: BottomNavKey;
+  onHome: () => void;
+  onWorkout: () => void;
+  onNutrition: () => void;
+  onProgress: () => void;
+  onCoach: () => void;
+}) {
+  const items: { key: BottomNavKey | "workout"; icon: string; label: string; onPress: () => void }[] = [
+    { key: "dashboard", icon: "🏠", label: "HOME", onPress: onHome },
+    { key: "workout", icon: "🏋️", label: "WORKOUT", onPress: onWorkout },
+    { key: "nutrition", icon: "🥗", label: "NUTRITION", onPress: onNutrition },
+    { key: "progress", icon: "📈", label: "PROGRESS", onPress: onProgress },
+    { key: "coach", icon: "🎯", label: "COACH", onPress: onCoach },
+  ];
+
+  return (
+    <View style={styles.bottomNav}>
+      {items.map((item) => {
+        const isActive = item.key === active;
+        return (
+          <Pressable
+            key={item.label}
+            accessibilityRole="button"
+            accessibilityLabel={item.label}
+            onPress={isActive ? undefined : item.onPress}
+            style={styles.navItem}
+          >
+            <View style={[styles.navIconWrap, isActive && styles.navIconWrapActive]}>
+              <Text style={[styles.navIcon, !isActive && styles.navIconInactive]}>{item.icon}</Text>
+            </View>
+            <Text style={[styles.navLabel, isActive && styles.navActive]}>{item.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 function DashboardScreen({
   onStartWorkout,
   onOpenCoach,
@@ -915,38 +963,14 @@ function DashboardScreen({
         </View>
       </ScrollView>
 
-      <View style={styles.bottomNav}>
-        {[
-          ["🏠", "HOME"],
-          ["🏋️", "WORKOUT"],
-          ["🥗", "NUTRITION"],
-          ["📈", "PROGRESS"],
-          ["🎯", "COACH"],
-        ].map(([icon, label], index) => (
-          <Pressable
-            key={label}
-            accessibilityRole="button"
-            accessibilityLabel={label}
-            onPress={
-              label === "COACH"
-                ? onOpenCoach
-                : label === "NUTRITION"
-                  ? onOpenNutrition
-                  : label === "WORKOUT"
-                    ? onStartWorkout
-                    : label === "PROGRESS"
-                      ? onOpenProgress
-                      : undefined
-            }
-            style={styles.navItem}
-          >
-            <View style={[styles.navIconWrap, index === 0 && styles.navIconWrapActive]}>
-              <Text style={[styles.navIcon, index !== 0 && styles.navIconInactive]}>{icon}</Text>
-            </View>
-            <Text style={[styles.navLabel, index === 0 && styles.navActive]}>{label}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <BottomNav
+        active="dashboard"
+        onHome={() => {}}
+        onWorkout={onStartWorkout}
+        onNutrition={onOpenNutrition}
+        onProgress={onOpenProgress}
+        onCoach={onOpenCoach}
+      />
     </SafeAreaView>
   );
 }
@@ -1529,6 +1553,9 @@ function NutritionScreen({
   onOpenRecipes,
   onOpenRecipeLibrary,
   onOpenDietPlan,
+  onStartWorkout,
+  onOpenProgress,
+  onOpenCoach,
   profile,
   nutritionTotals,
 }: {
@@ -1537,6 +1564,9 @@ function NutritionScreen({
   onOpenRecipes: () => void;
   onOpenRecipeLibrary: () => void;
   onOpenDietPlan: () => void;
+  onStartWorkout: () => void;
+  onOpenProgress: () => void;
+  onOpenCoach: () => void;
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
 }) {
@@ -1643,7 +1673,11 @@ function NutritionScreen({
         <View style={styles.coachHeaderSpacer} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.nutritionContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.nutritionScroll}
+        contentContainerStyle={styles.nutritionContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.nutritionIntro}>
           <Text style={styles.nutritionEyebrow}>SCAN YOUR MEAL</Text>
           <Text style={styles.nutritionTitle}>Know what is on your plate.</Text>
@@ -1876,6 +1910,15 @@ function NutritionScreen({
           </View>
         </Pressable>
       </ScrollView>
+
+      <BottomNav
+        active="nutrition"
+        onHome={onBack}
+        onWorkout={onStartWorkout}
+        onNutrition={() => {}}
+        onProgress={onOpenProgress}
+        onCoach={onOpenCoach}
+      />
     </SafeAreaView>
   );
 }
@@ -3711,10 +3754,16 @@ function ActiveWorkoutScreen({
 
 function ProgressScreen({
   onDashboard,
+  onStartWorkout,
+  onOpenNutrition,
+  onOpenCoach,
   profile,
   workoutHistory,
 }: {
   onDashboard: () => void;
+  onStartWorkout: () => void;
+  onOpenNutrition: () => void;
+  onOpenCoach: () => void;
   profile: Record<string, string>;
   workoutHistory: WorkoutHistoryEntry[];
 }) {
@@ -3733,7 +3782,11 @@ function ProgressScreen({
 
   return (
     <SafeAreaView style={styles.progressScreen}>
-      <ScrollView contentContainerStyle={styles.progressContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.progressScroll}
+        contentContainerStyle={styles.progressContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.progressHeader}>
           <Pressable
             accessibilityRole="button"
@@ -3838,6 +3891,15 @@ function ProgressScreen({
           <Text style={styles.progressButtonArrow}>→</Text>
         </Pressable>
       </ScrollView>
+
+      <BottomNav
+        active="progress"
+        onHome={onDashboard}
+        onWorkout={onStartWorkout}
+        onNutrition={onOpenNutrition}
+        onProgress={() => {}}
+        onCoach={onOpenCoach}
+      />
     </SafeAreaView>
   );
 }
@@ -4403,6 +4465,9 @@ export default function App() {
             onOpenRecipes={() => setScreen("recipes")}
             onOpenRecipeLibrary={() => setScreen("recipeLibrary")}
             onOpenDietPlan={() => setScreen("dietPlan")}
+            onStartWorkout={() => setScreen("workout")}
+            onOpenProgress={() => setScreen("progress")}
+            onOpenCoach={() => setScreen("coach")}
             onSave={(meal) =>
               setNutritionTotals((current) => ({
                 calories: current.calories + meal.calories,
@@ -4466,6 +4531,9 @@ export default function App() {
             profile={profile}
             workoutHistory={workoutHistory}
             onDashboard={() => setScreen("dashboard")}
+            onStartWorkout={() => setScreen("workout")}
+            onOpenNutrition={() => setScreen("nutrition")}
+            onOpenCoach={() => setScreen("coach")}
           />
         )}
       </View>
@@ -5159,6 +5227,7 @@ const styles = StyleSheet.create({
   navLabel: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 0.6, marginTop: 4 },
   navActive: { color: colors.lime },
   nutritionScreen: { flex: 1, backgroundColor: colors.background },
+  nutritionScroll: { flex: 1 },
   nutritionHeader: {
     minHeight: 54,
     paddingHorizontal: 16,
@@ -6267,6 +6336,7 @@ const styles = StyleSheet.create({
   coachSendDisabled: { opacity: 0.35 },
   coachSendText: { color: colors.ink, fontSize: 20, fontWeight: "900", marginTop: -2 },
   progressScreen: { flex: 1, backgroundColor: colors.background },
+  progressScroll: { flex: 1 },
   progressContent: { paddingHorizontal: 20, paddingBottom: 16 },
   progressHeader: {
     height: 50,
