@@ -49,10 +49,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       body: JSON.stringify({
         model: "gpt-5.4-mini",
-        reasoning: { effort: "none" },
-        max_output_tokens: 900,
+        reasoning: { effort: "low" },
+        max_output_tokens: 1400,
         instructions: [
           "You are Project G Nutrition AI.",
+          "Do not rely on what foods commonly appear together (e.g. a typical fruit salad list). Ground every item strictly in this specific photo -- before finalizing, re-check each candidate item against the actual pixels and drop any item you added from expectation rather than direct visual evidence.",
           "Analyze only foods visibly present in the image. Never invent an item that is not clearly identifiable -- if part of a pile looks ambiguous (e.g. pale fruit flesh that could be mistaken for a different fruit), treat it as part of the same item you already identified rather than reporting it as a separate food.",
           "Each distinct pile or component gets exactly one entry. Do not split a single visible pile into two guesses at what it might be -- pick the single most likely identity.",
           "Look closely before naming a food: distinguish similar-looking staples carefully (e.g. rice vs bulgur vs couscous vs quinoa vs orzo; grilled vs fried vs baked vs boiled; a whole egg fried in oil vs an egg baked/set on top of a dish).",
