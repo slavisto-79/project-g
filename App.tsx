@@ -1623,6 +1623,51 @@ function NutritionScreen({
           </Text>
         </View>
 
+        <View style={styles.foodPhotoCard}>
+          {imageData ? (
+            <Image source={{ uri: imageData }} resizeMode="cover" style={styles.foodPhoto} />
+          ) : (
+            <View style={styles.foodPhotoEmpty}>
+              <Text style={styles.foodPhotoIcon}>+</Text>
+              <Text style={styles.foodPhotoEmptyTitle}>ADD A FOOD PHOTO</Text>
+              <Text style={styles.foodPhotoEmptyText}>Camera or photo library</Text>
+            </View>
+          )}
+          {Platform.OS === "web"
+            ? createElement("input", {
+                type: "file",
+                accept: "image/*",
+                "aria-label": "Choose food photo",
+                onChange: choosePhoto,
+                style: {
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  opacity: 0,
+                  cursor: "pointer",
+                },
+              })
+            : null}
+        </View>
+
+        {imageData ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Analyze meal with AI"
+            onPress={analyzeMeal}
+            disabled={isAnalyzing}
+            style={styles.nutritionAnalyzeButton}
+          >
+            <Text style={styles.nutritionAnalyzeButtonText}>
+              {isAnalyzing ? "ANALYZING MEAL..." : result ? "ANALYZE AGAIN" : "ANALYZE WITH AI"}
+            </Text>
+            <Text style={styles.nutritionAnalyzeArrow}>{"->"}</Text>
+          </Pressable>
+        ) : null}
+
+        {error ? <Text style={styles.nutritionError}>{error}</Text> : null}
+
         {proteinRemaining > 5 ? (
           <View style={styles.proteinGapCard}>
             <View style={styles.proteinGapCopy}>
@@ -1679,52 +1724,6 @@ function NutritionScreen({
             <Text style={styles.libraryEntryArrowText}>→</Text>
           </View>
         </Pressable>
-
-        <View style={styles.foodPhotoCard}>
-          {imageData ? (
-            <Image source={{ uri: imageData }} resizeMode="cover" style={styles.foodPhoto} />
-          ) : (
-            <View style={styles.foodPhotoEmpty}>
-              <Text style={styles.foodPhotoIcon}>+</Text>
-              <Text style={styles.foodPhotoEmptyTitle}>ADD A FOOD PHOTO</Text>
-              <Text style={styles.foodPhotoEmptyText}>Camera or photo library</Text>
-            </View>
-          )}
-          {Platform.OS === "web"
-            ? createElement("input", {
-                type: "file",
-                accept: "image/*",
-                capture: "environment",
-                "aria-label": "Choose food photo",
-                onChange: choosePhoto,
-                style: {
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  opacity: 0,
-                  cursor: "pointer",
-                },
-              })
-            : null}
-        </View>
-
-        {imageData ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Analyze meal with AI"
-            onPress={analyzeMeal}
-            disabled={isAnalyzing}
-            style={styles.nutritionAnalyzeButton}
-          >
-            <Text style={styles.nutritionAnalyzeButtonText}>
-              {isAnalyzing ? "ANALYZING MEAL..." : result ? "ANALYZE AGAIN" : "ANALYZE WITH AI"}
-            </Text>
-            <Text style={styles.nutritionAnalyzeArrow}>{"->"}</Text>
-          </Pressable>
-        ) : null}
-
-        {error ? <Text style={styles.nutritionError}>{error}</Text> : null}
 
         {result ? (
           <View style={styles.nutritionResults}>
@@ -3494,7 +3493,9 @@ function ActiveWorkoutScreen({
         </View>
 
         <View style={styles.adjustPanel}>
-          <Text style={styles.adjustPanelLabel}>HOW MANY KG & REPS DID YOU DO</Text>
+          <Text style={styles.adjustPanelLabel}>
+            {isBodyweight ? "HOW MANY REPS DID YOU DO" : "HOW MANY KG & REPS DID YOU DO"}
+          </Text>
           <View style={styles.adjustPanelPickers}>
             {!isBodyweight ? (
               <View style={styles.adjustPanelSlot}>
