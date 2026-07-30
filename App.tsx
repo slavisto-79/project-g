@@ -2054,20 +2054,33 @@ const prepTimeOptions = [
   { label: "No limit", value: "any" },
 ];
 
+type SavedDietPlan = {
+  dietaryStyle: string;
+  mealsPerDay: string;
+  prepTime: string;
+  avoid: string;
+  plan: DietPlanResult;
+  isFallback: boolean;
+};
+
 function DietPlanScreen({
   onBack,
   profile,
+  savedPlan,
+  onSave,
 }: {
   onBack: () => void;
   profile: Record<string, string>;
+  savedPlan: SavedDietPlan | null;
+  onSave: (saved: SavedDietPlan) => void;
 }) {
-  const [dietaryStyle, setDietaryStyle] = useState("none");
-  const [mealsPerDay, setMealsPerDay] = useState("3");
-  const [prepTime, setPrepTime] = useState("any");
-  const [avoid, setAvoid] = useState("");
-  const [stage, setStage] = useState<"form" | "loading" | "result">("form");
-  const [plan, setPlan] = useState<DietPlanResult | null>(null);
-  const [isFallback, setIsFallback] = useState(false);
+  const [dietaryStyle, setDietaryStyle] = useState(savedPlan?.dietaryStyle ?? "none");
+  const [mealsPerDay, setMealsPerDay] = useState(savedPlan?.mealsPerDay ?? "3");
+  const [prepTime, setPrepTime] = useState(savedPlan?.prepTime ?? "any");
+  const [avoid, setAvoid] = useState(savedPlan?.avoid ?? "");
+  const [stage, setStage] = useState<"form" | "loading" | "result">(savedPlan ? "result" : "form");
+  const [plan, setPlan] = useState<DietPlanResult | null>(savedPlan?.plan ?? null);
+  const [isFallback, setIsFallback] = useState(savedPlan?.isFallback ?? false);
 
   const calorieTarget = dailyCalorieTargetKcal(profile);
   const proteinTarget = dailyProteinTargetGrams(profile);
@@ -2091,11 +2104,14 @@ function DietPlanScreen({
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error ?? "Diet plan request failed");
-      setPlan(data as DietPlanResult);
+      const result = data as DietPlanResult;
+      setPlan(result);
       setIsFallback(false);
+      onSave({ dietaryStyle, mealsPerDay, prepTime, avoid, plan: result, isFallback: false });
     } catch {
       setPlan(fallbackDietPlan);
       setIsFallback(true);
+      onSave({ dietaryStyle, mealsPerDay, prepTime, avoid, plan: fallbackDietPlan, isFallback: true });
     } finally {
       setStage("result");
     }
@@ -4308,12 +4324,13 @@ export default function App() {
   });
   const [exerciseProgress, setExerciseProgress] = useState<Record<string, ExerciseProgress>>({});
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistoryEntry[]>([]);
+  const [dietPlan, setDietPlan] = useState<SavedDietPlan | null>(null);
   const [session, setSession] = useState<{ email: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [authInitialMode, setAuthInitialMode] = useState<"signup" | "login">("signup");
 
-  const stateRef = useRef({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory });
-  stateRef.current = { profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory };
+  const stateRef = useRef({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory, dietPlan });
+  stateRef.current = { profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory, dietPlan };
 
   useEffect(() => {
     if (Platform.OS !== "web" || !isSupabaseConfigured) {
@@ -4339,6 +4356,7 @@ export default function App() {
             coachAdjustment?: CoachScenario | null;
             exerciseProgress?: Record<string, ExerciseProgress>;
             workoutHistory?: WorkoutHistoryEntry[];
+            dietPlan?: SavedDietPlan | null;
           };
           if (parsed.profile && Object.keys(parsed.profile).length > 0) {
             setProfile(parsed.profile);
@@ -4346,6 +4364,7 @@ export default function App() {
             setCoachAdjustment(parsed.coachAdjustment ?? null);
             setExerciseProgress(parsed.exerciseProgress ?? {});
             setWorkoutHistory(parsed.workoutHistory ?? []);
+            setDietPlan(parsed.dietPlan ?? null);
             setScreen("dashboard");
           }
         }
@@ -4358,7 +4377,7 @@ export default function App() {
       try {
         const { data } = await supabase
           .from("user_data")
-          .select("profile, nutrition_totals, coach_adjustment, exercise_progress, workout_history")
+          .select("profile, nutrition_totals, coach_adjustment, exercise_progress, workout_history, diet_plan")
           .eq("user_id", id)
           .maybeSingle();
         const remoteProfile = (data?.profile ?? {}) as Record<string, string>;
@@ -4370,6 +4389,7 @@ export default function App() {
           setCoachAdjustment((data?.coach_adjustment as CoachScenario | null) ?? null);
           setExerciseProgress((data?.exercise_progress as Record<string, ExerciseProgress>) ?? {});
           setWorkoutHistory((data?.workout_history as WorkoutHistoryEntry[]) ?? []);
+          setDietPlan((data?.diet_plan as SavedDietPlan | null) ?? null);
           setScreen("dashboard");
         } else if (Object.keys(stateRef.current.profile).length > 0) {
           // Fresh account with no saved data yet: migrate whatever local/guest
@@ -4382,6 +4402,7 @@ export default function App() {
               coach_adjustment: stateRef.current.coachAdjustment,
               exercise_progress: stateRef.current.exerciseProgress,
               workout_history: stateRef.current.workoutHistory,
+              diet_plan: stateRef.current.dietPlan,
             })
             .eq("user_id", id);
         }
@@ -4430,9 +4451,18 @@ export default function App() {
     if (!hasLoadedTestState || Platform.OS !== "web" || session || Object.keys(profile).length === 0) return;
     window.localStorage.setItem(
       "project-g-test-state",
-      JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory }),
+      JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory, dietPlan }),
     );
-  }, [coachAdjustment, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, session, workoutHistory]);
+  }, [
+    coachAdjustment,
+    dietPlan,
+    exerciseProgress,
+    hasLoadedTestState,
+    nutritionTotals,
+    profile,
+    session,
+    workoutHistory,
+  ]);
 
   useEffect(() => {
     if (!userId || !hasLoadedTestState) return;
@@ -4447,13 +4477,14 @@ export default function App() {
           coach_adjustment: coachAdjustment,
           exercise_progress: exerciseProgress,
           workout_history: workoutHistory,
+          diet_plan: dietPlan,
         })
         .eq("user_id", userId);
     })();
     return () => {
       cancelled = true;
     };
-  }, [coachAdjustment, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, userId, workoutHistory]);
+  }, [coachAdjustment, dietPlan, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, userId, workoutHistory]);
 
   const resetTestProfile = () => {
     if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
@@ -4461,6 +4492,7 @@ export default function App() {
     setCoachAdjustment(null);
     setNutritionTotals({ calories: 0, protein: 0, carbs: 0, fat: 0 });
     setExerciseProgress({});
+    setDietPlan(null);
     setScreen("welcome");
   };
 
@@ -4565,7 +4597,12 @@ export default function App() {
           />
         )}
         {screen === "dietPlan" && (
-          <DietPlanScreen profile={profile} onBack={() => setScreen("nutrition")} />
+          <DietPlanScreen
+            profile={profile}
+            onBack={() => setScreen("nutrition")}
+            savedPlan={dietPlan}
+            onSave={setDietPlan}
+          />
         )}
         {screen === "coach" && (
           <AICoachScreen

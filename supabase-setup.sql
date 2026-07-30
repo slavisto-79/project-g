@@ -7,6 +7,7 @@ create table if not exists public.user_data (
   coach_adjustment text,
   exercise_progress jsonb not null default '{}'::jsonb,
   workout_history jsonb not null default '[]'::jsonb,
+  diet_plan jsonb,
   updated_at timestamptz not null default now()
 );
 
@@ -46,3 +47,6 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- Safe to re-run: adds the diet_plan column for databases created before it existed.
+alter table public.user_data add column if not exists diet_plan jsonb;
