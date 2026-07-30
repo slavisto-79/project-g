@@ -1547,6 +1547,9 @@ function NutritionScreen({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [refineDraft, setRefineDraft] = useState("");
+  const [refineMessages, setRefineMessages] = useState<{ role: "user" | "ai"; text: string }[]>([]);
+  const [isRefining, setIsRefining] = useState(false);
 
   const choosePhoto = async (event: any) => {
     const file = event?.target?.files?.[0];
@@ -1554,6 +1557,7 @@ function NutritionScreen({
     setError("");
     setResult(null);
     setSaved(false);
+    setRefineMessages([]);
     try {
       setImageData(await resizeFoodImage(file));
     } catch {
@@ -1566,6 +1570,7 @@ function NutritionScreen({
     setIsAnalyzing(true);
     setError("");
     setSaved(false);
+    setRefineMessages([]);
     try {
       const response = await fetch("/api/nutrition", {
         method: "POST",
@@ -1579,6 +1584,30 @@ function NutritionScreen({
       setError("The meal could not be analyzed. Check your connection and try again.");
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const sendRefinement = async () => {
+    const message = refineDraft.trim();
+    if (!message || !result || isRefining) return;
+    setRefineDraft("");
+    setRefineMessages((prev) => [...prev, { role: "user", text: message }]);
+    setIsRefining(true);
+    try {
+      const response = await fetch("/api/nutrition", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imageData, correction: message, previousResult: result }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error ?? "Refinement failed");
+      setResult(data as NutritionResult);
+      setSaved(false);
+      setRefineMessages((prev) => [...prev, { role: "ai", text: "Updated the analysis based on your note." }]);
+    } catch {
+      setRefineMessages((prev) => [...prev, { role: "ai", text: "Could not update the analysis. Please try again." }]);
+    } finally {
+      setIsRefining(false);
     }
   };
 
@@ -1723,6 +1752,57 @@ function NutritionScreen({
             </View>
 
             <Text style={styles.nutritionNote}>Estimate only. {result.note}</Text>
+
+            <View style={styles.nutritionRefineSection}>
+              <Text style={styles.nutritionRefineLabel}>NOT QUITE RIGHT?</Text>
+              {refineMessages.map((msg, index) =>
+                msg.role === "user" ? (
+                  <View key={index} style={styles.userBubble}>
+                    <Text style={styles.userBubbleText}>{msg.text}</Text>
+                  </View>
+                ) : (
+                  <View key={index} style={styles.coachBubbleRow}>
+                    <View style={styles.coachBubbleMark}>
+                      <Text style={styles.coachBubbleMarkText}>G</Text>
+                    </View>
+                    <View style={styles.coachBubble}>
+                      <Text style={styles.coachBubbleText}>{msg.text}</Text>
+                    </View>
+                  </View>
+                ),
+              )}
+              {isRefining ? (
+                <View style={styles.coachBubbleRow}>
+                  <View style={styles.coachBubbleMark}>
+                    <Text style={styles.coachBubbleMarkText}>G</Text>
+                  </View>
+                  <View style={styles.coachBubble}>
+                    <Text style={styles.coachBubbleText}>Updating the analysis…</Text>
+                  </View>
+                </View>
+              ) : null}
+              <View style={styles.nutritionRefineComposer}>
+                <TextInput
+                  accessibilityLabel="Tell the AI what's different about this meal"
+                  value={refineDraft}
+                  onChangeText={setRefineDraft}
+                  onSubmitEditing={sendRefinement}
+                  placeholder="e.g. it's bulgur, not rice..."
+                  placeholderTextColor="#747A72"
+                  returnKeyType="send"
+                  style={styles.coachInput}
+                />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Send correction"
+                  onPress={sendRefinement}
+                  disabled={!refineDraft.trim() || isRefining}
+                  style={[styles.coachSend, (!refineDraft.trim() || isRefining) && styles.coachSendDisabled]}
+                >
+                  <Text style={styles.coachSendText}>↑</Text>
+                </Pressable>
+              </View>
+            </View>
 
             <Pressable
               accessibilityRole="button"
@@ -5195,6 +5275,20 @@ const styles = StyleSheet.create({
   nutritionMacroValue: { color: colors.text, fontSize: 14, fontWeight: "900" },
   nutritionMacroLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 0.8, marginTop: 2 },
   nutritionNote: { color: "#7F867C", fontSize: 8, lineHeight: 12, marginTop: 12 },
+  nutritionRefineSection: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#222622",
+    paddingTop: 14,
+  },
+  nutritionRefineLabel: {
+    color: colors.muted,
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    marginBottom: 10,
+  },
+  nutritionRefineComposer: { flexDirection: "row", alignItems: "center", marginTop: 4 },
   nutritionSaveButton: {
     minHeight: 56,
     borderRadius: 28,

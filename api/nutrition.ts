@@ -30,12 +30,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const body = (req.body ?? {}) as { image?: unknown };
+  const body = (req.body ?? {}) as { image?: unknown; correction?: unknown; previousResult?: unknown };
   const image = typeof body.image === "string" ? body.image : "";
   if (!image.startsWith("data:image/") || image.length > 5_500_000) {
     res.status(400).json({ error: "Please upload a valid food photo under 4 MB." });
     return;
   }
+  const correction = typeof body.correction === "string" ? body.correction.trim().slice(0, 400) : "";
+  const previousResult =
+    body.previousResult && typeof body.previousResult === "object" ? JSON.stringify(body.previousResult).slice(0, 3000) : "";
 
   try {
     const openAIResponse = await fetch("https://api.openai.com/v1/responses", {
@@ -51,7 +54,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         instructions: [
           "You are Project G Nutrition AI.",
           "Analyze only foods visibly present in the image.",
+          "Look closely before naming a food: distinguish similar-looking staples carefully (e.g. rice vs bulgur vs couscous vs quinoa vs orzo; grilled vs fried vs baked vs boiled; a whole egg fried in oil vs an egg baked/set on top of a dish).",
+          "List every visually distinguishable component separately, including mixed-in vegetables, herbs, and sauces, not just the dominant ingredient.",
           "Estimate portions conservatively and make uncertainty explicit.",
+          "If the user provides a correction, treat their stated facts as ground truth for that detail, re-estimate the affected macros accordingly, and keep the rest of the analysis unless the correction implies more changes.",
           "Never claim medical accuracy or provide medical advice.",
           "Use common English food names and metric grams.",
           "All calories and macros must be non-negative integers.",
@@ -64,7 +70,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             content: [
               {
                 type: "input_text",
-                text: "Identify this meal and estimate portions, calories, protein, carbohydrates, and fat. The user will confirm or edit the result.",
+                text: correction
+                  ? `Here is your previous analysis of this same photo:\n${previousResult}\n\nThe user says: "${correction}"\n\nRe-analyze the meal in the photo, applying this correction, and return the corrected full analysis.`
+                  : "Identify this meal and estimate portions, calories, protein, carbohydrates, and fat. The user will confirm or edit the result.",
               },
               { type: "input_image", image_url: image },
             ],
