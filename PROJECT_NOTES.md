@@ -40,6 +40,7 @@
 - The Recipe Library (Breakfast/Lunch/Dinner) is a separate, fixed set of 12 recipes with real photos. It does not respond to the protein gap or any other profile data; it is a static browse-only reference.
 - Do not merge these two recipe systems: the library must stay fixed and category-organized, while the protein-gap suggestions must stay dynamic and AI-generated.
 - The Nutrition screen's "Build a diet plan" card opens a short 3-question form (dietary style, meals per day, cooking time, plus an optional foods-to-avoid text field) and calls `/api/diet-plan` for an AI-generated sample day of meals sized to the profile's estimated daily calorie/protein target. It falls back to a small fixed sample day if the live call fails, framed the same way as the other AI nutrition features: general food inspiration only, never medical or dietary advice.
+- The generated diet plan persists as a single "current" plan (like `coachAdjustment`, not a history like `workoutHistory`) -- building a new one overwrites the old. It syncs the same way as the rest of profile/progress state: `localStorage` in test mode, the `user_data.diet_plan` column in Supabase when signed in. Opening Diet Plan with a saved plan already present shows the result directly instead of the question form; "ADJUST AND REBUILD" returns to the form prefilled with the saved answers.
 
 ## AI Coach prototype
 
