@@ -1,0 +1,48 @@
+-- Run this once in the Supabase SQL Editor for project-g.
+
+create table if not exists public.user_data (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  profile jsonb not null default '{}'::jsonb,
+  nutrition_totals jsonb not null default '{}'::jsonb,
+  coach_adjustment text,
+  exercise_progress jsonb not null default '{}'::jsonb,
+  workout_history jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.user_data enable row level security;
+
+drop policy if exists "Users can view their own data" on public.user_data;
+create policy "Users can view their own data"
+  on public.user_data for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own data" on public.user_data;
+create policy "Users can insert their own data"
+  on public.user_data for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own data" on public.user_data;
+create policy "Users can update their own data"
+  on public.user_data for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Automatically create an empty user_data row whenever someone signs up.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.user_data (user_id) values (new.id)
+  on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
