@@ -12,6 +12,7 @@ type VercelResponse = {
 type CoachRequest = {
   message?: string;
   profile?: Record<string, string>;
+  memory?: string;
 };
 
 const allowedProfileFields = [
@@ -78,6 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const profile = safeProfile(body.profile);
+  const memory = typeof body.memory === "string" ? body.memory.slice(0, 500) : "No workouts logged yet.";
 
   try {
     const openAIResponse = await fetch("https://api.openai.com/v1/responses", {
@@ -92,7 +94,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         max_output_tokens: 500,
         instructions: [
           "You are Project G AI Coach, a concise, supportive fitness coach backed by a real human coach.",
-          "Adapt training conservatively using the user's profile and current message.",
+          "You have an ongoing coaching relationship with this user: use their training history to sound like a coach who remembers their progress, not a stranger meeting them for the first time. Reference specific numbers or trends from it when relevant (e.g. workout count, recent working weights), but only if the current message calls for it -- don't force it in.",
+          "Adapt training conservatively using the user's profile, training history, and current message.",
           "Never diagnose an injury or disease. For severe, sudden, worsening, chest-related, neurological, or unexplained pain, tell the user to stop training and seek qualified medical help.",
           "For ordinary discomfort, recommend stopping the aggravating movement, a pain-free alternative, and human coach review.",
           "Do not prescribe medication, supplements, or extreme calorie restriction.",
@@ -101,7 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "Do not include drafting notes, self-critique, alternatives, or hidden reasoning.",
           "Return only JSON matching the requested schema.",
         ].join(" "),
-        input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nCURRENT MESSAGE:\n${message}`,
+        input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nTRAINING HISTORY:\n${memory}\n\nCURRENT MESSAGE:\n${message}`,
         text: {
           format: {
             type: "json_schema",

@@ -989,6 +989,33 @@ function isWithinLastDays(iso: string, days: number): boolean {
   return Date.now() - parsed <= days * 24 * 60 * 60 * 1000;
 }
 
+// A compact plain-text summary of the user's training history, sent to the
+// AI Coach so its replies can reference real progress instead of starting
+// fresh every conversation.
+function summarizeCoachMemory(
+  workoutHistory: WorkoutHistoryEntry[],
+  exerciseProgress: Record<string, ExerciseProgress>,
+): string {
+  if (workoutHistory.length === 0) return "No workouts logged yet.";
+
+  const total = workoutHistory.length;
+  const thisWeek = workoutHistory.filter((entry) => isWithinLastDays(entry.date, 7)).length;
+  const last = workoutHistory[0];
+  const lastLine = last
+    ? `Last session: ${formatHistoryDate(last.date)}, ${last.exercises} exercises, ${last.sets} sets, ${formatHistoryDuration(last.seconds)}, ~${last.calories} kcal.`
+    : "";
+  const progressEntries = Object.entries(exerciseProgress).slice(0, 8);
+  const progressLine = progressEntries.length
+    ? `Current working weights: ${progressEntries
+        .map(([name, entry]) => `${name} ${entry.weightKg}kg x${entry.reps}`)
+        .join(", ")}.`
+    : "";
+
+  return [`Total workouts logged: ${total} (${thisWeek} this week).`, lastLine, progressLine]
+    .filter(Boolean)
+    .join(" ");
+}
+
 type NutritionItem = NutritionTotals & {
   name: string;
   grams: number;
@@ -2269,11 +2296,15 @@ const coachScenarios: Record<
 
 function AICoachScreen({
   profile,
+  workoutHistory,
+  exerciseProgress,
   onBack,
   onApply,
   onStartWorkout,
 }: {
   profile: Record<string, string>;
+  workoutHistory: WorkoutHistoryEntry[];
+  exerciseProgress: Record<string, ExerciseProgress>;
   onBack: () => void;
   onApply: (scenario: CoachScenario) => void;
   onStartWorkout: () => void;
@@ -2308,7 +2339,11 @@ function AICoachScreen({
       const response = await fetch("/api/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, profile }),
+        body: JSON.stringify({
+          message,
+          profile,
+          memory: summarizeCoachMemory(workoutHistory, exerciseProgress),
+        }),
       });
       if (!response.ok) throw new Error("Coach request failed");
       const result = (await response.json()) as {
@@ -4274,6 +4309,8 @@ export default function App() {
         {screen === "coach" && (
           <AICoachScreen
             profile={profile}
+            workoutHistory={workoutHistory}
+            exerciseProgress={exerciseProgress}
             onBack={() => setScreen("dashboard")}
             onApply={setCoachAdjustment}
             onStartWorkout={() => setScreen("workout")}

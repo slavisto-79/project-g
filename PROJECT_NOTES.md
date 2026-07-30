@@ -52,6 +52,7 @@
 - Pain-related advice must remain conservative, avoid diagnosis, and recommend stopping or human review when symptoms increase.
 - The live AI Coach uses a server-side Vercel function; `OPENAI_API_KEY` must never be exposed to the client or committed.
 - If the live AI request fails, the app must remain usable and show the safe deterministic coaching fallback.
+- The live AI Coach now receives a compact training-history summary (`summarizeCoachMemory` in `App.tsx`: total workouts, this week's count, last session's stats, current per-exercise working weights) alongside the profile, so replies can reference real progress instead of treating every conversation as the first one. Keep this summary short (a few lines) -- it's meant as context, not a full history dump.
 
 ## Exercise video performance rules
 
