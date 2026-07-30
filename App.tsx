@@ -830,17 +830,17 @@ function DashboardScreen({
                   accessibilityRole="button"
                   accessibilityLabel="Sign in"
                   onPress={() => onOpenAccount("login")}
-                  style={styles.testModeReset}
+                  style={styles.accountButton}
                 >
-                  <Text style={styles.testModeResetText}>SIGN IN</Text>
+                  <Text style={styles.accountButtonText}>SIGN IN</Text>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Create a free account"
                   onPress={() => onOpenAccount("signup")}
-                  style={styles.testModeReset}
+                  style={styles.accountButton}
                 >
-                  <Text style={styles.testModeResetText}>CREATE ACCOUNT</Text>
+                  <Text style={styles.accountButtonText}>CREATE ACCOUNT</Text>
                 </Pressable>
               </View>
             </>
@@ -3763,31 +3763,6 @@ function AuthScreen({
           </Text>
         </View>
 
-        <View style={styles.authModeRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected: mode === "signup" }}
-            onPress={() => {
-              setMode("signup");
-              setError("");
-            }}
-            style={[styles.libraryTab, mode === "signup" && styles.libraryTabActive]}
-          >
-            <Text style={[styles.libraryTabText, mode === "signup" && styles.libraryTabTextActive]}>SIGN UP</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected: mode === "login" }}
-            onPress={() => {
-              setMode("login");
-              setError("");
-            }}
-            style={[styles.libraryTab, mode === "login" && styles.libraryTabActive]}
-          >
-            <Text style={[styles.libraryTabText, mode === "login" && styles.libraryTabTextActive]}>LOG IN</Text>
-          </Pressable>
-        </View>
-
         <Text style={styles.dietGroupLabel}>EMAIL</Text>
         <TextInput
           value={email}
@@ -3821,6 +3796,20 @@ function AuthScreen({
         >
           <Text style={styles.dietBuildButtonText}>
             {isSubmitting ? "PLEASE WAIT…" : mode === "signup" ? "CREATE ACCOUNT" : "LOG IN"}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={mode === "signup" ? "Already have an account? Log in" : "Need an account? Sign up"}
+          onPress={() => {
+            setMode((current) => (current === "signup" ? "login" : "signup"));
+            setError("");
+          }}
+          style={styles.authSwitchLink}
+        >
+          <Text style={styles.authSwitchLinkText}>
+            {mode === "signup" ? "Already have an account? Log in" : "Need an account? Sign up"}
           </Text>
         </Pressable>
       </ScrollView>
@@ -4602,7 +4591,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#0E100E",
   },
   accountPromptText: { color: colors.muted, fontSize: 9, fontWeight: "700", flexShrink: 1 },
-  accountActions: { flexDirection: "row", alignItems: "center" },
+  accountActions: { flexDirection: "row", alignItems: "center", gap: 8 },
+  accountButton: {
+    minHeight: 26,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 13,
+    backgroundColor: colors.lime,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  accountButtonText: { color: colors.ink, fontSize: 8, fontWeight: "900", letterSpacing: 0.6 },
   readinessRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -5041,7 +5040,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   dietRebuildButtonText: { color: colors.text, fontSize: 11, fontWeight: "800", letterSpacing: 1 },
-  authModeRow: { flexDirection: "row", gap: 10, marginBottom: 16 },
+  authSwitchLink: { marginTop: 16, alignItems: "center", justifyContent: "center", minHeight: 30 },
+  authSwitchLinkText: { color: colors.muted, fontSize: 11, fontWeight: "700" },
   libraryEntryCard: {
     flexDirection: "row",
     alignItems: "center",
