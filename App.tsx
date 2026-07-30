@@ -1207,6 +1207,17 @@ const fallbackDietPlan: DietPlanResult = {
   note: "A general sample day. Adjust portions to fit your own targets and preferences.",
 };
 
+const fallbackDietWeek: DietPlanResult[] = new Array(7).fill(fallbackDietPlan);
+
+function daysSinceDate(iso: string): number {
+  const generated = new Date(iso);
+  if (Number.isNaN(generated.getTime())) return 0;
+  generated.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.round((today.getTime() - generated.getTime()) / 86_400_000));
+}
+
 type MealCategory = "breakfast" | "lunch" | "dinner";
 
 type LibraryRecipe = NutritionTotals & {
@@ -2059,7 +2070,8 @@ type SavedDietPlan = {
   mealsPerDay: string;
   prepTime: string;
   avoid: string;
-  plan: DietPlanResult;
+  days: DietPlanResult[];
+  generatedAt: string;
   isFallback: boolean;
 };
 
@@ -2074,16 +2086,21 @@ function DietPlanScreen({
   savedPlan: SavedDietPlan | null;
   onSave: (saved: SavedDietPlan) => void;
 }) {
+  const hasSavedWeek = Array.isArray(savedPlan?.days) && savedPlan.days.length > 0;
   const [dietaryStyle, setDietaryStyle] = useState(savedPlan?.dietaryStyle ?? "none");
   const [mealsPerDay, setMealsPerDay] = useState(savedPlan?.mealsPerDay ?? "3");
   const [prepTime, setPrepTime] = useState(savedPlan?.prepTime ?? "any");
   const [avoid, setAvoid] = useState(savedPlan?.avoid ?? "");
-  const [stage, setStage] = useState<"form" | "loading" | "result">(savedPlan ? "result" : "form");
-  const [plan, setPlan] = useState<DietPlanResult | null>(savedPlan?.plan ?? null);
+  const [stage, setStage] = useState<"form" | "loading" | "result">(hasSavedWeek ? "result" : "form");
+  const [days, setDays] = useState<DietPlanResult[]>(hasSavedWeek ? savedPlan!.days : []);
+  const [generatedAt, setGeneratedAt] = useState(savedPlan?.generatedAt ?? "");
   const [isFallback, setIsFallback] = useState(savedPlan?.isFallback ?? false);
 
   const calorieTarget = dailyCalorieTargetKcal(profile);
   const proteinTarget = dailyProteinTargetGrams(profile);
+  const daysSince = generatedAt ? daysSinceDate(generatedAt) : 0;
+  const activeDayIndex = days.length ? daysSince % days.length : 0;
+  const cycleComplete = days.length > 0 && daysSince >= days.length;
 
   const buildPlan = async () => {
     setStage("loading");
@@ -2102,32 +2119,34 @@ function DietPlanScreen({
           unitSystem,
         }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error ?? "Diet plan request failed");
-      const result = data as DietPlanResult;
-      setPlan(result);
+      const data = (await response.json()) as { error?: string; days?: DietPlanResult[] };
+      if (!response.ok || !data.days?.length) throw new Error(data?.error ?? "Diet plan request failed");
+      const nowIso = new Date().toISOString();
+      setDays(data.days);
+      setGeneratedAt(nowIso);
       setIsFallback(false);
-      onSave({ dietaryStyle, mealsPerDay, prepTime, avoid, plan: result, isFallback: false });
+      onSave({ dietaryStyle, mealsPerDay, prepTime, avoid, days: data.days, generatedAt: nowIso, isFallback: false });
     } catch {
-      setPlan(fallbackDietPlan);
+      const nowIso = new Date().toISOString();
+      setDays(fallbackDietWeek);
+      setGeneratedAt(nowIso);
       setIsFallback(true);
-      onSave({ dietaryStyle, mealsPerDay, prepTime, avoid, plan: fallbackDietPlan, isFallback: true });
+      onSave({ dietaryStyle, mealsPerDay, prepTime, avoid, days: fallbackDietWeek, generatedAt: nowIso, isFallback: true });
     } finally {
       setStage("result");
     }
   };
 
-  const totals = plan
-    ? plan.meals.reduce(
-        (sum, meal) => ({
-          calories: sum.calories + meal.calories,
-          protein: sum.protein + meal.protein,
-          carbs: sum.carbs + meal.carbs,
-          fat: sum.fat + meal.fat,
-        }),
-        { calories: 0, protein: 0, carbs: 0, fat: 0 },
-      )
-    : null;
+  const dayTotals = (day: DietPlanResult) =>
+    day.meals.reduce(
+      (sum, meal) => ({
+        calories: sum.calories + meal.calories,
+        protein: sum.protein + meal.protein,
+        carbs: sum.carbs + meal.carbs,
+        fat: sum.fat + meal.fat,
+      }),
+      { calories: 0, protein: 0, carbs: 0, fat: 0 },
+    );
 
   return (
     <SafeAreaView style={styles.recipesScreen}>
@@ -2137,7 +2156,7 @@ function DietPlanScreen({
         </Pressable>
         <View>
           <Text style={styles.nutritionHeaderTitle}>DIET PLAN</Text>
-          <Text style={styles.nutritionHeaderSubtitle}>AI-built sample day</Text>
+          <Text style={styles.nutritionHeaderSubtitle}>AI-built week of meals</Text>
         </View>
         <View style={styles.coachHeaderSpacer} />
       </View>
@@ -2231,9 +2250,11 @@ function DietPlanScreen({
         ) : (
           <>
             <View style={styles.nutritionIntro}>
-              <Text style={styles.nutritionEyebrow}>YOUR SAMPLE DAY</Text>
-              <Text style={styles.nutritionTitle}>Here’s a plan to start from.</Text>
-              <Text style={styles.nutritionSubtitle}>{plan?.note}</Text>
+              <Text style={styles.nutritionEyebrow}>YOUR WEEK OF MEALS</Text>
+              <Text style={styles.nutritionTitle}>7 varied days, not the same plate twice.</Text>
+              <Text style={styles.nutritionSubtitle}>
+                Each day below is different so you're not eating the same thing on repeat.
+              </Text>
             </View>
 
             {isFallback ? (
@@ -2242,33 +2263,55 @@ function DietPlanScreen({
               </Text>
             ) : null}
 
-            {(plan?.meals ?? []).map((meal) => (
-              <View key={meal.name} style={styles.recipeCard}>
-                <View style={styles.recipeCardHeader}>
-                  <Text style={styles.recipeName}>{meal.name}</Text>
-                  <Text style={styles.recipeMinutes}>{meal.time.toUpperCase()}</Text>
-                </View>
-                <Text style={styles.recipeDescription}>{meal.description}</Text>
-                <View style={styles.recipeMacroRow}>
-                  <Text style={styles.recipeMacroText}>{meal.calories} kcal</Text>
-                  <Text style={styles.recipeMacroDivider}>·</Text>
-                  <Text style={styles.recipeMacroTextHighlight}>P {meal.protein}g</Text>
-                  <Text style={styles.recipeMacroDivider}>·</Text>
-                  <Text style={styles.recipeMacroText}>C {meal.carbs}g</Text>
-                  <Text style={styles.recipeMacroDivider}>·</Text>
-                  <Text style={styles.recipeMacroText}>F {meal.fat}g</Text>
-                </View>
-              </View>
-            ))}
-
-            {totals ? (
-              <View style={styles.dietTotalsRow}>
-                <Text style={styles.dietTotalsLabel}>DAY TOTAL</Text>
-                <Text style={styles.dietTotalsValue}>
-                  {totals.calories} kcal · P {totals.protein}g · C {totals.carbs}g · F {totals.fat}g
-                </Text>
-              </View>
+            {cycleComplete ? (
+              <Text style={styles.dietCycleNote}>
+                You've been through this week's plan — rebuild for a fresh set of days.
+              </Text>
             ) : null}
+
+            {days.map((day, dayIndex) => {
+              const totals = dayTotals(day);
+              const isToday = dayIndex === activeDayIndex;
+              return (
+                <View key={dayIndex}>
+                  <View style={styles.dietDayHeader}>
+                    <Text style={styles.dietDayLabel}>DAY {dayIndex + 1}</Text>
+                    {isToday ? (
+                      <View style={styles.dietTodayBadge}>
+                        <Text style={styles.dietTodayBadgeText}>TODAY</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text style={styles.nutritionSubtitle}>{day.note}</Text>
+
+                  {day.meals.map((meal) => (
+                    <View key={meal.name} style={styles.recipeCard}>
+                      <View style={styles.recipeCardHeader}>
+                        <Text style={styles.recipeName}>{meal.name}</Text>
+                        <Text style={styles.recipeMinutes}>{meal.time.toUpperCase()}</Text>
+                      </View>
+                      <Text style={styles.recipeDescription}>{meal.description}</Text>
+                      <View style={styles.recipeMacroRow}>
+                        <Text style={styles.recipeMacroText}>{meal.calories} kcal</Text>
+                        <Text style={styles.recipeMacroDivider}>·</Text>
+                        <Text style={styles.recipeMacroTextHighlight}>P {meal.protein}g</Text>
+                        <Text style={styles.recipeMacroDivider}>·</Text>
+                        <Text style={styles.recipeMacroText}>C {meal.carbs}g</Text>
+                        <Text style={styles.recipeMacroDivider}>·</Text>
+                        <Text style={styles.recipeMacroText}>F {meal.fat}g</Text>
+                      </View>
+                    </View>
+                  ))}
+
+                  <View style={styles.dietTotalsRow}>
+                    <Text style={styles.dietTotalsLabel}>DAY TOTAL</Text>
+                    <Text style={styles.dietTotalsValue}>
+                      {totals.calories} kcal · P {totals.protein}g · C {totals.carbs}g · F {totals.fat}g
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
 
             <Pressable
               accessibilityRole="button"
@@ -5591,7 +5634,7 @@ const styles = StyleSheet.create({
   dietBuildButtonArrow: { color: colors.ink, fontSize: 17, fontWeight: "700" },
   dietTotalsRow: {
     marginTop: 4,
-    marginBottom: 14,
+    marginBottom: 20,
     paddingHorizontal: 4,
     flexDirection: "row",
     alignItems: "center",
@@ -5599,6 +5642,27 @@ const styles = StyleSheet.create({
   },
   dietTotalsLabel: { color: colors.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
   dietTotalsValue: { color: colors.text, fontSize: 11, fontWeight: "700" },
+  dietDayHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  dietDayLabel: { color: colors.lime, fontSize: 11, fontWeight: "900", letterSpacing: 1.2 },
+  dietTodayBadge: {
+    backgroundColor: "rgba(200,255,50,0.16)",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  dietTodayBadgeText: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
+  dietCycleNote: {
+    color: colors.muted,
+    fontSize: 10,
+    lineHeight: 15,
+    marginBottom: 12,
+  },
   dietRebuildButton: {
     height: 46,
     borderRadius: 23,
