@@ -2442,6 +2442,24 @@ const coachScenarios: Record<
   },
 };
 
+type ResolvedCoachScenario = CoachScenario | "nutrition" | "general";
+
+function isActionableScenario(scenario: ResolvedCoachScenario | null): scenario is CoachScenario {
+  return scenario === "tired" || scenario === "pain" || scenario === "time" || scenario === "equipment";
+}
+
+const nonWorkoutFallback: Record<"nutrition" | "general", { reply: string; changes: string[] }> = {
+  nutrition: {
+    reply:
+      "For a real diet plan built around your goal, head to Nutrition → Build a diet plan — it asks a few quick questions and builds a sample day for you.",
+    changes: ["Answer a few quick questions there", "Get a sample day sized to your goal", "Revisit it anytime in Nutrition"],
+  },
+  general: {
+    reply: "Live AI is unavailable right now. Ask about fatigue, discomfort, limited time, or limited equipment and I can adjust today's session.",
+    changes: [],
+  },
+};
+
 function AICoachScreen({
   profile,
   workoutHistory,
@@ -2449,6 +2467,7 @@ function AICoachScreen({
   onBack,
   onApply,
   onStartWorkout,
+  onOpenDietPlan,
 }: {
   profile: Record<string, string>;
   workoutHistory: WorkoutHistoryEntry[];
@@ -2456,9 +2475,10 @@ function AICoachScreen({
   onBack: () => void;
   onApply: (scenario: CoachScenario) => void;
   onStartWorkout: () => void;
+  onOpenDietPlan: () => void;
 }) {
   const [draft, setDraft] = useState("");
-  const [scenario, setScenario] = useState<CoachScenario | null>(null);
+  const [scenario, setScenario] = useState<ResolvedCoachScenario | null>(null);
   const [customMessage, setCustomMessage] = useState("");
   const [applied, setApplied] = useState(false);
   const [aiReply, setAiReply] = useState("");
@@ -2467,7 +2487,6 @@ function AICoachScreen({
   const [coachError, setCoachError] = useState("");
   const scrollRef = useRef<ScrollView>(null);
 
-  const selected = scenario ? coachScenarios[scenario] : null;
   const goalLabel =
     profile.goal === "fat-loss"
       ? "fat-loss"
@@ -2477,7 +2496,7 @@ function AICoachScreen({
           ? "muscle-building"
           : "fitness";
 
-  const askCoach = async (message: string, fallbackScenario: CoachScenario) => {
+  const askCoach = async (message: string, fallbackScenario: ResolvedCoachScenario) => {
     setIsThinking(true);
     setCoachError("");
     setAiReply("");
@@ -2496,18 +2515,36 @@ function AICoachScreen({
       if (!response.ok) throw new Error("Coach request failed");
       const result = (await response.json()) as {
         reply?: string;
-        scenario?: CoachScenario | "general";
+        scenario?: ResolvedCoachScenario;
         changes?: string[];
       };
-      const resolvedScenario =
-        result.scenario && result.scenario !== "general" ? result.scenario : fallbackScenario;
+      const resolvedScenario: ResolvedCoachScenario = result.scenario ?? fallbackScenario;
       setScenario(resolvedScenario);
-      setAiReply(result.reply ?? coachScenarios[resolvedScenario].reply);
-      setAiChanges(result.changes?.length ? result.changes : coachScenarios[resolvedScenario].changes);
+      setAiReply(
+        result.reply ??
+          (isActionableScenario(resolvedScenario)
+            ? coachScenarios[resolvedScenario].reply
+            : nonWorkoutFallback[resolvedScenario].reply),
+      );
+      setAiChanges(
+        result.changes?.length
+          ? result.changes
+          : isActionableScenario(resolvedScenario)
+            ? coachScenarios[resolvedScenario].changes
+            : nonWorkoutFallback[resolvedScenario].changes,
+      );
     } catch {
       setScenario(fallbackScenario);
-      setAiReply(coachScenarios[fallbackScenario].reply);
-      setAiChanges(coachScenarios[fallbackScenario].changes);
+      setAiReply(
+        isActionableScenario(fallbackScenario)
+          ? coachScenarios[fallbackScenario].reply
+          : nonWorkoutFallback[fallbackScenario].reply,
+      );
+      setAiChanges(
+        isActionableScenario(fallbackScenario)
+          ? coachScenarios[fallbackScenario].changes
+          : nonWorkoutFallback[fallbackScenario].changes,
+      );
       setCoachError("Live AI is unavailable. Safe coaching mode is active.");
     } finally {
       setIsThinking(false);
@@ -2526,14 +2563,23 @@ function AICoachScreen({
     const message = draft.trim();
     if (!message) return;
     const normalized = message.toLowerCase();
-    const inferredScenario: CoachScenario =
+    const inferredScenario: ResolvedCoachScenario =
       normalized.includes("pain") || normalized.includes("hurt") || normalized.includes("бол")
         ? "pain"
         : normalized.includes("minute") || normalized.includes("time") || normalized.includes("врем")
           ? "time"
           : normalized.includes("equipment") || normalized.includes("gym") || normalized.includes("уред")
             ? "equipment"
-            : "tired";
+            : normalized.includes("diet") ||
+                normalized.includes("nutrition") ||
+                normalized.includes("meal") ||
+                normalized.includes("eat") ||
+                normalized.includes("режим") ||
+                normalized.includes("диет") ||
+                normalized.includes("храна") ||
+                normalized.includes("ядене")
+              ? "nutrition"
+              : "tired";
     setCustomMessage(message);
     setDraft("");
     setScenario(inferredScenario);
@@ -2610,49 +2656,67 @@ function AICoachScreen({
             </View>
           ) : null}
 
-          {selected && !isThinking ? (
+          {scenario && !isThinking ? (
             <>
               <View style={styles.userBubble}>
-                <Text style={styles.userBubbleText}>{customMessage || selected.user}</Text>
+                <Text style={styles.userBubbleText}>{customMessage}</Text>
               </View>
               <View style={styles.coachBubbleRow}>
                 <View style={styles.coachBubbleMark}><Text style={styles.coachBubbleMarkText}>G</Text></View>
                 <View style={styles.coachBubble}>
-                  <Text style={styles.coachBubbleText}>{aiReply || selected.reply}</Text>
+                  <Text style={styles.coachBubbleText}>{aiReply}</Text>
                 </View>
               </View>
               {coachError ? <Text style={styles.coachFallbackText}>{coachError}</Text> : null}
-              <View style={styles.coachAdjustmentCard}>
-                <View style={styles.coachAdjustmentTop}>
-                  <Text style={styles.coachAdjustmentLabel}>ADJUSTED WORKOUT</Text>
-                  <Text style={styles.coachAdjustmentBadge}>AI PROPOSAL</Text>
-                </View>
-                {(aiChanges.length ? aiChanges : selected.changes).map((change) => (
-                  <View key={change} style={styles.coachChangeRow}>
-                    <Text style={styles.coachChangeCheck}>✓</Text>
-                    <Text style={styles.coachChangeText}>{change}</Text>
+
+              {isActionableScenario(scenario) ? (
+                <View style={styles.coachAdjustmentCard}>
+                  <View style={styles.coachAdjustmentTop}>
+                    <Text style={styles.coachAdjustmentLabel}>ADJUSTED WORKOUT</Text>
+                    <Text style={styles.coachAdjustmentBadge}>AI PROPOSAL</Text>
                   </View>
-                ))}
-                <Pressable
-                  onPress={() => {
-                    if (!scenario) return;
-                    onApply(scenario);
-                    setApplied(true);
-                  }}
-                  disabled={applied}
-                  style={[styles.coachApplyButton, applied && styles.coachApplyButtonDone]}
-                >
-                  <Text style={styles.coachApplyButtonText}>
-                    {applied ? "PLAN UPDATED ✓" : "APPLY CHANGES"}
-                  </Text>
-                </Pressable>
-                {applied ? (
-                  <Pressable onPress={onStartWorkout} style={styles.coachStartButton}>
-                    <Text style={styles.coachStartButtonText}>START ADAPTED WORKOUT</Text>
-                    <Text style={styles.coachStartButtonArrow}>→</Text>
+                  {(aiChanges.length ? aiChanges : coachScenarios[scenario].changes).map((change) => (
+                    <View key={change} style={styles.coachChangeRow}>
+                      <Text style={styles.coachChangeCheck}>✓</Text>
+                      <Text style={styles.coachChangeText}>{change}</Text>
+                    </View>
+                  ))}
+                  <Pressable
+                    onPress={() => {
+                      onApply(scenario);
+                      setApplied(true);
+                    }}
+                    disabled={applied}
+                    style={[styles.coachApplyButton, applied && styles.coachApplyButtonDone]}
+                  >
+                    <Text style={styles.coachApplyButtonText}>
+                      {applied ? "PLAN UPDATED ✓" : "APPLY CHANGES"}
+                    </Text>
                   </Pressable>
-                ) : null}
-              </View>
+                  {applied ? (
+                    <Pressable onPress={onStartWorkout} style={styles.coachStartButton}>
+                      <Text style={styles.coachStartButtonText}>START ADAPTED WORKOUT</Text>
+                      <Text style={styles.coachStartButtonArrow}>→</Text>
+                    </Pressable>
+                  ) : null}
+                </View>
+              ) : scenario === "nutrition" ? (
+                <View style={styles.coachAdjustmentCard}>
+                  <View style={styles.coachAdjustmentTop}>
+                    <Text style={styles.coachAdjustmentLabel}>NUTRITION</Text>
+                    <Text style={styles.coachAdjustmentBadge}>AI SUGGESTION</Text>
+                  </View>
+                  {(aiChanges.length ? aiChanges : nonWorkoutFallback.nutrition.changes).map((change) => (
+                    <View key={change} style={styles.coachChangeRow}>
+                      <Text style={styles.coachChangeCheck}>✓</Text>
+                      <Text style={styles.coachChangeText}>{change}</Text>
+                    </View>
+                  ))}
+                  <Pressable onPress={onOpenDietPlan} style={styles.coachApplyButton}>
+                    <Text style={styles.coachApplyButtonText}>OPEN DIET PLAN</Text>
+                  </Pressable>
+                </View>
+              ) : null}
             </>
           ) : null}
         </ScrollView>
@@ -4511,6 +4575,7 @@ export default function App() {
             onBack={() => setScreen("dashboard")}
             onApply={setCoachAdjustment}
             onStartWorkout={() => setScreen("workout")}
+            onOpenDietPlan={() => setScreen("dietPlan")}
           />
         )}
         {screen === "workout" && (
