@@ -1668,6 +1668,77 @@ function NutritionScreen({
 
         {error ? <Text style={styles.nutritionError}>{error}</Text> : null}
 
+        {result ? (
+          <View style={styles.nutritionResults}>
+            <View style={styles.nutritionResultHeader}>
+              <Text style={styles.nutritionResultTitle}>AI ANALYSIS</Text>
+              <Text style={styles.nutritionConfidence}>{result.confidence.toUpperCase()} CONFIDENCE</Text>
+            </View>
+
+            {result.items.map((item, index) => (
+              <View key={`${item.name}-${index}`} style={styles.foodItemRow}>
+                <View style={styles.foodItemCopy}>
+                  <Text style={styles.foodItemName}>{item.name}</Text>
+                  <Text style={styles.foodItemMacros}>
+                    {item.calories} kcal | P {item.protein}g | C {item.carbs}g | F {item.fat}g
+                  </Text>
+                </View>
+                <View style={styles.portionControl}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Reduce ${item.name} portion`}
+                    onPress={() => adjustGrams(index, -10)}
+                    style={styles.portionButton}
+                  >
+                    <Text style={styles.portionButtonText}>-</Text>
+                  </Pressable>
+                  <Text style={styles.portionValue}>{item.grams}g</Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Increase ${item.name} portion`}
+                    onPress={() => adjustGrams(index, 10)}
+                    style={styles.portionButton}
+                  >
+                    <Text style={styles.portionButtonText}>+</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+
+            <View style={styles.nutritionTotalCard}>
+              <Text style={styles.nutritionTotalLabel}>MEAL TOTAL</Text>
+              <Text style={styles.nutritionCalories}>{result.totals.calories} kcal</Text>
+              <View style={styles.nutritionMacroRow}>
+                {[
+                  ["PROTEIN", `${result.totals.protein}g`],
+                  ["CARBS", `${result.totals.carbs}g`],
+                  ["FAT", `${result.totals.fat}g`],
+                ].map(([label, value]) => (
+                  <View key={label} style={styles.nutritionMacro}>
+                    <Text style={styles.nutritionMacroValue}>{value}</Text>
+                    <Text style={styles.nutritionMacroLabel}>{label}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <Text style={styles.nutritionNote}>Estimate only. {result.note}</Text>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Save meal"
+              onPress={() => {
+                onSave(result.totals);
+                setSaved(true);
+              }}
+              disabled={saved}
+              style={[styles.nutritionSaveButton, saved && styles.nutritionSaveButtonDone]}
+            >
+              <Text style={styles.nutritionSaveButtonText}>{saved ? "MEAL SAVED" : "SAVE MEAL"}</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         {proteinRemaining > 5 ? (
           <View style={styles.proteinGapCard}>
             <View style={styles.proteinGapCopy}>
@@ -1724,76 +1795,6 @@ function NutritionScreen({
             <Text style={styles.libraryEntryArrowText}>→</Text>
           </View>
         </Pressable>
-
-        {result ? (
-          <View style={styles.nutritionResults}>
-            <View style={styles.nutritionResultHeader}>
-              <Text style={styles.nutritionResultTitle}>AI ANALYSIS</Text>
-              <Text style={styles.nutritionConfidence}>{result.confidence.toUpperCase()} CONFIDENCE</Text>
-            </View>
-
-            {result.items.map((item, index) => (
-              <View key={`${item.name}-${index}`} style={styles.foodItemRow}>
-                <View style={styles.foodItemCopy}>
-                  <Text style={styles.foodItemName}>{item.name}</Text>
-                  <Text style={styles.foodItemMacros}>
-                    {item.calories} kcal | P {item.protein}g | C {item.carbs}g | F {item.fat}g
-                  </Text>
-                </View>
-                <View style={styles.portionControl}>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Reduce ${item.name} portion`}
-                    onPress={() => adjustGrams(index, -10)}
-                    style={styles.portionButton}
-                  >
-                    <Text style={styles.portionButtonText}>-</Text>
-                  </Pressable>
-                  <Text style={styles.portionValue}>{item.grams}g</Text>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Increase ${item.name} portion`}
-                    onPress={() => adjustGrams(index, 10)}
-                    style={styles.portionButton}
-                  >
-                    <Text style={styles.portionButtonText}>+</Text>
-                  </Pressable>
-                </View>
-              </View>
-            ))}
-
-            <View style={styles.nutritionTotalCard}>
-              <Text style={styles.nutritionTotalLabel}>MEAL TOTAL</Text>
-              <Text style={styles.nutritionCalories}>{result.totals.calories} kcal</Text>
-              <View style={styles.nutritionMacroRow}>
-                {[
-                  ["PROTEIN", `${result.totals.protein}g`],
-                  ["CARBS", `${result.totals.carbs}g`],
-                  ["FAT", `${result.totals.fat}g`],
-                ].map(([label, value]) => (
-                  <View key={label} style={styles.nutritionMacro}>
-                    <Text style={styles.nutritionMacroValue}>{value}</Text>
-                    <Text style={styles.nutritionMacroLabel}>{label}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            <Text style={styles.nutritionNote}>Estimate only. {result.note}</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Save meal"
-              onPress={() => {
-                onSave(result.totals);
-                setSaved(true);
-              }}
-              disabled={saved}
-              style={[styles.nutritionSaveButton, saved && styles.nutritionSaveButtonDone]}
-            >
-              <Text style={styles.nutritionSaveButtonText}>{saved ? "MEAL SAVED" : "SAVE MEAL"}</Text>
-            </Pressable>
-          </View>
-        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
