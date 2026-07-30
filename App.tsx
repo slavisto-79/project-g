@@ -763,7 +763,7 @@ function DashboardScreen({
   onOpenProgress: () => void;
   onResetTestProfile: () => void;
   session: { email: string } | null;
-  onOpenAccount: () => void;
+  onOpenAccount: (mode: "signup" | "login") => void;
   onLogout: () => void;
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
@@ -825,14 +825,24 @@ function DashboardScreen({
           ) : (
             <>
               <Text style={styles.accountPromptText}>Save your progress across devices</Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Create a free account"
-                onPress={onOpenAccount}
-                style={styles.testModeReset}
-              >
-                <Text style={styles.testModeResetText}>CREATE ACCOUNT</Text>
-              </Pressable>
+              <View style={styles.accountActions}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign in"
+                  onPress={() => onOpenAccount("login")}
+                  style={styles.testModeReset}
+                >
+                  <Text style={styles.testModeResetText}>SIGN IN</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Create a free account"
+                  onPress={() => onOpenAccount("signup")}
+                  style={styles.testModeReset}
+                >
+                  <Text style={styles.testModeResetText}>CREATE ACCOUNT</Text>
+                </Pressable>
+              </View>
             </>
           )}
         </View>
@@ -3689,11 +3699,13 @@ function isMediumPassword(password: string): boolean {
 function AuthScreen({
   onBack,
   onAuthSuccess,
+  initialMode = "signup",
 }: {
   onBack: () => void;
   onAuthSuccess: (mode: "signup" | "login", email: string) => void;
+  initialMode?: "signup" | "login";
 }) {
-  const [mode, setMode] = useState<"signup" | "login">("signup");
+  const [mode, setMode] = useState<"signup" | "login">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -3831,6 +3843,7 @@ export default function App() {
   const [exerciseProgress, setExerciseProgress] = useState<Record<string, ExerciseProgress>>({});
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistoryEntry[]>([]);
   const [session, setSession] = useState<{ email: string } | null>(null);
+  const [authInitialMode, setAuthInitialMode] = useState<"signup" | "login">("signup");
 
   useEffect(() => {
     if (Platform.OS !== "web") {
@@ -3997,12 +4010,16 @@ export default function App() {
             onOpenProgress={() => setScreen("progress")}
             onResetTestProfile={resetTestProfile}
             session={session}
-            onOpenAccount={() => setScreen("auth")}
+            onOpenAccount={(mode) => {
+              setAuthInitialMode(mode);
+              setScreen("auth");
+            }}
             onLogout={handleLogout}
           />
         )}
         {screen === "auth" && (
           <AuthScreen
+            initialMode={authInitialMode}
             onBack={() => setScreen("dashboard")}
             onAuthSuccess={(mode, email) => {
               void handleAuthSuccess(mode, email);
@@ -4585,6 +4602,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0E100E",
   },
   accountPromptText: { color: colors.muted, fontSize: 9, fontWeight: "700", flexShrink: 1 },
+  accountActions: { flexDirection: "row", alignItems: "center" },
   readinessRow: {
     flexDirection: "row",
     alignItems: "center",
