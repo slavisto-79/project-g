@@ -4112,6 +4112,13 @@ export default function App() {
         finishInitialLoad();
         return;
       }
+      if (event === "PASSWORD_RECOVERY") {
+        // Supabase's reset-password link doesn't reliably land on our
+        // /reset-password path, so react to the event itself instead.
+        setScreen("resetPassword");
+        finishInitialLoad();
+        return;
+      }
       if (newSession?.user) {
         void applySession(newSession.user.id, newSession.user.email);
       } else {
