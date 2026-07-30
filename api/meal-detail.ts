@@ -17,6 +17,15 @@ type MealDetailRequest = {
   carbs?: number;
   fat?: number;
   unitSystem?: "metric" | "imperial";
+  prepTime?: string;
+};
+
+const prepTimeGuidance: Record<string, string> = {
+  quick:
+    "The steps must realistically take under 15 minutes of active prep in total. Only use no-cook or near-instant techniques: raw, pre-cooked, or canned proteins, microwaved or quick-boiled staples, and simple no-heat assembly. Never include oven-roasting, marinating, slow-cooking, or pan-searing raw meat/fish from scratch. Use 5 or fewer ingredients.",
+  moderate:
+    "The steps must realistically take 15-30 minutes of active prep in total. Simple stovetop cooking is fine, but avoid oven-roasting whole vegetables, marinating, slow-cooking, or multi-stage techniques.",
+  any: "No particular time limit -- oven-roasting, slow-cooking, and multi-step techniques are all fine.",
 };
 
 function readOutputText(response: {
@@ -57,6 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const carbs = typeof body.carbs === "number" && Number.isFinite(body.carbs) ? body.carbs : 0;
   const fat = typeof body.fat === "number" && Number.isFinite(body.fat) ? body.fat : 0;
   const unitSystem = body.unitSystem === "imperial" ? "imperial" : "metric";
+  const prepGuidance = prepTimeGuidance[body.prepTime ?? "any"] ?? prepTimeGuidance.any;
 
   try {
     const openAIResponse = await fetch("https://api.openai.com/v1/responses", {
@@ -73,6 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "You are Project G's nutrition assistant, building a full recipe (ingredient quantities and cooking steps) for one specific meal that was already named and macro-targeted.",
           "Build a realistic ingredient list with a home-cook-friendly quantity for each ingredient, given in both metric (g/ml) and US customary (cups/oz/tbsp) units.",
           "Build clear, numbered cooking steps a beginner could follow.",
+          prepGuidance,
           "The ingredients and portions should roughly justify the given calories and macros for this meal -- use them as a sanity check, not a rigid formula.",
           "Use simple, common ingredients and equipment.",
           "Never claim medical, clinical, or weight-loss guarantees; this is general food inspiration only.",

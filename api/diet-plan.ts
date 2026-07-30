@@ -41,9 +41,17 @@ const dietaryStyleLabels: Record<string, string> = {
 };
 
 const prepTimeLabels: Record<string, string> = {
-  quick: "under 15 minutes of prep per meal",
-  moderate: "15-30 minutes of prep per meal",
+  quick: "under 15 minutes of active prep per meal",
+  moderate: "15-30 minutes of active prep per meal",
   any: "no particular time limit per meal",
+};
+
+const prepTimeGuidance: Record<string, string> = {
+  quick:
+    "Every meal must realistically be ready in under 15 minutes of active prep. Only use no-cook or near-instant techniques: raw, pre-cooked, or canned proteins (eggs, Greek yogurt, canned tuna/salmon, pre-cooked or rotisserie chicken, deli meat, cottage cheese), microwaved or quick-boiled staples (instant/quick oats, pre-cooked rice pouches, quick-boil pasta), and simple no-heat assembly (wraps, bowls, sandwiches, salads, smoothies). Never require oven-roasting, marinating, slow-cooking, or pan-searing raw meat or fish from scratch. Prefer 5 or fewer ingredients per meal.",
+  moderate:
+    "Every meal should realistically be ready in 15-30 minutes of active prep. Simple stovetop cooking is fine (pan-searing thin cuts of raw meat/fish, sauteing vegetables, boiling pasta or rice), but avoid oven-roasting whole vegetables, marinating, slow-cooking, or multi-stage recipes.",
+  any: "No particular time limit -- oven-roasting, slow-cooking, and multi-step recipes are all fine.",
 };
 
 function readOutputText(response: {
@@ -77,6 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const dietaryStyle = dietaryStyleLabels[body.dietaryStyle ?? "none"] ?? dietaryStyleLabels.none;
   const mealsPerDay = ["3", "4", "5"].includes(body.mealsPerDay ?? "") ? body.mealsPerDay! : "3";
   const prepTime = prepTimeLabels[body.prepTime ?? "any"] ?? prepTimeLabels.any;
+  const prepGuidance = prepTimeGuidance[body.prepTime ?? "any"] ?? prepTimeGuidance.any;
   const avoid = typeof body.avoid === "string" ? body.avoid.slice(0, 140) : "";
   const calorieTarget =
     typeof body.calorieTarget === "number" && Number.isFinite(body.calorieTarget)
@@ -107,7 +116,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "You are Project G's nutrition assistant, building a full week (7 days) of varied sample meals so the user never has to eat the exact same thing every day.",
           `Build exactly ${mealsPerDay} meals per day, for 7 distinct days, following a ${dietaryStyle} eating style.`,
           "Make the 7 days meaningfully different from each other: rotate protein sources, cuisines, cooking methods, and ingredients. Do not reuse the same meal name or near-identical dish across days.",
-          `Respect roughly ${prepTime}.`,
+          prepGuidance,
           avoid ? `Avoid these foods entirely: ${avoid}.` : "",
           `Size each day to approximately ${calorieTarget} kcal and ${proteinTarget}g of protein in total; distribute reasonably across that day's meals.`,
           "Use simple, realistic, common ingredients a home cook can find easily.",

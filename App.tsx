@@ -2075,7 +2075,15 @@ type SavedDietPlan = {
   isFallback: boolean;
 };
 
-function MealDetailModal({ meal, onClose }: { meal: DietPlanMeal | null; onClose: () => void }) {
+function MealDetailModal({
+  meal,
+  prepTime,
+  onClose,
+}: {
+  meal: DietPlanMeal | null;
+  prepTime: string;
+  onClose: () => void;
+}) {
   const detailCacheRef = useRef<Record<string, { ingredients: RecipeIngredient[]; steps: string[] }>>({});
   const imageCacheRef = useRef<Record<string, string>>({});
   const [detail, setDetail] = useState<{ ingredients: RecipeIngredient[]; steps: string[] } | null>(null);
@@ -2107,6 +2115,7 @@ function MealDetailModal({ meal, onClose }: { meal: DietPlanMeal | null; onClose
               carbs: meal.carbs,
               fat: meal.fat,
               unitSystem,
+              prepTime,
             }),
           });
           const data = await response.json();
@@ -2146,7 +2155,7 @@ function MealDetailModal({ meal, onClose }: { meal: DietPlanMeal | null; onClose
         }
       })();
     }
-  }, [meal]);
+  }, [meal, prepTime]);
 
   if (!meal) return null;
 
@@ -2487,7 +2496,7 @@ function DietPlanScreen({
         )}
       </ScrollView>
 
-      <MealDetailModal meal={selectedMeal} onClose={() => setSelectedMeal(null)} />
+      <MealDetailModal meal={selectedMeal} prepTime={prepTime} onClose={() => setSelectedMeal(null)} />
     </SafeAreaView>
   );
 }
