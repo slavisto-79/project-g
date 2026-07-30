@@ -71,11 +71,13 @@
 - Portion corrections recalculate every macro and the meal total.
 - Saved meals update the dashboard calorie and protein totals.
 - The OpenAI key remains server-side in the Vercel nutrition function.
-## Test mode and future accounts
+## Test mode and accounts
 
-- Keep prototype testing separate from future production accounts and database records.
-- Test mode persists the selected profile, nutrition totals, and AI coach adjustment after a browser refresh.
+- Test mode (no account) persists the selected profile, nutrition totals, and AI coach adjustment in `localStorage` after a browser refresh, unchanged from before.
 - The Dashboard must always provide a one-tap `RESET PROFILE` action so male, female, age, goal, equipment, and duration scenarios can be retested quickly.
 - Resetting a test profile returns to onboarding and clears the locally saved test state.
-- Never write test-mode data into the production user database.
 - Do not automatically resume an active workout after refresh; only stable profile-level test data is persisted.
+- **Real accounts are now implemented.** The Dashboard's account bar offers "CREATE ACCOUNT" (or shows "SIGNED IN · email" + "LOG OUT" once signed in). Data lives in a Neon Postgres database (`POSTGRES_URL`), reached via `/api/auth/signup`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`, and `/api/user-data`. Sessions are a signed, httpOnly cookie (`AUTH_SECRET`), not a third-party auth provider.
+- Signing up migrates whatever profile/progress/history already existed in the current session (test-mode or otherwise) into the new account as its starting data. Logging in on a different device replaces local state with the account's saved data instead.
+- While signed in, every change to profile/nutrition/coach-adjustment/exercise-progress/workout-history is also POSTed to `/api/user-data`; `localStorage` is left alone until the user logs out, so a logged-out guest session on the same browser doesn't inherit someone else's account data.
+- Passwords are hashed with bcrypt server-side; the API never returns a password or hash to the client.

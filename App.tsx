@@ -43,7 +43,8 @@ type Screen =
   | "recipes"
   | "recipeLibrary"
   | "recipeDetail"
-  | "dietPlan";
+  | "dietPlan"
+  | "auth";
 
 type InterviewAnswer = {
   label: string;
@@ -750,6 +751,9 @@ function DashboardScreen({
   onOpenNutrition,
   onOpenProgress,
   onResetTestProfile,
+  session,
+  onOpenAccount,
+  onLogout,
   profile,
   nutritionTotals,
 }: {
@@ -758,6 +762,9 @@ function DashboardScreen({
   onOpenNutrition: () => void;
   onOpenProgress: () => void;
   onResetTestProfile: () => void;
+  session: { email: string } | null;
+  onOpenAccount: () => void;
+  onLogout: () => void;
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
 }) {
@@ -795,6 +802,39 @@ function DashboardScreen({
           >
             <Text style={styles.testModeResetText}>RESET PROFILE</Text>
           </Pressable>
+        </View>
+
+        <View style={styles.accountBar}>
+          {session ? (
+            <>
+              <View style={[styles.testModeIdentity, { flexShrink: 1 }]}>
+                <View style={styles.testModeDot} />
+                <Text style={[styles.testModeLabel, { flexShrink: 1 }]} numberOfLines={1}>
+                  SIGNED IN · {session.email}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Log out"
+                onPress={onLogout}
+                style={styles.testModeReset}
+              >
+                <Text style={styles.testModeResetText}>LOG OUT</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Text style={styles.accountPromptText}>Save your progress across devices</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Create a free account"
+                onPress={onOpenAccount}
+                style={styles.testModeReset}
+              >
+                <Text style={styles.testModeResetText}>CREATE ACCOUNT</Text>
+              </Pressable>
+            </>
+          )}
         </View>
 
         <View style={styles.workoutCard}>
@@ -3642,6 +3682,121 @@ function ProgressScreen({
   );
 }
 
+function AuthScreen({
+  onBack,
+  onAuthSuccess,
+}: {
+  onBack: () => void;
+  onAuthSuccess: (mode: "signup" | "login", email: string) => void;
+}) {
+  const [mode, setMode] = useState<"signup" | "login">("signup");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const submit = async () => {
+    if (isSubmitting) return;
+    setError("");
+    const trimmedEmail = email.trim().toLowerCase();
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/auth/${mode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: trimmedEmail, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error ?? "Something went wrong.");
+      onAuthSuccess(mode, trimmedEmail);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.recipesScreen}>
+      <View style={styles.nutritionHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
+          <Text style={styles.coachBackText}>‹</Text>
+        </Pressable>
+        <View>
+          <Text style={styles.nutritionHeaderTitle}>ACCOUNT</Text>
+          <Text style={styles.nutritionHeaderSubtitle}>
+            {mode === "signup" ? "Create your account" : "Welcome back"}
+          </Text>
+        </View>
+        <View style={styles.coachHeaderSpacer} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.nutritionContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.nutritionIntro}>
+          <Text style={styles.nutritionEyebrow}>SAVE YOUR PROGRESS</Text>
+          <Text style={styles.nutritionTitle}>
+            {mode === "signup" ? "Create a free account." : "Log back in."}
+          </Text>
+          <Text style={styles.nutritionSubtitle}>
+            Keep your plan, progress, and history synced across devices.
+          </Text>
+        </View>
+
+        <Text style={styles.dietGroupLabel}>EMAIL</Text>
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="you@example.com"
+          placeholderTextColor="#5B6058"
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          style={styles.dietAvoidInput}
+        />
+
+        <Text style={styles.dietGroupLabel}>PASSWORD</Text>
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+          placeholderTextColor="#5B6058"
+          secureTextEntry
+          style={styles.dietAvoidInput}
+        />
+
+        {error ? <Text style={[styles.nutritionError, { marginTop: 14 }]}>{error}</Text> : null}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={mode === "signup" ? "Create account" : "Log in"}
+          onPress={submit}
+          disabled={isSubmitting}
+          style={[styles.dietBuildButton, isSubmitting && styles.dietBuildButtonDisabled]}
+        >
+          <Text style={styles.dietBuildButtonText}>
+            {isSubmitting ? "PLEASE WAIT…" : mode === "signup" ? "CREATE ACCOUNT" : "LOG IN"}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={mode === "signup" ? "Already have an account? Log in" : "Need an account? Sign up"}
+          onPress={() => {
+            setMode((current) => (current === "signup" ? "login" : "signup"));
+            setError("");
+          }}
+          style={[styles.dietRebuildButton, { marginTop: 10 }]}
+        >
+          <Text style={styles.dietRebuildButtonText}>
+            {mode === "signup" ? "ALREADY HAVE AN ACCOUNT? LOG IN" : "NEED AN ACCOUNT? SIGN UP"}
+          </Text>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>("splash");
   const [profile, setProfile] = useState<Record<string, string>>({});
@@ -3656,45 +3811,89 @@ export default function App() {
   });
   const [exerciseProgress, setExerciseProgress] = useState<Record<string, ExerciseProgress>>({});
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistoryEntry[]>([]);
+  const [session, setSession] = useState<{ email: string } | null>(null);
 
   useEffect(() => {
     if (Platform.OS !== "web") {
       setHasLoadedTestState(true);
       return;
     }
-    try {
-      const savedState = window.localStorage.getItem("project-g-test-state");
-      if (savedState) {
-        const parsed = JSON.parse(savedState) as {
-          profile?: Record<string, string>;
-          nutritionTotals?: NutritionTotals;
-          coachAdjustment?: CoachScenario | null;
-          exerciseProgress?: Record<string, ExerciseProgress>;
-          workoutHistory?: WorkoutHistoryEntry[];
-        };
-        if (parsed.profile && Object.keys(parsed.profile).length > 0) {
-          setProfile(parsed.profile);
-          setNutritionTotals(parsed.nutritionTotals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 });
-          setCoachAdjustment(parsed.coachAdjustment ?? null);
-          setExerciseProgress(parsed.exerciseProgress ?? {});
-          setWorkoutHistory(parsed.workoutHistory ?? []);
-          setScreen("dashboard");
+    let cancelled = false;
+
+    const loadLocalState = () => {
+      try {
+        const savedState = window.localStorage.getItem("project-g-test-state");
+        if (savedState) {
+          const parsed = JSON.parse(savedState) as {
+            profile?: Record<string, string>;
+            nutritionTotals?: NutritionTotals;
+            coachAdjustment?: CoachScenario | null;
+            exerciseProgress?: Record<string, ExerciseProgress>;
+            workoutHistory?: WorkoutHistoryEntry[];
+          };
+          if (parsed.profile && Object.keys(parsed.profile).length > 0) {
+            setProfile(parsed.profile);
+            setNutritionTotals(parsed.nutritionTotals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 });
+            setCoachAdjustment(parsed.coachAdjustment ?? null);
+            setExerciseProgress(parsed.exerciseProgress ?? {});
+            setWorkoutHistory(parsed.workoutHistory ?? []);
+            setScreen("dashboard");
+          }
         }
+      } catch {
+        window.localStorage.removeItem("project-g-test-state");
       }
-    } catch {
-      window.localStorage.removeItem("project-g-test-state");
-    } finally {
-      setHasLoadedTestState(true);
-    }
+    };
+
+    const init = async () => {
+      try {
+        const response = await fetch("/api/auth/me", { credentials: "include" });
+        if (cancelled) return;
+        if (response.ok) {
+          const data = await response.json();
+          setSession({ email: data.email });
+          setProfile(data.profile ?? {});
+          setNutritionTotals(data.nutritionTotals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 });
+          setCoachAdjustment(data.coachAdjustment ?? null);
+          setExerciseProgress(data.exerciseProgress ?? {});
+          setWorkoutHistory(data.workoutHistory ?? []);
+          if (data.profile && Object.keys(data.profile).length > 0) setScreen("dashboard");
+        } else {
+          loadLocalState();
+        }
+      } catch {
+        if (!cancelled) loadLocalState();
+      } finally {
+        if (!cancelled) setHasLoadedTestState(true);
+      }
+    };
+
+    void init();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    if (!hasLoadedTestState || Platform.OS !== "web" || Object.keys(profile).length === 0) return;
+    if (!hasLoadedTestState || Platform.OS !== "web" || session || Object.keys(profile).length === 0) return;
     window.localStorage.setItem(
       "project-g-test-state",
       JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory }),
     );
-  }, [coachAdjustment, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, workoutHistory]);
+  }, [coachAdjustment, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, session, workoutHistory]);
+
+  useEffect(() => {
+    if (!session || !hasLoadedTestState) return;
+    const controller = new AbortController();
+    fetch("/api/user-data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory }),
+      signal: controller.signal,
+    }).catch(() => {});
+    return () => controller.abort();
+  }, [coachAdjustment, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, session, workoutHistory]);
 
   const resetTestProfile = () => {
     if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
@@ -3703,6 +3902,48 @@ export default function App() {
     setNutritionTotals({ calories: 0, protein: 0, carbs: 0, fat: 0 });
     setExerciseProgress({});
     setScreen("welcome");
+  };
+
+  const handleAuthSuccess = async (mode: "signup" | "login", email: string) => {
+    setSession({ email });
+    if (mode === "signup") {
+      try {
+        await fetch("/api/user-data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory }),
+        });
+      } catch {
+        // Best-effort; the regular persistence effect retries on the next state change.
+      }
+    } else {
+      try {
+        const response = await fetch("/api/auth/me", { credentials: "include" });
+        if (response.ok) {
+          const data = await response.json();
+          setProfile(data.profile ?? {});
+          setNutritionTotals(data.nutritionTotals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 });
+          setCoachAdjustment(data.coachAdjustment ?? null);
+          setExerciseProgress(data.exerciseProgress ?? {});
+          setWorkoutHistory(data.workoutHistory ?? []);
+        }
+      } catch {
+        // Keep whatever local state was already present.
+      }
+    }
+    if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
+    setScreen("dashboard");
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } catch {
+      // Ignore; clearing local session state below is enough for the UI.
+    }
+    setSession(null);
+    setScreen("dashboard");
   };
 
   if (!hasLoadedTestState) return <View style={styles.app} />;
@@ -3736,6 +3977,17 @@ export default function App() {
             onOpenNutrition={() => setScreen("nutrition")}
             onOpenProgress={() => setScreen("progress")}
             onResetTestProfile={resetTestProfile}
+            session={session}
+            onOpenAccount={() => setScreen("auth")}
+            onLogout={handleLogout}
+          />
+        )}
+        {screen === "auth" && (
+          <AuthScreen
+            onBack={() => setScreen("dashboard")}
+            onAuthSuccess={(mode, email) => {
+              void handleAuthSuccess(mode, email);
+            }}
           />
         )}
         {screen === "nutrition" && (
@@ -4300,6 +4552,20 @@ const styles = StyleSheet.create({
   testModeLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.2 },
   testModeReset: { minHeight: 30, paddingHorizontal: 8, alignItems: "center", justifyContent: "center" },
   testModeResetText: { color: "#B6BDB2", fontSize: 7, fontWeight: "900", letterSpacing: 0.8 },
+  accountBar: {
+    minHeight: 38,
+    marginBottom: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0E100E",
+  },
+  accountPromptText: { color: colors.muted, fontSize: 9, fontWeight: "700", flexShrink: 1 },
   readinessRow: {
     flexDirection: "row",
     alignItems: "center",
