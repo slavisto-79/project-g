@@ -790,7 +790,11 @@ function DashboardScreen({
         </View>
       </View>
 
-      <View style={styles.dashboardBody}>
+      <ScrollView
+        style={styles.dashboardBody}
+        contentContainerStyle={styles.dashboardBodyContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.testModeBar}>
           <View style={styles.testModeIdentity}>
             <View style={styles.testModeDot} />
@@ -909,7 +913,7 @@ function DashboardScreen({
             <Text style={styles.lastWorkoutScoreText}>86%</Text>
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       <View style={styles.bottomNav}>
         {[
@@ -959,6 +963,13 @@ type ExerciseProgress = {
   reps: number;
 };
 
+type WorkoutHistoryExercise = {
+  name: string;
+  weightKg: number | null;
+  reps: number;
+  sets: number;
+};
+
 type WorkoutHistoryEntry = {
   id: string;
   date: string;
@@ -967,6 +978,7 @@ type WorkoutHistoryEntry = {
   sets: number;
   seconds: number;
   calories: number;
+  exerciseBreakdown?: WorkoutHistoryExercise[];
 };
 
 function formatHistoryDate(iso: string): string {
@@ -1004,6 +1016,19 @@ function summarizeCoachMemory(
   const lastLine = last
     ? `Last session: ${formatHistoryDate(last.date)}, ${last.exercises} exercises, ${last.sets} sets, ${formatHistoryDuration(last.seconds)}, ~${last.calories} kcal.`
     : "";
+  const totalVolumeKg = workoutHistory.reduce(
+    (sum, entry) =>
+      sum +
+      (entry.exerciseBreakdown ?? []).reduce(
+        (exerciseSum, item) => exerciseSum + (item.weightKg ?? 0) * item.reps * item.sets,
+        0,
+      ),
+    0,
+  );
+  const volumeLine =
+    totalVolumeKg > 0
+      ? `Total weight lifted to date: ~${Math.round(totalVolumeKg).toLocaleString()} kg across ${total} sessions.`
+      : "";
   const progressEntries = Object.entries(exerciseProgress).slice(0, 8);
   const progressLine = progressEntries.length
     ? `Current working weights: ${progressEntries
@@ -1011,7 +1036,7 @@ function summarizeCoachMemory(
         .join(", ")}.`
     : "";
 
-  return [`Total workouts logged: ${total} (${thisWeek} this week).`, lastLine, progressLine]
+  return [`Total workouts logged: ${total} (${thisWeek} this week).`, lastLine, volumeLine, progressLine]
     .filter(Boolean)
     .join(" ");
 }
@@ -3198,6 +3223,12 @@ function ActiveWorkoutScreen({
       sets: personalizedExercises.length * targetSetCount,
       seconds: elapsedSeconds,
       calories: estimateSessionCalories(Number(profile.weight), elapsedSeconds),
+      exerciseBreakdown: personalizedExercises.map((item) => ({
+        name: item.name,
+        weightKg: isBodyweightExerciseName(item.name) ? null : parseInt(item.weight, 10),
+        reps: parseInt(item.reps, 10),
+        sets: targetSetCount,
+      })),
     });
   };
 
@@ -3466,13 +3497,13 @@ function ActiveWorkoutScreen({
           <Text style={styles.adjustPanelLabel}>HOW MANY KG & REPS DID YOU DO</Text>
           <View style={styles.adjustPanelPickers}>
             {!isBodyweight ? (
-              <View style={[styles.weightColumn, styles.adjustPanelColumn]}>
+              <View style={styles.adjustPanelSlot}>
                 <Text style={styles.adjustPanelColumnLabel}>WEIGHT</Text>
                 <NumberWheelPicker
                   key={`${exercise.name}-weight`}
-                  itemHeight={24}
+                  itemHeight={26}
                   visibleItems={3}
-                  fontSize={15}
+                  fontSize={16}
                   min={2}
                   max={100}
                   step={1}
@@ -3482,11 +3513,11 @@ function ActiveWorkoutScreen({
                 />
               </View>
             ) : null}
-            <View style={[styles.repsColumn, styles.adjustPanelColumn]}>
+            <View style={styles.adjustPanelSlot}>
               <Text style={styles.adjustPanelColumnLabel}>REPS</Text>
               <NumberWheelPicker
                 key={`${exercise.name}-reps`}
-                itemHeight={30}
+                itemHeight={26}
                 visibleItems={3}
                 fontSize={16}
                 min={1}
@@ -4809,7 +4840,8 @@ const styles = StyleSheet.create({
     borderColor: colors.background,
     backgroundColor: colors.lime,
   },
-  dashboardBody: { flex: 1, paddingHorizontal: 18 },
+  dashboardBody: { flex: 1 },
+  dashboardBodyContent: { paddingHorizontal: 18, paddingBottom: 16 },
   testModeBar: {
     minHeight: 38,
     marginBottom: 10,
@@ -5877,8 +5909,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#0E100E",
   },
   adjustPanelLabel: { color: colors.lime, fontSize: 11, fontWeight: "900", letterSpacing: 1, marginBottom: 5, textAlign: "center" },
-  adjustPanelPickers: { flexDirection: "row", alignItems: "flex-start" },
-  adjustPanelColumn: { alignItems: "center" },
+  adjustPanelPickers: { flexDirection: "row", alignItems: "flex-start", justifyContent: "center", gap: 24 },
+  adjustPanelSlot: { flex: 1, alignItems: "center", maxWidth: 160 },
   adjustPanelColumnLabel: {
     color: colors.muted,
     fontSize: 7,
@@ -6120,9 +6152,9 @@ const styles = StyleSheet.create({
   coachSendDisabled: { opacity: 0.35 },
   coachSendText: { color: colors.ink, fontSize: 20, fontWeight: "900", marginTop: -2 },
   progressScreen: { flex: 1, backgroundColor: colors.background },
-  progressContent: { paddingHorizontal: 20, paddingBottom: 28 },
+  progressContent: { paddingHorizontal: 20, paddingBottom: 16 },
   progressHeader: {
-    height: 58,
+    height: 50,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -6144,22 +6176,22 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "900",
     letterSpacing: 1.4,
-    marginTop: 14,
+    marginTop: 8,
   },
   progressTitle: {
     color: colors.text,
-    fontSize: 38,
-    lineHeight: 41,
+    fontSize: 26,
+    lineHeight: 29,
     fontWeight: "800",
-    letterSpacing: -1.5,
-    marginTop: 10,
+    letterSpacing: -1,
+    marginTop: 4,
   },
-  progressSubtitle: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 9 },
+  progressSubtitle: { color: colors.muted, fontSize: 11, lineHeight: 15, marginTop: 4 },
   progressHero: {
-    minHeight: 118,
-    borderRadius: 22,
-    marginTop: 22,
-    paddingHorizontal: 19,
+    minHeight: 84,
+    borderRadius: 20,
+    marginTop: 12,
+    paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -6167,24 +6199,24 @@ const styles = StyleSheet.create({
     borderColor: "rgba(200,255,50,0.28)",
     backgroundColor: "rgba(200,255,50,0.07)",
   },
-  progressScoreValue: { color: colors.text, fontSize: 40, fontWeight: "900", letterSpacing: -1.5 },
+  progressScoreValue: { color: colors.text, fontSize: 30, fontWeight: "900", letterSpacing: -1.2 },
   progressScoreLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.3, marginTop: 2 },
   progressHeroBadge: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 5,
+    borderWidth: 4,
     borderColor: colors.lime,
     backgroundColor: "#0C0F0B",
   },
-  progressHeroBadgeValue: { color: colors.text, fontSize: 24, fontWeight: "900" },
+  progressHeroBadgeValue: { color: colors.text, fontSize: 18, fontWeight: "900" },
   progressHeroBadgeLabel: { color: colors.muted, fontSize: 5, fontWeight: "900", letterSpacing: 0.7 },
   progressMetrics: {
-    minHeight: 86,
-    borderRadius: 20,
-    marginTop: 12,
+    minHeight: 64,
+    borderRadius: 18,
+    marginTop: 8,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
@@ -6192,18 +6224,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   progressMetric: { flex: 1, alignItems: "center" },
-  progressMetricDivider: { width: 1, height: 37, backgroundColor: "#2C312B" },
-  progressMetricValue: { color: colors.text, fontSize: 23, fontWeight: "900" },
-  progressMetricLabel: { color: colors.muted, fontSize: 6, fontWeight: "900", letterSpacing: 1, marginTop: 4 },
+  progressMetricDivider: { width: 1, height: 30, backgroundColor: "#2C312B" },
+  progressMetricValue: { color: colors.text, fontSize: 18, fontWeight: "900" },
+  progressMetricLabel: { color: colors.muted, fontSize: 6, fontWeight: "900", letterSpacing: 1, marginTop: 3 },
   progressSection: {
-    borderRadius: 20,
-    marginTop: 12,
-    padding: 17,
+    borderRadius: 18,
+    marginTop: 8,
+    padding: 12,
     borderWidth: 1,
     borderColor: "#252A24",
     backgroundColor: colors.surface,
   },
-  progressSectionTitle: { color: colors.text, fontSize: 9, fontWeight: "900", letterSpacing: 1.4, marginBottom: 14 },
+  progressSectionTitle: { color: colors.text, fontSize: 9, fontWeight: "900", letterSpacing: 1.4, marginBottom: 8 },
   progressRowTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 },
   progressRowLabel: { color: colors.muted, fontSize: 10 },
   progressRowValue: { color: colors.text, fontSize: 10, fontWeight: "800" },
@@ -6215,14 +6247,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingVertical: 10,
+    paddingVertical: 7,
     borderTopWidth: 1,
     borderTopColor: "#212620",
   },
   historyDateChip: {
-    width: 44,
-    height: 34,
-    borderRadius: 10,
+    width: 40,
+    height: 28,
+    borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#171A17",
@@ -6233,8 +6265,8 @@ const styles = StyleSheet.create({
   historyMetaText: { color: colors.muted, fontSize: 9, marginTop: 2 },
   historyCaloriesText: { color: colors.muted, fontSize: 9, fontWeight: "700" },
   progressPriority: {
-    marginTop: 18,
-    paddingTop: 14,
+    marginTop: 10,
+    paddingTop: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -6244,17 +6276,17 @@ const styles = StyleSheet.create({
   progressPriorityLabel: { color: colors.muted, fontSize: 7, fontWeight: "900", letterSpacing: 1 },
   progressPriorityValue: { color: colors.text, fontSize: 10, fontWeight: "800" },
   progressCoachCard: {
-    borderRadius: 20,
-    marginTop: 12,
-    padding: 15,
+    borderRadius: 18,
+    marginTop: 8,
+    padding: 11,
     flexDirection: "row",
     alignItems: "flex-start",
     backgroundColor: "#111510",
   },
   progressCoachMark: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
@@ -6265,9 +6297,9 @@ const styles = StyleSheet.create({
   progressCoachLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1 },
   progressCoachText: { color: "#C4CAC1", fontSize: 10, lineHeight: 15, marginTop: 5 },
   progressButton: {
-    height: 57,
-    borderRadius: 29,
-    marginTop: 14,
+    height: 48,
+    borderRadius: 24,
+    marginTop: 8,
     paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
