@@ -2075,6 +2075,160 @@ type SavedDietPlan = {
   isFallback: boolean;
 };
 
+function MealDetailModal({ meal, onClose }: { meal: DietPlanMeal | null; onClose: () => void }) {
+  const detailCacheRef = useRef<Record<string, { ingredients: RecipeIngredient[]; steps: string[] }>>({});
+  const imageCacheRef = useRef<Record<string, string>>({});
+  const [detail, setDetail] = useState<{ ingredients: RecipeIngredient[]; steps: string[] } | null>(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [detailError, setDetailError] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isLoadingImage, setIsLoadingImage] = useState(false);
+
+  useEffect(() => {
+    if (!meal) return;
+    setDetailError("");
+
+    const cachedDetail = detailCacheRef.current[meal.name];
+    if (cachedDetail) {
+      setDetail(cachedDetail);
+    } else {
+      setDetail(null);
+      setIsLoadingDetail(true);
+      void (async () => {
+        try {
+          const response = await fetch("/api/meal-detail", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: meal.name,
+              description: meal.description,
+              calories: meal.calories,
+              protein: meal.protein,
+              carbs: meal.carbs,
+              fat: meal.fat,
+              unitSystem,
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data?.error ?? "Detail request failed");
+          const result = { ingredients: data.ingredients as RecipeIngredient[], steps: data.steps as string[] };
+          detailCacheRef.current[meal.name] = result;
+          setDetail(result);
+        } catch {
+          setDetailError("Could not load the full recipe right now. Try again.");
+        } finally {
+          setIsLoadingDetail(false);
+        }
+      })();
+    }
+
+    const cachedImage = imageCacheRef.current[meal.name];
+    if (cachedImage) {
+      setImageUrl(cachedImage);
+    } else {
+      setImageUrl(null);
+      setIsLoadingImage(true);
+      void (async () => {
+        try {
+          const response = await fetch("/api/meal-image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: meal.name, description: meal.description }),
+          });
+          const data = await response.json();
+          if (!response.ok || !data.image) throw new Error("Image request failed");
+          imageCacheRef.current[meal.name] = data.image as string;
+          setImageUrl(data.image as string);
+        } catch {
+          // No photo is an acceptable degraded state; the recipe still works without it.
+        } finally {
+          setIsLoadingImage(false);
+        }
+      })();
+    }
+  }, [meal]);
+
+  if (!meal) return null;
+
+  return (
+    <Modal visible animationType="slide" onRequestClose={onClose}>
+      <SafeAreaView style={styles.recipesScreen}>
+        <View style={styles.nutritionHeader}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} style={styles.coachBack}>
+            <Text style={styles.coachBackText}>‹</Text>
+          </Pressable>
+          <View>
+            <Text style={styles.nutritionHeaderTitle}>{meal.time.toUpperCase()}</Text>
+            <Text style={styles.nutritionHeaderSubtitle}>Full recipe</Text>
+          </View>
+          <View style={styles.coachHeaderSpacer} />
+        </View>
+
+        <ScrollView contentContainerStyle={styles.recipeDetailContent} showsVerticalScrollIndicator={false}>
+          {imageUrl ? (
+            <Image source={{ uri: imageUrl }} style={styles.recipeDetailPhoto} resizeMode="cover" />
+          ) : (
+            <View style={[styles.recipeDetailPhoto, styles.mealImagePlaceholder]}>
+              {isLoadingImage ? (
+                <Text style={styles.mealImagePlaceholderText}>GENERATING PHOTO…</Text>
+              ) : (
+                <Text style={styles.mealImagePlaceholderIcon}>🍽️</Text>
+              )}
+            </View>
+          )}
+
+          <View style={styles.recipeDetailBody}>
+            <Text style={styles.recipeDetailName}>{meal.name}</Text>
+
+            <View style={styles.nutritionFactsBar}>
+              {[
+                ["🔥", meal.calories, "KCAL"],
+                ["💪", `${meal.protein}g`, "PROTEIN"],
+                ["🌾", `${meal.carbs}g`, "CARBS"],
+                ["💧", `${meal.fat}g`, "FAT"],
+              ].map(([icon, value, label], index) => (
+                <View key={label} style={styles.nutritionFactsRow}>
+                  <View style={styles.nutritionFactsItem}>
+                    <Text style={styles.nutritionFactsIcon}>{icon}</Text>
+                    <Text style={styles.nutritionFactsValue}>{value}</Text>
+                    <Text style={styles.nutritionFactsLabel}>{label}</Text>
+                  </View>
+                  {index < 3 ? <View style={styles.nutritionFactsDivider} /> : null}
+                </View>
+              ))}
+            </View>
+
+            {isLoadingDetail ? (
+              <Text style={styles.nutritionSubtitle}>Building the full recipe…</Text>
+            ) : detailError ? (
+              <Text style={styles.nutritionError}>{detailError}</Text>
+            ) : detail ? (
+              <>
+                <Text style={styles.recipeSectionTitle}>INGREDIENTS</Text>
+                <View style={styles.recipeIngredients}>
+                  {detail.ingredients.map((ingredient) => (
+                    <View key={ingredient.name} style={styles.recipeIngredientPill}>
+                      <Text style={styles.recipeIngredientText}>{formatIngredient(ingredient)}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                <Text style={styles.recipeSectionTitle}>STEPS</Text>
+                {detail.steps.map((step, index) => (
+                  <View key={index} style={styles.recipeStepRow}>
+                    <Text style={styles.recipeStepNumber}>{index + 1}</Text>
+                    <Text style={styles.recipeStepText}>{step}</Text>
+                  </View>
+                ))}
+              </>
+            ) : null}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  );
+}
+
 function DietPlanScreen({
   onBack,
   profile,
@@ -2095,6 +2249,7 @@ function DietPlanScreen({
   const [days, setDays] = useState<DietPlanResult[]>(hasSavedWeek ? savedPlan!.days : []);
   const [generatedAt, setGeneratedAt] = useState(savedPlan?.generatedAt ?? "");
   const [isFallback, setIsFallback] = useState(savedPlan?.isFallback ?? false);
+  const [selectedMeal, setSelectedMeal] = useState<DietPlanMeal | null>(null);
 
   const calorieTarget = dailyCalorieTargetKcal(profile);
   const proteinTarget = dailyProteinTargetGrams(profile);
@@ -2285,7 +2440,13 @@ function DietPlanScreen({
                   <Text style={styles.nutritionSubtitle}>{day.note}</Text>
 
                   {day.meals.map((meal) => (
-                    <View key={meal.name} style={styles.recipeCard}>
+                    <Pressable
+                      key={meal.name}
+                      accessibilityRole="button"
+                      accessibilityLabel={`View full recipe for ${meal.name}`}
+                      onPress={() => setSelectedMeal(meal)}
+                      style={styles.recipeCard}
+                    >
                       <View style={styles.recipeCardHeader}>
                         <Text style={styles.recipeName}>{meal.name}</Text>
                         <Text style={styles.recipeMinutes}>{meal.time.toUpperCase()}</Text>
@@ -2300,7 +2461,8 @@ function DietPlanScreen({
                         <Text style={styles.recipeMacroDivider}>·</Text>
                         <Text style={styles.recipeMacroText}>F {meal.fat}g</Text>
                       </View>
-                    </View>
+                      <Text style={styles.recipeTapHint}>TAP FOR FULL RECIPE</Text>
+                    </Pressable>
                   ))}
 
                   <View style={styles.dietTotalsRow}>
@@ -2324,6 +2486,8 @@ function DietPlanScreen({
           </>
         )}
       </ScrollView>
+
+      <MealDetailModal meal={selectedMeal} onClose={() => setSelectedMeal(null)} />
     </SafeAreaView>
   );
 }
@@ -5586,6 +5750,7 @@ const styles = StyleSheet.create({
   recipeMacroText: { color: colors.muted, fontSize: 11, fontWeight: "700" },
   recipeMacroTextHighlight: { color: colors.lime, fontSize: 11, fontWeight: "800" },
   recipeMacroDivider: { color: "#3A3F38", fontSize: 11 },
+  recipeTapHint: { color: "#5B6058", fontSize: 8, fontWeight: "800", letterSpacing: 0.8 },
   dietGroupLabel: {
     color: colors.muted,
     fontSize: 9,
@@ -5743,6 +5908,9 @@ const styles = StyleSheet.create({
   libraryCardMeta: { color: colors.muted, fontSize: 10, fontWeight: "600", marginTop: 4 },
   recipeDetailContent: { paddingBottom: 40 },
   recipeDetailPhoto: { width: "100%", height: 220 },
+  mealImagePlaceholder: { alignItems: "center", justifyContent: "center", backgroundColor: "#101210" },
+  mealImagePlaceholderIcon: { fontSize: 32 },
+  mealImagePlaceholderText: { color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 1 },
   recipeDetailBody: { paddingHorizontal: 24, paddingTop: 20 },
   recipeDetailName: { color: colors.text, fontSize: 24, fontWeight: "800", letterSpacing: -0.5 },
   nutritionFactsBar: {
