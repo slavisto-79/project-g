@@ -42,7 +42,8 @@ type Screen =
   | "nutrition"
   | "recipes"
   | "recipeLibrary"
-  | "recipeDetail";
+  | "recipeDetail"
+  | "dietPlan";
 
 type InterviewAnswer = {
   label: string;
@@ -1034,6 +1035,50 @@ const fallbackProteinRecipes: Recipe[] = [
   },
 ];
 
+type DietPlanMeal = NutritionTotals & {
+  time: string;
+  name: string;
+  description: string;
+};
+
+type DietPlanResult = {
+  meals: DietPlanMeal[];
+  note: string;
+};
+
+const fallbackDietPlan: DietPlanResult = {
+  meals: [
+    {
+      time: "Breakfast",
+      name: "Greek Yogurt Berry Bowl",
+      description: "Greek yogurt with mixed berries, a spoon of honey, and a handful of granola.",
+      calories: 380,
+      protein: 28,
+      carbs: 46,
+      fat: 10,
+    },
+    {
+      time: "Lunch",
+      name: "Grilled Chicken and Rice Bowl",
+      description: "Grilled chicken breast over rice with mixed vegetables and olive oil.",
+      calories: 560,
+      protein: 42,
+      carbs: 58,
+      fat: 16,
+    },
+    {
+      time: "Dinner",
+      name: "Baked Salmon with Vegetables",
+      description: "Baked salmon with roasted vegetables and a squeeze of lemon.",
+      calories: 520,
+      protein: 38,
+      carbs: 24,
+      fat: 26,
+    },
+  ],
+  note: "A general sample day. Adjust portions to fit your own targets and preferences.",
+};
+
 type MealCategory = "breakfast" | "lunch" | "dinner";
 
 type LibraryRecipe = NutritionTotals & {
@@ -1379,6 +1424,7 @@ function NutritionScreen({
   onSave,
   onOpenRecipes,
   onOpenRecipeLibrary,
+  onOpenDietPlan,
   profile,
   nutritionTotals,
 }: {
@@ -1386,6 +1432,7 @@ function NutritionScreen({
   onSave: (totals: NutritionTotals) => void;
   onOpenRecipes: () => void;
   onOpenRecipeLibrary: () => void;
+  onOpenDietPlan: () => void;
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
 }) {
@@ -1504,6 +1551,25 @@ function NutritionScreen({
             <Text style={styles.libraryEntryEyebrow}>BREAKFAST · LUNCH · DINNER</Text>
             <Text style={styles.libraryEntryTitle}>Browse the recipe library</Text>
             <Text style={styles.libraryEntrySubtitle}>12 meals with macros, ready to cook</Text>
+          </View>
+          <View style={styles.libraryEntryArrow}>
+            <Text style={styles.libraryEntryArrowText}>→</Text>
+          </View>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Build an AI diet plan"
+          onPress={onOpenDietPlan}
+          style={styles.libraryEntryCard}
+        >
+          <View style={styles.libraryEntryIcon}>
+            <Text style={styles.libraryEntryIconText}>🧠</Text>
+          </View>
+          <View style={styles.libraryEntryCopy}>
+            <Text style={styles.libraryEntryEyebrow}>AI + COACH</Text>
+            <Text style={styles.libraryEntryTitle}>Build a diet plan</Text>
+            <Text style={styles.libraryEntrySubtitle}>A few quick questions, then a sample day</Text>
           </View>
           <View style={styles.libraryEntryArrow}>
             <Text style={styles.libraryEntryArrowText}>→</Text>
@@ -1737,6 +1803,238 @@ function RecipesScreen({
                 </View>
               </View>
             ))}
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const dietaryStyleOptions = [
+  { label: "No restrictions", value: "none" },
+  { label: "Vegetarian", value: "vegetarian" },
+  { label: "Vegan", value: "vegan" },
+  { label: "Low-carb", value: "low-carb" },
+];
+const mealsPerDayOptions = [
+  { label: "3 meals", value: "3" },
+  { label: "4 meals", value: "4" },
+  { label: "5 meals", value: "5" },
+];
+const prepTimeOptions = [
+  { label: "Quick (<15 min)", value: "quick" },
+  { label: "Moderate", value: "moderate" },
+  { label: "No limit", value: "any" },
+];
+
+function DietPlanScreen({
+  onBack,
+  profile,
+}: {
+  onBack: () => void;
+  profile: Record<string, string>;
+}) {
+  const [dietaryStyle, setDietaryStyle] = useState("none");
+  const [mealsPerDay, setMealsPerDay] = useState("3");
+  const [prepTime, setPrepTime] = useState("any");
+  const [avoid, setAvoid] = useState("");
+  const [stage, setStage] = useState<"form" | "loading" | "result">("form");
+  const [plan, setPlan] = useState<DietPlanResult | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
+
+  const calorieTarget = dailyCalorieTargetKcal(profile);
+  const proteinTarget = dailyProteinTargetGrams(profile);
+
+  const buildPlan = async () => {
+    setStage("loading");
+    try {
+      const response = await fetch("/api/diet-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: { goal: profile.goal, equipment: profile.equipment },
+          dietaryStyle,
+          mealsPerDay,
+          prepTime,
+          avoid: avoid.trim().slice(0, 140),
+          calorieTarget,
+          proteinTarget,
+          unitSystem,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error ?? "Diet plan request failed");
+      setPlan(data as DietPlanResult);
+      setIsFallback(false);
+    } catch {
+      setPlan(fallbackDietPlan);
+      setIsFallback(true);
+    } finally {
+      setStage("result");
+    }
+  };
+
+  const totals = plan
+    ? plan.meals.reduce(
+        (sum, meal) => ({
+          calories: sum.calories + meal.calories,
+          protein: sum.protein + meal.protein,
+          carbs: sum.carbs + meal.carbs,
+          fat: sum.fat + meal.fat,
+        }),
+        { calories: 0, protein: 0, carbs: 0, fat: 0 },
+      )
+    : null;
+
+  return (
+    <SafeAreaView style={styles.recipesScreen}>
+      <View style={styles.nutritionHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
+          <Text style={styles.coachBackText}>‹</Text>
+        </Pressable>
+        <View>
+          <Text style={styles.nutritionHeaderTitle}>DIET PLAN</Text>
+          <Text style={styles.nutritionHeaderSubtitle}>AI-built sample day</Text>
+        </View>
+        <View style={styles.coachHeaderSpacer} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.nutritionContent} showsVerticalScrollIndicator={false}>
+        {stage !== "result" ? (
+          <>
+            <View style={styles.nutritionIntro}>
+              <Text style={styles.nutritionEyebrow}>BUILD YOUR PLAN</Text>
+              <Text style={styles.nutritionTitle}>A few quick questions.</Text>
+              <Text style={styles.nutritionSubtitle}>
+                General food inspiration sized to ~{calorieTarget} kcal and {proteinTarget}g protein a day, not
+                medical or dietary advice.
+              </Text>
+            </View>
+
+            <Text style={styles.dietGroupLabel}>DIETARY STYLE</Text>
+            <View style={styles.dietChipRow}>
+              {dietaryStyleOptions.map((option) => (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: dietaryStyle === option.value }}
+                  onPress={() => setDietaryStyle(option.value)}
+                  style={[styles.dietChip, dietaryStyle === option.value && styles.dietChipSelected]}
+                >
+                  <Text style={[styles.dietChipText, dietaryStyle === option.value && styles.dietChipTextSelected]}>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Text style={styles.dietGroupLabel}>MEALS PER DAY</Text>
+            <View style={styles.dietChipRow}>
+              {mealsPerDayOptions.map((option) => (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: mealsPerDay === option.value }}
+                  onPress={() => setMealsPerDay(option.value)}
+                  style={[styles.dietChip, mealsPerDay === option.value && styles.dietChipSelected]}
+                >
+                  <Text style={[styles.dietChipText, mealsPerDay === option.value && styles.dietChipTextSelected]}>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Text style={styles.dietGroupLabel}>COOKING TIME</Text>
+            <View style={styles.dietChipRow}>
+              {prepTimeOptions.map((option) => (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: prepTime === option.value }}
+                  onPress={() => setPrepTime(option.value)}
+                  style={[styles.dietChip, prepTime === option.value && styles.dietChipSelected]}
+                >
+                  <Text style={[styles.dietChipText, prepTime === option.value && styles.dietChipTextSelected]}>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Text style={styles.dietGroupLabel}>FOODS TO AVOID (OPTIONAL)</Text>
+            <TextInput
+              value={avoid}
+              onChangeText={setAvoid}
+              placeholder="e.g. mushrooms, shellfish"
+              placeholderTextColor="#5B6058"
+              style={styles.dietAvoidInput}
+              maxLength={140}
+            />
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Build my plan"
+              onPress={buildPlan}
+              disabled={stage === "loading"}
+              style={[styles.dietBuildButton, stage === "loading" && styles.dietBuildButtonDisabled]}
+            >
+              <Text style={styles.dietBuildButtonText}>
+                {stage === "loading" ? "BUILDING YOUR PLAN…" : "BUILD MY PLAN"}
+              </Text>
+              {stage !== "loading" ? <Text style={styles.dietBuildButtonArrow}>→</Text> : null}
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <View style={styles.nutritionIntro}>
+              <Text style={styles.nutritionEyebrow}>YOUR SAMPLE DAY</Text>
+              <Text style={styles.nutritionTitle}>Here’s a plan to start from.</Text>
+              <Text style={styles.nutritionSubtitle}>{plan?.note}</Text>
+            </View>
+
+            {isFallback ? (
+              <Text style={styles.nutritionError}>
+                Live plan generation is unavailable. Showing a saved sample instead.
+              </Text>
+            ) : null}
+
+            {(plan?.meals ?? []).map((meal) => (
+              <View key={meal.name} style={styles.recipeCard}>
+                <View style={styles.recipeCardHeader}>
+                  <Text style={styles.recipeName}>{meal.name}</Text>
+                  <Text style={styles.recipeMinutes}>{meal.time.toUpperCase()}</Text>
+                </View>
+                <Text style={styles.recipeDescription}>{meal.description}</Text>
+                <View style={styles.recipeMacroRow}>
+                  <Text style={styles.recipeMacroText}>{meal.calories} kcal</Text>
+                  <Text style={styles.recipeMacroDivider}>·</Text>
+                  <Text style={styles.recipeMacroTextHighlight}>P {meal.protein}g</Text>
+                  <Text style={styles.recipeMacroDivider}>·</Text>
+                  <Text style={styles.recipeMacroText}>C {meal.carbs}g</Text>
+                  <Text style={styles.recipeMacroDivider}>·</Text>
+                  <Text style={styles.recipeMacroText}>F {meal.fat}g</Text>
+                </View>
+              </View>
+            ))}
+
+            {totals ? (
+              <View style={styles.dietTotalsRow}>
+                <Text style={styles.dietTotalsLabel}>DAY TOTAL</Text>
+                <Text style={styles.dietTotalsValue}>
+                  {totals.calories} kcal · P {totals.protein}g · C {totals.carbs}g · F {totals.fat}g
+                </Text>
+              </View>
+            ) : null}
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Adjust and rebuild"
+              onPress={() => setStage("form")}
+              style={styles.dietRebuildButton}
+            >
+              <Text style={styles.dietRebuildButtonText}>ADJUST AND REBUILD</Text>
+            </Pressable>
           </>
         )}
       </ScrollView>
@@ -2334,6 +2632,16 @@ function dailyProteinTargetGrams(profile: Record<string, string>): number {
   const weightKg = Number.isFinite(bodyWeightKg) && bodyWeightKg > 0 ? bodyWeightKg : REFERENCE_BODY_WEIGHT_KG;
   const factor = profile.goal === "muscle" || profile.goal === "strength" ? 2.0 : profile.goal === "fat-loss" ? 1.8 : 1.6;
   return Math.round(weightKg * factor);
+}
+
+// A rough Mifflin-St Jeor-style maintenance estimate scaled by goal; this is
+// a general heuristic to size a sample meal plan, not medical or dietary advice.
+function dailyCalorieTargetKcal(profile: Record<string, string>): number {
+  const bodyWeightKg = Number(profile.weight);
+  const weightKg = Number.isFinite(bodyWeightKg) && bodyWeightKg > 0 ? bodyWeightKg : REFERENCE_BODY_WEIGHT_KG;
+  const maintenance = weightKg * 30;
+  const factor = profile.goal === "fat-loss" ? 0.82 : profile.goal === "muscle" ? 1.12 : 1;
+  return Math.round((maintenance * factor) / 10) * 10;
 }
 
 function scaledStartingWeightLabel(baseKg: number, bodyWeightKg: number): string {
@@ -3437,6 +3745,7 @@ export default function App() {
             onBack={() => setScreen("dashboard")}
             onOpenRecipes={() => setScreen("recipes")}
             onOpenRecipeLibrary={() => setScreen("recipeLibrary")}
+            onOpenDietPlan={() => setScreen("dietPlan")}
             onSave={(meal) =>
               setNutritionTotals((current) => ({
                 calories: current.calories + meal.calories,
@@ -3468,6 +3777,9 @@ export default function App() {
             recipe={recipeLibrary.find((recipe) => recipe.id === selectedLibraryRecipeId) ?? recipeLibrary[0]!}
             onBack={() => setScreen("recipeLibrary")}
           />
+        )}
+        {screen === "dietPlan" && (
+          <DietPlanScreen profile={profile} onBack={() => setScreen("nutrition")} />
         )}
         {screen === "coach" && (
           <AICoachScreen
@@ -4361,6 +4673,71 @@ const styles = StyleSheet.create({
   recipeMacroText: { color: colors.muted, fontSize: 11, fontWeight: "700" },
   recipeMacroTextHighlight: { color: colors.lime, fontSize: 11, fontWeight: "800" },
   recipeMacroDivider: { color: "#3A3F38", fontSize: 11 },
+  dietGroupLabel: {
+    color: colors.muted,
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 1.2,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  dietChipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  dietChip: {
+    height: 34,
+    paddingHorizontal: 14,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: "#262A24",
+    backgroundColor: "#0C0E0C",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dietChipSelected: { borderColor: colors.lime, backgroundColor: "rgba(200,255,50,0.12)" },
+  dietChipText: { color: "#CFD3CC", fontSize: 12, fontWeight: "700" },
+  dietChipTextSelected: { color: colors.lime },
+  dietAvoidInput: {
+    height: 44,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#262A24",
+    backgroundColor: "#0C0E0C",
+    paddingHorizontal: 14,
+    color: colors.text,
+    fontSize: 13,
+  },
+  dietBuildButton: {
+    height: 51,
+    borderRadius: 26,
+    marginTop: 22,
+    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: colors.lime,
+  },
+  dietBuildButtonDisabled: { backgroundColor: "#171A17" },
+  dietBuildButtonText: { color: colors.ink, fontSize: 11, fontWeight: "900", letterSpacing: 1.1 },
+  dietBuildButtonArrow: { color: colors.ink, fontSize: 17, fontWeight: "700" },
+  dietTotalsRow: {
+    marginTop: 4,
+    marginBottom: 14,
+    paddingHorizontal: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  dietTotalsLabel: { color: colors.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  dietTotalsValue: { color: colors.text, fontSize: 11, fontWeight: "700" },
+  dietRebuildButton: {
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 1,
+    borderColor: "#2A2F28",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dietRebuildButtonText: { color: colors.text, fontSize: 11, fontWeight: "800", letterSpacing: 1 },
   libraryEntryCard: {
     flexDirection: "row",
     alignItems: "center",
