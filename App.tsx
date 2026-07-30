@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { useVideoPlayer, VideoView } from "expo-video";
+import { isSupabaseConfigured, supabase } from "./lib/supabase";
 
 const colors = {
   background: "#050505",
@@ -44,7 +45,8 @@ type Screen =
   | "recipeLibrary"
   | "recipeDetail"
   | "dietPlan"
-  | "auth";
+  | "auth"
+  | "resetPassword";
 
 type InterviewAnswer = {
   label: string;
@@ -3698,43 +3700,66 @@ function isMediumPassword(password: string): boolean {
 
 function AuthScreen({
   onBack,
-  onAuthSuccess,
   initialMode = "signup",
 }: {
   onBack: () => void;
-  onAuthSuccess: (mode: "signup" | "login", email: string) => void;
   initialMode?: "signup" | "login";
 }) {
-  const [mode, setMode] = useState<"signup" | "login">(initialMode);
+  const [mode, setMode] = useState<"signup" | "login" | "forgot">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const submit = async () => {
     if (isSubmitting) return;
     setError("");
     const trimmedEmail = email.trim().toLowerCase();
+
+    if (mode === "forgot") {
+      setIsSubmitting(true);
+      try {
+        const { error: authError } = await supabase.auth.resetPasswordForEmail(
+          trimmedEmail,
+          Platform.OS === "web" ? { redirectTo: `${window.location.origin}/reset-password` } : undefined,
+        );
+        if (authError) throw new Error(authError.message);
+        setResetSent(true);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong.");
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
     if (mode === "signup" && !isMediumPassword(password)) {
       setError("Password must be at least 8 characters and include both letters and numbers.");
       return;
     }
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/auth/${mode}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email: trimmedEmail, password }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error ?? "Something went wrong.");
-      onAuthSuccess(mode, trimmedEmail);
+      const { error: authError } =
+        mode === "signup"
+          ? await supabase.auth.signUp({ email: trimmedEmail, password })
+          : await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
+      if (authError) throw new Error(authError.message);
+      onBack();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const continueWithFacebook = async () => {
+    setError("");
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: "facebook",
+      options: Platform.OS === "web" ? { redirectTo: window.location.origin } : undefined,
+    });
+    if (authError) setError(authError.message);
   };
 
   return (
@@ -3746,7 +3771,7 @@ function AuthScreen({
         <View>
           <Text style={styles.nutritionHeaderTitle}>ACCOUNT</Text>
           <Text style={styles.nutritionHeaderSubtitle}>
-            {mode === "signup" ? "Create your account" : "Welcome back"}
+            {mode === "signup" ? "Create your account" : mode === "login" ? "Welcome back" : "Reset your password"}
           </Text>
         </View>
         <View style={styles.coachHeaderSpacer} />
@@ -3756,69 +3781,228 @@ function AuthScreen({
         <View style={styles.nutritionIntro}>
           <Text style={styles.nutritionEyebrow}>SAVE YOUR PROGRESS</Text>
           <Text style={styles.nutritionTitle}>
-            {mode === "signup" ? "Create a free account." : "Log back in."}
+            {mode === "signup" ? "Create a free account." : mode === "login" ? "Log back in." : "Forgot password."}
           </Text>
           <Text style={styles.nutritionSubtitle}>
-            Keep your plan, progress, and history synced across devices.
+            {mode === "forgot"
+              ? "Enter your email and we'll send you a link to set a new password."
+              : "Keep your plan, progress, and history synced across devices."}
           </Text>
         </View>
 
-        <Text style={styles.dietGroupLabel}>EMAIL</Text>
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholder="you@example.com"
-          placeholderTextColor="#5B6058"
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="email-address"
-          style={styles.dietAvoidInput}
-        />
-
-        <Text style={styles.dietGroupLabel}>PASSWORD</Text>
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          placeholder={mode === "signup" ? "8+ characters, letters & numbers" : "Your password"}
-          placeholderTextColor="#5B6058"
-          secureTextEntry
-          style={styles.dietAvoidInput}
-        />
-
-        {error ? <Text style={[styles.nutritionError, { marginTop: 14 }]}>{error}</Text> : null}
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={mode === "signup" ? "Create account" : "Log in"}
-          onPress={submit}
-          disabled={isSubmitting}
-          style={[styles.dietBuildButton, isSubmitting && styles.dietBuildButtonDisabled]}
-        >
-          <Text style={styles.dietBuildButtonText}>
-            {isSubmitting ? "PLEASE WAIT…" : mode === "signup" ? "CREATE ACCOUNT" : "LOG IN"}
+        {mode === "forgot" && resetSent ? (
+          <Text style={styles.nutritionSubtitle}>
+            If an account exists for {email.trim() || "that email"}, a reset link is on its way. Check your inbox.
           </Text>
-        </Pressable>
+        ) : (
+          <>
+            <Text style={styles.dietGroupLabel}>EMAIL</Text>
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder="you@example.com"
+              placeholderTextColor="#5B6058"
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              style={styles.dietAvoidInput}
+            />
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={mode === "signup" ? "Already have an account? Log in" : "Need an account? Sign up"}
-          onPress={() => {
-            setMode((current) => (current === "signup" ? "login" : "signup"));
-            setError("");
-          }}
-          style={styles.authSwitchLink}
-        >
-          <Text style={styles.authSwitchLinkText}>
-            {mode === "signup" ? "Already have an account? Log in" : "Need an account? Sign up"}
+            {mode !== "forgot" ? (
+              <>
+                <Text style={styles.dietGroupLabel}>PASSWORD</Text>
+                <TextInput
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder={mode === "signup" ? "8+ characters, letters & numbers" : "Your password"}
+                  placeholderTextColor="#5B6058"
+                  secureTextEntry
+                  style={styles.dietAvoidInput}
+                />
+              </>
+            ) : null}
+
+            {mode === "login" ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Forgot password?"
+                onPress={() => {
+                  setMode("forgot");
+                  setError("");
+                  setResetSent(false);
+                }}
+                style={styles.authSwitchLink}
+              >
+                <Text style={styles.authSwitchLinkText}>Forgot password?</Text>
+              </Pressable>
+            ) : null}
+
+            {error ? <Text style={[styles.nutritionError, { marginTop: 14 }]}>{error}</Text> : null}
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={mode === "signup" ? "Create account" : mode === "login" ? "Log in" : "Send reset link"}
+              onPress={submit}
+              disabled={isSubmitting}
+              style={[styles.dietBuildButton, isSubmitting && styles.dietBuildButtonDisabled]}
+            >
+              <Text style={styles.dietBuildButtonText}>
+                {isSubmitting
+                  ? "PLEASE WAIT…"
+                  : mode === "signup"
+                    ? "CREATE ACCOUNT"
+                    : mode === "login"
+                      ? "LOG IN"
+                      : "SEND RESET LINK"}
+              </Text>
+            </Pressable>
+
+            {mode !== "forgot" ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Continue with Facebook"
+                onPress={continueWithFacebook}
+                style={[styles.dietRebuildButton, { marginTop: 10 }]}
+              >
+                <Text style={styles.dietRebuildButtonText}>CONTINUE WITH FACEBOOK</Text>
+              </Pressable>
+            ) : null}
+          </>
+        )}
+
+        {mode === "forgot" ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back to log in"
+            onPress={() => {
+              setMode("login");
+              setError("");
+              setResetSent(false);
+            }}
+            style={[styles.authSwitchLink, { marginTop: 16 }]}
+          >
+            <Text style={styles.authSwitchLinkText}>Back to log in</Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={mode === "signup" ? "Already have an account? Log in" : "Need an account? Sign up"}
+            onPress={() => {
+              setMode((current) => (current === "signup" ? "login" : "signup"));
+              setError("");
+            }}
+            style={styles.authSwitchLink}
+          >
+            <Text style={styles.authSwitchLinkText}>
+              {mode === "signup" ? "Already have an account? Log in" : "Need an account? Sign up"}
+            </Text>
+          </Pressable>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function ResetPasswordScreen({ onDone }: { onDone: () => void }) {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const submit = async () => {
+    if (isSubmitting) return;
+    setError("");
+    if (!isMediumPassword(password)) {
+      setError("Password must be at least 8 characters and include both letters and numbers.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const { error: authError } = await supabase.auth.updateUser({ password });
+      if (authError) throw new Error(authError.message);
+      setDone(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.recipesScreen}>
+      <View style={styles.nutritionHeader}>
+        <View style={styles.coachHeaderSpacer} />
+        <View>
+          <Text style={styles.nutritionHeaderTitle}>ACCOUNT</Text>
+          <Text style={styles.nutritionHeaderSubtitle}>Set a new password</Text>
+        </View>
+        <View style={styles.coachHeaderSpacer} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.nutritionContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.nutritionIntro}>
+          <Text style={styles.nutritionEyebrow}>RESET PASSWORD</Text>
+          <Text style={styles.nutritionTitle}>{done ? "Password updated." : "Choose a new password."}</Text>
+          <Text style={styles.nutritionSubtitle}>
+            {done
+              ? "You can now continue with your new password."
+              : "Must be at least 8 characters and include both letters and numbers."}
           </Text>
-        </Pressable>
+        </View>
+
+        {done ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Continue" onPress={onDone} style={styles.dietBuildButton}>
+            <Text style={styles.dietBuildButtonText}>CONTINUE</Text>
+          </Pressable>
+        ) : (
+          <>
+            <Text style={styles.dietGroupLabel}>NEW PASSWORD</Text>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="8+ characters, letters & numbers"
+              placeholderTextColor="#5B6058"
+              secureTextEntry
+              style={styles.dietAvoidInput}
+            />
+
+            <Text style={styles.dietGroupLabel}>CONFIRM PASSWORD</Text>
+            <TextInput
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Re-enter your new password"
+              placeholderTextColor="#5B6058"
+              secureTextEntry
+              style={styles.dietAvoidInput}
+            />
+
+            {error ? <Text style={[styles.nutritionError, { marginTop: 14 }]}>{error}</Text> : null}
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Save new password"
+              onPress={submit}
+              disabled={isSubmitting}
+              style={[styles.dietBuildButton, isSubmitting && styles.dietBuildButtonDisabled]}
+            >
+              <Text style={styles.dietBuildButtonText}>{isSubmitting ? "PLEASE WAIT…" : "SAVE NEW PASSWORD"}</Text>
+            </Pressable>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("splash");
+  const [screen, setScreen] = useState<Screen>(() =>
+    Platform.OS === "web" && window.location.pathname === "/reset-password" ? "resetPassword" : "splash",
+  );
   const [profile, setProfile] = useState<Record<string, string>>({});
   const [coachAdjustment, setCoachAdjustment] = useState<CoachScenario | null>(null);
   const [selectedLibraryRecipeId, setSelectedLibraryRecipeId] = useState<string | null>(null);
@@ -3832,14 +4016,25 @@ export default function App() {
   const [exerciseProgress, setExerciseProgress] = useState<Record<string, ExerciseProgress>>({});
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistoryEntry[]>([]);
   const [session, setSession] = useState<{ email: string } | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [authInitialMode, setAuthInitialMode] = useState<"signup" | "login">("signup");
 
+  const stateRef = useRef({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory });
+  stateRef.current = { profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory };
+
   useEffect(() => {
-    if (Platform.OS !== "web") {
+    if (Platform.OS !== "web" || !isSupabaseConfigured) {
       setHasLoadedTestState(true);
       return;
     }
     let cancelled = false;
+    let initialHandled = false;
+
+    const finishInitialLoad = () => {
+      if (initialHandled) return;
+      initialHandled = true;
+      setHasLoadedTestState(true);
+    };
 
     const loadLocalState = () => {
       try {
@@ -3866,32 +4061,68 @@ export default function App() {
       }
     };
 
-    const init = async () => {
+    const applySession = async (id: string, email: string | undefined) => {
       try {
-        const response = await fetch("/api/auth/me", { credentials: "include" });
-        if (cancelled) return;
-        if (response.ok) {
-          const data = await response.json();
-          setSession({ email: data.email });
-          setProfile(data.profile ?? {});
-          setNutritionTotals(data.nutritionTotals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 });
-          setCoachAdjustment(data.coachAdjustment ?? null);
-          setExerciseProgress(data.exerciseProgress ?? {});
-          setWorkoutHistory(data.workoutHistory ?? []);
-          if (data.profile && Object.keys(data.profile).length > 0) setScreen("dashboard");
-        } else {
-          loadLocalState();
+        const { data } = await supabase
+          .from("user_data")
+          .select("profile, nutrition_totals, coach_adjustment, exercise_progress, workout_history")
+          .eq("user_id", id)
+          .maybeSingle();
+        const remoteProfile = (data?.profile ?? {}) as Record<string, string>;
+        if (Object.keys(remoteProfile).length > 0) {
+          setProfile(remoteProfile);
+          setNutritionTotals(
+            (data?.nutrition_totals as NutritionTotals) ?? { calories: 0, protein: 0, carbs: 0, fat: 0 },
+          );
+          setCoachAdjustment((data?.coach_adjustment as CoachScenario | null) ?? null);
+          setExerciseProgress((data?.exercise_progress as Record<string, ExerciseProgress>) ?? {});
+          setWorkoutHistory((data?.workout_history as WorkoutHistoryEntry[]) ?? []);
+          setScreen("dashboard");
+        } else if (Object.keys(stateRef.current.profile).length > 0) {
+          // Fresh account with no saved data yet: migrate whatever local/guest
+          // progress already existed into it.
+          await supabase
+            .from("user_data")
+            .update({
+              profile: stateRef.current.profile,
+              nutrition_totals: stateRef.current.nutritionTotals,
+              coach_adjustment: stateRef.current.coachAdjustment,
+              exercise_progress: stateRef.current.exerciseProgress,
+              workout_history: stateRef.current.workoutHistory,
+            })
+            .eq("user_id", id);
         }
+        if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
+        setUserId(id);
+        setSession({ email: email ?? "" });
       } catch {
-        if (!cancelled) loadLocalState();
+        // Keep whatever local state was already present.
       } finally {
-        if (!cancelled) setHasLoadedTestState(true);
+        finishInitialLoad();
       }
     };
 
-    void init();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (cancelled) return;
+      if (event === "SIGNED_OUT") {
+        setSession(null);
+        setUserId(null);
+        finishInitialLoad();
+        return;
+      }
+      if (newSession?.user) {
+        void applySession(newSession.user.id, newSession.user.email);
+      } else {
+        loadLocalState();
+        finishInitialLoad();
+      }
+    });
+
     return () => {
       cancelled = true;
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -3904,17 +4135,25 @@ export default function App() {
   }, [coachAdjustment, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, session, workoutHistory]);
 
   useEffect(() => {
-    if (!session || !hasLoadedTestState) return;
-    const controller = new AbortController();
-    fetch("/api/user-data", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory }),
-      signal: controller.signal,
-    }).catch(() => {});
-    return () => controller.abort();
-  }, [coachAdjustment, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, session, workoutHistory]);
+    if (!userId || !hasLoadedTestState) return;
+    let cancelled = false;
+    void (async () => {
+      if (cancelled) return;
+      await supabase
+        .from("user_data")
+        .update({
+          profile,
+          nutrition_totals: nutritionTotals,
+          coach_adjustment: coachAdjustment,
+          exercise_progress: exerciseProgress,
+          workout_history: workoutHistory,
+        })
+        .eq("user_id", userId);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [coachAdjustment, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, userId, workoutHistory]);
 
   const resetTestProfile = () => {
     if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
@@ -3925,45 +4164,10 @@ export default function App() {
     setScreen("welcome");
   };
 
-  const handleAuthSuccess = async (mode: "signup" | "login", email: string) => {
-    setSession({ email });
-    if (mode === "signup") {
-      try {
-        await fetch("/api/user-data", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory }),
-        });
-      } catch {
-        // Best-effort; the regular persistence effect retries on the next state change.
-      }
-    } else {
-      try {
-        const response = await fetch("/api/auth/me", { credentials: "include" });
-        if (response.ok) {
-          const data = await response.json();
-          setProfile(data.profile ?? {});
-          setNutritionTotals(data.nutritionTotals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 });
-          setCoachAdjustment(data.coachAdjustment ?? null);
-          setExerciseProgress(data.exerciseProgress ?? {});
-          setWorkoutHistory(data.workoutHistory ?? []);
-        }
-      } catch {
-        // Keep whatever local state was already present.
-      }
-    }
-    if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
-    setScreen("dashboard");
-  };
-
   const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    } catch {
-      // Ignore; clearing local session state below is enough for the UI.
-    }
+    await supabase.auth.signOut();
     setSession(null);
+    setUserId(null);
     setScreen("dashboard");
   };
 
@@ -4007,11 +4211,13 @@ export default function App() {
           />
         )}
         {screen === "auth" && (
-          <AuthScreen
-            initialMode={authInitialMode}
-            onBack={() => setScreen("dashboard")}
-            onAuthSuccess={(mode, email) => {
-              void handleAuthSuccess(mode, email);
+          <AuthScreen initialMode={authInitialMode} onBack={() => setScreen("dashboard")} />
+        )}
+        {screen === "resetPassword" && (
+          <ResetPasswordScreen
+            onDone={() => {
+              if (Platform.OS === "web") window.history.replaceState({}, "", "/");
+              setScreen("dashboard");
             }}
           />
         )}
