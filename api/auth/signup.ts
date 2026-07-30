@@ -17,6 +17,10 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function isMediumPassword(password: string): boolean {
+  return password.length >= 8 && /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Cache-Control", "no-store");
 
@@ -37,8 +41,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(400).json({ error: "Enter a valid email address." });
     return;
   }
-  if (password.length < 8) {
-    res.status(400).json({ error: "Password must be at least 8 characters." });
+  if (!isMediumPassword(password)) {
+    res.status(400).json({ error: "Password must be at least 8 characters and include both letters and numbers." });
     return;
   }
 
