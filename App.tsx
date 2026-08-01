@@ -2731,6 +2731,8 @@ function AICoachScreen({
   const [aiChanges, setAiChanges] = useState<string[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const [coachError, setCoachError] = useState("");
+  const [requiresHumanReview, setRequiresHumanReview] = useState(false);
+  const [reviewRequestStatus, setReviewRequestStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const scrollRef = useRef<ScrollView>(null);
 
   const goalLabel =
@@ -2748,6 +2750,8 @@ function AICoachScreen({
     setAiReply("");
     setAiChanges([]);
     setApplied(false);
+    setRequiresHumanReview(false);
+    setReviewRequestStatus("idle");
     try {
       const response = await fetch("/api/coach", {
         method: "POST",
@@ -2763,9 +2767,11 @@ function AICoachScreen({
         reply?: string;
         scenario?: ResolvedCoachScenario;
         changes?: string[];
+        requiresHumanReview?: boolean;
       };
       const resolvedScenario: ResolvedCoachScenario = result.scenario ?? fallbackScenario;
       setScenario(resolvedScenario);
+      setRequiresHumanReview(Boolean(result.requiresHumanReview));
       setAiReply(
         result.reply ??
           (isActionableScenario(resolvedScenario)
@@ -2795,6 +2801,21 @@ function AICoachScreen({
     } finally {
       setIsThinking(false);
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
+    }
+  };
+
+  const requestCoachReview = async () => {
+    setReviewRequestStatus("sending");
+    try {
+      const response = await fetch("/api/request-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: customMessage, reply: aiReply, profile }),
+      });
+      if (!response.ok) throw new Error("Review request failed");
+      setReviewRequestStatus("sent");
+    } catch {
+      setReviewRequestStatus("error");
     }
   };
 
@@ -2849,7 +2870,7 @@ function AICoachScreen({
               <Text style={styles.coachName}>AI COACH</Text>
               <View style={styles.coachOnlineRow}>
                 <View style={styles.coachOnlineDot} />
-                <Text style={styles.coachOnlineText}>ONLINE · HUMAN BACKED</Text>
+                <Text style={styles.coachOnlineText}>AI + HUMAN REVIEW</Text>
               </View>
             </View>
           </View>
@@ -2960,6 +2981,38 @@ function AICoachScreen({
                   ))}
                   <Pressable onPress={onOpenDietPlan} style={styles.coachApplyButton}>
                     <Text style={styles.coachApplyButtonText}>OPEN DIET PLAN</Text>
+                  </Pressable>
+                </View>
+              ) : null}
+
+              {requiresHumanReview ? (
+                <View style={styles.coachAdjustmentCard}>
+                  <View style={styles.coachAdjustmentTop}>
+                    <Text style={styles.coachAdjustmentLabel}>HUMAN REVIEW</Text>
+                    <Text style={styles.coachAdjustmentBadge}>REAL COACH</Text>
+                  </View>
+                  <Text style={styles.coachChangeText}>
+                    {reviewRequestStatus === "sent"
+                      ? "Sent to your coach — typically answered within 24–48h."
+                      : reviewRequestStatus === "error"
+                        ? "Could not send that just now. Try again shortly."
+                        : "Flag this for your real coach to review directly."}
+                  </Text>
+                  <Pressable
+                    onPress={requestCoachReview}
+                    disabled={reviewRequestStatus === "sending" || reviewRequestStatus === "sent"}
+                    style={[
+                      styles.coachApplyButton,
+                      reviewRequestStatus === "sent" && styles.coachApplyButtonDone,
+                    ]}
+                  >
+                    <Text style={styles.coachApplyButtonText}>
+                      {reviewRequestStatus === "sending"
+                        ? "SENDING..."
+                        : reviewRequestStatus === "sent"
+                          ? "REQUEST SENT ✓"
+                          : "REQUEST COACH REVIEW"}
+                    </Text>
                   </Pressable>
                 </View>
               ) : null}
