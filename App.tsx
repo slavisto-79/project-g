@@ -2684,13 +2684,13 @@ const coachScenarios: Record<
   },
 };
 
-type ResolvedCoachScenario = CoachScenario | "nutrition" | "general";
+type ResolvedCoachScenario = CoachScenario | "nutrition" | "general" | "off_topic";
 
 function isActionableScenario(scenario: ResolvedCoachScenario | null): scenario is CoachScenario {
   return scenario === "tired" || scenario === "pain" || scenario === "time" || scenario === "equipment";
 }
 
-const nonWorkoutFallback: Record<"nutrition" | "general", { reply: string; changes: string[] }> = {
+const nonWorkoutFallback: Record<"nutrition" | "general" | "off_topic", { reply: string; changes: string[] }> = {
   nutrition: {
     reply:
       "For a real diet plan built around your goal, head to Nutrition → Build a diet plan — it asks a few quick questions and builds a sample day for you.",
@@ -2698,6 +2698,10 @@ const nonWorkoutFallback: Record<"nutrition" | "general", { reply: string; chang
   },
   general: {
     reply: "Live AI is unavailable right now. Ask about fatigue, discomfort, limited time, or limited equipment and I can adjust today's session.",
+    changes: [],
+  },
+  off_topic: {
+    reply: "I'm focused on your training — ask me about today's session, technique, recovery, or your plan.",
     changes: [],
   },
 };

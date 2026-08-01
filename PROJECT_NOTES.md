@@ -56,6 +56,7 @@
 - The live AI Coach uses a server-side Vercel function; `OPENAI_API_KEY` must never be exposed to the client or committed.
 - If the live AI request fails, the app must remain usable and show the safe deterministic coaching fallback.
 - The live AI Coach now receives a compact training-history summary (`summarizeCoachMemory` in `App.tsx`: total workouts, this week's count, last session's stats, current per-exercise working weights) alongside the profile, so replies can reference real progress instead of treating every conversation as the first one. Keep this summary short (a few lines) -- it's meant as context, not a full history dump.
+- The AI Coach only discusses training, technique, soreness/pain from training, recovery, scheduling, and equipment for this user's plan. Diet/nutrition questions are redirected to the Nutrition -> "Build a diet plan" feature (the 'nutrition' scenario), not answered inline. Anything else off-topic (general knowledge, other apps, unrelated small talk) is classified as the 'off_topic' scenario: the model declines to answer the unrelated question and redirects to training in one brief sentence, rather than acting as a general-purpose assistant.
 
 ## Exercise video performance rules
 

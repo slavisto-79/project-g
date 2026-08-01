@@ -56,6 +56,7 @@ const safeScenarioChanges = {
   equipment: ["Use available-equipment alternatives", "Preserve the planned movement patterns", "Match the planned effort"],
   nutrition: ["Answer a few quick questions there", "Get a sample day sized to your goal", "Revisit it anytime in Nutrition"],
   general: ["Keep today’s planned session", "Prioritize controlled technique", "Review progress after training"],
+  off_topic: ["Ask about today's session", "Ask about recovery or soreness", "Ask about your training plan"],
 } as const;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -101,6 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "For ordinary discomfort, recommend stopping the aggravating movement, a pain-free alternative, and human coach review.",
           "Do not prescribe medication, supplements, or extreme calorie restriction.",
           "If the user asks about diet, nutrition, meal plans, or what to eat, do not build a diet plan yourself in this chat -- this app already has a dedicated Nutrition -> \"Build a diet plan\" feature that asks the right questions and builds a real one sized to their profile. Classify this as the 'nutrition' scenario and reply with a brief, friendly acknowledgement that points them there instead.",
+          "You only discuss training, exercise technique, soreness or pain from training, recovery, workout scheduling, and equipment for this user's fitness plan. If the message is not about one of those topics or nutrition (unrelated small talk, general knowledge, other apps, coding, news, or any other off-topic request), do not answer the off-topic question at all -- classify it as the 'off_topic' scenario and reply with one brief, friendly sentence declining and inviting them to ask about their training instead.",
           "Reply in the same language as the user's message.",
           "Keep the reply under 80 words and each proposed change under 12 words.",
           "Do not include drafting notes, self-critique, alternatives, or hidden reasoning.",
@@ -119,7 +121,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 reply: { type: "string" },
                 scenario: {
                   type: "string",
-                  enum: ["tired", "pain", "time", "equipment", "nutrition", "general"],
+                  enum: ["tired", "pain", "time", "equipment", "nutrition", "general", "off_topic"],
                 },
                 changes: {
                   type: "array",
@@ -160,7 +162,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const outputText = readOutputText(responseData);
     const result = JSON.parse(outputText) as {
       reply: string;
-      scenario: "tired" | "pain" | "time" | "equipment" | "nutrition" | "general";
+      scenario: "tired" | "pain" | "time" | "equipment" | "nutrition" | "general" | "off_topic";
       changes: string[];
       requiresHumanReview: boolean;
     };
