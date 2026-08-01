@@ -806,6 +806,7 @@ function DashboardScreen({
   onLogout,
   profile,
   nutritionTotals,
+  workoutHistory,
 }: {
   onStartWorkout: () => void;
   onOpenCoach: () => void;
@@ -817,6 +818,7 @@ function DashboardScreen({
   onLogout: () => void;
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
+  workoutHistory: WorkoutHistoryEntry[];
 }) {
   const workoutName =
     profile.sex === "female"
@@ -824,6 +826,10 @@ function DashboardScreen({
       : profile.sex === "male"
         ? profile.goal === "fat-loss" ? "Metabolic Full Body" : "Strength + Muscle"
         : "Balanced Full Body";
+  const exerciseCount = createWorkout(profile).length;
+  const weeklyGoal = profile.frequency ?? "3";
+  const thisWeekCount = workoutHistory.filter((entry) => isWithinLastDays(entry.date, 7)).length;
+  const lastWorkout = workoutHistory[0];
 
   return (
     <SafeAreaView style={styles.dashboard}>
@@ -909,7 +915,7 @@ function DashboardScreen({
             <Text style={styles.workoutDuration}>{profile.duration ?? "45"} MIN</Text>
           </View>
           <Text style={styles.workoutTitle}>{workoutName}</Text>
-          <Text style={styles.workoutMeta}>5 guided exercises · Personalized intensity</Text>
+          <Text style={styles.workoutMeta}>{exerciseCount} guided exercises · Personalized intensity</Text>
           <View style={styles.workoutCoachNote}>
             <View style={styles.coachMiniAvatar}><Text style={styles.coachMiniText}>G</Text></View>
             <Text style={styles.workoutCoachText}>Adapted to your profile, recovery, and equipment.</Text>
@@ -941,7 +947,7 @@ function DashboardScreen({
         <Text style={styles.quickTitle}>QUICK OVERVIEW</Text>
         <View style={styles.metricGrid}>
           {[
-            ["1 / 3", "WORKOUTS"],
+            [`${thisWeekCount} / ${weeklyGoal}`, "WORKOUTS"],
             [nutritionTotals.calories ? nutritionTotals.calories.toLocaleString() : "0", "CALORIES"],
             [`${nutritionTotals.protein}g`, "PROTEIN"],
           ].map(([value, label]) => (
@@ -952,15 +958,19 @@ function DashboardScreen({
           ))}
         </View>
 
-        <View style={styles.lastWorkoutCard}>
-          <View>
-            <Text style={styles.weekLabel}>LAST WORKOUT</Text>
-            <Text style={styles.weekValue}>Full Body · 42 min</Text>
+        {lastWorkout ? (
+          <View style={styles.lastWorkoutCard}>
+            <View>
+              <Text style={styles.weekLabel}>LAST WORKOUT</Text>
+              <Text style={styles.weekValue}>
+                {lastWorkout.title} · {formatHistoryDuration(lastWorkout.seconds)}
+              </Text>
+            </View>
+            <View style={styles.lastWorkoutScore}>
+              <Text style={styles.lastWorkoutScoreText}>{lastWorkout.calories} kcal</Text>
+            </View>
           </View>
-          <View style={styles.lastWorkoutScore}>
-            <Text style={styles.lastWorkoutScoreText}>86%</Text>
-          </View>
-        </View>
+        ) : null}
       </ScrollView>
 
       <BottomNav
@@ -4745,6 +4755,7 @@ export default function App() {
           <DashboardScreen
             profile={profile}
             nutritionTotals={nutritionTotals}
+            workoutHistory={workoutHistory}
             onStartWorkout={() => setScreen("workout")}
             onOpenCoach={() => setScreen("coach")}
             onOpenNutrition={() => setScreen("nutrition")}
