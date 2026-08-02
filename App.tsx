@@ -410,11 +410,9 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
 }
 
 function WelcomeScreen({
-  onStart,
   onSignIn,
   onCreateAccount,
 }: {
-  onStart: () => void;
   onSignIn: () => void;
   onCreateAccount: () => void;
 }) {
@@ -485,20 +483,17 @@ function WelcomeScreen({
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Get started"
-            onPress={onStart}
+            accessibilityLabel="Create a free account"
+            onPress={onCreateAccount}
             style={({ pressed }) => [styles.startButton, pressed && styles.startButtonPressed]}
           >
-            <Text style={styles.startButtonText}>GET STARTED</Text>
+            <Text style={styles.startButtonText}>CREATE FREE ACCOUNT</Text>
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
           <View style={styles.welcomeAuthRow}>
+            <Text style={styles.welcomeAuthLabel}>Already have an account?</Text>
             <Pressable accessibilityRole="button" accessibilityLabel="Sign in" onPress={onSignIn}>
-              <Text style={styles.welcomeAuthLinkText}>Sign in</Text>
-            </Pressable>
-            <Text style={styles.welcomeAuthDivider}>·</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Create a free account" onPress={onCreateAccount}>
-              <Text style={styles.welcomeAuthLinkText}>Create a free account</Text>
+              <Text style={[styles.welcomeAuthLinkText, { textDecorationLine: "underline" }]}>Sign in</Text>
             </Pressable>
           </View>
           <Text style={styles.disclaimer}>Built for your goals. Adapted to your life.</Text>
@@ -5115,7 +5110,6 @@ export default function App() {
         {screen === "splash" && <SplashScreen onComplete={() => setScreen("welcome")} />}
         {screen === "welcome" && (
           <WelcomeScreen
-            onStart={() => setScreen("interview")}
             onSignIn={() => {
               setAuthInitialMode("login");
               setAuthOrigin("welcome");
@@ -5463,8 +5457,8 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 16,
   },
+  welcomeAuthLabel: { color: "#7D827A", fontSize: 12, fontWeight: "600" },
   welcomeAuthLinkText: { color: colors.text, fontSize: 12, fontWeight: "700" },
-  welcomeAuthDivider: { color: "#5B6058", fontSize: 12 },
   preview: { flex: 1, backgroundColor: colors.background },
   interviewHeader: {
     flexDirection: "row",
