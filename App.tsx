@@ -49,7 +49,8 @@ type Screen =
   | "recipeDetail"
   | "dietPlan"
   | "auth"
-  | "resetPassword";
+  | "resetPassword"
+  | "profile";
 
 type InterviewAnswer = {
   label: string;
@@ -750,6 +751,209 @@ function InterviewScreen({
   );
 }
 
+function ProfileScreen({
+  profile,
+  onUpdateProfile,
+  onBack,
+  session,
+  onOpenAccount,
+  onLogout,
+}: {
+  profile: Record<string, string>;
+  onUpdateProfile: (id: string, value: string) => void;
+  onBack: () => void;
+  session: { email: string } | null;
+  onOpenAccount: (mode: "signup" | "login") => void;
+  onLogout: () => void;
+}) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftValue, setDraftValue] = useState<string>("");
+  const editingQuestion = interviewQuestions.find((question) => question.id === editingId) ?? null;
+
+  const startEditing = (question: InterviewQuestion) => {
+    setDraftValue(profile[question.id] ?? (question.kind === "picker" ? String(question.defaultValue) : ""));
+    setEditingId(question.id);
+  };
+
+  const saveEdit = () => {
+    if (!editingQuestion || !draftValue) return;
+    onUpdateProfile(editingQuestion.id, draftValue);
+    setEditingId(null);
+  };
+
+  const formatValue = (question: InterviewQuestion): string => {
+    const value = profile[question.id];
+    if (question.kind === "picker") {
+      return `${value ?? question.defaultValue} ${question.unit}`;
+    }
+    return question.answers.find((answer) => answer.value === value)?.label ?? "Not set";
+  };
+
+  if (editingQuestion) {
+    return (
+      <SafeAreaView style={styles.preview}>
+        <View style={styles.interviewHeader}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Cancel"
+            onPress={() => setEditingId(null)}
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>‹</Text>
+          </Pressable>
+          <Text style={[styles.progressText, { flex: 1, textAlign: "center" }]}>EDIT</Text>
+          <View style={{ width: 44 }} />
+        </View>
+        <View style={styles.questionContent}>
+          <Text style={styles.previewStep}>{editingQuestion.kicker}</Text>
+          <Text style={styles.previewTitle}>{editingQuestion.title}</Text>
+          <Text style={styles.previewBody}>{editingQuestion.subtitle}</Text>
+          {editingQuestion.kind === "picker" ? (
+            <View style={styles.wheelPickerWrap}>
+              <NumberWheelPicker
+                min={editingQuestion.min}
+                max={editingQuestion.max}
+                step={editingQuestion.step}
+                unit={editingQuestion.unit}
+                value={Number(draftValue || editingQuestion.defaultValue)}
+                onChange={(next) => setDraftValue(String(next))}
+              />
+            </View>
+          ) : (
+            <View style={styles.answerList}>
+              {editingQuestion.answers.map((answer) => {
+                const isSelected = answer.value === draftValue;
+                return (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    key={answer.value}
+                    onPress={() => setDraftValue(answer.value)}
+                    style={({ pressed }) => [
+                      styles.answerCard,
+                      isSelected && styles.answerCardSelected,
+                      pressed && styles.answerCardPressed,
+                    ]}
+                  >
+                    <View style={[styles.answerRadio, isSelected && styles.answerRadioSelected]}>
+                      {isSelected ? <View style={styles.answerRadioDot} /> : null}
+                    </View>
+                    <Text style={[styles.answerText, isSelected && styles.answerTextSelected]}>
+                      {answer.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+        </View>
+        <View style={styles.interviewFooter}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Save"
+            disabled={!draftValue}
+            onPress={saveEdit}
+            style={({ pressed }) => [
+              styles.continueButton,
+              !draftValue && styles.continueButtonDisabled,
+              pressed && draftValue ? styles.startButtonPressed : null,
+            ]}
+          >
+            <Text style={[styles.continueButtonText, !draftValue && styles.continueButtonTextDisabled]}>
+              SAVE
+            </Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.dashboard}>
+      <View style={styles.interviewHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.backButton}>
+          <Text style={styles.backButtonText}>‹</Text>
+        </Pressable>
+        <Text style={[styles.progressText, { flex: 1, textAlign: "center" }]}>PROFILE</Text>
+        <View style={{ width: 44 }} />
+      </View>
+      <ScrollView
+        style={styles.dashboardBody}
+        contentContainerStyle={styles.dashboardBodyContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.accountBar}>
+          {session ? (
+            <>
+              <View style={[styles.testModeIdentity, { flexShrink: 1 }]}>
+                <View style={styles.testModeDot} />
+                <Text style={[styles.testModeLabel, { flexShrink: 1 }]} numberOfLines={1}>
+                  SIGNED IN · {session.email}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Log out"
+                onPress={onLogout}
+                style={styles.testModeReset}
+              >
+                <Text style={styles.testModeResetText}>LOG OUT</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Text style={styles.accountPromptText}>Save your progress across devices</Text>
+              <View style={styles.accountActions}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign in"
+                  onPress={() => onOpenAccount("login")}
+                  style={styles.accountButton}
+                >
+                  <Text style={styles.accountButtonText}>SIGN IN</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Create a free account"
+                  onPress={() => onOpenAccount("signup")}
+                  style={styles.accountButton}
+                >
+                  <Text style={styles.accountButtonText}>CREATE ACCOUNT</Text>
+                </Pressable>
+              </View>
+            </>
+          )}
+        </View>
+
+        <Text style={styles.sectionEyebrow}>YOUR PROFILE</Text>
+        <View style={styles.profileList}>
+          {interviewQuestions.map((question, index) => (
+            <Pressable
+              key={question.id}
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${question.title}`}
+              onPress={() => startEditing(question)}
+              style={({ pressed }) => [
+                styles.profileRow,
+                index === interviewQuestions.length - 1 && { borderBottomWidth: 0 },
+                pressed && { opacity: 0.8 },
+              ]}
+            >
+              <Text style={styles.profileRowLabel}>{question.title}</Text>
+              <View style={styles.profileRowRight}>
+                <Text style={styles.profileRowValue} numberOfLines={1}>
+                  {formatValue(question)}
+                </Text>
+                <Text style={styles.cardChevron}>›</Text>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
 type BottomNavKey = "dashboard" | "nutrition" | "progress" | "coach";
 
 function BottomNav({
@@ -807,6 +1011,7 @@ function DashboardScreen({
   session,
   onOpenAccount,
   onLogout,
+  onOpenProfile,
   profile,
   nutritionTotals,
   workoutHistory,
@@ -819,6 +1024,7 @@ function DashboardScreen({
   session: { email: string } | null;
   onOpenAccount: (mode: "signup" | "login") => void;
   onLogout: () => void;
+  onOpenProfile: () => void;
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
   workoutHistory: WorkoutHistoryEntry[];
@@ -841,10 +1047,15 @@ function DashboardScreen({
           <Text style={styles.dashboardGreeting}>GOOD MORNING</Text>
           <Text style={styles.dashboardName}>Ready for today?</Text>
         </View>
-        <View style={styles.dashboardAvatar}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open your profile"
+          onPress={onOpenProfile}
+          style={styles.dashboardAvatar}
+        >
           <Text style={styles.dashboardAvatarText}>G</Text>
           <View style={styles.avatarStatus} />
-        </View>
+        </Pressable>
       </View>
 
       <ScrollView
@@ -4912,6 +5123,20 @@ export default function App() {
               setScreen("auth");
             }}
             onLogout={handleLogout}
+            onOpenProfile={() => setScreen("profile")}
+          />
+        )}
+        {screen === "profile" && (
+          <ProfileScreen
+            profile={profile}
+            onUpdateProfile={(id, value) => setProfile((current) => ({ ...current, [id]: value }))}
+            onBack={() => setScreen("dashboard")}
+            session={session}
+            onOpenAccount={(mode) => {
+              setAuthInitialMode(mode);
+              setScreen("auth");
+            }}
+            onLogout={handleLogout}
           />
         )}
         {screen === "auth" && (
@@ -5494,6 +5719,26 @@ const styles = StyleSheet.create({
   },
   dashboardBody: { flex: 1 },
   dashboardBodyContent: { paddingHorizontal: 18, paddingBottom: 16 },
+  profileList: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0E100E",
+    marginTop: 10,
+    overflow: "hidden",
+  },
+  profileRow: {
+    minHeight: 52,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: "#1B1E1A",
+  },
+  profileRowLabel: { color: colors.text, fontSize: 13, fontWeight: "600", flexShrink: 1, marginRight: 10 },
+  profileRowRight: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 0 },
+  profileRowValue: { color: colors.muted, fontSize: 12, fontWeight: "600", maxWidth: 140 },
   testModeBar: {
     minHeight: 38,
     marginBottom: 10,
