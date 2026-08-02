@@ -50,8 +50,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const raw = (await upstreamResponse.json()) as MuscleWikiExercise[];
-    const exercises: ExerciseTag[] = raw.map(mapExercise);
+    const body = await upstreamResponse.json();
+    const raw: unknown = Array.isArray(body)
+      ? body
+      : (body as Record<string, unknown>)?.results ??
+        (body as Record<string, unknown>)?.exercises ??
+        (body as Record<string, unknown>)?.data ??
+        (body as Record<string, unknown>)?.items;
+
+    if (!Array.isArray(raw)) {
+      console.error("Unexpected MuscleWiki response shape", JSON.stringify(body).slice(0, 800));
+      res.status(502).json({ error: "Exercise catalog returned an unexpected response." });
+      return;
+    }
+
+    const exercises: ExerciseTag[] = (raw as MuscleWikiExercise[]).map(mapExercise);
     res.status(200).json({ exercises });
   } catch (error) {
     console.error("Exercise catalog error", error);
