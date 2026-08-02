@@ -51,14 +51,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const params = new URLSearchParams();
-    params.set("limit", firstValue(req.query?.limit) ?? "20");
-    for (const key of ["search", "offset", "muscles", "category", "difficulty", "force", "mechanic", "grips", "gender"] as const) {
-      const value = firstValue(req.query?.[key]);
-      if (value) params.set(key, value);
+    const search = firstValue(req.query?.search);
+    const limit = firstValue(req.query?.limit) ?? "20";
+
+    // /search is a dedicated text-search endpoint that returns full exercise data (videos,
+    // steps, muscles) in one call. /exercises (below) is the structured-filter browse endpoint,
+    // which only returns {id, name} for filter-only queries -- confirmed by testing both.
+    let upstreamUrl: string;
+    if (search) {
+      const searchParams = new URLSearchParams({ q: search, limit });
+      const difficulty = firstValue(req.query?.difficulty);
+      if (difficulty) searchParams.set("difficulty", difficulty);
+      upstreamUrl = `https://api.musclewiki.com/search?${searchParams.toString()}`;
+    } else {
+      const params = new URLSearchParams({ limit });
+      for (const key of ["offset", "muscles", "category", "difficulty", "force", "mechanic", "grips", "gender"] as const) {
+        const value = firstValue(req.query?.[key]);
+        if (value) params.set(key, value);
+      }
+      upstreamUrl = `https://api.musclewiki.com/exercises?${params.toString()}`;
     }
 
-    const upstreamResponse = await fetch(`https://api.musclewiki.com/exercises?${params.toString()}`, {
+    const upstreamResponse = await fetch(upstreamUrl, {
       headers: { "X-API-Key": apiKey },
     });
 
