@@ -40,7 +40,7 @@ function isInjurySafeForProfile(exercise: ExerciseTag, limitations: ProgramBuild
 async function fetchSlotCandidates(slot: SlotDefinition, profile: ProgramBuilderProfile): Promise<ExerciseTag[]> {
   // /search doesn't take an equipment filter, so fetch by keyword and filter client-side --
   // it returns full exercise data (unlike /exercises browse-by-filter, which is id+name only).
-  const params = new URLSearchParams({ search: slot.searchKeyword, limit: "15" });
+  const params = new URLSearchParams({ search: slot.searchKeyword, limit: "25" });
   const response = await fetch(`/api/exercise-catalog?${params.toString()}`);
   if (!response.ok) return [];
   const body = (await response.json()) as { exercises?: ExerciseTag[] };
@@ -48,7 +48,12 @@ async function fetchSlotCandidates(slot: SlotDefinition, profile: ProgramBuilder
 
   const category = equipmentCategory[profile.equipment];
   if (!category) return exercises;
-  return exercises.filter((exercise) => exercise.equipment?.toLowerCase() === category.toLowerCase());
+  // Bodyweight moves (push-ups, planks) are a reasonable fit regardless of what
+  // equipment the user has, so always accept those alongside the chosen equipment.
+  return exercises.filter((exercise) => {
+    const exerciseCategory = exercise.equipment?.toLowerCase() ?? "";
+    return exerciseCategory === category.toLowerCase() || exerciseCategory === "bodyweight";
+  });
 }
 
 export async function buildProgram(profile: ProgramBuilderProfile, usedIds: Set<string> = new Set()): Promise<ExerciseTag[]> {
