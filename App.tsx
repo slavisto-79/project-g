@@ -3819,9 +3819,13 @@ async function createWorkoutFromCatalog(
 
   try {
     const tags = await buildProgram(builderProfile);
-    if (tags.length < 6) return null;
+    if (tags.length < 6) {
+      console.error(`Catalog program only filled ${tags.length}/8 slots -- falling back to the built-in workout`);
+      return null;
+    }
     return tags.map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress));
-  } catch {
+  } catch (error) {
+    console.error("Catalog workout build failed -- falling back to the built-in workout", error);
     return null;
   }
 }

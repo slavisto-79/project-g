@@ -40,33 +40,42 @@ function isInjurySafeForProfile(exercise: ExerciseTag, limitations: ProgramBuild
 }
 
 async function fetchSlotCandidates(slot: SlotDefinition, profile: ProgramBuilderProfile): Promise<ExerciseTag[]> {
-  // /search doesn't take an equipment filter, so fetch by keyword and filter client-side --
-  // it returns full exercise data (unlike /exercises browse-by-filter, which is id+name only).
-  const params = new URLSearchParams({ search: slot.searchKeyword, limit: "25" });
-  const response = await fetch(`/api/exercise-catalog?${params.toString()}`);
-  if (!response.ok) return [];
-  const body = (await response.json()) as { exercises?: ExerciseTag[] };
-  // MuscleWiki's "Recovery" category is stretches/mobility drills, not loaded resistance
-  // work -- they have no real weight and don't belong in a sets/reps/kg strength slot.
-  const resistanceOnly = (body.exercises ?? []).filter(
-    (exercise) => exercise.equipment?.toLowerCase() !== "recovery" && !/stretch/i.test(exercise.name),
-  );
+  try {
+    // /search doesn't take an equipment filter, so fetch by keyword and filter client-side --
+    // it returns full exercise data (unlike /exercises browse-by-filter, which is id+name only).
+    const params = new URLSearchParams({ search: slot.searchKeyword, limit: "25" });
+    const response = await fetch(`/api/exercise-catalog?${params.toString()}`);
+    if (!response.ok) return [];
+    const body = (await response.json()) as { exercises?: ExerciseTag[] };
+    // MuscleWiki's "Recovery" category is stretches/mobility drills, not loaded resistance
+    // work -- they have no real weight and don't belong in a sets/reps/kg strength slot.
+    const resistanceOnly = (body.exercises ?? []).filter(
+      (exercise) => exercise.equipment?.toLowerCase() !== "recovery" && !/stretch/i.test(exercise.name),
+    );
 
-  const category = equipmentCategory[profile.equipment];
-  if (!category) return resistanceOnly;
-  // Bodyweight moves (push-ups, planks) are a reasonable fit regardless of what
-  // equipment the user has, so always accept those alongside the chosen equipment.
-  return resistanceOnly.filter((exercise) => {
-    const exerciseCategory = exercise.equipment?.toLowerCase() ?? "";
-    return exerciseCategory === category.toLowerCase() || exerciseCategory === "bodyweight";
-  });
+    const category = equipmentCategory[profile.equipment];
+    if (!category) return resistanceOnly;
+    // Bodyweight moves (push-ups, planks) are a reasonable fit regardless of what
+    // equipment the user has, so always accept those alongside the chosen equipment.
+    return resistanceOnly.filter((exercise) => {
+      const exerciseCategory = exercise.equipment?.toLowerCase() ?? "";
+      return exerciseCategory === category.toLowerCase() || exerciseCategory === "bodyweight";
+    });
+  } catch (error) {
+    // A single slow/failed request shouldn't sink the whole program -- log it and let
+    // this slot come back empty; buildProgram tolerates a few empty slots just fine.
+    console.error(`Exercise catalog request failed for "${slot.searchKeyword}"`, error);
+    return [];
+  }
 }
 
 export async function buildProgram(profile: ProgramBuilderProfile, usedIds: Set<string> = new Set()): Promise<ExerciseTag[]> {
-  const program: ExerciseTag[] = [];
+  // Fetch all slots in parallel rather than one at a time -- faster, and it shrinks the
+  // window in which a single slow request can hold up (or, previously, sink) the rest.
+  const candidatesBySlot = await Promise.all(programSlots.map((slot) => fetchSlotCandidates(slot, profile)));
 
-  for (const slot of programSlots) {
-    const candidates = await fetchSlotCandidates(slot, profile);
+  const program: ExerciseTag[] = [];
+  for (const candidates of candidatesBySlot) {
     const pick = candidates.find(
       (candidate) =>
         !usedIds.has(candidate.id) &&
