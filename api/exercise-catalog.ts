@@ -33,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const limit = firstValue(req.query?.limit) ?? "20";
 
   const upstreamUrl = search
-    ? `https://api.musclewiki.com/search?search=${encodeURIComponent(search)}&limit=${encodeURIComponent(limit)}`
+    ? `https://api.musclewiki.com/search?q=${encodeURIComponent(search)}&limit=${encodeURIComponent(limit)}`
     : `https://api.musclewiki.com/exercises?limit=${encodeURIComponent(limit)}`;
 
   try {
