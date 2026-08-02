@@ -154,13 +154,19 @@ function safeVideos(videos: unknown): MuscleWikiVideo[] {
   return Array.isArray(videos) ? (videos as MuscleWikiVideo[]) : [];
 }
 
+// MuscleWiki's stream URLs require an X-API-Key header, which a plain <video>/<img> src can't
+// send -- route them through our own proxy (which holds the key server-side) instead.
+function proxied(url: string): string {
+  return `/api/video-proxy?url=${encodeURIComponent(url)}`;
+}
+
 function buildMediaEntry(
   videos: unknown,
   gender: "male" | "female",
 ): { video: string; poster: string } | null {
   const match = safeVideos(videos).find((video) => video.gender === gender && video.angle === "front");
   if (!match) return null;
-  return { video: match.url, poster: match.og_image };
+  return { video: proxied(match.url), poster: proxied(match.og_image) };
 }
 
 export function hasGenderVideo(exercise: MuscleWikiExercise, gender: "male" | "female"): boolean {
