@@ -483,11 +483,11 @@ function WelcomeScreen({
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Create a free account"
+            accessibilityLabel="Create account"
             onPress={onCreateAccount}
             style={({ pressed }) => [styles.startButton, pressed && styles.startButtonPressed]}
           >
-            <Text style={styles.startButtonText}>CREATE FREE ACCOUNT</Text>
+            <Text style={styles.startButtonText}>CREATE ACCOUNT</Text>
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
           <View style={styles.welcomeAuthRow}>
@@ -930,7 +930,7 @@ function ProfileScreen({
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Create a free account"
+                  accessibilityLabel="Create account"
                   onPress={() => onOpenAccount("signup")}
                   style={styles.accountButton}
                 >
@@ -1138,7 +1138,7 @@ function DashboardScreen({
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Create a free account"
+                  accessibilityLabel="Create account"
                   onPress={() => onOpenAccount("signup")}
                   style={styles.accountButton}
                 >
@@ -4704,7 +4704,7 @@ function AuthScreen({
         <View style={styles.nutritionIntro}>
           <Text style={styles.nutritionEyebrow}>SAVE YOUR PROGRESS</Text>
           <Text style={styles.nutritionTitle}>
-            {mode === "signup" ? "Create a free account." : mode === "login" ? "Log back in." : "Forgot password."}
+            {mode === "signup" ? "Create an account." : mode === "login" ? "Log back in." : "Forgot password."}
           </Text>
           <Text style={styles.nutritionSubtitle}>
             {mode === "forgot"
