@@ -3702,7 +3702,7 @@ function ActiveWorkoutScreen({
   const isBodyweight = exercise.weight === "Bodyweight";
   const currentWeightKg = isBodyweight ? null : parseInt(exercise.weight, 10);
   const currentReps = parseInt(exercise.reps, 10);
-  const exerciseVisualHeight = Math.min(170, Math.max(130, height * 0.18));
+  const exerciseVisualHeight = Math.min(340, Math.max(220, height * 0.36));
   const workoutTitle =
     profile.sex === "female"
       ? "WOMEN’S STRENGTH FOUNDATION"
