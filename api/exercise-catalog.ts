@@ -29,17 +29,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const params = new URLSearchParams();
-  params.set("limit", firstValue(req.query?.limit) ?? "20");
-  for (const key of ["search", "offset", "muscles", "category", "difficulty", "force", "mechanic", "grips", "gender"] as const) {
-    const value = firstValue(req.query?.[key]);
-    if (value) params.set(key, value);
-  }
-
-  const upstreamUrl = `https://api.musclewiki.com/exercises?${params.toString()}`;
+  const id = firstValue(req.query?.id);
 
   try {
-    const upstreamResponse = await fetch(upstreamUrl, {
+    if (id) {
+      // The list endpoint below only returns {id, name} for filter-only browsing (by design,
+      // to avoid shipping video URLs for every candidate) -- full detail needs a per-id fetch.
+      const upstreamResponse = await fetch(`https://api.musclewiki.com/exercises/${encodeURIComponent(id)}`, {
+        headers: { "X-API-Key": apiKey },
+      });
+
+      if (!upstreamResponse.ok) {
+        const errorText = await upstreamResponse.text();
+        console.error("MuscleWiki request failed", upstreamResponse.status, errorText.slice(0, 500));
+        res.status(502).json({ error: "Exercise catalog is temporarily unavailable." });
+        return;
+      }
+
+      const raw = (await upstreamResponse.json()) as MuscleWikiExercise;
+      res.status(200).json({ exercise: mapExercise(raw) });
+      return;
+    }
+
+    const params = new URLSearchParams();
+    params.set("limit", firstValue(req.query?.limit) ?? "20");
+    for (const key of ["search", "offset", "muscles", "category", "difficulty", "force", "mechanic", "grips", "gender"] as const) {
+      const value = firstValue(req.query?.[key]);
+      if (value) params.set(key, value);
+    }
+
+    const upstreamResponse = await fetch(`https://api.musclewiki.com/exercises?${params.toString()}`, {
       headers: { "X-API-Key": apiKey },
     });
 
@@ -64,11 +83,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    if (raw.length > 0) {
-      console.log("MuscleWiki raw sample", JSON.stringify(raw[0]).slice(0, 500));
-    }
-
-    const exercises: ExerciseTag[] = (raw as MuscleWikiExercise[]).map(mapExercise);
+    // Filter-only browsing (no search text) returns minimal {id, name} objects by design --
+    // callers should fetch full detail per-id (via ?id=) for the exercises they actually select.
+    const exercises = (raw as Array<Partial<MuscleWikiExercise>>).map((entry) =>
+      entry.primary_muscles ? mapExercise(entry as MuscleWikiExercise) : { id: `musclewiki-${entry.id}`, name: entry.name },
+    );
     res.status(200).json({ exercises });
   } catch (error) {
     console.error("Exercise catalog error", error);
