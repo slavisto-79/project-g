@@ -5183,8 +5183,12 @@ export default function App() {
               setProfile(answers);
               setScreen("dashboard");
             }}
-            onStartWorkout={(answers) => {
+            onStartWorkout={async (answers) => {
               setProfile(answers);
+              setWorkoutLoading(true);
+              const catalogExercises = await createWorkoutFromCatalog(answers, exerciseProgress);
+              setActiveWorkoutExercises(catalogExercises);
+              setWorkoutLoading(false);
               setScreen("workout");
             }}
           />
