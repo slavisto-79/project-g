@@ -4757,18 +4757,18 @@ export default function App() {
           setScreen("dashboard");
         } else if (Object.keys(stateRef.current.profile).length > 0) {
           // Fresh account with no saved data yet: migrate whatever local/guest
-          // progress already existed into it.
-          await supabase
-            .from("user_data")
-            .update({
-              profile: stateRef.current.profile,
-              nutrition_totals: stateRef.current.nutritionTotals,
-              coach_adjustment: stateRef.current.coachAdjustment,
-              exercise_progress: stateRef.current.exerciseProgress,
-              workout_history: stateRef.current.workoutHistory,
-              diet_plan: stateRef.current.dietPlan,
-            })
-            .eq("user_id", id);
+          // progress already existed into it. Upsert (not update) so this still
+          // works even if the on-signup trigger hasn't created the row yet.
+          const { error: migrateError } = await supabase.from("user_data").upsert({
+            user_id: id,
+            profile: stateRef.current.profile,
+            nutrition_totals: stateRef.current.nutritionTotals,
+            coach_adjustment: stateRef.current.coachAdjustment,
+            exercise_progress: stateRef.current.exerciseProgress,
+            workout_history: stateRef.current.workoutHistory,
+            diet_plan: stateRef.current.dietPlan,
+          });
+          if (migrateError) console.error("Failed to migrate guest progress to account", migrateError);
         }
         if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
         setUserId(id);
@@ -4833,17 +4833,16 @@ export default function App() {
     let cancelled = false;
     void (async () => {
       if (cancelled) return;
-      await supabase
-        .from("user_data")
-        .update({
-          profile,
-          nutrition_totals: nutritionTotals,
-          coach_adjustment: coachAdjustment,
-          exercise_progress: exerciseProgress,
-          workout_history: workoutHistory,
-          diet_plan: dietPlan,
-        })
-        .eq("user_id", userId);
+      const { error } = await supabase.from("user_data").upsert({
+        user_id: userId,
+        profile,
+        nutrition_totals: nutritionTotals,
+        coach_adjustment: coachAdjustment,
+        exercise_progress: exerciseProgress,
+        workout_history: workoutHistory,
+        diet_plan: dietPlan,
+      });
+      if (error) console.error("Failed to sync progress to account", error);
     })();
     return () => {
       cancelled = true;
