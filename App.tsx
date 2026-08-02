@@ -6027,7 +6027,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#37C85A",
   },
-  lastWorkoutScoreText: { color: "#37C85A", fontSize: 10, fontWeight: "900" },
+  lastWorkoutScoreText: { color: "#37C85A", fontSize: 10, fontWeight: "900", textAlign: "center" },
   weekCard: {
     minHeight: 58,
     borderRadius: 17,
