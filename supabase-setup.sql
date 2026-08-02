@@ -50,3 +50,7 @@ create trigger on_auth_user_created
 
 -- Safe to re-run: adds the diet_plan column for databases created before it existed.
 alter table public.user_data add column if not exists diet_plan jsonb;
+
+-- Safe to re-run: adds trial_started_at (defaults to now() for new rows via the
+-- signup trigger above; backfills existing rows to now() as well).
+alter table public.user_data add column if not exists trial_started_at timestamptz not null default now();

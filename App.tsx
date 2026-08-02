@@ -770,6 +770,8 @@ function ProfileScreen({
   session,
   onOpenAccount,
   onLogout,
+  trialDaysLeft,
+  trialEndsAtLabel,
 }: {
   profile: Record<string, string>;
   onUpdateProfile: (id: string, value: string) => void;
@@ -777,6 +779,8 @@ function ProfileScreen({
   session: { email: string } | null;
   onOpenAccount: (mode: "signup" | "login") => void;
   onLogout: () => void;
+  trialDaysLeft: number | null;
+  trialEndsAtLabel: string | null;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftValue, setDraftValue] = useState<string>("");
@@ -937,6 +941,16 @@ function ProfileScreen({
           )}
         </View>
 
+        {trialDaysLeft !== null ? (
+          <View style={[styles.trialBar, trialDaysLeft === 0 && styles.trialBarEnded]}>
+            <Text style={[styles.trialBarText, trialDaysLeft === 0 && styles.trialBarTextEnded]}>
+              {trialDaysLeft > 0
+                ? `${trialDaysLeft} DAY${trialDaysLeft === 1 ? "" : "S"} LEFT · ENDS ${trialEndsAtLabel}`
+                : `YOUR TRIAL ENDED ${trialEndsAtLabel}`}
+            </Text>
+          </View>
+        ) : null}
+
         <Text style={styles.sectionEyebrow}>YOUR PROFILE</Text>
         <View style={styles.profileList}>
           {interviewQuestions.map((question, index) => (
@@ -1027,6 +1041,7 @@ function DashboardScreen({
   profile,
   nutritionTotals,
   workoutHistory,
+  trialDaysLeft,
 }: {
   onStartWorkout: () => void;
   onOpenCoach: () => void;
@@ -1040,6 +1055,7 @@ function DashboardScreen({
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
   workoutHistory: WorkoutHistoryEntry[];
+  trialDaysLeft: number | null;
 }) {
   const workoutName =
     profile.sex === "female"
@@ -1132,6 +1148,16 @@ function DashboardScreen({
             </>
           )}
         </View>
+
+        {trialDaysLeft !== null ? (
+          <View style={[styles.trialBar, trialDaysLeft === 0 && styles.trialBarEnded]}>
+            <Text style={[styles.trialBarText, trialDaysLeft === 0 && styles.trialBarTextEnded]}>
+              {trialDaysLeft > 0
+                ? `${trialDaysLeft} DAY${trialDaysLeft === 1 ? "" : "S"} LEFT IN YOUR TRIAL`
+                : "YOUR TRIAL HAS ENDED"}
+            </Text>
+          </View>
+        ) : null}
 
         <View style={styles.workoutCard}>
           <View style={styles.workoutCardTop}>
@@ -1259,6 +1285,25 @@ function isWithinLastDays(iso: string, days: number): boolean {
   const parsed = new Date(iso).getTime();
   if (Number.isNaN(parsed)) return false;
   return Date.now() - parsed <= days * 24 * 60 * 60 * 1000;
+}
+
+const TRIAL_LENGTH_DAYS = 14;
+
+// Returns null when there's no trial to report (not signed in / no start date yet).
+function trialDaysRemaining(trialStartedAt: string | null): number | null {
+  if (!trialStartedAt) return null;
+  const startMs = new Date(trialStartedAt).getTime();
+  if (!Number.isFinite(startMs)) return null;
+  const elapsedDays = Math.floor((Date.now() - startMs) / (24 * 60 * 60 * 1000));
+  return Math.max(0, TRIAL_LENGTH_DAYS - elapsedDays);
+}
+
+function trialEndDateLabel(trialStartedAt: string | null): string | null {
+  if (!trialStartedAt) return null;
+  const startMs = new Date(trialStartedAt).getTime();
+  if (!Number.isFinite(startMs)) return null;
+  const endDate = new Date(startMs + TRIAL_LENGTH_DAYS * 24 * 60 * 60 * 1000);
+  return endDate.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
 // A compact plain-text summary of the user's training history, sent to the
@@ -4906,6 +4951,7 @@ export default function App() {
   const [dietPlan, setDietPlan] = useState<SavedDietPlan | null>(null);
   const [session, setSession] = useState<{ email: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [trialStartedAt, setTrialStartedAt] = useState<string | null>(null);
   const [authInitialMode, setAuthInitialMode] = useState<"signup" | "login">("signup");
   const [authOrigin, setAuthOrigin] = useState<"welcome" | "dashboard">("dashboard");
   const [activeWorkoutExercises, setActiveWorkoutExercises] = useState<WorkoutExercise[] | null>(null);
@@ -4967,10 +5013,13 @@ export default function App() {
       try {
         const { data } = await supabase
           .from("user_data")
-          .select("profile, nutrition_totals, coach_adjustment, exercise_progress, workout_history, diet_plan")
+          .select(
+            "profile, nutrition_totals, coach_adjustment, exercise_progress, workout_history, diet_plan, trial_started_at",
+          )
           .eq("user_id", id)
           .maybeSingle();
         const remoteProfile = (data?.profile ?? {}) as Record<string, string>;
+        setTrialStartedAt((data?.trial_started_at as string | undefined) ?? null);
         if (Object.keys(remoteProfile).length > 0) {
           setProfile(remoteProfile);
           setNutritionTotals(
@@ -5013,6 +5062,7 @@ export default function App() {
       if (event === "SIGNED_OUT") {
         setSession(null);
         setUserId(null);
+        setTrialStartedAt(null);
         finishInitialLoad();
         return;
       }
@@ -5153,6 +5203,7 @@ export default function App() {
             }}
             onLogout={handleLogout}
             onOpenProfile={() => setScreen("profile")}
+            trialDaysLeft={trialDaysRemaining(trialStartedAt)}
           />
         )}
         {screen === "profile" && (
@@ -5167,6 +5218,8 @@ export default function App() {
               setScreen("auth");
             }}
             onLogout={handleLogout}
+            trialDaysLeft={trialDaysRemaining(trialStartedAt)}
+            trialEndsAtLabel={trialEndDateLabel(trialStartedAt)}
           />
         )}
         {screen === "auth" && (
@@ -5824,6 +5877,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   accountButtonText: { color: colors.ink, fontSize: 8, fontWeight: "900", letterSpacing: 0.6 },
+  trialBar: {
+    minHeight: 34,
+    marginBottom: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#30382A",
+    backgroundColor: "#0D1209",
+  },
+  trialBarEnded: { borderColor: "#3A2A22", backgroundColor: "#160F0B" },
+  trialBarText: { color: colors.lime, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  trialBarTextEnded: { color: "#D98E5C" },
   readinessRow: {
     flexDirection: "row",
     alignItems: "center",
