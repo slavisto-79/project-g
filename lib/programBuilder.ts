@@ -1,9 +1,11 @@
 import type { ExerciseTag, MovementPattern } from "./exerciseCatalog";
 
+// Mirrors the exact values stored by the onboarding questions in App.tsx
+// (ids "equipment", "experience", "limitations", "sex") -- not a separate vocabulary.
 export type ProgramBuilderProfile = {
-  equipment: "dumbbell" | "bodyweight" | "gym" | "band";
-  experience: "beginner" | "intermediate" | "advanced";
-  limitations: "knee" | "shoulder" | "back" | "none";
+  equipment: "gym" | "home-gym" | "minimal" | "bodyweight";
+  experience: "beginner" | "novice" | "intermediate" | "advanced";
+  limitations: "knee" | "shoulder" | "back" | "none" | "coach-review";
   sex: "male" | "female";
 };
 
@@ -24,9 +26,9 @@ const programSlots: SlotDefinition[] = [
 ];
 
 const equipmentCategory: Record<ProgramBuilderProfile["equipment"], string | undefined> = {
-  dumbbell: "Dumbbells",
+  minimal: "Dumbbells",
   bodyweight: "Bodyweight",
-  band: "Band",
+  "home-gym": undefined,
   gym: undefined,
 };
 

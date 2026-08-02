@@ -4,6 +4,7 @@ import {
   Easing,
   Image,
   ImageBackground,
+  type ImageSourcePropType,
   KeyboardAvoidingView,
   Modal,
   type NativeScrollEvent,
@@ -22,6 +23,8 @@ import {
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
+import { buildProgram, type ProgramBuilderProfile } from "./lib/programBuilder";
+import type { ExerciseTag } from "./lib/exerciseCatalog";
 
 const colors = {
   background: "#050505",
@@ -3053,9 +3056,9 @@ type WorkoutExercise = {
   reps: string;
   tempo: string;
   phases: string[];
-  formFrames: [number, number];
+  formFrames: [ImageSourcePropType, ImageSourcePropType];
   poseGuide: PoseGuide;
-  video?: number;
+  video?: number | string;
 };
 
 type PoseSegment = [number, number, number, number];
@@ -3489,7 +3492,73 @@ function createWorkout(
   return exercises;
 }
 
-function ExerciseStill({ frame }: { frame: number }) {
+function catalogExerciseToWorkoutExercise(
+  tag: ExerciseTag,
+  profile: Record<string, string>,
+  exerciseProgress: Record<string, ExerciseProgress>,
+): WorkoutExercise {
+  const bodyWeightKg = Number(profile.weight);
+  const isBodyweight = tag.equipment.toLowerCase() === "bodyweight";
+  const saved = exerciseProgress[tag.name];
+  const reps = saved ? String(saved.reps) : String(baseRepsForProfile(profile));
+  const weight = isBodyweight
+    ? "Bodyweight"
+    : saved
+      ? `${saved.weightKg} kg`
+      : scaledStartingWeightLabel(12, bodyWeightKg);
+  const media = tag.media[profile.sex === "male" ? "male" : "female"];
+  const poster: ImageSourcePropType = media
+    ? { uri: media.poster }
+    : require("./assets/exercises/goblet-squat/start.jpg");
+
+  return {
+    name: tag.name,
+    target: `${tag.primaryMuscle.replace("-", " ")} · ${tag.movementPattern}`,
+    weight,
+    reps,
+    tempo: "3-1-1",
+    phases: ["LOWER", "BRACE", "LIFT"],
+    formFrames: [poster, poster],
+    poseGuide: poseGuides.squat!,
+    video: media?.video,
+  };
+}
+
+async function createWorkoutFromCatalog(
+  profile: Record<string, string>,
+  exerciseProgress: Record<string, ExerciseProgress>,
+): Promise<WorkoutExercise[] | null> {
+  const equipmentMap: Record<string, ProgramBuilderProfile["equipment"]> = {
+    gym: "gym",
+    "home-gym": "home-gym",
+    minimal: "minimal",
+    bodyweight: "bodyweight",
+  };
+  const limitationsMap: Record<string, ProgramBuilderProfile["limitations"]> = {
+    knee: "knee",
+    shoulder: "shoulder",
+    back: "back",
+    none: "none",
+    "coach-review": "coach-review",
+  };
+
+  const builderProfile: ProgramBuilderProfile = {
+    equipment: equipmentMap[profile.equipment ?? ""] ?? "minimal",
+    experience: (profile.experience as ProgramBuilderProfile["experience"]) ?? "beginner",
+    limitations: limitationsMap[profile.limitations ?? ""] ?? "none",
+    sex: profile.sex === "male" ? "male" : "female",
+  };
+
+  try {
+    const tags = await buildProgram(builderProfile);
+    if (tags.length < 6) return null;
+    return tags.map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress));
+  } catch {
+    return null;
+  }
+}
+
+function ExerciseStill({ frame }: { frame: ImageSourcePropType }) {
   return (
     <View style={StyleSheet.absoluteFill}>
       <Image source={frame} style={styles.exerciseFrameBackdrop} resizeMode="cover" />
@@ -3499,7 +3568,7 @@ function ExerciseStill({ frame }: { frame: number }) {
   );
 }
 
-function RealExerciseVideo({ source, poster }: { source: number; poster: number }) {
+function RealExerciseVideo({ source, poster }: { source: number | string; poster: ImageSourcePropType }) {
   const player = useVideoPlayer(source, (videoPlayer) => {
     videoPlayer.loop = true;
     videoPlayer.muted = true;
@@ -3530,7 +3599,7 @@ function RealExerciseVideo({ source, poster }: { source: number; poster: number 
   );
 }
 
-function PreloadExerciseVideo({ source }: { source: number }) {
+function PreloadExerciseVideo({ source }: { source: number | string }) {
   const player = useVideoPlayer(source, (videoPlayer) => {
     videoPlayer.muted = true;
   });
@@ -3599,6 +3668,7 @@ function ExerciseDemo({
 }
 
 function ActiveWorkoutScreen({
+  exercises,
   adjustment,
   onExit,
   onViewProgress,
@@ -3607,6 +3677,7 @@ function ActiveWorkoutScreen({
   onUpdateExerciseProgress,
   onCompleteWorkout,
 }: {
+  exercises: WorkoutExercise[];
   adjustment?: CoachScenario | null;
   onExit: () => void;
   onViewProgress: () => void;
@@ -3616,7 +3687,7 @@ function ActiveWorkoutScreen({
   onCompleteWorkout: (entry: WorkoutHistoryEntry) => void;
 }) {
   const { height } = useWindowDimensions();
-  const baseExercises = createWorkout(profile, exerciseProgress);
+  const baseExercises = exercises;
   const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
   const targetSetCount = setCountForProfile(profile, adjustment);
   const scrollRef = useRef<ScrollView>(null);
@@ -4611,6 +4682,16 @@ export default function App() {
   const [session, setSession] = useState<{ email: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [authInitialMode, setAuthInitialMode] = useState<"signup" | "login">("signup");
+  const [activeWorkoutExercises, setActiveWorkoutExercises] = useState<WorkoutExercise[] | null>(null);
+  const [workoutLoading, setWorkoutLoading] = useState(false);
+
+  const startWorkout = async () => {
+    setWorkoutLoading(true);
+    const catalogExercises = await createWorkoutFromCatalog(profile, exerciseProgress);
+    setActiveWorkoutExercises(catalogExercises);
+    setWorkoutLoading(false);
+    setScreen("workout");
+  };
 
   const stateRef = useRef({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory, dietPlan });
   stateRef.current = { profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory, dietPlan };
@@ -4788,6 +4869,14 @@ export default function App() {
 
   if (!hasLoadedTestState) return <View style={styles.app} />;
 
+  if (workoutLoading) {
+    return (
+      <View style={[styles.app, styles.workoutLoadingScreen]}>
+        <Text style={styles.workoutLoadingText}>Building your workout…</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.app}>
       {Platform.OS === "android" ? <StatusBar backgroundColor={colors.background} /> : null}
@@ -4813,7 +4902,7 @@ export default function App() {
             profile={profile}
             nutritionTotals={nutritionTotals}
             workoutHistory={workoutHistory}
-            onStartWorkout={() => setScreen("workout")}
+            onStartWorkout={startWorkout}
             onOpenCoach={() => setScreen("coach")}
             onOpenNutrition={() => setScreen("nutrition")}
             onOpenProgress={() => setScreen("progress")}
@@ -4845,7 +4934,7 @@ export default function App() {
             onOpenRecipes={() => setScreen("recipes")}
             onOpenRecipeLibrary={() => setScreen("recipeLibrary")}
             onOpenDietPlan={() => setScreen("dietPlan")}
-            onStartWorkout={() => setScreen("workout")}
+            onStartWorkout={startWorkout}
             onOpenProgress={() => setScreen("progress")}
             onOpenCoach={() => setScreen("coach")}
             onSave={(meal) =>
@@ -4895,12 +4984,13 @@ export default function App() {
             exerciseProgress={exerciseProgress}
             onBack={() => setScreen("dashboard")}
             onApply={setCoachAdjustment}
-            onStartWorkout={() => setScreen("workout")}
+            onStartWorkout={startWorkout}
             onOpenDietPlan={() => setScreen("dietPlan")}
           />
         )}
         {screen === "workout" && (
           <ActiveWorkoutScreen
+            exercises={activeWorkoutExercises ?? createWorkout(profile, exerciseProgress)}
             adjustment={coachAdjustment}
             profile={profile}
             exerciseProgress={exerciseProgress}
@@ -4917,7 +5007,7 @@ export default function App() {
             profile={profile}
             workoutHistory={workoutHistory}
             onDashboard={() => setScreen("dashboard")}
-            onStartWorkout={() => setScreen("workout")}
+            onStartWorkout={startWorkout}
             onOpenNutrition={() => setScreen("nutrition")}
             onOpenCoach={() => setScreen("coach")}
           />
@@ -4932,6 +5022,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "#020302",
+  },
+  workoutLoadingScreen: {
+    justifyContent: "center",
+  },
+  workoutLoadingText: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: "600",
   },
   mobileViewport: {
     flex: 1,
