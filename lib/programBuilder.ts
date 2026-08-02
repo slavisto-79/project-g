@@ -46,13 +46,17 @@ async function fetchSlotCandidates(slot: SlotDefinition, profile: ProgramBuilder
   const response = await fetch(`/api/exercise-catalog?${params.toString()}`);
   if (!response.ok) return [];
   const body = (await response.json()) as { exercises?: ExerciseTag[] };
-  const exercises = body.exercises ?? [];
+  // MuscleWiki's "Recovery" category is stretches/mobility drills, not loaded resistance
+  // work -- they have no real weight and don't belong in a sets/reps/kg strength slot.
+  const resistanceOnly = (body.exercises ?? []).filter(
+    (exercise) => exercise.equipment?.toLowerCase() !== "recovery" && !/stretch/i.test(exercise.name),
+  );
 
   const category = equipmentCategory[profile.equipment];
-  if (!category) return exercises;
+  if (!category) return resistanceOnly;
   // Bodyweight moves (push-ups, planks) are a reasonable fit regardless of what
   // equipment the user has, so always accept those alongside the chosen equipment.
-  return exercises.filter((exercise) => {
+  return resistanceOnly.filter((exercise) => {
     const exerciseCategory = exercise.equipment?.toLowerCase() ?? "";
     return exerciseCategory === category.toLowerCase() || exerciseCategory === "bodyweight";
   });
