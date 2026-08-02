@@ -29,12 +29,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const search = firstValue(req.query?.search);
-  const limit = firstValue(req.query?.limit) ?? "20";
+  const params = new URLSearchParams();
+  params.set("limit", firstValue(req.query?.limit) ?? "20");
+  for (const key of ["search", "offset", "muscles", "category", "difficulty", "force", "mechanic", "grips", "gender"] as const) {
+    const value = firstValue(req.query?.[key]);
+    if (value) params.set(key, value);
+  }
 
-  const upstreamUrl = search
-    ? `https://api.musclewiki.com/search?q=${encodeURIComponent(search)}&limit=${encodeURIComponent(limit)}`
-    : `https://api.musclewiki.com/exercises?limit=${encodeURIComponent(limit)}`;
+  const upstreamUrl = `https://api.musclewiki.com/exercises?${params.toString()}`;
 
   try {
     const upstreamResponse = await fetch(upstreamUrl, {
