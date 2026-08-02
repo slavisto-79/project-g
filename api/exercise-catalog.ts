@@ -64,6 +64,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
+    if (raw.length > 0) {
+      console.log("MuscleWiki raw sample", JSON.stringify(raw[0]).slice(0, 500));
+    }
+
     const exercises: ExerciseTag[] = (raw as MuscleWikiExercise[]).map(mapExercise);
     res.status(200).json({ exercises });
   } catch (error) {

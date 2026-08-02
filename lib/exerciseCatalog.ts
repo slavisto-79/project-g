@@ -104,8 +104,14 @@ const muscleRollup: Record<string, PrimaryMuscle> = {
   "Hip Flexors": "quads",
 };
 
-export function rollUpPrimaryMuscle(muscles: string[]): PrimaryMuscle {
-  for (const muscle of muscles) {
+function toArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value as string[];
+  if (typeof value === "string" && value.length > 0) return [value];
+  return [];
+}
+
+export function rollUpPrimaryMuscle(muscles: unknown): PrimaryMuscle {
+  for (const muscle of toArray(muscles)) {
     const rolled = muscleRollup[muscle];
     if (rolled) return rolled;
   }
@@ -144,17 +150,21 @@ export function deriveInjurySafe(exercise: MuscleWikiExercise): ExerciseTag["inj
   };
 }
 
+function safeVideos(videos: unknown): MuscleWikiVideo[] {
+  return Array.isArray(videos) ? (videos as MuscleWikiVideo[]) : [];
+}
+
 function buildMediaEntry(
-  videos: MuscleWikiVideo[],
+  videos: unknown,
   gender: "male" | "female",
 ): { video: string; poster: string } | null {
-  const match = videos.find((video) => video.gender === gender && video.angle === "front");
+  const match = safeVideos(videos).find((video) => video.gender === gender && video.angle === "front");
   if (!match) return null;
   return { video: match.url, poster: match.og_image };
 }
 
 export function hasGenderVideo(exercise: MuscleWikiExercise, gender: "male" | "female"): boolean {
-  return exercise.videos.some((video) => video.gender === gender);
+  return safeVideos(exercise.videos).some((video) => video.gender === gender);
 }
 
 export function mapExercise(exercise: MuscleWikiExercise): ExerciseTag {
@@ -164,14 +174,14 @@ export function mapExercise(exercise: MuscleWikiExercise): ExerciseTag {
     movementPattern: deriveMovementPattern(exercise),
     primaryMuscle: rollUpPrimaryMuscle(exercise.primary_muscles),
     equipment: exercise.category,
-    difficulty: exercise.difficulty.toLowerCase() as ExerciseTag["difficulty"],
+    difficulty: (exercise.difficulty ?? "intermediate").toLowerCase() as ExerciseTag["difficulty"],
     unilateral: isUnilateral(exercise.name),
     injurySafe: deriveInjurySafe(exercise),
     media: {
       female: buildMediaEntry(exercise.videos, "female"),
       male: buildMediaEntry(exercise.videos, "male"),
     },
-    formGuideSteps: exercise.steps,
+    formGuideSteps: toArray(exercise.steps),
     source: { provider: "musclewiki", externalId: exercise.id },
   };
 }
