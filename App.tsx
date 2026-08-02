@@ -409,7 +409,15 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
   );
 }
 
-function WelcomeScreen({ onStart }: { onStart: () => void }) {
+function WelcomeScreen({
+  onStart,
+  onSignIn,
+  onCreateAccount,
+}: {
+  onStart: () => void;
+  onSignIn: () => void;
+  onCreateAccount: () => void;
+}) {
   const { height } = useWindowDimensions();
   const heroContentOffset = Math.max(160, Math.min(420, height * 0.38));
   const contentY = useRef(new Animated.Value(26)).current;
@@ -484,6 +492,15 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
             <Text style={styles.startButtonText}>GET STARTED</Text>
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
+          <View style={styles.welcomeAuthRow}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Sign in" onPress={onSignIn}>
+              <Text style={styles.welcomeAuthLinkText}>Sign in</Text>
+            </Pressable>
+            <Text style={styles.welcomeAuthDivider}>·</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Create a free account" onPress={onCreateAccount}>
+              <Text style={styles.welcomeAuthLinkText}>Create a free account</Text>
+            </Pressable>
+          </View>
           <Text style={styles.disclaimer}>Built for your goals. Adapted to your life.</Text>
           </Animated.View>
         </ScrollView>
@@ -4555,9 +4572,11 @@ function isMediumPassword(password: string): boolean {
 
 function AuthScreen({
   onBack,
+  onSuccess,
   initialMode = "signup",
 }: {
   onBack: () => void;
+  onSuccess: () => void;
   initialMode?: "signup" | "login";
 }) {
   const [mode, setMode] = useState<"signup" | "login" | "forgot">(initialMode);
@@ -4600,7 +4619,7 @@ function AuthScreen({
           ? await supabase.auth.signUp({ email: trimmedEmail, password })
           : await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
       if (authError) throw new Error(authError.message);
-      onBack();
+      onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -4893,6 +4912,7 @@ export default function App() {
   const [session, setSession] = useState<{ email: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [authInitialMode, setAuthInitialMode] = useState<"signup" | "login">("signup");
+  const [authOrigin, setAuthOrigin] = useState<"welcome" | "dashboard">("dashboard");
   const [activeWorkoutExercises, setActiveWorkoutExercises] = useState<WorkoutExercise[] | null>(null);
   const [workoutLoading, setWorkoutLoading] = useState(false);
 
@@ -5093,7 +5113,21 @@ export default function App() {
       <ExpoStatusBar style="light" />
       <View style={styles.mobileViewport}>
         {screen === "splash" && <SplashScreen onComplete={() => setScreen("welcome")} />}
-        {screen === "welcome" && <WelcomeScreen onStart={() => setScreen("interview")} />}
+        {screen === "welcome" && (
+          <WelcomeScreen
+            onStart={() => setScreen("interview")}
+            onSignIn={() => {
+              setAuthInitialMode("login");
+              setAuthOrigin("welcome");
+              setScreen("auth");
+            }}
+            onCreateAccount={() => {
+              setAuthInitialMode("signup");
+              setAuthOrigin("welcome");
+              setScreen("auth");
+            }}
+          />
+        )}
         {screen === "interview" && (
           <InterviewScreen
             onBack={() => setScreen("welcome")}
@@ -5120,6 +5154,7 @@ export default function App() {
             session={session}
             onOpenAccount={(mode) => {
               setAuthInitialMode(mode);
+              setAuthOrigin("dashboard");
               setScreen("auth");
             }}
             onLogout={handleLogout}
@@ -5134,13 +5169,18 @@ export default function App() {
             session={session}
             onOpenAccount={(mode) => {
               setAuthInitialMode(mode);
+              setAuthOrigin("dashboard");
               setScreen("auth");
             }}
             onLogout={handleLogout}
           />
         )}
         {screen === "auth" && (
-          <AuthScreen initialMode={authInitialMode} onBack={() => setScreen("dashboard")} />
+          <AuthScreen
+            initialMode={authInitialMode}
+            onBack={() => setScreen(authOrigin)}
+            onSuccess={() => setScreen(authOrigin === "welcome" ? "interview" : "dashboard")}
+          />
         )}
         {screen === "resetPassword" && (
           <ResetPasswordScreen
@@ -5416,6 +5456,15 @@ const styles = StyleSheet.create({
   startButtonText: { color: colors.ink, fontSize: 13, fontWeight: "900", letterSpacing: 1.35 },
   startArrow: { color: colors.ink, fontSize: 23, fontWeight: "500" },
   disclaimer: { color: "#7D827A", fontSize: 10, textAlign: "center", marginTop: 10 },
+  welcomeAuthRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 16,
+  },
+  welcomeAuthLinkText: { color: colors.text, fontSize: 12, fontWeight: "700" },
+  welcomeAuthDivider: { color: "#5B6058", fontSize: 12 },
   preview: { flex: 1, backgroundColor: colors.background },
   interviewHeader: {
     flexDirection: "row",
