@@ -4360,7 +4360,7 @@ function ActiveWorkoutScreen({
             onPress={() => setExerciseInfoOpen(true)}
             style={styles.exerciseActionPill}
           >
-            <Text style={styles.exerciseActionPillText}>FORM GUIDE</Text>
+            <Text style={styles.exerciseActionPillText}>COACH TIPS</Text>
           </Pressable>
         </View>
 
@@ -4523,7 +4523,7 @@ function ActiveWorkoutScreen({
             <View style={styles.exerciseInfoHandle} />
             <View style={styles.exerciseInfoPanelHeader}>
               <View style={styles.exerciseInfoPanelTitleWrap}>
-                <Text style={styles.exerciseInfoPanelEyebrow}>FORM GUIDE</Text>
+                <Text style={styles.exerciseInfoPanelEyebrow}>COACH TIPS</Text>
                 <Text style={styles.exerciseInfoPanelTitle}>{exercise.name}</Text>
                 <Text style={styles.exerciseInfoPanelTempo}>Tempo {exercise.tempo}</Text>
               </View>
