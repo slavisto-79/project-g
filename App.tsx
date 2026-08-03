@@ -1080,14 +1080,10 @@ function DashboardScreen({
           accessibilityRole="button"
           accessibilityLabel="Open your profile"
           onPress={onOpenProfile}
-          style={styles.dashboardAvatarGroup}
+          style={styles.myProfilePill}
         >
-          <View style={styles.dashboardAvatar}>
-            <Text style={styles.dashboardAvatarText}>
-              {session?.email ? session.email[0]!.toUpperCase() : "G"}
-            </Text>
-            <View style={styles.avatarStatus} />
-          </View>
+          <View style={styles.avatarStatus} />
+          <Text style={styles.myProfilePillText}>MY PROFILE</Text>
           <Text style={styles.dashboardAvatarChevron}>›</Text>
         </Pressable>
       </View>
@@ -5986,28 +5982,23 @@ const styles = StyleSheet.create({
   },
   dashboardGreeting: { color: colors.muted, fontSize: 8, fontWeight: "800", letterSpacing: 1.6 },
   dashboardName: { color: colors.text, fontSize: 22, fontWeight: "700", letterSpacing: -0.7, marginTop: 4 },
-  dashboardAvatarGroup: { flexDirection: "row", alignItems: "center", gap: 4 },
-  dashboardAvatarChevron: { color: colors.muted, fontSize: 20 },
-  dashboardAvatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+  dashboardAvatarChevron: { color: colors.muted, fontSize: 16 },
+  myProfilePill: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 6,
+    minHeight: 34,
+    paddingHorizontal: 12,
+    borderRadius: 17,
     borderWidth: 1,
     borderColor: "#353A31",
     backgroundColor: "#131612",
   },
-  dashboardAvatarText: { color: colors.text, fontSize: 16, fontWeight: "800" },
+  myProfilePillText: { color: colors.text, fontSize: 10, fontWeight: "900", letterSpacing: 0.6 },
   avatarStatus: {
-    position: "absolute",
-    right: 1,
-    bottom: 2,
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: colors.background,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
     backgroundColor: colors.lime,
   },
   dashboardBody: { flex: 1 },
