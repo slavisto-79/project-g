@@ -24,7 +24,7 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import { buildProgram, type ProgramBuilderProfile } from "./lib/programBuilder";
-import type { ExerciseTag } from "./lib/exerciseCatalog";
+import type { ExerciseTag, MovementPattern, PrimaryMuscle } from "./lib/exerciseCatalog";
 
 const colors = {
   background: "#050505",
@@ -3327,6 +3327,14 @@ type WorkoutExercise = {
   formFrames: [ImageSourcePropType, ImageSourcePropType];
   poseGuide: PoseGuide;
   video?: number | string;
+  // Only present for exercises sourced from the live MuscleWiki catalog --
+  // needed to look up "similar exercise" alternatives. Absent for the
+  // built-in fallback roster, which has no such data to search by.
+  catalogMeta?: {
+    externalId: number;
+    movementPattern: MovementPattern;
+    primaryMuscle: PrimaryMuscle;
+  };
 };
 
 type PoseSegment = [number, number, number, number];
@@ -3789,7 +3797,47 @@ function catalogExerciseToWorkoutExercise(
     formFrames: [poster, poster],
     poseGuide: poseGuides.squat!,
     video: media?.video,
+    catalogMeta: {
+      externalId: tag.source.externalId,
+      movementPattern: tag.movementPattern,
+      primaryMuscle: tag.primaryMuscle,
+    },
   };
+}
+
+// Representative search keyword per movement pattern, used to look up
+// "similar exercise" alternatives for the swap feature.
+const movementPatternSearchKeyword: Record<MovementPattern, string> = {
+  squat: "squat",
+  hinge: "deadlift",
+  push: "press",
+  pull: "row",
+  lunge: "lunge",
+  carry: "carry",
+  rotation: "twist",
+  isometric: "plank",
+};
+
+async function fetchAlternativeExercises(
+  catalogMeta: { externalId: number; movementPattern: MovementPattern; primaryMuscle: PrimaryMuscle },
+  profile: Record<string, string>,
+  exerciseProgress: Record<string, ExerciseProgress>,
+  excludeNames: Set<string>,
+): Promise<WorkoutExercise[]> {
+  const keyword = movementPatternSearchKeyword[catalogMeta.movementPattern];
+  const params = new URLSearchParams({ search: keyword, limit: "25" });
+  const response = await fetch(`/api/exercise-catalog?${params.toString()}`);
+  if (!response.ok) return [];
+  const body = (await response.json()) as { exercises?: ExerciseTag[] };
+  const sex = profile.sex === "male" ? "male" : "female";
+  const alternatives = (body.exercises ?? []).filter(
+    (candidate) =>
+      candidate.primaryMuscle === catalogMeta.primaryMuscle &&
+      candidate.source.externalId !== catalogMeta.externalId &&
+      !excludeNames.has(candidate.name) &&
+      candidate.media[sex] !== null,
+  );
+  return alternatives.slice(0, 5).map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress));
 }
 
 async function createWorkoutFromCatalog(
@@ -3959,7 +4007,8 @@ function ActiveWorkoutScreen({
   onCompleteWorkout: (entry: WorkoutHistoryEntry) => void;
 }) {
   const { height } = useWindowDimensions();
-  const baseExercises = exercises;
+  const [exerciseList, setExerciseList] = useState<WorkoutExercise[]>(exercises);
+  const baseExercises = exerciseList;
   const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
   const targetSetCount = setCountForProfile(profile, adjustment);
   const scrollRef = useRef<ScrollView>(null);
@@ -3970,6 +4019,7 @@ function ActiveWorkoutScreen({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [workoutComplete, setWorkoutComplete] = useState(false);
   const [exerciseInfoOpen, setExerciseInfoOpen] = useState(false);
+  const [swapState, setSwapState] = useState<"closed" | "loading" | { options: WorkoutExercise[] }>("closed");
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
   const isBodyweight = exercise.weight === "Bodyweight";
   const currentWeightKg = isBodyweight ? null : parseInt(exercise.weight, 10);
@@ -4005,6 +4055,21 @@ function ActiveWorkoutScreen({
 
   const saveExerciseAdjustment = (nextWeightKg: number, nextReps: number) => {
     onUpdateExerciseProgress(exercise.name, { weightKg: nextWeightKg, reps: nextReps });
+  };
+
+  const openSwap = async () => {
+    if (!exercise.catalogMeta) return;
+    setSwapState("loading");
+    const excludeNames = new Set(baseExercises.map((item) => item.name));
+    const options = await fetchAlternativeExercises(exercise.catalogMeta, profile, exerciseProgress, excludeNames);
+    setSwapState({ options });
+  };
+
+  const applySwap = (replacement: WorkoutExercise) => {
+    setExerciseList((current) =>
+      current.map((item, index) => (index === exerciseIndex ? replacement : item)),
+    );
+    setSwapState("closed");
   };
 
   // Called when leaving an exercise (moving on, or finishing the workout on
@@ -4276,14 +4341,26 @@ function ActiveWorkoutScreen({
             <Text style={styles.exerciseName}>{exercise.name}</Text>
             <Text style={styles.exerciseTarget}>{exercise.target}</Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Exercise guidance for ${exercise.name}`}
-            onPress={() => setExerciseInfoOpen(true)}
-            style={styles.exerciseInfo}
-          >
-            <Text style={styles.exerciseInfoText}>i</Text>
-          </Pressable>
+          <View style={styles.exerciseHeadingActions}>
+            {exercise.catalogMeta ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Swap ${exercise.name} for a similar exercise`}
+                onPress={openSwap}
+                style={styles.exerciseInfo}
+              >
+                <Text style={styles.exerciseInfoText}>⇄</Text>
+              </Pressable>
+            ) : null}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Exercise guidance for ${exercise.name}`}
+              onPress={() => setExerciseInfoOpen(true)}
+              style={styles.exerciseInfo}
+            >
+              <Text style={styles.exerciseInfoText}>i</Text>
+            </Pressable>
+          </View>
         </View>
 
         {restSeconds > 0 ? (
@@ -4477,6 +4554,57 @@ function ActiveWorkoutScreen({
             <Pressable onPress={() => setExerciseInfoOpen(false)} style={styles.exerciseInfoDone}>
               <Text style={styles.exerciseInfoDoneText}>GOT IT</Text>
             </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        transparent
+        animationType="slide"
+        visible={swapState !== "closed"}
+        statusBarTranslucent
+        onRequestClose={() => setSwapState("closed")}
+      >
+        <Pressable style={styles.exerciseInfoBackdrop} onPress={() => setSwapState("closed")}>
+          <Pressable style={styles.exerciseInfoPanel} onPress={(event) => event.stopPropagation()}>
+            <View style={styles.exerciseInfoHandle} />
+            <View style={styles.exerciseInfoPanelHeader}>
+              <View style={styles.exerciseInfoPanelTitleWrap}>
+                <Text style={styles.exerciseInfoPanelEyebrow}>SWAP EXERCISE</Text>
+                <Text style={styles.exerciseInfoPanelTitle}>Same muscle, different move</Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close swap exercise"
+                onPress={() => setSwapState("closed")}
+                style={styles.exerciseInfoClose}
+              >
+                <Text style={styles.exerciseInfoCloseText}>×</Text>
+              </Pressable>
+            </View>
+
+            {swapState === "closed" ? null : swapState === "loading" ? (
+              <Text style={styles.swapLoadingText}>Finding alternatives…</Text>
+            ) : swapState.options.length === 0 ? (
+              <Text style={styles.swapLoadingText}>No alternatives found for this exercise right now.</Text>
+            ) : (
+              swapState.options.map((option) => (
+                <Pressable
+                  key={option.name}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Swap in ${option.name}`}
+                  onPress={() => applySwap(option)}
+                  style={({ pressed }) => [styles.swapOptionRow, pressed && { opacity: 0.8 }]}
+                >
+                  <Image source={option.formFrames[0]} style={styles.swapOptionThumb} resizeMode="cover" />
+                  <View style={styles.swapOptionCopy}>
+                    <Text style={styles.swapOptionName}>{option.name}</Text>
+                    <Text style={styles.swapOptionTarget}>{option.target}</Text>
+                  </View>
+                  <Text style={styles.cardChevron}>›</Text>
+                </Pressable>
+              ))
+            )}
           </Pressable>
         </Pressable>
       </Modal>
@@ -6874,6 +7002,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#090A09",
   },
   exerciseHeadingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  exerciseHeadingActions: { flexDirection: "row", gap: 8 },
   exerciseStep: { color: colors.lime, fontSize: 7, fontWeight: "800", letterSpacing: 1.2 },
   exerciseName: { color: colors.text, fontSize: 19, lineHeight: 22, fontWeight: "700", marginTop: 3, letterSpacing: -0.7 },
   exerciseTarget: { color: colors.muted, fontSize: 9, marginTop: 2 },
@@ -6959,6 +7088,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lime,
   },
   exerciseInfoDoneText: { color: colors.ink, fontSize: 12, fontWeight: "900", letterSpacing: 1.7 },
+  swapLoadingText: { color: colors.muted, fontSize: 13, marginTop: 24, textAlign: "center" },
+  swapOptionRow: {
+    minHeight: 64,
+    marginTop: 12,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0E100E",
+  },
+  swapOptionThumb: { width: 44, height: 44, borderRadius: 10, backgroundColor: "#1A1D19" },
+  swapOptionCopy: { flex: 1 },
+  swapOptionName: { color: colors.text, fontSize: 14, fontWeight: "700" },
+  swapOptionTarget: { color: colors.muted, fontSize: 10, marginTop: 2, textTransform: "capitalize" },
   restBanner: {
     minHeight: 40,
     borderRadius: 13,
