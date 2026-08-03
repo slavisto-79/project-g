@@ -516,27 +516,42 @@ function InterviewScreen({
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [complete, setComplete] = useState(false);
-  const [planStage, setPlanStage] = useState<"review" | "generating" | "ready" | "schedule">("review");
+  const [planStage, setPlanStage] = useState<"review" | "generating" | "ready">("review");
   const [reminderDays, setReminderDays] = useState<string[]>([]);
   const [reminderTime, setReminderTime] = useState<string>("");
-  const dayOptions: { id: string; label: string }[] = [
-    { id: "mon", label: "M" },
-    { id: "tue", label: "T" },
-    { id: "wed", label: "W" },
-    { id: "thu", label: "T" },
-    { id: "fri", label: "F" },
-    { id: "sat", label: "S" },
-    { id: "sun", label: "S" },
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const dayOptions: { id: string; label: string; short: string }[] = [
+    { id: "mon", label: "M", short: "Mon" },
+    { id: "tue", label: "T", short: "Tue" },
+    { id: "wed", label: "W", short: "Wed" },
+    { id: "thu", label: "T", short: "Thu" },
+    { id: "fri", label: "F", short: "Fri" },
+    { id: "sat", label: "S", short: "Sat" },
+    { id: "sun", label: "S", short: "Sun" },
   ];
-  const timeOptions: { id: string; label: string }[] = [
-    { id: "07:00", label: "Morning · 7:00 AM" },
-    { id: "12:00", label: "Midday · 12:00 PM" },
-    { id: "18:00", label: "Evening · 6:00 PM" },
-    { id: "20:00", label: "Night · 8:00 PM" },
+  const timeOptions: { id: string; label: string; short: string }[] = [
+    { id: "07:00", label: "Morning · 7:00 AM", short: "7 AM" },
+    { id: "12:00", label: "Midday · 12:00 PM", short: "12 PM" },
+    { id: "18:00", label: "Evening · 6:00 PM", short: "6 PM" },
+    { id: "20:00", label: "Night · 8:00 PM", short: "8 PM" },
   ];
   const toggleReminderDay = (id: string) => {
     setReminderDays((current) => (current.includes(id) ? current.filter((day) => day !== id) : [...current, id]));
   };
+  const scheduleButtonLabel =
+    reminderDays.length === 0 && !reminderTime
+      ? "CHOOSE DAY & TIME"
+      : [
+          reminderDays.length > 0
+            ? dayOptions
+                .filter((day) => reminderDays.includes(day.id))
+                .map((day) => day.short)
+                .join(", ")
+            : null,
+          reminderTime ? timeOptions.find((time) => time.id === reminderTime)?.short : null,
+        ]
+          .filter(Boolean)
+          .join(" · ");
   const finishWithReminders = () => {
     onFinish({
       ...answers,
@@ -580,10 +595,6 @@ function InterviewScreen({
 
   const goBack = () => {
     if (complete) {
-      if (planStage === "schedule") {
-        setPlanStage("ready");
-        return;
-      }
       if (planStage !== "review") {
         setPlanStage("review");
         return;
@@ -636,9 +647,14 @@ function InterviewScreen({
                 <Text style={styles.planMetaLabel}>WEEK 01 · FOUNDATION</Text>
                 <Text style={styles.planName}>{goalLabels[answers.goal ?? ""] ?? "Personal training"}</Text>
               </View>
-              <View style={styles.aiBadge}>
-                <Text style={styles.aiBadgeText}>AI + COACH</Text>
-              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Choose training day and time"
+                onPress={() => setScheduleModalOpen(true)}
+                style={styles.aiBadge}
+              >
+                <Text style={styles.aiBadgeText} numberOfLines={1}>{scheduleButtonLabel}</Text>
+              </Pressable>
             </View>
             <View style={styles.planStats}>
               <View style={styles.planStat}>
@@ -662,7 +678,13 @@ function InterviewScreen({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Open Full Body Foundation workout"
-            onPress={() => onStartWorkout(answers)}
+            onPress={() =>
+              onStartWorkout({
+                ...answers,
+                ...(reminderDays.length > 0 ? { reminderDays: reminderDays.join(",") } : {}),
+                ...(reminderTime ? { reminderTime } : {}),
+              })
+            }
             style={({ pressed }) => [styles.sessionCard, pressed && { opacity: 0.78 }]}
           >
             <View style={styles.sessionNumber}><Text style={styles.sessionNumberText}>01</Text></View>
@@ -675,77 +697,88 @@ function InterviewScreen({
             <Text style={styles.sessionArrow}>›</Text>
           </Pressable>
 
-          <Pressable onPress={() => setPlanStage("schedule")} style={styles.startButton}>
+          <Pressable onPress={finishWithReminders} style={styles.startButton}>
             <Text style={styles.startButtonText}>ENTER MY DASHBOARD</Text>
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
-        </View>
-      ) : complete && planStage === "schedule" ? (
-        <ScrollView
-          contentContainerStyle={[styles.planContent, { flexGrow: 1, justifyContent: "flex-start", paddingTop: 20 }]}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.completeKicker}>ONE LAST THING</Text>
-          <Text style={styles.planTitle}>
-            When should we <Text style={styles.welcomeTitleAccent}>remind you?</Text>
-          </Text>
-          <Text style={styles.completeBody}>
-            Pick your training days and a time — we’ll send a friendly nudge so you don’t miss a session.
-          </Text>
 
-          <Text style={styles.planSectionTitle}>TRAINING DAYS</Text>
-          <View style={styles.scheduleDaysRow}>
-            {dayOptions.map((day, index) => {
-              const isSelected = reminderDays.includes(day.id);
-              return (
-                <Pressable
-                  key={`${day.id}-${index}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Toggle ${day.id}`}
-                  onPress={() => toggleReminderDay(day.id)}
-                  style={[styles.scheduleDayChip, isSelected && styles.scheduleDayChipSelected]}
-                >
-                  <Text style={[styles.scheduleDayChipText, isSelected && styles.scheduleDayChipTextSelected]}>
-                    {day.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <Text style={styles.planSectionTitle}>REMINDER TIME</Text>
-          <View style={styles.answerList}>
-            {timeOptions.map((time) => {
-              const isSelected = time.id === reminderTime;
-              return (
-                <Pressable
-                  key={time.id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSelected }}
-                  onPress={() => setReminderTime(time.id)}
-                  style={({ pressed }) => [
-                    styles.answerCard,
-                    isSelected && styles.answerCardSelected,
-                    pressed && styles.answerCardPressed,
-                  ]}
-                >
-                  <View style={[styles.answerRadio, isSelected && styles.answerRadioSelected]}>
-                    {isSelected ? <View style={styles.answerRadioDot} /> : null}
+          <Modal
+            transparent
+            animationType="slide"
+            visible={scheduleModalOpen}
+            statusBarTranslucent
+            onRequestClose={() => setScheduleModalOpen(false)}
+          >
+            <Pressable style={styles.exerciseInfoBackdrop} onPress={() => setScheduleModalOpen(false)}>
+              <Pressable style={styles.exerciseInfoPanel} onPress={(event) => event.stopPropagation()}>
+                <View style={styles.exerciseInfoHandle} />
+                <View style={styles.exerciseInfoPanelHeader}>
+                  <View style={styles.exerciseInfoPanelTitleWrap}>
+                    <Text style={styles.exerciseInfoPanelEyebrow}>REMINDERS</Text>
+                    <Text style={styles.exerciseInfoPanelTitle}>Day & time</Text>
                   </View>
-                  <Text style={[styles.answerText, isSelected && styles.answerTextSelected]}>{time.label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Close"
+                    onPress={() => setScheduleModalOpen(false)}
+                    style={styles.exerciseInfoClose}
+                  >
+                    <Text style={styles.exerciseInfoCloseText}>×</Text>
+                  </Pressable>
+                </View>
 
-          <Pressable onPress={finishWithReminders} style={styles.startButton}>
-            <Text style={styles.startButtonText}>SAVE & ENTER DASHBOARD</Text>
-            <Text style={styles.startArrow}>↗</Text>
-          </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Skip reminders" onPress={() => onFinish(answers)}>
-            <Text style={styles.scheduleSkipText}>Skip for now</Text>
-          </Pressable>
-        </ScrollView>
+                <Text style={styles.planSectionTitle}>TRAINING DAYS</Text>
+                <View style={styles.scheduleDaysRow}>
+                  {dayOptions.map((day, index) => {
+                    const isSelected = reminderDays.includes(day.id);
+                    return (
+                      <Pressable
+                        key={`${day.id}-${index}`}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Toggle ${day.id}`}
+                        onPress={() => toggleReminderDay(day.id)}
+                        style={[styles.scheduleDayChip, isSelected && styles.scheduleDayChipSelected]}
+                      >
+                        <Text style={[styles.scheduleDayChipText, isSelected && styles.scheduleDayChipTextSelected]}>
+                          {day.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                <Text style={styles.planSectionTitle}>REMINDER TIME</Text>
+                <View style={styles.answerList}>
+                  {timeOptions.map((time) => {
+                    const isSelected = time.id === reminderTime;
+                    return (
+                      <Pressable
+                        key={time.id}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: isSelected }}
+                        onPress={() => setReminderTime(time.id)}
+                        style={({ pressed }) => [
+                          styles.answerCard,
+                          isSelected && styles.answerCardSelected,
+                          pressed && styles.answerCardPressed,
+                        ]}
+                      >
+                        <View style={[styles.answerRadio, isSelected && styles.answerRadioSelected]}>
+                          {isSelected ? <View style={styles.answerRadioDot} /> : null}
+                        </View>
+                        <Text style={[styles.answerText, isSelected && styles.answerTextSelected]}>{time.label}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                <Pressable onPress={() => setScheduleModalOpen(false)} style={styles.exerciseInfoDone}>
+                  <Text style={styles.exerciseInfoDoneText}>DONE</Text>
+                </Pressable>
+              </Pressable>
+            </Pressable>
+          </Modal>
+        </View>
       ) : complete && planStage === "generating" ? (
         <View style={styles.generatingContent}>
           <View style={styles.analysisOrb}>
@@ -5864,14 +5897,6 @@ const styles = StyleSheet.create({
   scheduleDayChipSelected: { backgroundColor: colors.lime, borderColor: colors.lime },
   scheduleDayChipText: { color: colors.muted, fontSize: 12, fontWeight: "800" },
   scheduleDayChipTextSelected: { color: colors.ink },
-  scheduleSkipText: {
-    color: colors.muted,
-    fontSize: 11,
-    fontWeight: "700",
-    textAlign: "center",
-    marginTop: 14,
-    marginBottom: 10,
-  },
   answerCard: {
     minHeight: 58,
     borderRadius: 16,
@@ -6053,6 +6078,7 @@ const styles = StyleSheet.create({
   planMetaLabel: { color: colors.lime, fontSize: 8, fontWeight: "800", letterSpacing: 1.3 },
   planName: { color: colors.text, fontSize: 21, fontWeight: "700", marginTop: 6 },
   aiBadge: {
+    maxWidth: 150,
     paddingVertical: 6,
     paddingHorizontal: 9,
     borderRadius: 12,
