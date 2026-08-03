@@ -702,7 +702,15 @@ function InterviewScreen({
   const [planStage, setPlanStage] = useState<"review" | "generating" | "ready">("review");
   const [reminderDays, setReminderDays] = useState<string[]>([]);
   const [reminderTime, setReminderTime] = useState<string>("");
-  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const toggleFrequencyDay = (id: string) => {
+    setReminderDays((current) => {
+      const next = current.includes(id) ? current.filter((day) => day !== id) : [...current, id];
+      // Keep the "how many days" answer in lockstep with the actual days picked,
+      // so there's one source of truth instead of asking for a count separately.
+      setAnswers((currentAnswers) => ({ ...currentAnswers, frequency: String(next.length) }));
+      return next;
+    });
+  };
   const finishWithReminders = () => {
     onFinish({
       ...answers,
@@ -731,10 +739,6 @@ function InterviewScreen({
     if (planStage !== "generating") return;
     const timer = setTimeout(() => setPlanStage("ready"), 2300);
     return () => clearTimeout(timer);
-  }, [planStage]);
-
-  useEffect(() => {
-    if (planStage === "ready") setScheduleModalOpen(true);
   }, [planStage]);
 
   useEffect(() => {
@@ -848,19 +852,6 @@ function InterviewScreen({
             <Text style={styles.startButtonText}>ENTER MY DASHBOARD</Text>
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
-
-          <ScheduleModal
-            visible={scheduleModalOpen}
-            onClose={() => setScheduleModalOpen(false)}
-            initialDays={reminderDays}
-            initialTime={reminderTime}
-            frequency={answers.frequency ?? "3"}
-            onConfirm={(days, time, frequency) => {
-              setReminderDays(days);
-              setReminderTime(time);
-              if (frequency !== answers.frequency) setAnswers((current) => ({ ...current, frequency }));
-            }}
-          />
         </View>
       ) : complete && planStage === "generating" ? (
         <View style={styles.generatingContent}>
@@ -913,7 +904,52 @@ function InterviewScreen({
             <Text style={styles.previewStep}>{question.kicker}</Text>
             <Text style={styles.previewTitle}>{question.title}</Text>
             <Text style={styles.previewBody}>{question.subtitle}</Text>
-            {question.kind === "picker" ? (
+            {question.id === "frequency" ? (
+              <>
+                <View style={[styles.scheduleDaysRow, { marginTop: 24 }]}>
+                  {scheduleDayOptions.map((day, index) => {
+                    const isSelected = reminderDays.includes(day.id);
+                    return (
+                      <Pressable
+                        key={`${day.id}-${index}`}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Toggle ${day.id}`}
+                        onPress={() => toggleFrequencyDay(day.id)}
+                        style={[styles.scheduleDayChip, isSelected && styles.scheduleDayChipSelected]}
+                      >
+                        <Text style={[styles.scheduleDayChipText, isSelected && styles.scheduleDayChipTextSelected]}>
+                          {day.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <Text style={[styles.planSectionTitle, { marginTop: 22 }]}>REMINDER TIME · OPTIONAL</Text>
+                <View style={styles.answerList}>
+                  {scheduleTimeOptions.map((time) => {
+                    const isSelected = time.id === reminderTime;
+                    return (
+                      <Pressable
+                        key={time.id}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: isSelected }}
+                        onPress={() => setReminderTime(isSelected ? "" : time.id)}
+                        style={({ pressed }) => [
+                          styles.answerCard,
+                          isSelected && styles.answerCardSelected,
+                          pressed && styles.answerCardPressed,
+                        ]}
+                      >
+                        <View style={[styles.answerRadio, isSelected && styles.answerRadioSelected]}>
+                          {isSelected ? <View style={styles.answerRadioDot} /> : null}
+                        </View>
+                        <Text style={[styles.answerText, isSelected && styles.answerTextSelected]}>{time.label}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </>
+            ) : question.kind === "picker" ? (
               <View style={styles.wheelPickerWrap}>
                 <NumberWheelPicker
                   min={question.min}
