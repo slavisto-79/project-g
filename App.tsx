@@ -538,6 +538,20 @@ function InterviewScreen({
   const toggleReminderDay = (id: string) => {
     setReminderDays((current) => (current.includes(id) ? current.filter((day) => day !== id) : [...current, id]));
   };
+  const defaultDaysForFrequency: Record<string, string[]> = {
+    "2": ["mon", "thu"],
+    "3": ["mon", "wed", "fri"],
+    "4": ["mon", "tue", "thu", "fri"],
+    "5": ["mon", "tue", "wed", "thu", "fri"],
+  };
+  const openScheduleModal = () => {
+    // Line up with the "how many days a week" answer from earlier instead of
+    // starting from a blank slate that feels disconnected from it.
+    if (reminderDays.length === 0) {
+      setReminderDays(defaultDaysForFrequency[answers.frequency ?? "3"] ?? ["mon", "wed", "fri"]);
+    }
+    setScheduleModalOpen(true);
+  };
   const scheduleButtonLabel =
     reminderDays.length === 0 && !reminderTime
       ? "CHOOSE DAY & TIME"
@@ -650,7 +664,7 @@ function InterviewScreen({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Choose training day and time"
-                onPress={() => setScheduleModalOpen(true)}
+                onPress={openScheduleModal}
                 style={styles.aiBadge}
               >
                 <Text style={styles.aiBadgeText} numberOfLines={1}>{scheduleButtonLabel}</Text>
