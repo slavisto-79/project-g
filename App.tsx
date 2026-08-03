@@ -4292,7 +4292,33 @@ function ActiveWorkoutScreen({
               <Text style={styles.restLabel}>REST TIMER</Text>
               <Text style={styles.restHint}>Breathe. Your next set is ready.</Text>
             </View>
-            <Text style={styles.restValue}>0:{String(restSeconds).padStart(2, "0")}</Text>
+            <View style={styles.restAdjustRow}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Subtract 15 seconds"
+                onPress={() => setRestSeconds((value) => Math.max(0, value - 15))}
+                style={styles.restAdjustButton}
+              >
+                <Text style={styles.restAdjustButtonText}>−15</Text>
+              </Pressable>
+              <Text style={styles.restValue}>0:{String(restSeconds).padStart(2, "0")}</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Add 15 seconds"
+                onPress={() => setRestSeconds((value) => value + 15)}
+                style={styles.restAdjustButton}
+              >
+                <Text style={styles.restAdjustButtonText}>+15</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Skip rest"
+                onPress={() => setRestSeconds(0)}
+                style={styles.restSkipButton}
+              >
+                <Text style={styles.restSkipButtonText}>SKIP</Text>
+              </Pressable>
+            </View>
           </View>
         ) : null}
 
@@ -6949,6 +6975,27 @@ const styles = StyleSheet.create({
   restLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.1 },
   restHint: { color: colors.muted, fontSize: 8, marginTop: 2 },
   restValue: { color: colors.text, fontSize: 18, fontWeight: "800" },
+  restAdjustRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  restAdjustButton: {
+    minWidth: 34,
+    minHeight: 26,
+    paddingHorizontal: 6,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.3)",
+  },
+  restAdjustButtonText: { color: colors.lime, fontSize: 10, fontWeight: "800" },
+  restSkipButton: {
+    minHeight: 26,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.lime,
+  },
+  restSkipButtonText: { color: colors.ink, fontSize: 8, fontWeight: "900", letterSpacing: 0.5 },
   setTableHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: 11, marginTop: 8, marginBottom: 4 },
   setHeaderText: { color: "#666C64", fontSize: 7, fontWeight: "800", letterSpacing: 1 },
   setColumn: { width: 42 },
