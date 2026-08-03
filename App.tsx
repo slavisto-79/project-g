@@ -536,7 +536,24 @@ function InterviewScreen({
     { id: "20:00", label: "Night · 8:00 PM", short: "8 PM" },
   ];
   const toggleReminderDay = (id: string) => {
-    setReminderDays((current) => (current.includes(id) ? current.filter((day) => day !== id) : [...current, id]));
+    const dayIds = dayOptions.map((day) => day.id);
+    const targetDayCount = Number(answers.frequency) || 3;
+    setReminderDays((current) => {
+      if (current.includes(id)) return current.filter((day) => day !== id);
+      if (current.length < targetDayCount) return [...current, id];
+      // Already at the weekly target -- swap in the new day for a random
+      // existing one instead of just piling on, so the total stays put.
+      // Prefer bumping a non-adjacent day so the week doesn't clump together.
+      const index = dayIds.indexOf(id);
+      const adjacentIds = new Set([
+        dayIds[(index - 1 + dayIds.length) % dayIds.length],
+        dayIds[(index + 1) % dayIds.length],
+      ]);
+      const nonAdjacent = current.filter((day) => !adjacentIds.has(day));
+      const removalPool = nonAdjacent.length > 0 ? nonAdjacent : current;
+      const dayToRemove = removalPool[Math.floor(Math.random() * removalPool.length)];
+      return [...current.filter((day) => day !== dayToRemove), id];
+    });
   };
   const defaultDaysForFrequency: Record<string, string[]> = {
     "2": ["mon", "thu"],
