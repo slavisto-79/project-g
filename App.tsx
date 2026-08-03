@@ -1079,10 +1079,15 @@ function DashboardScreen({
           accessibilityRole="button"
           accessibilityLabel="Open your profile"
           onPress={onOpenProfile}
-          style={styles.dashboardAvatar}
+          style={styles.dashboardAvatarGroup}
         >
-          <Text style={styles.dashboardAvatarText}>G</Text>
-          <View style={styles.avatarStatus} />
+          <View style={styles.dashboardAvatar}>
+            <Text style={styles.dashboardAvatarText}>
+              {session?.email ? session.email[0]!.toUpperCase() : "G"}
+            </Text>
+            <View style={styles.avatarStatus} />
+          </View>
+          <Text style={styles.dashboardAvatarChevron}>›</Text>
         </Pressable>
       </View>
 
@@ -5954,6 +5959,8 @@ const styles = StyleSheet.create({
   },
   dashboardGreeting: { color: colors.muted, fontSize: 8, fontWeight: "800", letterSpacing: 1.6 },
   dashboardName: { color: colors.text, fontSize: 22, fontWeight: "700", letterSpacing: -0.7, marginTop: 4 },
+  dashboardAvatarGroup: { flexDirection: "row", alignItems: "center", gap: 4 },
+  dashboardAvatarChevron: { color: colors.muted, fontSize: 20 },
   dashboardAvatar: {
     width: 42,
     height: 42,
