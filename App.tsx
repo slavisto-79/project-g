@@ -504,42 +504,65 @@ function WelcomeScreen({
   );
 }
 
-function InterviewScreen({
-  onBack,
-  onFinish,
-  onStartWorkout,
+const scheduleDayOptions: { id: string; label: string; short: string }[] = [
+  { id: "mon", label: "M", short: "Mon" },
+  { id: "tue", label: "T", short: "Tue" },
+  { id: "wed", label: "W", short: "Wed" },
+  { id: "thu", label: "T", short: "Thu" },
+  { id: "fri", label: "F", short: "Fri" },
+  { id: "sat", label: "S", short: "Sat" },
+  { id: "sun", label: "S", short: "Sun" },
+];
+
+const scheduleTimeOptions: { id: string; label: string; short: string }[] = [
+  { id: "07:00", label: "Morning · 7:00 AM", short: "7 AM" },
+  { id: "12:00", label: "Midday · 12:00 PM", short: "12 PM" },
+  { id: "18:00", label: "Evening · 6:00 PM", short: "6 PM" },
+  { id: "20:00", label: "Night · 8:00 PM", short: "8 PM" },
+];
+
+const scheduleDefaultDaysForFrequency: Record<string, string[]> = {
+  "2": ["mon", "thu"],
+  "3": ["mon", "wed", "fri"],
+  "4": ["mon", "tue", "thu", "fri"],
+  "5": ["mon", "tue", "wed", "thu", "fri"],
+};
+
+// Shared by onboarding (auto-opens once the plan is ready) and the profile
+// screen (opened by tapping "How often can you train?") so both stay in sync
+// instead of maintaining two copies of this picker.
+function ScheduleModal({
+  visible,
+  onClose,
+  initialDays,
+  initialTime,
+  frequency,
+  onConfirm,
 }: {
-  onBack: () => void;
-  onFinish: (profile: Record<string, string>) => void;
-  onStartWorkout: (profile: Record<string, string>) => void;
+  visible: boolean;
+  onClose: () => void;
+  initialDays: string[];
+  initialTime: string;
+  frequency: string;
+  onConfirm: (days: string[], time: string, frequency: string) => void;
 }) {
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [complete, setComplete] = useState(false);
-  const [planStage, setPlanStage] = useState<"review" | "generating" | "ready">("review");
-  const [reminderDays, setReminderDays] = useState<string[]>([]);
-  const [reminderTime, setReminderTime] = useState<string>("");
-  const [frequencyMismatchConfirm, setFrequencyMismatchConfirm] = useState(false);
-  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
-  const dayOptions: { id: string; label: string; short: string }[] = [
-    { id: "mon", label: "M", short: "Mon" },
-    { id: "tue", label: "T", short: "Tue" },
-    { id: "wed", label: "W", short: "Wed" },
-    { id: "thu", label: "T", short: "Thu" },
-    { id: "fri", label: "F", short: "Fri" },
-    { id: "sat", label: "S", short: "Sat" },
-    { id: "sun", label: "S", short: "Sun" },
-  ];
-  const timeOptions: { id: string; label: string; short: string }[] = [
-    { id: "07:00", label: "Morning · 7:00 AM", short: "7 AM" },
-    { id: "12:00", label: "Midday · 12:00 PM", short: "12 PM" },
-    { id: "18:00", label: "Evening · 6:00 PM", short: "6 PM" },
-    { id: "20:00", label: "Night · 8:00 PM", short: "8 PM" },
-  ];
-  const toggleReminderDay = (id: string) => {
-    const dayIds = dayOptions.map((day) => day.id);
-    const targetDayCount = Number(answers.frequency) || 3;
-    setReminderDays((current) => {
+  const [days, setDays] = useState<string[]>(initialDays);
+  const [time, setTime] = useState(initialTime);
+  const [mismatchConfirm, setMismatchConfirm] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    setMismatchConfirm(false);
+    setDays(initialDays.length > 0 ? initialDays : scheduleDefaultDaysForFrequency[frequency] ?? ["mon", "wed", "fri"]);
+    setTime(initialTime);
+    // Only reset when the modal opens, not on every parent re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  const toggleDay = (id: string) => {
+    const dayIds = scheduleDayOptions.map((day) => day.id);
+    const targetDayCount = Number(frequency) || 3;
+    setDays((current) => {
       if (current.includes(id)) return current.filter((day) => day !== id);
       if (current.length < targetDayCount) return [...current, id];
       // Already at the weekly target -- swap in the new day for a random
@@ -556,37 +579,130 @@ function InterviewScreen({
       return [...current.filter((day) => day !== dayToRemove), id];
     });
   };
-  const defaultDaysForFrequency: Record<string, string[]> = {
-    "2": ["mon", "thu"],
-    "3": ["mon", "wed", "fri"],
-    "4": ["mon", "tue", "thu", "fri"],
-    "5": ["mon", "tue", "wed", "thu", "fri"],
+
+  const handleClose = () => {
+    setMismatchConfirm(false);
+    onClose();
   };
-  const openScheduleModal = () => {
-    // Line up with the "how many days a week" answer from earlier instead of
-    // starting from a blank slate that feels disconnected from it.
-    if (reminderDays.length === 0) {
-      setReminderDays(defaultDaysForFrequency[answers.frequency ?? "3"] ?? ["mon", "wed", "fri"]);
-    }
-    setScheduleModalOpen(true);
-  };
-  const closeScheduleModal = () => {
-    setScheduleModalOpen(false);
-    setFrequencyMismatchConfirm(false);
-  };
+
   const requestDone = () => {
-    if (reminderDays.length > 0 && reminderDays.length !== Number(answers.frequency ?? 0)) {
-      setFrequencyMismatchConfirm(true);
+    if (days.length > 0 && days.length !== Number(frequency || 0)) {
+      setMismatchConfirm(true);
       return;
     }
-    closeScheduleModal();
+    onConfirm(days, time, frequency);
+    handleClose();
   };
-  const confirmFrequencyMismatch = () => {
-    // Keep the plan's weekly stats and set counts in sync with what they
-    // actually picked here, rather than leaving them tied to the old answer.
-    setAnswers((current) => ({ ...current, frequency: String(reminderDays.length) }));
-    closeScheduleModal();
+
+  const confirmMismatch = () => {
+    onConfirm(days, time, String(days.length));
+    handleClose();
   };
+
+  return (
+    <Modal transparent animationType="slide" visible={visible} statusBarTranslucent onRequestClose={handleClose}>
+      <Pressable style={styles.exerciseInfoBackdrop} onPress={handleClose}>
+        <Pressable style={styles.exerciseInfoPanel} onPress={(event) => event.stopPropagation()}>
+          <View style={styles.exerciseInfoHandle} />
+          <View style={styles.exerciseInfoPanelHeader}>
+            <View style={styles.exerciseInfoPanelTitleWrap}>
+              <Text style={styles.exerciseInfoPanelEyebrow}>REMINDERS</Text>
+              <Text style={styles.exerciseInfoPanelTitle}>Day & time</Text>
+            </View>
+            <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={handleClose} style={styles.exerciseInfoClose}>
+              <Text style={styles.exerciseInfoCloseText}>×</Text>
+            </Pressable>
+          </View>
+
+          <Text style={styles.planSectionTitle}>TRAINING DAYS</Text>
+          <View style={styles.scheduleDaysRow}>
+            {scheduleDayOptions.map((day, index) => {
+              const isSelected = days.includes(day.id);
+              return (
+                <Pressable
+                  key={`${day.id}-${index}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Toggle ${day.id}`}
+                  onPress={() => toggleDay(day.id)}
+                  style={[styles.scheduleDayChip, isSelected && styles.scheduleDayChipSelected]}
+                >
+                  <Text style={[styles.scheduleDayChipText, isSelected && styles.scheduleDayChipTextSelected]}>
+                    {day.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={styles.planSectionTitle}>REMINDER TIME</Text>
+          <View style={styles.answerList}>
+            {scheduleTimeOptions.map((option) => {
+              const isSelected = option.id === time;
+              return (
+                <Pressable
+                  key={option.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  onPress={() => setTime(option.id)}
+                  style={({ pressed }) => [
+                    styles.answerCard,
+                    isSelected && styles.answerCardSelected,
+                    pressed && styles.answerCardPressed,
+                  ]}
+                >
+                  <View style={[styles.answerRadio, isSelected && styles.answerRadioSelected]}>
+                    {isSelected ? <View style={styles.answerRadioDot} /> : null}
+                  </View>
+                  <Text style={[styles.answerText, isSelected && styles.answerTextSelected]}>{option.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {mismatchConfirm ? (
+            <View style={styles.mismatchWarning}>
+              <Text style={styles.mismatchWarningText}>
+                You said {frequency || "3"}×/week in the questionnaire, but picked {days.length} day
+                {days.length === 1 ? "" : "s"} here. Continue with {days.length}× and update your plan to match?
+              </Text>
+              <Pressable onPress={confirmMismatch} style={styles.exerciseInfoDone}>
+                <Text style={styles.exerciseInfoDoneText}>YES, UPDATE MY PLAN</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Go back and adjust"
+                onPress={() => setMismatchConfirm(false)}
+              >
+                <Text style={styles.mismatchBackText}>Go back and adjust</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable onPress={requestDone} style={styles.exerciseInfoDone}>
+              <Text style={styles.exerciseInfoDoneText}>DONE</Text>
+            </Pressable>
+          )}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+function InterviewScreen({
+  onBack,
+  onFinish,
+  onStartWorkout,
+}: {
+  onBack: () => void;
+  onFinish: (profile: Record<string, string>) => void;
+  onStartWorkout: (profile: Record<string, string>) => void;
+}) {
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [complete, setComplete] = useState(false);
+  const [planStage, setPlanStage] = useState<"review" | "generating" | "ready">("review");
+  const [reminderDays, setReminderDays] = useState<string[]>([]);
+  const [reminderTime, setReminderTime] = useState<string>("");
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const finishWithReminders = () => {
     onFinish({
       ...answers,
@@ -618,10 +734,7 @@ function InterviewScreen({
   }, [planStage]);
 
   useEffect(() => {
-    if (planStage === "ready") openScheduleModal();
-    // Only fire when the plan actually becomes ready, not on every keystroke
-    // inside the modal (openScheduleModal itself is intentionally excluded).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (planStage === "ready") setScheduleModalOpen(true);
   }, [planStage]);
 
   useEffect(() => {
@@ -736,102 +849,18 @@ function InterviewScreen({
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
 
-          <Modal
-            transparent
-            animationType="slide"
+          <ScheduleModal
             visible={scheduleModalOpen}
-            statusBarTranslucent
-            onRequestClose={closeScheduleModal}
-          >
-            <Pressable style={styles.exerciseInfoBackdrop} onPress={closeScheduleModal}>
-              <Pressable style={styles.exerciseInfoPanel} onPress={(event) => event.stopPropagation()}>
-                <View style={styles.exerciseInfoHandle} />
-                <View style={styles.exerciseInfoPanelHeader}>
-                  <View style={styles.exerciseInfoPanelTitleWrap}>
-                    <Text style={styles.exerciseInfoPanelEyebrow}>REMINDERS</Text>
-                    <Text style={styles.exerciseInfoPanelTitle}>Day & time</Text>
-                  </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Close"
-                    onPress={closeScheduleModal}
-                    style={styles.exerciseInfoClose}
-                  >
-                    <Text style={styles.exerciseInfoCloseText}>×</Text>
-                  </Pressable>
-                </View>
-
-                <Text style={styles.planSectionTitle}>TRAINING DAYS</Text>
-                <View style={styles.scheduleDaysRow}>
-                  {dayOptions.map((day, index) => {
-                    const isSelected = reminderDays.includes(day.id);
-                    return (
-                      <Pressable
-                        key={`${day.id}-${index}`}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Toggle ${day.id}`}
-                        onPress={() => toggleReminderDay(day.id)}
-                        style={[styles.scheduleDayChip, isSelected && styles.scheduleDayChipSelected]}
-                      >
-                        <Text style={[styles.scheduleDayChipText, isSelected && styles.scheduleDayChipTextSelected]}>
-                          {day.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                <Text style={styles.planSectionTitle}>REMINDER TIME</Text>
-                <View style={styles.answerList}>
-                  {timeOptions.map((time) => {
-                    const isSelected = time.id === reminderTime;
-                    return (
-                      <Pressable
-                        key={time.id}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected: isSelected }}
-                        onPress={() => setReminderTime(time.id)}
-                        style={({ pressed }) => [
-                          styles.answerCard,
-                          isSelected && styles.answerCardSelected,
-                          pressed && styles.answerCardPressed,
-                        ]}
-                      >
-                        <View style={[styles.answerRadio, isSelected && styles.answerRadioSelected]}>
-                          {isSelected ? <View style={styles.answerRadioDot} /> : null}
-                        </View>
-                        <Text style={[styles.answerText, isSelected && styles.answerTextSelected]}>{time.label}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                {frequencyMismatchConfirm ? (
-                  <View style={styles.mismatchWarning}>
-                    <Text style={styles.mismatchWarningText}>
-                      You said {answers.frequency ?? "3"}×/week in the questionnaire, but picked{" "}
-                      {reminderDays.length} day{reminderDays.length === 1 ? "" : "s"} here. Continue with{" "}
-                      {reminderDays.length}× and update your plan to match?
-                    </Text>
-                    <Pressable onPress={confirmFrequencyMismatch} style={styles.exerciseInfoDone}>
-                      <Text style={styles.exerciseInfoDoneText}>YES, UPDATE MY PLAN</Text>
-                    </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel="Go back and adjust"
-                      onPress={() => setFrequencyMismatchConfirm(false)}
-                    >
-                      <Text style={styles.mismatchBackText}>Go back and adjust</Text>
-                    </Pressable>
-                  </View>
-                ) : (
-                  <Pressable onPress={requestDone} style={styles.exerciseInfoDone}>
-                    <Text style={styles.exerciseInfoDoneText}>DONE</Text>
-                  </Pressable>
-                )}
-              </Pressable>
-            </Pressable>
-          </Modal>
+            onClose={() => setScheduleModalOpen(false)}
+            initialDays={reminderDays}
+            initialTime={reminderTime}
+            frequency={answers.frequency ?? "3"}
+            onConfirm={(days, time, frequency) => {
+              setReminderDays(days);
+              setReminderTime(time);
+              if (frequency !== answers.frequency) setAnswers((current) => ({ ...current, frequency }));
+            }}
+          />
         </View>
       ) : complete && planStage === "generating" ? (
         <View style={styles.generatingContent}>
@@ -968,9 +997,16 @@ function ProfileScreen({
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftValue, setDraftValue] = useState<string>("");
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const editingQuestion = interviewQuestions.find((question) => question.id === editingId) ?? null;
 
   const startEditing = (question: InterviewQuestion) => {
+    // "How often can you train?" also drives the reminders day/time picker --
+    // edit both together instead of just the plain number.
+    if (question.id === "frequency") {
+      setScheduleModalOpen(true);
+      return;
+    }
     setDraftValue(profile[question.id] ?? (question.kind === "picker" ? String(question.defaultValue) : ""));
     setEditingId(question.id);
   };
@@ -1160,6 +1196,19 @@ function ProfileScreen({
           ))}
         </View>
       </ScrollView>
+
+      <ScheduleModal
+        visible={scheduleModalOpen}
+        onClose={() => setScheduleModalOpen(false)}
+        initialDays={profile.reminderDays ? profile.reminderDays.split(",") : []}
+        initialTime={profile.reminderTime ?? ""}
+        frequency={profile.frequency ?? "3"}
+        onConfirm={(days, time, frequency) => {
+          onUpdateProfile("reminderDays", days.join(","));
+          onUpdateProfile("reminderTime", time);
+          if (frequency !== profile.frequency) onUpdateProfile("frequency", frequency);
+        }}
+      />
     </SafeAreaView>
   );
 }
