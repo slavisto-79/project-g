@@ -516,7 +516,34 @@ function InterviewScreen({
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [complete, setComplete] = useState(false);
-  const [planStage, setPlanStage] = useState<"review" | "generating" | "ready">("review");
+  const [planStage, setPlanStage] = useState<"review" | "generating" | "ready" | "schedule">("review");
+  const [reminderDays, setReminderDays] = useState<string[]>([]);
+  const [reminderTime, setReminderTime] = useState<string>("");
+  const dayOptions: { id: string; label: string }[] = [
+    { id: "mon", label: "M" },
+    { id: "tue", label: "T" },
+    { id: "wed", label: "W" },
+    { id: "thu", label: "T" },
+    { id: "fri", label: "F" },
+    { id: "sat", label: "S" },
+    { id: "sun", label: "S" },
+  ];
+  const timeOptions: { id: string; label: string }[] = [
+    { id: "07:00", label: "Morning · 7:00 AM" },
+    { id: "12:00", label: "Midday · 12:00 PM" },
+    { id: "18:00", label: "Evening · 6:00 PM" },
+    { id: "20:00", label: "Night · 8:00 PM" },
+  ];
+  const toggleReminderDay = (id: string) => {
+    setReminderDays((current) => (current.includes(id) ? current.filter((day) => day !== id) : [...current, id]));
+  };
+  const finishWithReminders = () => {
+    onFinish({
+      ...answers,
+      ...(reminderDays.length > 0 ? { reminderDays: reminderDays.join(",") } : {}),
+      ...(reminderTime ? { reminderTime } : {}),
+    });
+  };
   const question = interviewQuestions[step];
   const selected = question ? answers[question.id] : undefined;
   const progress = complete ? 1 : (step + 1) / interviewQuestions.length;
@@ -553,6 +580,10 @@ function InterviewScreen({
 
   const goBack = () => {
     if (complete) {
+      if (planStage === "schedule") {
+        setPlanStage("ready");
+        return;
+      }
       if (planStage !== "review") {
         setPlanStage("review");
         return;
@@ -644,11 +675,77 @@ function InterviewScreen({
             <Text style={styles.sessionArrow}>›</Text>
           </Pressable>
 
-          <Pressable onPress={() => onFinish(answers)} style={styles.startButton}>
+          <Pressable onPress={() => setPlanStage("schedule")} style={styles.startButton}>
             <Text style={styles.startButtonText}>ENTER MY DASHBOARD</Text>
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
         </View>
+      ) : complete && planStage === "schedule" ? (
+        <ScrollView
+          contentContainerStyle={[styles.planContent, { flexGrow: 1, justifyContent: "flex-start", paddingTop: 20 }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.completeKicker}>ONE LAST THING</Text>
+          <Text style={styles.planTitle}>
+            When should we <Text style={styles.welcomeTitleAccent}>remind you?</Text>
+          </Text>
+          <Text style={styles.completeBody}>
+            Pick your training days and a time — we’ll send a friendly nudge so you don’t miss a session.
+          </Text>
+
+          <Text style={styles.planSectionTitle}>TRAINING DAYS</Text>
+          <View style={styles.scheduleDaysRow}>
+            {dayOptions.map((day, index) => {
+              const isSelected = reminderDays.includes(day.id);
+              return (
+                <Pressable
+                  key={`${day.id}-${index}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Toggle ${day.id}`}
+                  onPress={() => toggleReminderDay(day.id)}
+                  style={[styles.scheduleDayChip, isSelected && styles.scheduleDayChipSelected]}
+                >
+                  <Text style={[styles.scheduleDayChipText, isSelected && styles.scheduleDayChipTextSelected]}>
+                    {day.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={styles.planSectionTitle}>REMINDER TIME</Text>
+          <View style={styles.answerList}>
+            {timeOptions.map((time) => {
+              const isSelected = time.id === reminderTime;
+              return (
+                <Pressable
+                  key={time.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  onPress={() => setReminderTime(time.id)}
+                  style={({ pressed }) => [
+                    styles.answerCard,
+                    isSelected && styles.answerCardSelected,
+                    pressed && styles.answerCardPressed,
+                  ]}
+                >
+                  <View style={[styles.answerRadio, isSelected && styles.answerRadioSelected]}>
+                    {isSelected ? <View style={styles.answerRadioDot} /> : null}
+                  </View>
+                  <Text style={[styles.answerText, isSelected && styles.answerTextSelected]}>{time.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Pressable onPress={finishWithReminders} style={styles.startButton}>
+            <Text style={styles.startButtonText}>SAVE & ENTER DASHBOARD</Text>
+            <Text style={styles.startArrow}>↗</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Skip reminders" onPress={() => onFinish(answers)}>
+            <Text style={styles.scheduleSkipText}>Skip for now</Text>
+          </Pressable>
+        </ScrollView>
       ) : complete && planStage === "generating" ? (
         <View style={styles.generatingContent}>
           <View style={styles.analysisOrb}>
@@ -5754,6 +5851,27 @@ const styles = StyleSheet.create({
   },
   previewBody: { color: colors.muted, fontSize: 14, lineHeight: 21, marginTop: 14, maxWidth: 480 },
   answerList: { marginTop: 24, gap: 10 },
+  scheduleDaysRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 14 },
+  scheduleDayChip: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#353A34",
+  },
+  scheduleDayChipSelected: { backgroundColor: colors.lime, borderColor: colors.lime },
+  scheduleDayChipText: { color: colors.muted, fontSize: 12, fontWeight: "800" },
+  scheduleDayChipTextSelected: { color: colors.ink },
+  scheduleSkipText: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
+    marginTop: 14,
+    marginBottom: 10,
+  },
   answerCard: {
     minHeight: 58,
     borderRadius: 16,
