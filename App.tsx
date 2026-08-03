@@ -587,20 +587,6 @@ function InterviewScreen({
     setAnswers((current) => ({ ...current, frequency: String(reminderDays.length) }));
     closeScheduleModal();
   };
-  const scheduleButtonLabel =
-    reminderDays.length === 0 && !reminderTime
-      ? "CHOOSE DAYS & TIME"
-      : [
-          reminderDays.length > 0
-            ? dayOptions
-                .filter((day) => reminderDays.includes(day.id))
-                .map((day) => day.short)
-                .join(", ")
-            : null,
-          reminderTime ? timeOptions.find((time) => time.id === reminderTime)?.short : null,
-        ]
-          .filter(Boolean)
-          .join(" · ");
   const finishWithReminders = () => {
     onFinish({
       ...answers,
@@ -629,6 +615,13 @@ function InterviewScreen({
     if (planStage !== "generating") return;
     const timer = setTimeout(() => setPlanStage("ready"), 2300);
     return () => clearTimeout(timer);
+  }, [planStage]);
+
+  useEffect(() => {
+    if (planStage === "ready") openScheduleModal();
+    // Only fire when the plan actually becomes ready, not on every keystroke
+    // inside the modal (openScheduleModal itself is intentionally excluded).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planStage]);
 
   useEffect(() => {
@@ -713,14 +706,6 @@ function InterviewScreen({
                 <Text style={styles.planStatLabel}>COACH REVIEW</Text>
               </View>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Choose training days and time"
-              onPress={openScheduleModal}
-              style={styles.scheduleBigButton}
-            >
-              <Text style={styles.scheduleBigButtonText} numberOfLines={1}>{scheduleButtonLabel}</Text>
-            </Pressable>
           </View>
 
           <Text style={styles.planSectionTitle}>YOUR FIRST SESSION</Text>
@@ -6146,17 +6131,6 @@ const styles = StyleSheet.create({
   planHeroTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
   planMetaLabel: { color: colors.lime, fontSize: 8, fontWeight: "800", letterSpacing: 1.3 },
   planName: { color: colors.text, fontSize: 21, fontWeight: "700", marginTop: 6 },
-  scheduleBigButton: {
-    marginTop: 18,
-    minHeight: 46,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(200,255,50,0.14)",
-    borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.35)",
-  },
-  scheduleBigButtonText: { color: colors.lime, fontSize: 13, fontWeight: "900", letterSpacing: 0.8 },
   planStats: { flexDirection: "row", alignItems: "center", marginTop: 24 },
   planStat: { flex: 1 },
   planStatValue: { color: colors.text, fontSize: 22, fontWeight: "800" },
