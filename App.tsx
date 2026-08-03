@@ -1198,7 +1198,6 @@ function DashboardScreen({
             <Text style={styles.readinessTitle}>Good readiness</Text>
             <Text style={styles.readinessHint}>You’re ready for the planned session.</Text>
           </View>
-          <Text style={styles.cardChevron}>›</Text>
         </View>
 
         <Text style={styles.quickTitle}>QUICK OVERVIEW</Text>
