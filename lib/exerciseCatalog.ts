@@ -164,7 +164,11 @@ function buildMediaEntry(
   videos: unknown,
   gender: "male" | "female",
 ): { video: string; poster: string } | null {
-  const match = safeVideos(videos).find((video) => video.gender === gender && video.angle === "front");
+  const genderVideos = safeVideos(videos).filter((video) => video.gender === gender);
+  // Side angle shows the exercise's range of motion more clearly than straight-on --
+  // fall back to front if this exercise/gender only has a front-angle clip.
+  const match =
+    genderVideos.find((video) => video.angle === "side") ?? genderVideos.find((video) => video.angle === "front");
   if (!match) return null;
   return { video: proxied(match.url), poster: proxied(match.og_image) };
 }
