@@ -4341,26 +4341,27 @@ function ActiveWorkoutScreen({
             <Text style={styles.exerciseName}>{exercise.name}</Text>
             <Text style={styles.exerciseTarget}>{exercise.target}</Text>
           </View>
-          <View style={styles.exerciseHeadingActions}>
-            {exercise.catalogMeta ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Swap ${exercise.name} for a similar exercise`}
-                onPress={openSwap}
-                style={styles.exerciseInfo}
-              >
-                <Text style={styles.exerciseInfoText}>⇄</Text>
-              </Pressable>
-            ) : null}
+        </View>
+
+        <View style={styles.exerciseActionRow}>
+          {exercise.catalogMeta ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Exercise guidance for ${exercise.name}`}
-              onPress={() => setExerciseInfoOpen(true)}
-              style={styles.exerciseInfo}
+              accessibilityLabel={`Swap ${exercise.name} for a similar exercise`}
+              onPress={openSwap}
+              style={styles.exerciseActionPill}
             >
-              <Text style={styles.exerciseInfoText}>i</Text>
+              <Text style={styles.exerciseActionPillText}>SWAP EXERCISE</Text>
             </Pressable>
-          </View>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Exercise guidance for ${exercise.name}`}
+            onPress={() => setExerciseInfoOpen(true)}
+            style={styles.exerciseActionPill}
+          >
+            <Text style={styles.exerciseActionPillText}>FORM GUIDE</Text>
+          </Pressable>
         </View>
 
         {restSeconds > 0 ? (
@@ -7002,20 +7003,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#090A09",
   },
   exerciseHeadingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  exerciseHeadingActions: { flexDirection: "row", gap: 8 },
+  exerciseActionRow: { flexDirection: "row", gap: 8, marginTop: 12 },
+  exerciseActionPill: {
+    flex: 1,
+    minHeight: 34,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.lime,
+  },
+  exerciseActionPillText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 0.8 },
   exerciseStep: { color: colors.lime, fontSize: 7, fontWeight: "800", letterSpacing: 1.2 },
   exerciseName: { color: colors.text, fontSize: 19, lineHeight: 22, fontWeight: "700", marginTop: 3, letterSpacing: -0.7 },
   exerciseTarget: { color: colors.muted, fontSize: 9, marginTop: 2 },
-  exerciseInfo: {
-    width: 31,
-    height: 31,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#353A34",
-  },
-  exerciseInfoText: { color: colors.muted, fontSize: 13, fontWeight: "700" },
   exerciseInfoBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.72)",
