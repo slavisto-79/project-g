@@ -519,6 +519,7 @@ function InterviewScreen({
   const [planStage, setPlanStage] = useState<"review" | "generating" | "ready">("review");
   const [reminderDays, setReminderDays] = useState<string[]>([]);
   const [reminderTime, setReminderTime] = useState<string>("");
+  const [frequencyMismatchConfirm, setFrequencyMismatchConfirm] = useState(false);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const dayOptions: { id: string; label: string; short: string }[] = [
     { id: "mon", label: "M", short: "Mon" },
@@ -568,6 +569,23 @@ function InterviewScreen({
       setReminderDays(defaultDaysForFrequency[answers.frequency ?? "3"] ?? ["mon", "wed", "fri"]);
     }
     setScheduleModalOpen(true);
+  };
+  const closeScheduleModal = () => {
+    setScheduleModalOpen(false);
+    setFrequencyMismatchConfirm(false);
+  };
+  const requestDone = () => {
+    if (reminderDays.length > 0 && reminderDays.length !== Number(answers.frequency ?? 0)) {
+      setFrequencyMismatchConfirm(true);
+      return;
+    }
+    closeScheduleModal();
+  };
+  const confirmFrequencyMismatch = () => {
+    // Keep the plan's weekly stats and set counts in sync with what they
+    // actually picked here, rather than leaving them tied to the old answer.
+    setAnswers((current) => ({ ...current, frequency: String(reminderDays.length) }));
+    closeScheduleModal();
   };
   const scheduleButtonLabel =
     reminderDays.length === 0 && !reminderTime
@@ -738,9 +756,9 @@ function InterviewScreen({
             animationType="slide"
             visible={scheduleModalOpen}
             statusBarTranslucent
-            onRequestClose={() => setScheduleModalOpen(false)}
+            onRequestClose={closeScheduleModal}
           >
-            <Pressable style={styles.exerciseInfoBackdrop} onPress={() => setScheduleModalOpen(false)}>
+            <Pressable style={styles.exerciseInfoBackdrop} onPress={closeScheduleModal}>
               <Pressable style={styles.exerciseInfoPanel} onPress={(event) => event.stopPropagation()}>
                 <View style={styles.exerciseInfoHandle} />
                 <View style={styles.exerciseInfoPanelHeader}>
@@ -751,7 +769,7 @@ function InterviewScreen({
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel="Close"
-                    onPress={() => setScheduleModalOpen(false)}
+                    onPress={closeScheduleModal}
                     style={styles.exerciseInfoClose}
                   >
                     <Text style={styles.exerciseInfoCloseText}>×</Text>
@@ -803,9 +821,29 @@ function InterviewScreen({
                   })}
                 </View>
 
-                <Pressable onPress={() => setScheduleModalOpen(false)} style={styles.exerciseInfoDone}>
-                  <Text style={styles.exerciseInfoDoneText}>DONE</Text>
-                </Pressable>
+                {frequencyMismatchConfirm ? (
+                  <View style={styles.mismatchWarning}>
+                    <Text style={styles.mismatchWarningText}>
+                      You said {answers.frequency ?? "3"}×/week in the questionnaire, but picked{" "}
+                      {reminderDays.length} day{reminderDays.length === 1 ? "" : "s"} here. Continue with{" "}
+                      {reminderDays.length}× and update your plan to match?
+                    </Text>
+                    <Pressable onPress={confirmFrequencyMismatch} style={styles.exerciseInfoDone}>
+                      <Text style={styles.exerciseInfoDoneText}>YES, UPDATE MY PLAN</Text>
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Go back and adjust"
+                      onPress={() => setFrequencyMismatchConfirm(false)}
+                    >
+                      <Text style={styles.mismatchBackText}>Go back and adjust</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <Pressable onPress={requestDone} style={styles.exerciseInfoDone}>
+                    <Text style={styles.exerciseInfoDoneText}>DONE</Text>
+                  </Pressable>
+                )}
               </Pressable>
             </Pressable>
           </Modal>
@@ -7288,6 +7326,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lime,
   },
   exerciseInfoDoneText: { color: colors.ink, fontSize: 12, fontWeight: "900", letterSpacing: 1.7 },
+  mismatchWarning: {
+    marginTop: 8,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.3)",
+    backgroundColor: "rgba(200,255,50,0.08)",
+  },
+  mismatchWarningText: { color: colors.text, fontSize: 13, lineHeight: 19, marginBottom: 14 },
+  mismatchBackText: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
+    marginTop: 12,
+  },
   swapLoadingText: { color: colors.muted, fontSize: 13, marginTop: 24, textAlign: "center" },
   swapOptionRow: {
     minHeight: 64,
