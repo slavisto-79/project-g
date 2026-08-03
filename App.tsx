@@ -589,7 +589,7 @@ function InterviewScreen({
   };
   const scheduleButtonLabel =
     reminderDays.length === 0 && !reminderTime
-      ? "CHOOSE DAY & TIME"
+      ? "CHOOSE DAYS & TIME"
       : [
           reminderDays.length > 0
             ? dayOptions
@@ -696,14 +696,6 @@ function InterviewScreen({
                 <Text style={styles.planMetaLabel}>WEEK 01 · FOUNDATION</Text>
                 <Text style={styles.planName}>{goalLabels[answers.goal ?? ""] ?? "Personal training"}</Text>
               </View>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Choose training day and time"
-                onPress={openScheduleModal}
-                style={styles.aiBadge}
-              >
-                <Text style={styles.aiBadgeText} numberOfLines={1}>{scheduleButtonLabel}</Text>
-              </Pressable>
             </View>
             <View style={styles.planStats}>
               <View style={styles.planStat}>
@@ -721,6 +713,14 @@ function InterviewScreen({
                 <Text style={styles.planStatLabel}>COACH REVIEW</Text>
               </View>
             </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Choose training days and time"
+              onPress={openScheduleModal}
+              style={styles.scheduleBigButton}
+            >
+              <Text style={styles.scheduleBigButtonText} numberOfLines={1}>{scheduleButtonLabel}</Text>
+            </Pressable>
           </View>
 
           <Text style={styles.planSectionTitle}>YOUR FIRST SESSION</Text>
@@ -6146,14 +6146,17 @@ const styles = StyleSheet.create({
   planHeroTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
   planMetaLabel: { color: colors.lime, fontSize: 8, fontWeight: "800", letterSpacing: 1.3 },
   planName: { color: colors.text, fontSize: 21, fontWeight: "700", marginTop: 6 },
-  aiBadge: {
-    maxWidth: 150,
-    paddingVertical: 6,
-    paddingHorizontal: 9,
-    borderRadius: 12,
-    backgroundColor: "rgba(200,255,50,0.12)",
+  scheduleBigButton: {
+    marginTop: 18,
+    minHeight: 46,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(200,255,50,0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.35)",
   },
-  aiBadgeText: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1 },
+  scheduleBigButtonText: { color: colors.lime, fontSize: 13, fontWeight: "900", letterSpacing: 0.8 },
   planStats: { flexDirection: "row", alignItems: "center", marginTop: 24 },
   planStat: { flex: 1 },
   planStatValue: { color: colors.text, fontSize: 22, fontWeight: "800" },
