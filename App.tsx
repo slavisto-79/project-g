@@ -1067,6 +1067,7 @@ function DashboardScreen({
   const weeklyGoal = profile.frequency ?? "3";
   const thisWeekCount = workoutHistory.filter((entry) => isWithinLastDays(entry.date, 7)).length;
   const lastWorkout = workoutHistory[0];
+  const readiness = computeReadiness(workoutHistory);
 
   return (
     <SafeAreaView style={styles.dashboard}>
@@ -1190,13 +1191,13 @@ function DashboardScreen({
 
         <View style={styles.readinessCard}>
           <View style={styles.recoveryScore}>
-            <Text style={styles.recoveryValue}>78</Text>
+            <Text style={styles.recoveryValue}>{readiness.score}</Text>
             <Text style={styles.recoveryLabel}>READY</Text>
           </View>
           <View style={styles.readinessCopy}>
             <Text style={styles.sectionEyebrow}>TODAY’S READINESS</Text>
-            <Text style={styles.readinessTitle}>Good readiness</Text>
-            <Text style={styles.readinessHint}>You’re ready for the planned session.</Text>
+            <Text style={styles.readinessTitle}>{readiness.title}</Text>
+            <Text style={styles.readinessHint}>{readiness.hint}</Text>
           </View>
         </View>
 
@@ -1289,6 +1290,33 @@ function isWithinLastDays(iso: string, days: number): boolean {
   const parsed = new Date(iso).getTime();
   if (Number.isNaN(parsed)) return false;
   return Date.now() - parsed <= days * 24 * 60 * 60 * 1000;
+}
+
+type ReadinessInfo = { score: number; title: string; hint: string };
+
+// A simple recovery-time heuristic, not a biometric measurement -- we have no
+// sleep/HRV data, only workout history, so this approximates readiness from
+// how long it's been since the last session.
+function computeReadiness(workoutHistory: WorkoutHistoryEntry[]): ReadinessInfo {
+  const lastWorkout = workoutHistory[0];
+  if (!lastWorkout) {
+    return { score: 85, title: "Ready to start", hint: "No sessions logged yet — go for it." };
+  }
+  const lastWorkoutMs = new Date(lastWorkout.date).getTime();
+  if (Number.isNaN(lastWorkoutMs)) {
+    return { score: 85, title: "Ready to start", hint: "You’re ready for the planned session." };
+  }
+  const hoursSince = (Date.now() - lastWorkoutMs) / (60 * 60 * 1000);
+  if (hoursSince < 8) {
+    return { score: 55, title: "Still recovering", hint: "You trained recently — an easy session helps." };
+  }
+  if (hoursSince < 20) {
+    return { score: 72, title: "Good readiness", hint: "You’re ready for the planned session." };
+  }
+  if (hoursSince < 40) {
+    return { score: 88, title: "Fully recovered", hint: "Good day to push a bit harder." };
+  }
+  return { score: 80, title: "Well rested", hint: "It’s been a few days — ease back in." };
 }
 
 const TRIAL_LENGTH_DAYS = 14;
