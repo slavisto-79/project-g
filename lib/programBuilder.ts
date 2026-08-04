@@ -84,37 +84,41 @@ export function splitDaySlotCount(day: SplitDay): number {
   return splitTemplates[day].length;
 }
 
-const dayIdToWeekday: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
-
 // Decides which split day applies "today", based on how many days a week the
-// user trains (from onboarding) and, when they've told us which specific
-// weekdays, which one today actually is. Falls back to simply rotating
-// through the split by total workout count when today isn't one of their
-// chosen days (or they never picked any) -- so it still varies session to
-// session instead of always serving the same day.
+// user trains (from onboarding) and which split types they've actually done
+// most recently -- picks whichever muscle group has gone the longest without
+// work, instead of a fixed weekday/count rotation. A plain modulo cycle looks
+// balanced on paper but isn't: e.g. 5 days/week on a 3-way push/pull/legs
+// cycle lands on push and pull twice but legs only once, every single week.
+// Tracking real history self-corrects that regardless of skipped days,
+// inconsistent schedules, or which day count they're on.
 export function determineSplitDay(
   reminderDays: string[],
-  completedWorkoutCount: number,
+  recentSplitDays: SplitDay[],
 ): { day: SplitDay; label: string } {
   const dayCount = reminderDays.length;
   if (dayCount <= 3) return { day: "full-body", label: splitDayLabels["full-body"] };
 
-  const sortedDays = [...reminderDays].sort(
-    (a, b) => (dayIdToWeekday[a] ?? 0) - (dayIdToWeekday[b] ?? 0),
-  );
-  const todayWeekday = new Date().getDay();
-  const todayId = Object.keys(dayIdToWeekday).find((id) => dayIdToWeekday[id] === todayWeekday);
-  const todayPosition = todayId ? sortedDays.indexOf(todayId) : -1;
-  const position = todayPosition >= 0 ? todayPosition : completedWorkoutCount;
+  const pool: SplitDay[] = dayCount === 4 ? ["upper", "lower"] : ["push", "pull", "legs"];
 
-  if (dayCount === 4) {
-    const day: SplitDay = position % 2 === 0 ? "upper" : "lower";
-    return { day, label: splitDayLabels[day] };
+  // Only look at a recent window (twice the pool size) so an old habit doesn't
+  // keep influencing today's pick forever once behavior changes.
+  const window = recentSplitDays.slice(0, pool.length * 2);
+  const counts = new Map<SplitDay, number>(pool.map((day) => [day, 0]));
+  for (const day of window) {
+    if (counts.has(day)) counts.set(day, (counts.get(day) ?? 0) + 1);
   }
 
-  const cycle: SplitDay[] = ["push", "pull", "legs"];
-  const day = cycle[position % cycle.length]!;
-  return { day, label: splitDayLabels[day] };
+  let leastTrainedDay = pool[0]!;
+  let lowestCount = Infinity;
+  for (const day of pool) {
+    const count = counts.get(day) ?? 0;
+    if (count < lowestCount) {
+      lowestCount = count;
+      leastTrainedDay = day;
+    }
+  }
+  return { day: leastTrainedDay, label: splitDayLabels[leastTrainedDay] };
 }
 
 const equipmentCategory: Record<ProgramBuilderProfile["equipment"], string | undefined> = {

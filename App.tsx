@@ -23,7 +23,13 @@ import {
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
-import { buildProgram, determineSplitDay, splitDaySlotCount, type ProgramBuilderProfile } from "./lib/programBuilder";
+import {
+  buildProgram,
+  determineSplitDay,
+  splitDaySlotCount,
+  type ProgramBuilderProfile,
+  type SplitDay,
+} from "./lib/programBuilder";
 import type { ExerciseTag, MovementPattern, PrimaryMuscle } from "./lib/exerciseCatalog";
 
 const colors = {
@@ -1313,7 +1319,7 @@ function DashboardScreen({
   trialDaysLeft: number | null;
 }) {
   const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
-  const todaySplit = determineSplitDay(reminderDays, workoutHistory.length);
+  const todaySplit = determineSplitDay(reminderDays, recentSplitDaysFromHistory(workoutHistory));
   const workoutName = todaySplit.label;
   const exerciseCount = splitDaySlotCount(todaySplit.day);
   const { isDeload } = getMesocycleWeek(workoutHistory);
@@ -1506,6 +1512,7 @@ type WorkoutHistoryEntry = {
   seconds: number;
   calories: number;
   exerciseBreakdown?: WorkoutHistoryExercise[];
+  splitDay?: SplitDay;
 };
 
 function formatHistoryDate(iso: string): string {
@@ -1552,6 +1559,12 @@ function getMesocycleWeek(workoutHistory: WorkoutHistoryEntry[]): { weekNumber: 
   const daysSince = (Date.now() - firstMs) / (24 * 60 * 60 * 1000);
   const weekInCycle = (Math.floor(daysSince / 7) % 4) + 1;
   return { weekNumber: weekInCycle, isDeload: weekInCycle === 4 };
+}
+
+// Most-recent-first, matching workoutHistory's own order -- feeds determineSplitDay's
+// least-recently-trained balancing.
+function recentSplitDaysFromHistory(workoutHistory: WorkoutHistoryEntry[]): SplitDay[] {
+  return workoutHistory.map((entry) => entry.splitDay).filter((day): day is SplitDay => Boolean(day));
 }
 
 function computeReadiness(workoutHistory: WorkoutHistoryEntry[]): ReadinessInfo {
@@ -4144,7 +4157,7 @@ async function createWorkoutFromCatalog(
   profile: Record<string, string>,
   exerciseProgress: Record<string, ExerciseProgress>,
   workoutHistory: WorkoutHistoryEntry[],
-): Promise<{ exercises: WorkoutExercise[]; splitLabel: string; isDeload: boolean } | null> {
+): Promise<{ exercises: WorkoutExercise[]; splitLabel: string; splitDay: SplitDay; isDeload: boolean } | null> {
   const equipmentMap: Record<string, ProgramBuilderProfile["equipment"]> = {
     gym: "gym",
     "home-gym": "home-gym",
@@ -4167,7 +4180,7 @@ async function createWorkoutFromCatalog(
   };
 
   const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
-  const { day: splitDay, label: splitLabel } = determineSplitDay(reminderDays, workoutHistory.length);
+  const { day: splitDay, label: splitLabel } = determineSplitDay(reminderDays, recentSplitDaysFromHistory(workoutHistory));
   const { isDeload } = getMesocycleWeek(workoutHistory);
 
   try {
@@ -4181,6 +4194,7 @@ async function createWorkoutFromCatalog(
     return {
       exercises: tags.map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress, isDeload)),
       splitLabel,
+      splitDay,
       isDeload,
     };
   } catch (error) {
@@ -4288,6 +4302,7 @@ function ExerciseDemo({
 function ActiveWorkoutScreen({
   exercises,
   splitLabel,
+  splitDay,
   isDeload,
   adjustment,
   onExit,
@@ -4299,6 +4314,7 @@ function ActiveWorkoutScreen({
 }: {
   exercises: WorkoutExercise[];
   splitLabel?: string | null;
+  splitDay?: SplitDay | null;
   isDeload?: boolean;
   adjustment?: CoachScenario | null;
   onExit: () => void;
@@ -4433,6 +4449,7 @@ function ActiveWorkoutScreen({
         reps: parseInt(item.reps, 10),
         sets: targetSetCount,
       })),
+      ...(splitDay ? { splitDay } : {}),
     });
   };
 
@@ -5433,6 +5450,7 @@ export default function App() {
   const [authOrigin, setAuthOrigin] = useState<"welcome" | "dashboard">("dashboard");
   const [activeWorkoutExercises, setActiveWorkoutExercises] = useState<WorkoutExercise[] | null>(null);
   const [activeWorkoutSplitLabel, setActiveWorkoutSplitLabel] = useState<string | null>(null);
+  const [activeWorkoutSplitDay, setActiveWorkoutSplitDay] = useState<SplitDay | null>(null);
   const [activeWorkoutIsDeload, setActiveWorkoutIsDeload] = useState(false);
   const [workoutLoading, setWorkoutLoading] = useState(false);
   const [tooSoonWarningOpen, setTooSoonWarningOpen] = useState(false);
@@ -5452,6 +5470,7 @@ export default function App() {
     const result = await createWorkoutFromCatalog(profile, exerciseProgress, workoutHistory);
     setActiveWorkoutExercises(result?.exercises ?? null);
     setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
+    setActiveWorkoutSplitDay(result?.splitDay ?? null);
     setActiveWorkoutIsDeload(result?.isDeload ?? false);
     setWorkoutLoading(false);
     setScreen("workout");
@@ -5667,6 +5686,7 @@ export default function App() {
               const result = await createWorkoutFromCatalog(answers, exerciseProgress, workoutHistory);
               setActiveWorkoutExercises(result?.exercises ?? null);
               setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
+              setActiveWorkoutSplitDay(result?.splitDay ?? null);
               setActiveWorkoutIsDeload(result?.isDeload ?? false);
               setWorkoutLoading(false);
               setScreen("workout");
@@ -5790,6 +5810,7 @@ export default function App() {
           <ActiveWorkoutScreen
             exercises={activeWorkoutExercises ?? createWorkout(profile, exerciseProgress)}
             splitLabel={activeWorkoutSplitLabel}
+            splitDay={activeWorkoutSplitDay}
             isDeload={activeWorkoutIsDeload}
             adjustment={coachAdjustment}
             profile={profile}
