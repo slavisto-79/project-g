@@ -5023,16 +5023,6 @@ function ProgressScreen({
             </Text>
           </View>
         </View>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Back to dashboard"
-          onPress={onDashboard}
-          style={styles.progressButton}
-        >
-          <Text style={styles.progressButtonText}>BACK TO DASHBOARD</Text>
-          <Text style={styles.progressButtonArrow}>→</Text>
-        </Pressable>
       </ScrollView>
 
       <BottomNav
@@ -7810,16 +7800,4 @@ const styles = StyleSheet.create({
   progressCoachCopy: { flex: 1, marginLeft: 12 },
   progressCoachLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1 },
   progressCoachText: { color: "#C4CAC1", fontSize: 10, lineHeight: 15, marginTop: 5 },
-  progressButton: {
-    height: 48,
-    borderRadius: 24,
-    marginTop: 8,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: colors.lime,
-  },
-  progressButtonText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 1.2 },
-  progressButtonArrow: { color: colors.ink, fontSize: 20, fontWeight: "800" },
 });
