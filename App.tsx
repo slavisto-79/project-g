@@ -23,7 +23,7 @@ import {
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
-import { buildProgram, type ProgramBuilderProfile } from "./lib/programBuilder";
+import { buildProgram, determineSplitDay, splitDaySlotCount, type ProgramBuilderProfile } from "./lib/programBuilder";
 import type { ExerciseTag, MovementPattern, PrimaryMuscle } from "./lib/exerciseCatalog";
 
 const colors = {
@@ -1312,13 +1312,10 @@ function DashboardScreen({
   workoutHistory: WorkoutHistoryEntry[];
   trialDaysLeft: number | null;
 }) {
-  const workoutName =
-    profile.sex === "female"
-      ? profile.goal === "strength" ? "Women’s Strength" : "Lower Body + Full Body"
-      : profile.sex === "male"
-        ? profile.goal === "fat-loss" ? "Metabolic Full Body" : "Strength + Muscle"
-        : "Balanced Full Body";
-  const exerciseCount = createWorkout(profile).length;
+  const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
+  const todaySplit = determineSplitDay(reminderDays, workoutHistory.length);
+  const workoutName = todaySplit.label;
+  const exerciseCount = splitDaySlotCount(todaySplit.day);
   const weeklyGoal = profile.frequency ?? "3";
   const thisWeekCount = workoutHistory.filter((entry) => isWithinLastDays(entry.date, 7)).length;
   const lastWorkout = workoutHistory[0];
@@ -4117,7 +4114,8 @@ async function fetchAlternativeExercises(
 async function createWorkoutFromCatalog(
   profile: Record<string, string>,
   exerciseProgress: Record<string, ExerciseProgress>,
-): Promise<WorkoutExercise[] | null> {
+  workoutHistory: WorkoutHistoryEntry[],
+): Promise<{ exercises: WorkoutExercise[]; splitLabel: string } | null> {
   const equipmentMap: Record<string, ProgramBuilderProfile["equipment"]> = {
     gym: "gym",
     "home-gym": "home-gym",
@@ -4139,13 +4137,21 @@ async function createWorkoutFromCatalog(
     sex: profile.sex === "male" ? "male" : "female",
   };
 
+  const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
+  const { day: splitDay, label: splitLabel } = determineSplitDay(reminderDays, workoutHistory.length);
+
   try {
-    const tags = await buildProgram(builderProfile);
-    if (tags.length < 6) {
-      console.error(`Catalog program only filled ${tags.length}/8 slots -- falling back to the built-in workout`);
+    const tags = await buildProgram(builderProfile, splitDay);
+    // Split templates range from 4 (push/pull) to 8 (full-body) slots -- judge
+    // "did this work" against a floor, not a fixed count meant for full-body.
+    if (tags.length < 4) {
+      console.error(`Catalog program only filled ${tags.length} slots for "${splitDay}" -- falling back to the built-in workout`);
       return null;
     }
-    return tags.map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress));
+    return {
+      exercises: tags.map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress)),
+      splitLabel,
+    };
   } catch (error) {
     console.error("Catalog workout build failed -- falling back to the built-in workout", error);
     return null;
@@ -4250,6 +4256,7 @@ function ExerciseDemo({
 
 function ActiveWorkoutScreen({
   exercises,
+  splitLabel,
   adjustment,
   onExit,
   onViewProgress,
@@ -4259,6 +4266,7 @@ function ActiveWorkoutScreen({
   onCompleteWorkout,
 }: {
   exercises: WorkoutExercise[];
+  splitLabel?: string | null;
   adjustment?: CoachScenario | null;
   onExit: () => void;
   onViewProgress: () => void;
@@ -4286,8 +4294,9 @@ function ActiveWorkoutScreen({
   const currentWeightKg = isBodyweight ? null : parseInt(exercise.weight, 10);
   const currentReps = parseInt(exercise.reps, 10);
   const exerciseVisualHeight = Math.min(340, Math.max(220, height * 0.36));
-  const workoutTitle =
-    profile.sex === "female"
+  const workoutTitle = splitLabel
+    ? splitLabel.toUpperCase()
+    : profile.sex === "female"
       ? "WOMEN’S STRENGTH FOUNDATION"
       : profile.sex === "male"
         ? "MEN’S STRENGTH FOUNDATION"
@@ -5378,6 +5387,7 @@ export default function App() {
   const [authInitialMode, setAuthInitialMode] = useState<"signup" | "login">("signup");
   const [authOrigin, setAuthOrigin] = useState<"welcome" | "dashboard">("dashboard");
   const [activeWorkoutExercises, setActiveWorkoutExercises] = useState<WorkoutExercise[] | null>(null);
+  const [activeWorkoutSplitLabel, setActiveWorkoutSplitLabel] = useState<string | null>(null);
   const [workoutLoading, setWorkoutLoading] = useState(false);
   const [tooSoonWarningOpen, setTooSoonWarningOpen] = useState(false);
 
@@ -5393,8 +5403,9 @@ export default function App() {
   const beginWorkout = async () => {
     setTooSoonWarningOpen(false);
     setWorkoutLoading(true);
-    const catalogExercises = await createWorkoutFromCatalog(profile, exerciseProgress);
-    setActiveWorkoutExercises(catalogExercises);
+    const result = await createWorkoutFromCatalog(profile, exerciseProgress, workoutHistory);
+    setActiveWorkoutExercises(result?.exercises ?? null);
+    setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
     setWorkoutLoading(false);
     setScreen("workout");
   };
@@ -5606,8 +5617,9 @@ export default function App() {
             onStartWorkout={async (answers) => {
               setProfile(answers);
               setWorkoutLoading(true);
-              const catalogExercises = await createWorkoutFromCatalog(answers, exerciseProgress);
-              setActiveWorkoutExercises(catalogExercises);
+              const result = await createWorkoutFromCatalog(answers, exerciseProgress, workoutHistory);
+              setActiveWorkoutExercises(result?.exercises ?? null);
+              setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
               setWorkoutLoading(false);
               setScreen("workout");
             }}
@@ -5729,6 +5741,7 @@ export default function App() {
         {screen === "workout" && (
           <ActiveWorkoutScreen
             exercises={activeWorkoutExercises ?? createWorkout(profile, exerciseProgress)}
+            splitLabel={activeWorkoutSplitLabel}
             adjustment={coachAdjustment}
             profile={profile}
             exerciseProgress={exerciseProgress}
