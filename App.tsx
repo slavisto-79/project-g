@@ -1302,7 +1302,6 @@ function DashboardScreen({
   onOpenCoach,
   onOpenNutrition,
   onOpenProgress,
-  onResetTestProfile,
   session,
   onOpenAccount,
   onLogout,
@@ -1316,7 +1315,6 @@ function DashboardScreen({
   onOpenCoach: () => void;
   onOpenNutrition: () => void;
   onOpenProgress: () => void;
-  onResetTestProfile: () => void;
   session: { email: string } | null;
   onOpenAccount: (mode: "signup" | "login") => void;
   onLogout: () => void;
@@ -1362,20 +1360,6 @@ function DashboardScreen({
         contentContainerStyle={styles.dashboardBodyContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.testModeBar}>
-          <View style={styles.testModeIdentity}>
-            <View style={styles.testModeDot} />
-            <Text style={styles.testModeLabel}>TEST MODE</Text>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Reset test profile"
-            onPress={onResetTestProfile}
-            style={styles.testModeReset}
-          >
-            <Text style={styles.testModeResetText}>RESET PROFILE</Text>
-          </Pressable>
-        </View>
 
         <View style={styles.accountBar}>
           {session ? (
@@ -5600,16 +5584,6 @@ export default function App() {
     };
   }, [coachAdjustment, dietPlan, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, userId, workoutHistory]);
 
-  const resetTestProfile = () => {
-    if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
-    setProfile({});
-    setCoachAdjustment(null);
-    setNutritionTotals({ calories: 0, protein: 0, carbs: 0, fat: 0 });
-    setExerciseProgress({});
-    setDietPlan(null);
-    setScreen("welcome");
-  };
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(null);
@@ -5673,7 +5647,6 @@ export default function App() {
             onOpenCoach={() => setScreen("coach")}
             onOpenNutrition={() => setScreen("nutrition")}
             onOpenProgress={() => setScreen("progress")}
-            onResetTestProfile={resetTestProfile}
             session={session}
             onOpenAccount={(mode) => {
               setAuthInitialMode(mode);
@@ -6317,18 +6290,6 @@ const styles = StyleSheet.create({
   profileRowLabel: { color: colors.text, fontSize: 13, fontWeight: "600", flexShrink: 1, marginRight: 10 },
   profileRowRight: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 0 },
   profileRowValue: { color: colors.muted, fontSize: 12, fontWeight: "600", maxWidth: 140 },
-  testModeBar: {
-    minHeight: 38,
-    marginBottom: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "#30382A",
-    backgroundColor: "#0D1209",
-  },
   testModeIdentity: { flexDirection: "row", alignItems: "center" },
   testModeDot: { width: 6, height: 6, borderRadius: 3, marginRight: 7, backgroundColor: colors.lime },
   testModeLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.2 },
