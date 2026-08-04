@@ -1043,6 +1043,12 @@ function ProfileScreen({
     if (question.kind === "picker") {
       return `${value ?? question.defaultValue} ${question.unit}`;
     }
+    if (question.id === "frequency" && value) {
+      // The day/time picker allows any count from 1-7, not just the
+      // original 2/3/4/5 preset answers, so format it directly.
+      const count = Number(value);
+      return Number.isFinite(count) ? `${count} day${count === 1 ? "" : "s"} a week` : "Not set";
+    }
     return question.answers.find((answer) => answer.value === value)?.label ?? "Not set";
   };
 
