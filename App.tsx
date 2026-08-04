@@ -4307,10 +4307,10 @@ function ActiveWorkoutScreen({
   }, [workoutComplete]);
 
   useEffect(() => {
-    if (restSeconds <= 0) return;
+    if (restSeconds <= 0 || exerciseInfoOpen) return;
     const timer = setInterval(() => setRestSeconds((value) => Math.max(0, value - 1)), 1000);
     return () => clearInterval(timer);
-  }, [restSeconds]);
+  }, [restSeconds, exerciseInfoOpen]);
 
   const finishSet = (index: number) => {
     const wasDone = completedSets[index];
