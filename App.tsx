@@ -4351,7 +4351,29 @@ function ActiveWorkoutScreen({
   const isBodyweight = exercise.weight === "Bodyweight";
   const currentWeightKg = isBodyweight ? null : parseInt(exercise.weight, 10);
   const currentReps = parseInt(exercise.reps, 10);
-  const exerciseVisualHeight = Math.min(340, Math.max(220, height * 0.36));
+  // Reserve space for every chrome element that can appear at once (header,
+  // optional deload/rest banners, set rows, adjust panel, next-exercise
+  // button) so the screen fits one viewport without scrolling, then let the
+  // video fill whatever's left. The flat 36%-of-height guess this replaced
+  // didn't account for the rest banner and "next exercise" button both being
+  // visible at the same time (right when the last set of an exercise is
+  // marked done), which is exactly when the button ran off-screen.
+  const completedSetsCount = completedSets.filter(Boolean).length;
+  const chromeHeight =
+    58 + // activeHeader
+    (isDeload ? 30 : 0) + // deload banner
+    22 + // exerciseSheet vertical padding
+    47 + // heading row (step/name/target)
+    46 + // swap/coach-tips action row
+    (restSeconds > 0 ? 48 : 0) + // rest timer banner
+    21 + // set table header
+    targetSetCount * 38 +
+    Math.max(0, targetSetCount - 1) * 5 + // set rows
+    167 + // weight/reps adjust panel
+    (completedSetsCount >= targetSetCount ? 54 : 0) + // next-exercise button
+    18 + // scroll content bottom padding
+    20; // safety buffer for text line-height rounding
+  const exerciseVisualHeight = Math.min(300, Math.max(130, height - chromeHeight));
   const workoutTitle = splitLabel
     ? splitLabel.toUpperCase()
     : profile.sex === "female"
