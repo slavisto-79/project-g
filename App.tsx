@@ -4401,14 +4401,20 @@ function ActiveWorkoutScreen({
   // Called when leaving an exercise (moving on, or finishing the workout on
   // the last one). Double progression: add a rep each session until a small
   // ceiling above the profile's base reps, then reset reps and add weight.
+  // Progresses from what was actually logged this session (exerciseProgress,
+  // already updated live by the kg/reps picker below) rather than the
+  // exercise's original planned target -- otherwise a real mid-set adjustment
+  // (e.g. going heavier for fewer reps) would just get overwritten here with
+  // a number derived from the plan instead of from what really happened.
   const commitExerciseProgress = (finishedExercise: WorkoutExercise) => {
-    const reps = parseInt(finishedExercise.reps, 10);
+    const logged = exerciseProgress[finishedExercise.name];
+    const reps = logged ? logged.reps : parseInt(finishedExercise.reps, 10);
     if (!Number.isFinite(reps)) return;
     if (finishedExercise.weight === "Bodyweight") {
       onUpdateExerciseProgress(finishedExercise.name, { weightKg: 0, reps: reps + 1 });
       return;
     }
-    const weightKg = parseInt(finishedExercise.weight, 10);
+    const weightKg = logged ? logged.weightKg : parseInt(finishedExercise.weight, 10);
     if (!Number.isFinite(weightKg)) return;
     const baseReps = baseRepsForProfile(profile);
     const repCeiling = baseReps + 2;
