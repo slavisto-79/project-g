@@ -4343,10 +4343,11 @@ function ActiveWorkoutScreen({
 
   const finishSet = (index: number) => {
     const wasDone = completedSets[index];
-    const doneAfter = completedSets.filter(Boolean).length + (wasDone ? -1 : 1);
     setCompletedSets((current) => current.map((value, setIndex) => (setIndex === index ? !value : value)));
+    // Rest after every set, including the last one -- when it runs out, an
+    // effect below moves on to the next exercise automatically.
     if (!wasDone) {
-      setRestSeconds(doneAfter >= targetSetCount ? 0 : adjustment === "tired" ? 90 : 60);
+      setRestSeconds(adjustment === "tired" ? 90 : 60);
     }
   };
 
@@ -4424,6 +4425,18 @@ function ActiveWorkoutScreen({
   };
 
   const completedCount = completedSets.filter(Boolean).length;
+
+  useEffect(() => {
+    if (restSeconds !== 0 || completedCount < targetSetCount || workoutComplete) return;
+    if (exerciseIndex === personalizedExercises.length - 1) {
+      finishWorkout();
+    } else {
+      nextExercise();
+    }
+    // Only react to the rest countdown reaching zero.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restSeconds]);
+
   const nextSetIndex = completedSets.findIndex((done) => !done);
   const workoutProgress = (exerciseIndex + completedCount / targetSetCount) / personalizedExercises.length;
   const elapsedLabel = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(
@@ -4665,7 +4678,13 @@ function ActiveWorkoutScreen({
           <View style={styles.restBanner}>
             <View>
               <Text style={styles.restLabel}>REST TIMER</Text>
-              <Text style={styles.restHint}>Breathe. Your next set is ready.</Text>
+              <Text style={styles.restHint}>
+                {completedCount >= targetSetCount
+                  ? exerciseIndex === personalizedExercises.length - 1
+                    ? "Breathe. Finishing up next."
+                    : "Breathe. Next exercise starts after this."
+                  : "Breathe. Your next set is ready."}
+              </Text>
             </View>
             <View style={styles.restAdjustRow}>
               <Pressable
