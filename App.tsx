@@ -560,24 +560,9 @@ function ScheduleModal({
   }, [visible]);
 
   const toggleDay = (id: string) => {
-    const dayIds = scheduleDayOptions.map((day) => day.id);
-    const targetDayCount = Number(frequency) || 3;
-    setDays((current) => {
-      if (current.includes(id)) return current.filter((day) => day !== id);
-      if (current.length < targetDayCount) return [...current, id];
-      // Already at the weekly target -- swap in the new day for a random
-      // existing one instead of just piling on, so the total stays put.
-      // Prefer bumping a non-adjacent day so the week doesn't clump together.
-      const index = dayIds.indexOf(id);
-      const adjacentIds = new Set([
-        dayIds[(index - 1 + dayIds.length) % dayIds.length],
-        dayIds[(index + 1) % dayIds.length],
-      ]);
-      const nonAdjacent = current.filter((day) => !adjacentIds.has(day));
-      const removalPool = nonAdjacent.length > 0 ? nonAdjacent : current;
-      const dayToRemove = removalPool[Math.floor(Math.random() * removalPool.length)];
-      return [...current.filter((day) => day !== dayToRemove), id];
-    });
+    // Plain add/remove -- the DONE confirmation below catches it if the final
+    // count drifts from the stored weekly frequency and offers to sync it.
+    setDays((current) => (current.includes(id) ? current.filter((day) => day !== id) : [...current, id]));
   };
 
   const handleClose = () => {
