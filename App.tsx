@@ -6454,7 +6454,7 @@ const styles = StyleSheet.create({
   },
   accountButtonText: { color: colors.ink, fontSize: 8, fontWeight: "900", letterSpacing: 0.6 },
   trialBar: {
-    minHeight: 34,
+    paddingVertical: 7,
     marginBottom: 14,
     paddingHorizontal: 12,
     borderRadius: 12,
@@ -6466,7 +6466,7 @@ const styles = StyleSheet.create({
   },
   trialBarLast: { marginBottom: 0 },
   trialBarEnded: { borderColor: "#3A2A22", backgroundColor: "#160F0B" },
-  trialBarText: { color: colors.lime, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  trialBarText: { color: colors.lime, fontSize: 9, fontWeight: "900", letterSpacing: 1, lineHeight: 11 },
   trialBarTextEnded: { color: "#D98E5C" },
   readinessRow: {
     flexDirection: "row",
