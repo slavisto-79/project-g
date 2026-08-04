@@ -1362,62 +1362,60 @@ function DashboardScreen({
         showsVerticalScrollIndicator={false}
       >
 
-        <View>
-          <View style={styles.accountBar}>
-            {session ? (
-              <>
-                <View style={[styles.testModeIdentity, { flexShrink: 1 }]}>
-                  <View style={styles.testModeDot} />
-                  <Text style={[styles.testModeLabel, { flexShrink: 1 }]} numberOfLines={1}>
-                    SIGNED IN · {session.email}
-                  </Text>
-                </View>
+        <View style={styles.accountBar}>
+          {session ? (
+            <>
+              <View style={[styles.testModeIdentity, { flexShrink: 1 }]}>
+                <View style={styles.testModeDot} />
+                <Text style={[styles.testModeLabel, { flexShrink: 1 }]} numberOfLines={1}>
+                  SIGNED IN · {session.email}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Log out"
+                onPress={onLogout}
+                style={styles.testModeReset}
+              >
+                <Text style={styles.testModeResetText}>LOG OUT</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Text style={styles.accountPromptText}>Save your progress across devices</Text>
+              <View style={styles.accountActions}>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Log out"
-                  onPress={onLogout}
-                  style={styles.testModeReset}
+                  accessibilityLabel="Sign in"
+                  onPress={() => onOpenAccount("login")}
+                  style={styles.accountButton}
                 >
-                  <Text style={styles.testModeResetText}>LOG OUT</Text>
+                  <Text style={styles.accountButtonText}>SIGN IN</Text>
                 </Pressable>
-              </>
-            ) : (
-              <>
-                <Text style={styles.accountPromptText}>Save your progress across devices</Text>
-                <View style={styles.accountActions}>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Sign in"
-                    onPress={() => onOpenAccount("login")}
-                    style={styles.accountButton}
-                  >
-                    <Text style={styles.accountButtonText}>SIGN IN</Text>
-                  </Pressable>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Create account"
-                    onPress={() => onOpenAccount("signup")}
-                    style={styles.accountButton}
-                  >
-                    <Text style={styles.accountButtonText}>CREATE ACCOUNT</Text>
-                  </Pressable>
-                </View>
-              </>
-            )}
-          </View>
-
-          {trialDaysLeft !== null ? (
-            <View style={[styles.trialBar, styles.trialBarLast, trialDaysLeft === 0 && styles.trialBarEnded]}>
-              <Text style={[styles.trialBarText, trialDaysLeft === 0 && styles.trialBarTextEnded]}>
-                {trialDaysLeft > 0
-                  ? `${trialDaysLeft} DAY${trialDaysLeft === 1 ? "" : "S"} LEFT IN YOUR TRIAL`
-                  : "YOUR TRIAL HAS ENDED"}
-              </Text>
-            </View>
-          ) : null}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Create account"
+                  onPress={() => onOpenAccount("signup")}
+                  style={styles.accountButton}
+                >
+                  <Text style={styles.accountButtonText}>CREATE ACCOUNT</Text>
+                </Pressable>
+              </View>
+            </>
+          )}
         </View>
 
-        <View style={[styles.workoutCard, styles.dashboardGroupLast]}>
+        {trialDaysLeft !== null ? (
+          <View style={[styles.trialBar, trialDaysLeft === 0 && styles.trialBarEnded]}>
+            <Text style={[styles.trialBarText, trialDaysLeft === 0 && styles.trialBarTextEnded]}>
+              {trialDaysLeft > 0
+                ? `${trialDaysLeft} DAY${trialDaysLeft === 1 ? "" : "S"} LEFT IN YOUR TRIAL`
+                : "YOUR TRIAL HAS ENDED"}
+            </Text>
+          </View>
+        ) : null}
+
+        <View style={styles.workoutCard}>
           <View style={styles.workoutCardTop}>
             <View style={styles.workoutTypeBadge}>
               <Text style={styles.workoutTypeText}>TODAY’S WORKOUT</Text>
@@ -1443,7 +1441,7 @@ function DashboardScreen({
           </Pressable>
         </View>
 
-        <View style={[styles.readinessCard, styles.dashboardGroupLast]}>
+        <View style={styles.readinessCard}>
           <View style={styles.recoveryScore}>
             <Text style={styles.recoveryValue}>{readiness.score}</Text>
             <Text style={styles.recoveryLabel}>READY</Text>
@@ -1455,35 +1453,33 @@ function DashboardScreen({
           </View>
         </View>
 
-        <View>
-          <Text style={styles.quickTitle}>QUICK OVERVIEW</Text>
-          <View style={styles.metricGrid}>
-            {[
-              [`${thisWeekCount} / ${weeklyGoal}`, "WORKOUTS"],
-              [nutritionTotals.calories ? nutritionTotals.calories.toLocaleString() : "0", "CALORIES"],
-              [`${nutritionTotals.protein}g`, "PROTEIN"],
-            ].map(([value, label]) => (
-              <View style={styles.metricCard} key={label}>
-                <Text style={styles.metricValue}>{value}</Text>
-                <Text style={styles.metricLabel}>{label}</Text>
-              </View>
-            ))}
-          </View>
-
-          {lastWorkout ? (
-            <View style={styles.lastWorkoutCard}>
-              <View>
-                <Text style={styles.weekLabel}>LAST WORKOUT</Text>
-                <Text style={styles.weekValue}>
-                  {lastWorkout.title} · {formatHistoryDuration(lastWorkout.seconds)}
-                </Text>
-              </View>
-              <View style={styles.lastWorkoutScore}>
-                <Text style={styles.lastWorkoutScoreText}>{lastWorkout.calories} kcal</Text>
-              </View>
+        <Text style={styles.quickTitle}>QUICK OVERVIEW</Text>
+        <View style={styles.metricGrid}>
+          {[
+            [`${thisWeekCount} / ${weeklyGoal}`, "WORKOUTS"],
+            [nutritionTotals.calories ? nutritionTotals.calories.toLocaleString() : "0", "CALORIES"],
+            [`${nutritionTotals.protein}g`, "PROTEIN"],
+          ].map(([value, label]) => (
+            <View style={styles.metricCard} key={label}>
+              <Text style={styles.metricValue}>{value}</Text>
+              <Text style={styles.metricLabel}>{label}</Text>
             </View>
-          ) : null}
+          ))}
         </View>
+
+        {lastWorkout ? (
+          <View style={styles.lastWorkoutCard}>
+            <View>
+              <Text style={styles.weekLabel}>LAST WORKOUT</Text>
+              <Text style={styles.weekValue}>
+                {lastWorkout.title} · {formatHistoryDuration(lastWorkout.seconds)}
+              </Text>
+            </View>
+            <View style={styles.lastWorkoutScore}>
+              <Text style={styles.lastWorkoutScoreText}>{lastWorkout.calories} kcal</Text>
+            </View>
+          </View>
+        ) : null}
       </ScrollView>
 
       <BottomNav
@@ -6396,13 +6392,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lime,
   },
   dashboardBody: { flex: 1 },
-  dashboardBodyContent: {
-    flexGrow: 1,
-    justifyContent: "space-between",
-    paddingHorizontal: 18,
-    paddingBottom: 16,
-  },
-  dashboardGroupLast: { marginBottom: 0 },
+  dashboardBodyContent: { paddingHorizontal: 18, paddingBottom: 16 },
   profileList: {
     borderRadius: 14,
     borderWidth: 1,
@@ -6464,7 +6454,6 @@ const styles = StyleSheet.create({
     borderColor: "#30382A",
     backgroundColor: "#0D1209",
   },
-  trialBarLast: { marginBottom: 0 },
   trialBarEnded: { borderColor: "#3A2A22", backgroundColor: "#160F0B" },
   trialBarText: { color: colors.lime, fontSize: 13, fontWeight: "900", letterSpacing: 0.6, lineHeight: 16 },
   trialBarTextEnded: { color: "#D98E5C" },
