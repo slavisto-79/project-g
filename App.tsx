@@ -1316,6 +1316,7 @@ function DashboardScreen({
   const todaySplit = determineSplitDay(reminderDays, workoutHistory.length);
   const workoutName = todaySplit.label;
   const exerciseCount = splitDaySlotCount(todaySplit.day);
+  const { isDeload } = getMesocycleWeek(workoutHistory);
   const weeklyGoal = profile.frequency ?? "3";
   const thisWeekCount = workoutHistory.filter((entry) => isWithinLastDays(entry.date, 7)).length;
   const lastWorkout = workoutHistory[0];
@@ -1407,7 +1408,9 @@ function DashboardScreen({
             <Text style={styles.workoutDuration}>{profile.duration ?? "45"} MIN</Text>
           </View>
           <Text style={styles.workoutTitle}>{workoutName}</Text>
-          <Text style={styles.workoutMeta}>{exerciseCount} guided exercises · Personalized intensity</Text>
+          <Text style={styles.workoutMeta}>
+            {exerciseCount} guided exercises · {isDeload ? "Deload week — lighter load" : "Personalized intensity"}
+          </Text>
           <View style={styles.workoutCoachNote}>
             <View style={styles.coachMiniAvatar}><Text style={styles.coachMiniText}>G</Text></View>
             <Text style={styles.workoutCoachText}>Adapted to your profile, recovery, and equipment.</Text>
@@ -1535,6 +1538,20 @@ function hoursSinceLastWorkout(workoutHistory: WorkoutHistoryEntry[]): number | 
   const lastWorkoutMs = new Date(workoutHistory[0]?.date ?? "").getTime();
   if (Number.isNaN(lastWorkoutMs)) return null;
   return (Date.now() - lastWorkoutMs) / (60 * 60 * 1000);
+}
+
+// A simple 4-week mesocycle: 3 weeks of normal progressive overload, then one
+// deload week (lighter weight, one fewer set) so fatigue doesn't just stack
+// forever. Week is anchored to the very first logged workout, not a
+// separately-stored "program start date" we don't have.
+function getMesocycleWeek(workoutHistory: WorkoutHistoryEntry[]): { weekNumber: number; isDeload: boolean } {
+  const firstWorkout = workoutHistory[workoutHistory.length - 1];
+  if (!firstWorkout) return { weekNumber: 1, isDeload: false };
+  const firstMs = new Date(firstWorkout.date).getTime();
+  if (Number.isNaN(firstMs)) return { weekNumber: 1, isDeload: false };
+  const daysSince = (Date.now() - firstMs) / (24 * 60 * 60 * 1000);
+  const weekInCycle = (Math.floor(daysSince / 7) % 4) + 1;
+  return { weekNumber: weekInCycle, isDeload: weekInCycle === 4 };
 }
 
 function computeReadiness(workoutHistory: WorkoutHistoryEntry[]): ReadinessInfo {
@@ -3756,9 +3773,14 @@ const BASE_SET_COUNT_BY_FREQUENCY: Record<string, number> = {
   "5": 2,
 };
 
-function setCountForProfile(profile: Record<string, string>, adjustment?: CoachScenario | null): number {
+function setCountForProfile(
+  profile: Record<string, string>,
+  adjustment?: CoachScenario | null,
+  isDeload?: boolean,
+): number {
   const baseSetCount = BASE_SET_COUNT_BY_FREQUENCY[profile.frequency ?? "3"] ?? 3;
-  return Math.max(2, baseSetCount - (adjustment === "tired" ? 1 : 0));
+  const reduction = (adjustment === "tired" ? 1 : 0) + (isDeload ? 1 : 0);
+  return Math.max(2, baseSetCount - reduction);
 }
 
 const REFERENCE_BODY_WEIGHT_KG = 70;
@@ -4043,15 +4065,19 @@ function catalogExerciseToWorkoutExercise(
   tag: ExerciseTag,
   profile: Record<string, string>,
   exerciseProgress: Record<string, ExerciseProgress>,
+  isDeload: boolean = false,
 ): WorkoutExercise {
   const bodyWeightKg = Number(profile.weight);
   const isBodyweight = tag.equipment.toLowerCase() === "bodyweight";
   const saved = exerciseProgress[tag.name];
   const reps = saved ? String(saved.reps) : String(baseRepsForProfile(profile));
+  // Deload week: back off the weight rather than just cutting a set, so the
+  // lighter session still feels like real training, not a rest day.
+  const savedWeightKg = saved ? (isDeload ? Math.max(2, Math.round(saved.weightKg * 0.85)) : saved.weightKg) : null;
   const weight = isBodyweight
     ? "Bodyweight"
-    : saved
-      ? `${saved.weightKg} kg`
+    : savedWeightKg !== null
+      ? `${savedWeightKg} kg`
       : scaledStartingWeightLabel(12, bodyWeightKg);
   const media = tag.media[profile.sex === "male" ? "male" : "female"];
   const poster: ImageSourcePropType = media
@@ -4094,6 +4120,7 @@ async function fetchAlternativeExercises(
   profile: Record<string, string>,
   exerciseProgress: Record<string, ExerciseProgress>,
   excludeNames: Set<string>,
+  isDeload: boolean = false,
 ): Promise<WorkoutExercise[]> {
   const keyword = movementPatternSearchKeyword[catalogMeta.movementPattern];
   const params = new URLSearchParams({ search: keyword, limit: "25" });
@@ -4108,14 +4135,16 @@ async function fetchAlternativeExercises(
       !excludeNames.has(candidate.name) &&
       candidate.media[sex] !== null,
   );
-  return alternatives.slice(0, 5).map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress));
+  return alternatives
+    .slice(0, 5)
+    .map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress, isDeload));
 }
 
 async function createWorkoutFromCatalog(
   profile: Record<string, string>,
   exerciseProgress: Record<string, ExerciseProgress>,
   workoutHistory: WorkoutHistoryEntry[],
-): Promise<{ exercises: WorkoutExercise[]; splitLabel: string } | null> {
+): Promise<{ exercises: WorkoutExercise[]; splitLabel: string; isDeload: boolean } | null> {
   const equipmentMap: Record<string, ProgramBuilderProfile["equipment"]> = {
     gym: "gym",
     "home-gym": "home-gym",
@@ -4139,6 +4168,7 @@ async function createWorkoutFromCatalog(
 
   const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
   const { day: splitDay, label: splitLabel } = determineSplitDay(reminderDays, workoutHistory.length);
+  const { isDeload } = getMesocycleWeek(workoutHistory);
 
   try {
     const tags = await buildProgram(builderProfile, splitDay);
@@ -4149,8 +4179,9 @@ async function createWorkoutFromCatalog(
       return null;
     }
     return {
-      exercises: tags.map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress)),
+      exercises: tags.map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress, isDeload)),
       splitLabel,
+      isDeload,
     };
   } catch (error) {
     console.error("Catalog workout build failed -- falling back to the built-in workout", error);
@@ -4257,6 +4288,7 @@ function ExerciseDemo({
 function ActiveWorkoutScreen({
   exercises,
   splitLabel,
+  isDeload,
   adjustment,
   onExit,
   onViewProgress,
@@ -4267,6 +4299,7 @@ function ActiveWorkoutScreen({
 }: {
   exercises: WorkoutExercise[];
   splitLabel?: string | null;
+  isDeload?: boolean;
   adjustment?: CoachScenario | null;
   onExit: () => void;
   onViewProgress: () => void;
@@ -4279,7 +4312,7 @@ function ActiveWorkoutScreen({
   const [exerciseList, setExerciseList] = useState<WorkoutExercise[]>(exercises);
   const baseExercises = exerciseList;
   const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
-  const targetSetCount = setCountForProfile(profile, adjustment);
+  const targetSetCount = setCountForProfile(profile, adjustment, isDeload);
   const scrollRef = useRef<ScrollView>(null);
 
   const [exerciseIndex, setExerciseIndex] = useState(0);
@@ -4332,7 +4365,13 @@ function ActiveWorkoutScreen({
     if (!exercise.catalogMeta) return;
     setSwapState("loading");
     const excludeNames = new Set(baseExercises.map((item) => item.name));
-    const options = await fetchAlternativeExercises(exercise.catalogMeta, profile, exerciseProgress, excludeNames);
+    const options = await fetchAlternativeExercises(
+      exercise.catalogMeta,
+      profile,
+      exerciseProgress,
+      excludeNames,
+      isDeload,
+    );
     setSwapState({ options });
   };
 
@@ -4595,6 +4634,12 @@ function ActiveWorkoutScreen({
         </View>
         <View style={styles.workoutElapsed}><Text style={styles.workoutElapsedText}>{elapsedLabel}</Text></View>
       </View>
+
+      {isDeload ? (
+        <View style={styles.deloadBanner}>
+          <Text style={styles.deloadBannerText}>DELOAD WEEK · LIGHTER LOAD, SAME EFFORT</Text>
+        </View>
+      ) : null}
 
       <ScrollView
         ref={scrollRef}
@@ -5388,6 +5433,7 @@ export default function App() {
   const [authOrigin, setAuthOrigin] = useState<"welcome" | "dashboard">("dashboard");
   const [activeWorkoutExercises, setActiveWorkoutExercises] = useState<WorkoutExercise[] | null>(null);
   const [activeWorkoutSplitLabel, setActiveWorkoutSplitLabel] = useState<string | null>(null);
+  const [activeWorkoutIsDeload, setActiveWorkoutIsDeload] = useState(false);
   const [workoutLoading, setWorkoutLoading] = useState(false);
   const [tooSoonWarningOpen, setTooSoonWarningOpen] = useState(false);
 
@@ -5406,6 +5452,7 @@ export default function App() {
     const result = await createWorkoutFromCatalog(profile, exerciseProgress, workoutHistory);
     setActiveWorkoutExercises(result?.exercises ?? null);
     setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
+    setActiveWorkoutIsDeload(result?.isDeload ?? false);
     setWorkoutLoading(false);
     setScreen("workout");
   };
@@ -5620,6 +5667,7 @@ export default function App() {
               const result = await createWorkoutFromCatalog(answers, exerciseProgress, workoutHistory);
               setActiveWorkoutExercises(result?.exercises ?? null);
               setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
+              setActiveWorkoutIsDeload(result?.isDeload ?? false);
               setWorkoutLoading(false);
               setScreen("workout");
             }}
@@ -5742,6 +5790,7 @@ export default function App() {
           <ActiveWorkoutScreen
             exercises={activeWorkoutExercises ?? createWorkout(profile, exerciseProgress)}
             splitLabel={activeWorkoutSplitLabel}
+            isDeload={activeWorkoutIsDeload}
             adjustment={coachAdjustment}
             profile={profile}
             exerciseProgress={exerciseProgress}
@@ -7080,6 +7129,15 @@ const styles = StyleSheet.create({
   workoutCloseText: { color: colors.text, fontSize: 25, lineHeight: 27, fontWeight: "300" },
   activeHeaderCenter: { flex: 1, marginHorizontal: 13 },
   activeHeaderLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 1.2, textAlign: "center" },
+  deloadBanner: {
+    marginHorizontal: 16,
+    marginBottom: 6,
+    paddingVertical: 6,
+    borderRadius: 10,
+    alignItems: "center",
+    backgroundColor: "rgba(200,255,50,0.1)",
+  },
+  deloadBannerText: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
   activeProgressTrack: {
     height: 3,
     borderRadius: 2,
