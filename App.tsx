@@ -1027,6 +1027,14 @@ function ProfileScreen({
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const editingQuestion = interviewQuestions.find((question) => question.id === editingId) ?? null;
 
+  // Shrink each profile row just enough that all of them plus the header/account
+  // bar fit on one screen without scrolling, instead of a fixed height that
+  // overflows on smaller phones.
+  const { height: windowHeight } = useWindowDimensions();
+  const chromeHeight = 70 + 50 + (trialDaysLeft !== null ? 46 : 0) + 30 + 40;
+  const availableForRows = Math.max(280, windowHeight - chromeHeight);
+  const profileRowHeight = Math.max(40, Math.min(52, availableForRows / interviewQuestions.length));
+
   const startEditing = (question: InterviewQuestion) => {
     // "How often can you train?" also drives the reminders day/time picker --
     // edit both together instead of just the plain number.
@@ -1214,6 +1222,7 @@ function ProfileScreen({
               onPress={() => startEditing(question)}
               style={({ pressed }) => [
                 styles.profileRow,
+                { minHeight: profileRowHeight },
                 index === interviewQuestions.length - 1 && { borderBottomWidth: 0 },
                 pressed && { opacity: 0.8 },
               ]}
@@ -6433,10 +6442,10 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   readinessCard: {
-    minHeight: 78,
+    minHeight: 70,
     borderRadius: 18,
     paddingHorizontal: 13,
-    marginBottom: 16,
+    marginBottom: 12,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
@@ -6469,8 +6478,8 @@ const styles = StyleSheet.create({
   recoveryLabel: { color: colors.muted, fontSize: 5, fontWeight: "800", letterSpacing: 0.7 },
   workoutCard: {
     borderRadius: 24,
-    padding: 18,
-    marginBottom: 12,
+    padding: 15,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: "#2B3126",
     backgroundColor: "#121610",
@@ -6481,18 +6490,18 @@ const styles = StyleSheet.create({
   workoutDuration: { color: colors.muted, fontSize: 8, fontWeight: "800", letterSpacing: 1.2 },
   workoutTitle: {
     color: colors.text,
-    fontSize: 31,
-    lineHeight: 32,
+    fontSize: 27,
+    lineHeight: 28,
     fontWeight: "700",
-    letterSpacing: -1.3,
-    marginTop: 15,
+    letterSpacing: -1.1,
+    marginTop: 11,
   },
-  workoutMeta: { color: colors.muted, fontSize: 11, marginTop: 8 },
+  workoutMeta: { color: colors.muted, fontSize: 11, marginTop: 6 },
   workoutCoachNote: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 15,
-    paddingTop: 13,
+    marginTop: 11,
+    paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: "#343A30",
   },
@@ -6509,10 +6518,10 @@ const styles = StyleSheet.create({
   coachMiniText: { color: colors.text, fontSize: 9, fontWeight: "800" },
   workoutCoachText: { color: "#C6CBC2", fontSize: 10, flex: 1 },
   workoutButton: {
-    height: 50,
-    borderRadius: 25,
+    height: 46,
+    borderRadius: 23,
     paddingHorizontal: 18,
-    marginTop: 15,
+    marginTop: 11,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
