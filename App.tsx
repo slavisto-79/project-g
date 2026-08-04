@@ -4224,21 +4224,13 @@ function PreloadExerciseVideo({ source }: { source: number | string }) {
 
 function ExerciseDemo({
   exerciseIndex,
-  paused,
   exercises,
 }: {
   exerciseIndex: number;
-  paused: boolean;
   exercises: WorkoutExercise[];
 }) {
-  const [phaseIndex, setPhaseIndex] = useState(0);
   const exercise = exercises[exerciseIndex] ?? exercises[0]!;
   const nextExercise = exercises[exerciseIndex + 1];
-
-  useEffect(() => {
-    const phaseTimer = setInterval(() => setPhaseIndex((value) => (value + 1) % 3), 1100);
-    return () => clearInterval(phaseTimer);
-  }, []);
 
   return (
     <View style={styles.demoStage}>
@@ -4258,11 +4250,6 @@ function ExerciseDemo({
       <View style={styles.videoSourceBadge}>
         <View style={styles.formDot} />
         <Text style={styles.videoSourceText}>REAL FORM DEMO</Text>
-      </View>
-      <View style={styles.tempoPanel}>
-        <Text style={styles.tempoLabel}>REP TEMPO</Text>
-        <Text style={styles.tempoValue}>{exercise.tempo}</Text>
-        <Text style={styles.phaseValue}>{paused ? "REST" : exercise.phases[phaseIndex]}</Text>
       </View>
     </View>
   );
@@ -4616,12 +4603,7 @@ function ActiveWorkoutScreen({
       <View style={[styles.exerciseVisual, { height: exerciseVisualHeight }]}>
         <View style={styles.exerciseGlow} />
         <Text style={styles.exerciseNumber}>0{exerciseIndex + 1}</Text>
-        <ExerciseDemo
-          key={exerciseIndex}
-          exerciseIndex={exerciseIndex}
-          paused={restSeconds > 0}
-          exercises={personalizedExercises}
-        />
+        <ExerciseDemo key={exerciseIndex} exerciseIndex={exerciseIndex} exercises={personalizedExercises} />
         <View style={styles.formBadge}>
           <View style={styles.formDot} />
           <Text style={styles.formBadgeText}>{remainingLabel} REMAINING</Text>
@@ -7247,19 +7229,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lime,
   },
   demoWeightText: { color: colors.ink, fontSize: 9 },
-  tempoPanel: {
-    position: "absolute",
-    right: 14,
-    top: 14,
-    alignItems: "flex-end",
-    paddingVertical: 7,
-    paddingHorizontal: 9,
-    borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.72)",
-  },
-  tempoLabel: { color: "#666D63", fontSize: 6, fontWeight: "800", letterSpacing: 1 },
-  tempoValue: { color: colors.text, fontSize: 16, fontWeight: "800", marginTop: 2 },
-  phaseValue: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1, marginTop: 3 },
   formBadge: {
     position: "absolute",
     right: 15,
