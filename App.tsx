@@ -1537,6 +1537,13 @@ type ReadinessInfo = { score: number; title: string; hint: string };
 // A simple recovery-time heuristic, not a biometric measurement -- we have no
 // sleep/HRV data, only workout history, so this approximates readiness from
 // how long it's been since the last session.
+// Null when there's no previous workout to compare against.
+function hoursSinceLastWorkout(workoutHistory: WorkoutHistoryEntry[]): number | null {
+  const lastWorkoutMs = new Date(workoutHistory[0]?.date ?? "").getTime();
+  if (Number.isNaN(lastWorkoutMs)) return null;
+  return (Date.now() - lastWorkoutMs) / (60 * 60 * 1000);
+}
+
 function computeReadiness(workoutHistory: WorkoutHistoryEntry[]): ReadinessInfo {
   const lastWorkout = workoutHistory[0];
   if (!lastWorkout) {
@@ -5378,8 +5385,19 @@ export default function App() {
   const [authOrigin, setAuthOrigin] = useState<"welcome" | "dashboard">("dashboard");
   const [activeWorkoutExercises, setActiveWorkoutExercises] = useState<WorkoutExercise[] | null>(null);
   const [workoutLoading, setWorkoutLoading] = useState(false);
+  const [tooSoonWarningOpen, setTooSoonWarningOpen] = useState(false);
 
   const startWorkout = async () => {
+    const hoursSince = hoursSinceLastWorkout(workoutHistory);
+    if (hoursSince !== null && hoursSince < 8) {
+      setTooSoonWarningOpen(true);
+      return;
+    }
+    await beginWorkout();
+  };
+
+  const beginWorkout = async () => {
+    setTooSoonWarningOpen(false);
     setWorkoutLoading(true);
     const catalogExercises = await createWorkoutFromCatalog(profile, exerciseProgress);
     setActiveWorkoutExercises(catalogExercises);
@@ -5739,6 +5757,34 @@ export default function App() {
           />
         )}
       </View>
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={tooSoonWarningOpen}
+        statusBarTranslucent
+        onRequestClose={() => setTooSoonWarningOpen(false)}
+      >
+        <Pressable style={styles.exerciseInfoBackdrop} onPress={() => setTooSoonWarningOpen(false)}>
+          <Pressable style={styles.tooSoonCard} onPress={(event) => event.stopPropagation()}>
+            <Text style={styles.tooSoonTitle}>Already trained today?</Text>
+            <Text style={styles.tooSoonBody}>
+              You logged a workout less than 8 hours ago. Your body needs time to recover — start another session
+              anyway?
+            </Text>
+            <Pressable onPress={beginWorkout} style={styles.exerciseInfoDone}>
+              <Text style={styles.exerciseInfoDoneText}>START ANYWAY</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cancel"
+              onPress={() => setTooSoonWarningOpen(false)}
+            >
+              <Text style={styles.mismatchBackText}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -7252,6 +7298,18 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
   },
+  tooSoonCard: {
+    width: "100%",
+    maxWidth: 520,
+    padding: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: colors.background,
+  },
+  tooSoonTitle: { color: colors.text, fontSize: 19, fontWeight: "800", marginBottom: 10 },
+  tooSoonBody: { color: colors.muted, fontSize: 13, lineHeight: 19, marginBottom: 20 },
   exerciseInfoPanel: {
     width: "100%",
     maxWidth: 520,
