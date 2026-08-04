@@ -1245,21 +1245,18 @@ type BottomNavKey = "dashboard" | "nutrition" | "progress" | "coach";
 function BottomNav({
   active,
   onHome,
-  onWorkout,
   onNutrition,
   onProgress,
   onCoach,
 }: {
   active: BottomNavKey;
   onHome: () => void;
-  onWorkout: () => void;
   onNutrition: () => void;
   onProgress: () => void;
   onCoach: () => void;
 }) {
-  const items: { key: BottomNavKey | "workout"; icon: string; label: string; onPress: () => void }[] = [
+  const items: { key: BottomNavKey; icon: string; label: string; onPress: () => void }[] = [
     { key: "dashboard", icon: "🏠", label: "HOME", onPress: onHome },
-    { key: "workout", icon: "🏋️", label: "WORKOUT", onPress: onWorkout },
     { key: "nutrition", icon: "🥗", label: "NUTRITION", onPress: onNutrition },
     { key: "progress", icon: "📈", label: "PROGRESS", onPress: onProgress },
     { key: "coach", icon: "🎯", label: "COACH", onPress: onCoach },
@@ -1473,7 +1470,6 @@ function DashboardScreen({
       <BottomNav
         active="dashboard"
         onHome={() => {}}
-        onWorkout={onStartWorkout}
         onNutrition={onOpenNutrition}
         onProgress={onOpenProgress}
         onCoach={onOpenCoach}
@@ -2485,7 +2481,6 @@ function NutritionScreen({
       <BottomNav
         active="nutrition"
         onHome={onBack}
-        onWorkout={onStartWorkout}
         onNutrition={() => {}}
         onProgress={onOpenProgress}
         onCoach={onOpenCoach}
@@ -5026,7 +5021,6 @@ function ProgressScreen({
       <BottomNav
         active="progress"
         onHome={onDashboard}
-        onWorkout={onStartWorkout}
         onNutrition={onOpenNutrition}
         onProgress={() => {}}
         onCoach={onOpenCoach}
