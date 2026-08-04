@@ -54,3 +54,11 @@ alter table public.user_data add column if not exists diet_plan jsonb;
 -- Safe to re-run: adds trial_started_at (defaults to now() for new rows via the
 -- signup trigger above; backfills existing rows to now() as well).
 alter table public.user_data add column if not exists trial_started_at timestamptz not null default now();
+
+-- Safe to re-run: RLS policies above only control WHICH rows a role can touch --
+-- the role also needs base table privileges, or every query 403s with
+-- "permission denied" (Postgres error 42501) even though the policies are correct.
+-- Without this, signed-in users can never load or save their profile, which looks
+-- exactly like getting logged out on every reload.
+grant usage on schema public to authenticated;
+grant select, insert, update on public.user_data to authenticated;
