@@ -90,7 +90,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const profile = safeProfile(body.profile);
   const memory = typeof body.memory === "string" ? body.memory.slice(0, 700) : "No workouts logged yet.";
   // Prior turns of THIS conversation, distinct from `memory` (which summarizes
-  // past workouts). Capped to the last 16 turns so a long-running chat can't
+  // past workouts). Capped to the last 30 turns so a long-running chat can't
   // grow the request unbounded.
   const history = Array.isArray(body.history)
     ? body.history
@@ -98,7 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           (entry): entry is { role: string; content: string } =>
             !!entry && typeof entry.role === "string" && typeof entry.content === "string",
         )
-        .slice(-16)
+        .slice(-30)
         .map((entry) => ({
           role: entry.role === "assistant" ? "assistant" : "user",
           content: entry.content.slice(0, 600),

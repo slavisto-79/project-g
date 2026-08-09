@@ -3375,7 +3375,7 @@ function AICoachScreen({
   const askCoach = async (message: string, fallbackScenario: ResolvedCoachScenario) => {
     // Everything already in the thread becomes conversation history for this
     // turn -- the coach sees what was said before, not just this one message.
-    const history = messagesRef.current.slice(-16).map((entry) => ({
+    const history = messagesRef.current.slice(-30).map((entry) => ({
       role: entry.role === "user" ? "user" : "assistant",
       content: entry.text,
     }));
