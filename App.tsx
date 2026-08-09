@@ -3884,6 +3884,23 @@ function restSecondsForProfile(profile: Record<string, string>, adjustment?: Coa
   return adjustment === "tired" ? base + 30 : base;
 }
 
+// A same-day readiness discount applied to suggested weight -- only ever
+// reduces load, never adds to it, since normal double-progression already
+// handles increases and an algorithm should never talk someone into more
+// weight than usual on a day it has no real evidence they're ready for.
+// Two signals are available today: how recently they last trained (real
+// under-recovery, not just "yesterday" being close by design) and whether
+// they told the coach they're tired going into this session. Sleep and
+// diet-adherence trend aren't tracked yet, so they're left out rather than
+// guessed at -- see the memory note for why.
+function readinessWeightModifier(workoutHistory: WorkoutHistoryEntry[], adjustment?: CoachScenario | null): number {
+  let modifier = 1;
+  const hoursSince = hoursSinceLastWorkout(workoutHistory);
+  if (hoursSince !== null && hoursSince < 20) modifier -= 0.06;
+  if (adjustment === "tired") modifier -= 0.06;
+  return Math.max(0.88, modifier);
+}
+
 // Isometric holds (plank and its variants) are timed, not counted -- "10
 // reps" of a hold means nothing, so these get a starting hold length in
 // seconds instead, and the UI shows "sec" wherever it would otherwise show
@@ -4137,6 +4154,7 @@ function catalogExerciseToWorkoutExercise(
   profile: Record<string, string>,
   exerciseProgress: Record<string, ExerciseProgress>,
   isDeload: boolean = false,
+  weightModifier: number = 1,
 ): WorkoutExercise {
   const bodyWeightKg = Number(profile.weight);
   const isBodyweight = tag.equipment.toLowerCase() === "bodyweight";
@@ -4144,14 +4162,19 @@ function catalogExerciseToWorkoutExercise(
   const reps = saved
     ? String(saved.reps)
     : String(tag.movementPattern === "isometric" ? holdSecondsForProfile(profile) : baseRepsForProfile(profile));
-  // Deload week: back off the weight rather than just cutting a set, so the
-  // lighter session still feels like real training, not a rest day.
-  const savedWeightKg = saved ? (isDeload ? Math.max(2, Math.round(saved.weightKg * 0.85)) : saved.weightKg) : null;
+  // Deload week backs off the weight on its own (lighter session, not a rest
+  // day) -- the readiness modifier is for everything else (poor recovery,
+  // self-reported "tired"), so the two never stack; deload wins when both apply.
+  const savedWeightKg = saved
+    ? isDeload
+      ? Math.max(2, Math.round(saved.weightKg * 0.85))
+      : Math.max(2, Math.round(saved.weightKg * weightModifier))
+    : null;
   const weight = isBodyweight
     ? "Bodyweight"
     : savedWeightKg !== null
       ? `${savedWeightKg} kg`
-      : scaledStartingWeightLabel(12, bodyWeightKg);
+      : scaledStartingWeightLabel(Math.round(12 * (isDeload ? 0.85 : weightModifier)), bodyWeightKg);
   const media = tag.media[profile.sex === "male" ? "male" : "female"];
   const poster: ImageSourcePropType = media
     ? { uri: media.poster }
@@ -4194,6 +4217,7 @@ async function fetchAlternativeExercises(
   exerciseProgress: Record<string, ExerciseProgress>,
   excludeNames: Set<string>,
   isDeload: boolean = false,
+  weightModifier: number = 1,
 ): Promise<WorkoutExercise[]> {
   const keyword = movementPatternSearchKeyword[catalogMeta.movementPattern];
   const params = new URLSearchParams({ search: keyword, limit: "25" });
@@ -4210,14 +4234,21 @@ async function fetchAlternativeExercises(
   );
   return alternatives
     .slice(0, 5)
-    .map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress, isDeload));
+    .map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress, isDeload, weightModifier));
 }
 
 async function createWorkoutFromCatalog(
   profile: Record<string, string>,
   exerciseProgress: Record<string, ExerciseProgress>,
   workoutHistory: WorkoutHistoryEntry[],
-): Promise<{ exercises: WorkoutExercise[]; splitLabel: string; splitDay: SplitDay; isDeload: boolean } | null> {
+  coachAdjustment: CoachScenario | null,
+): Promise<{
+  exercises: WorkoutExercise[];
+  splitLabel: string;
+  splitDay: SplitDay;
+  isDeload: boolean;
+  weightModifier: number;
+} | null> {
   const equipmentMap: Record<string, ProgramBuilderProfile["equipment"]> = {
     gym: "gym",
     "home-gym": "home-gym",
@@ -4242,6 +4273,7 @@ async function createWorkoutFromCatalog(
   const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
   const { day: splitDay, label: splitLabel } = determineSplitDay(reminderDays, recentSplitDaysFromHistory(workoutHistory));
   const { isDeload } = getMesocycleWeek(workoutHistory);
+  const weightModifier = isDeload ? 1 : readinessWeightModifier(workoutHistory, coachAdjustment);
 
   try {
     const tags = await buildProgram(builderProfile, splitDay);
@@ -4252,10 +4284,13 @@ async function createWorkoutFromCatalog(
       return null;
     }
     return {
-      exercises: tags.map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress, isDeload)),
+      exercises: tags.map((tag) =>
+        catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress, isDeload, weightModifier),
+      ),
       splitLabel,
       splitDay,
       isDeload,
+      weightModifier,
     };
   } catch (error) {
     console.error("Catalog workout build failed -- falling back to the built-in workout", error);
@@ -4364,6 +4399,7 @@ function ActiveWorkoutScreen({
   splitLabel,
   splitDay,
   isDeload,
+  weightModifier = 1,
   adjustment,
   onExit,
   onViewProgress,
@@ -4376,6 +4412,7 @@ function ActiveWorkoutScreen({
   splitLabel?: string | null;
   splitDay?: SplitDay | null;
   isDeload?: boolean;
+  weightModifier?: number;
   adjustment?: CoachScenario | null;
   onExit: () => void;
   onViewProgress: () => void;
@@ -4462,6 +4499,7 @@ function ActiveWorkoutScreen({
       exerciseProgress,
       excludeNames,
       isDeload,
+      weightModifier,
     );
     setSwapState({ options });
   };
@@ -4739,6 +4777,13 @@ function ActiveWorkoutScreen({
           onLayout={(event) => setDeloadBannerHeight(event.nativeEvent.layout.height)}
         >
           <Text style={styles.deloadBannerText}>DELOAD WEEK · LIGHTER LOAD, SAME EFFORT</Text>
+        </View>
+      ) : weightModifier < 1 ? (
+        <View
+          style={styles.deloadBanner}
+          onLayout={(event) => setDeloadBannerHeight(event.nativeEvent.layout.height)}
+        >
+          <Text style={styles.deloadBannerText}>LIGHTER LOAD TODAY · STILL RECOVERING</Text>
         </View>
       ) : null}
 
@@ -5549,6 +5594,7 @@ export default function App() {
   const [activeWorkoutSplitLabel, setActiveWorkoutSplitLabel] = useState<string | null>(null);
   const [activeWorkoutSplitDay, setActiveWorkoutSplitDay] = useState<SplitDay | null>(null);
   const [activeWorkoutIsDeload, setActiveWorkoutIsDeload] = useState(false);
+  const [activeWorkoutWeightModifier, setActiveWorkoutWeightModifier] = useState(1);
   const [workoutLoading, setWorkoutLoading] = useState(false);
   const [tooSoonWarningOpen, setTooSoonWarningOpen] = useState(false);
 
@@ -5564,11 +5610,12 @@ export default function App() {
   const beginWorkout = async () => {
     setTooSoonWarningOpen(false);
     setWorkoutLoading(true);
-    const result = await createWorkoutFromCatalog(profile, exerciseProgress, workoutHistory);
+    const result = await createWorkoutFromCatalog(profile, exerciseProgress, workoutHistory, coachAdjustment);
     setActiveWorkoutExercises(result?.exercises ?? null);
     setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
     setActiveWorkoutSplitDay(result?.splitDay ?? null);
     setActiveWorkoutIsDeload(result?.isDeload ?? false);
+    setActiveWorkoutWeightModifier(result?.weightModifier ?? 1);
     setWorkoutLoading(false);
     setScreen("workout");
   };
@@ -5780,11 +5827,12 @@ export default function App() {
             onStartWorkout={async (answers) => {
               setProfile(answers);
               setWorkoutLoading(true);
-              const result = await createWorkoutFromCatalog(answers, exerciseProgress, workoutHistory);
+              const result = await createWorkoutFromCatalog(answers, exerciseProgress, workoutHistory, coachAdjustment);
               setActiveWorkoutExercises(result?.exercises ?? null);
               setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
               setActiveWorkoutSplitDay(result?.splitDay ?? null);
               setActiveWorkoutIsDeload(result?.isDeload ?? false);
+              setActiveWorkoutWeightModifier(result?.weightModifier ?? 1);
               setWorkoutLoading(false);
               setScreen("workout");
             }}
@@ -5909,6 +5957,7 @@ export default function App() {
             splitLabel={activeWorkoutSplitLabel}
             splitDay={activeWorkoutSplitDay}
             isDeload={activeWorkoutIsDeload}
+            weightModifier={activeWorkoutWeightModifier}
             adjustment={coachAdjustment}
             profile={profile}
             exerciseProgress={exerciseProgress}
