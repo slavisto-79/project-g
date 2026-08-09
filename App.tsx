@@ -3851,6 +3851,18 @@ function baseRepsForProfile(profile: Record<string, string>): number {
   return reducedLoad ? 8 : profile.goal === "strength" ? 6 : 10;
 }
 
+// Isometric holds (plank and its variants) are timed, not counted -- "10
+// reps" of a hold means nothing, so these get a starting hold length in
+// seconds instead, and the UI shows "sec" wherever it would otherwise show
+// "reps" for this exercise.
+function holdSecondsForProfile(profile: Record<string, string>): number {
+  return profile.experience === "beginner" ? 20 : profile.experience === "advanced" ? 40 : 30;
+}
+
+function isHoldExercise(exercise: { name: string; catalogMeta?: { movementPattern?: string } }): boolean {
+  return exercise.catalogMeta?.movementPattern === "isometric" || exercise.name.includes("Plank");
+}
+
 function isBodyweightExerciseName(name: string): boolean {
   return name.includes("Push-Up") || name.includes("Plank");
 }
@@ -4036,7 +4048,11 @@ function createWorkout(
     const saved = exerciseProgress[exercise.name];
     return {
       ...exercise,
-      reps: saved ? String(saved.reps) : reps,
+      reps: saved
+        ? String(saved.reps)
+        : exercise.name.includes("Plank")
+          ? String(holdSecondsForProfile(profile))
+          : reps,
       tempo: Number.isFinite(ageYears) && ageYears >= 55 ? "3–1–2" : exercise.tempo,
       weight: isBodyweight
         ? "Bodyweight"
@@ -4092,7 +4108,9 @@ function catalogExerciseToWorkoutExercise(
   const bodyWeightKg = Number(profile.weight);
   const isBodyweight = tag.equipment.toLowerCase() === "bodyweight";
   const saved = exerciseProgress[tag.name];
-  const reps = saved ? String(saved.reps) : String(baseRepsForProfile(profile));
+  const reps = saved
+    ? String(saved.reps)
+    : String(tag.movementPattern === "isometric" ? holdSecondsForProfile(profile) : baseRepsForProfile(profile));
   // Deload week: back off the weight rather than just cutting a set, so the
   // lighter session still feels like real training, not a rest day.
   const savedWeightKg = saved ? (isDeload ? Math.max(2, Math.round(saved.weightKg * 0.85)) : saved.weightKg) : null;
@@ -4349,6 +4367,7 @@ function ActiveWorkoutScreen({
   const [swapState, setSwapState] = useState<"closed" | "loading" | { options: WorkoutExercise[] }>("closed");
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
   const isBodyweight = exercise.weight === "Bodyweight";
+  const isHold = isHoldExercise(exercise);
   const currentWeightKg = isBodyweight ? null : parseInt(exercise.weight, 10);
   const currentReps = parseInt(exercise.reps, 10);
   // The video fills whatever's left after the real (measured) height of
@@ -4784,7 +4803,7 @@ function ActiveWorkoutScreen({
         <View style={styles.setTableHeader}>
           <Text style={[styles.setHeaderText, styles.setColumn]}>SET</Text>
           <Text style={[styles.setHeaderText, styles.weightColumn]}>WEIGHT</Text>
-          <Text style={[styles.setHeaderText, styles.repsColumn]}>REPS</Text>
+          <Text style={[styles.setHeaderText, styles.repsColumn]}>{isHold ? "SEC" : "REPS"}</Text>
           <View style={styles.doneColumn} />
         </View>
 
@@ -4795,7 +4814,9 @@ function ActiveWorkoutScreen({
               <Text style={[styles.setValue, styles.weightColumn, done && styles.setTextDone]}>
                 {isBodyweight ? "Bodyweight" : `${currentWeightKg} kg`}
               </Text>
-              <Text style={[styles.setValue, styles.repsColumn, done && styles.setTextDone]}>{exercise.reps}</Text>
+              <Text style={[styles.setValue, styles.repsColumn, done && styles.setTextDone]}>
+                {isHold ? `${exercise.reps}s` : exercise.reps}
+              </Text>
               <View
                 accessibilityRole="text"
                 accessibilityLabel={done ? `Set ${index + 1} done` : `Set ${index + 1} not done yet`}
@@ -4811,7 +4832,11 @@ function ActiveWorkoutScreen({
           {completedCount < targetSetCount ? (
             <>
               <Text style={styles.adjustPanelLabel}>
-                {isBodyweight ? "HOW MANY REPS DID YOU DO" : "HOW MANY KG & REPS DID YOU DO"}
+                {isHold
+                  ? "HOW MANY SECONDS DID YOU HOLD"
+                  : isBodyweight
+                    ? "HOW MANY REPS DID YOU DO"
+                    : "HOW MANY KG & REPS DID YOU DO"}
               </Text>
               <View style={styles.adjustPanelPickers}>
                 {!isBodyweight ? (
@@ -4832,16 +4857,16 @@ function ActiveWorkoutScreen({
                   </View>
                 ) : null}
                 <View style={styles.adjustPanelSlot}>
-                  <Text style={styles.adjustPanelColumnLabel}>REPS</Text>
+                  <Text style={styles.adjustPanelColumnLabel}>{isHold ? "SEC" : "REPS"}</Text>
                   <NumberWheelPicker
                     key={`${exercise.name}-reps`}
                     itemHeight={26}
                     visibleItems={3}
                     fontSize={16}
-                    min={1}
-                    max={30}
-                    step={1}
-                    unit=""
+                    min={isHold ? 5 : 1}
+                    max={isHold ? 120 : 30}
+                    step={isHold ? 5 : 1}
+                    unit={isHold ? "s" : ""}
                     value={currentReps}
                     onChange={(next) => saveExerciseAdjustment(isBodyweight ? 0 : currentWeightKg ?? 20, next)}
                   />
