@@ -13,17 +13,24 @@ type CoachRequest = {
   message?: string;
   profile?: Record<string, string>;
   memory?: string;
+  history?: Array<{ role?: string; content?: string }>;
 };
 
+// Mirrors the actual field ids the app stores on the profile object (see
+// InterviewScreen's questions in App.tsx) -- this previously listed "days"
+// and "injuries", which don't exist (the real fields are "frequency" and
+// "limitations"), so the coach was silently never receiving them.
 const allowedProfileFields = [
   "goal",
   "sex",
   "age",
+  "weight",
+  "height",
   "experience",
-  "days",
+  "frequency",
   "duration",
   "equipment",
-  "injuries",
+  "limitations",
 ] as const;
 
 function safeProfile(input: unknown) {
@@ -82,6 +89,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const profile = safeProfile(body.profile);
   const memory = typeof body.memory === "string" ? body.memory.slice(0, 700) : "No workouts logged yet.";
+  // Prior turns of THIS conversation, distinct from `memory` (which summarizes
+  // past workouts). Capped to the last 16 turns so a long-running chat can't
+  // grow the request unbounded.
+  const history = Array.isArray(body.history)
+    ? body.history
+        .filter(
+          (entry): entry is { role: string; content: string } =>
+            !!entry && typeof entry.role === "string" && typeof entry.content === "string",
+        )
+        .slice(-16)
+        .map((entry) => ({
+          role: entry.role === "assistant" ? "assistant" : "user",
+          content: entry.content.slice(0, 600),
+        }))
+    : [];
 
   try {
     const openAIResponse = await fetch("https://api.openai.com/v1/responses", {
@@ -97,7 +119,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         instructions: [
           "You are Project G AI Coach, a concise, supportive fitness coach backed by a real human coach.",
           "You have an ongoing coaching relationship with this user: use their training history to sound like a coach who remembers their progress, not a stranger meeting them for the first time. Reference specific numbers or trends from it when relevant (e.g. workout count, recent working weights), but only if the current message calls for it -- don't force it in.",
-          "Adapt training conservatively using the user's profile, training history, and current message.",
+          "You also have the earlier turns of this exact conversation. Read them before replying -- if the user already told you something (how they're feeling, what changed, a constraint they mentioned), don't ask again or contradict it; build on it like a real ongoing conversation, not a series of one-off questions.",
+          "Adapt training conservatively using the user's profile, training history, conversation so far, and current message.",
           "Never diagnose an injury or disease. For severe, sudden, worsening, chest-related, neurological, or unexplained pain, tell the user to stop training and seek qualified medical help.",
           "For ordinary discomfort, recommend stopping the aggravating movement, a pain-free alternative, and human coach review.",
           "Do not prescribe medication, supplements, or extreme calorie restriction.",
@@ -108,7 +131,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "Do not include drafting notes, self-critique, alternatives, or hidden reasoning.",
           "Return only JSON matching the requested schema.",
         ].join(" "),
-        input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nTRAINING HISTORY:\n${memory}\n\nCURRENT MESSAGE:\n${message}`,
+        input: [
+          {
+            role: "user",
+            content: `USER PROFILE:\n${JSON.stringify(profile)}\n\nTRAINING HISTORY:\n${memory}`,
+          },
+          ...history,
+          { role: "user", content: message },
+        ],
         text: {
           format: {
             type: "json_schema",

@@ -3301,6 +3301,20 @@ const coachScenarios: Record<
 
 type ResolvedCoachScenario = CoachScenario | "nutrition" | "general" | "off_topic";
 
+// A full chat turn, persisted (unlike the old single-slot reply state) so the
+// coach can see -- and the user can scroll back through -- the whole
+// conversation, not just the latest exchange.
+type CoachMessage = {
+  id: string;
+  role: "user" | "ai";
+  text: string;
+  scenario?: ResolvedCoachScenario;
+  changes?: string[];
+  requiresHumanReview?: boolean;
+  applied?: boolean;
+  reviewStatus?: "idle" | "sending" | "sent" | "error";
+};
+
 function isActionableScenario(scenario: ResolvedCoachScenario | null): scenario is CoachScenario {
   return scenario === "tired" || scenario === "pain" || scenario === "time" || scenario === "equipment";
 }
@@ -3325,6 +3339,8 @@ function AICoachScreen({
   profile,
   workoutHistory,
   exerciseProgress,
+  messages,
+  onMessagesChange,
   onBack,
   onApply,
   onStartWorkout,
@@ -3333,22 +3349,19 @@ function AICoachScreen({
   profile: Record<string, string>;
   workoutHistory: WorkoutHistoryEntry[];
   exerciseProgress: Record<string, ExerciseProgress>;
+  messages: CoachMessage[];
+  onMessagesChange: (updater: (current: CoachMessage[]) => CoachMessage[]) => void;
   onBack: () => void;
   onApply: (scenario: CoachScenario) => void;
   onStartWorkout: () => void;
   onOpenDietPlan: () => void;
 }) {
   const [draft, setDraft] = useState("");
-  const [scenario, setScenario] = useState<ResolvedCoachScenario | null>(null);
-  const [customMessage, setCustomMessage] = useState("");
-  const [applied, setApplied] = useState(false);
-  const [aiReply, setAiReply] = useState("");
-  const [aiChanges, setAiChanges] = useState<string[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const [coachError, setCoachError] = useState("");
-  const [requiresHumanReview, setRequiresHumanReview] = useState(false);
-  const [reviewRequestStatus, setReviewRequestStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const scrollRef = useRef<ScrollView>(null);
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   const goalLabel =
     profile.goal === "fat-loss"
@@ -3360,13 +3373,15 @@ function AICoachScreen({
           : "fitness";
 
   const askCoach = async (message: string, fallbackScenario: ResolvedCoachScenario) => {
+    // Everything already in the thread becomes conversation history for this
+    // turn -- the coach sees what was said before, not just this one message.
+    const history = messagesRef.current.slice(-16).map((entry) => ({
+      role: entry.role === "user" ? "user" : "assistant",
+      content: entry.text,
+    }));
+    onMessagesChange((current) => [...current, { id: `${Date.now()}-user`, role: "user", text: message }]);
     setIsThinking(true);
     setCoachError("");
-    setAiReply("");
-    setAiChanges([]);
-    setApplied(false);
-    setRequiresHumanReview(false);
-    setReviewRequestStatus("idle");
     try {
       const response = await fetch("/api/coach", {
         method: "POST",
@@ -3375,6 +3390,7 @@ function AICoachScreen({
           message,
           profile,
           memory: summarizeCoachMemory(workoutHistory, exerciseProgress),
+          history,
         }),
       });
       if (!response.ok) throw new Error("Coach request failed");
@@ -3385,33 +3401,44 @@ function AICoachScreen({
         requiresHumanReview?: boolean;
       };
       const resolvedScenario: ResolvedCoachScenario = result.scenario ?? fallbackScenario;
-      setScenario(resolvedScenario);
-      setRequiresHumanReview(Boolean(result.requiresHumanReview));
-      setAiReply(
-        result.reply ??
-          (isActionableScenario(resolvedScenario)
-            ? coachScenarios[resolvedScenario].reply
-            : nonWorkoutFallback[resolvedScenario].reply),
-      );
-      setAiChanges(
-        result.changes?.length
-          ? result.changes
-          : isActionableScenario(resolvedScenario)
-            ? coachScenarios[resolvedScenario].changes
-            : nonWorkoutFallback[resolvedScenario].changes,
-      );
+      onMessagesChange((current) => [
+        ...current,
+        {
+          id: `${Date.now()}-ai`,
+          role: "ai",
+          text:
+            result.reply ??
+            (isActionableScenario(resolvedScenario)
+              ? coachScenarios[resolvedScenario].reply
+              : nonWorkoutFallback[resolvedScenario].reply),
+          scenario: resolvedScenario,
+          changes: result.changes?.length
+            ? result.changes
+            : isActionableScenario(resolvedScenario)
+              ? coachScenarios[resolvedScenario].changes
+              : nonWorkoutFallback[resolvedScenario].changes,
+          requiresHumanReview: Boolean(result.requiresHumanReview),
+          applied: false,
+          reviewStatus: "idle",
+        },
+      ]);
     } catch {
-      setScenario(fallbackScenario);
-      setAiReply(
-        isActionableScenario(fallbackScenario)
-          ? coachScenarios[fallbackScenario].reply
-          : nonWorkoutFallback[fallbackScenario].reply,
-      );
-      setAiChanges(
-        isActionableScenario(fallbackScenario)
-          ? coachScenarios[fallbackScenario].changes
-          : nonWorkoutFallback[fallbackScenario].changes,
-      );
+      onMessagesChange((current) => [
+        ...current,
+        {
+          id: `${Date.now()}-ai`,
+          role: "ai",
+          text: isActionableScenario(fallbackScenario)
+            ? coachScenarios[fallbackScenario].reply
+            : nonWorkoutFallback[fallbackScenario].reply,
+          scenario: fallbackScenario,
+          changes: isActionableScenario(fallbackScenario)
+            ? coachScenarios[fallbackScenario].changes
+            : nonWorkoutFallback[fallbackScenario].changes,
+          applied: false,
+          reviewStatus: "idle",
+        },
+      ]);
       setCoachError("Live AI is unavailable. Safe coaching mode is active.");
     } finally {
       setIsThinking(false);
@@ -3419,26 +3446,29 @@ function AICoachScreen({
     }
   };
 
-  const requestCoachReview = async () => {
-    setReviewRequestStatus("sending");
+  const requestCoachReview = async (item: CoachMessage, precedingUserText: string) => {
+    onMessagesChange((current) =>
+      current.map((entry) => (entry.id === item.id ? { ...entry, reviewStatus: "sending" } : entry)),
+    );
     try {
       const response = await fetch("/api/request-review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: customMessage, reply: aiReply, profile }),
+        body: JSON.stringify({ message: precedingUserText, reply: item.text, profile }),
       });
       if (!response.ok) throw new Error("Review request failed");
-      setReviewRequestStatus("sent");
+      onMessagesChange((current) =>
+        current.map((entry) => (entry.id === item.id ? { ...entry, reviewStatus: "sent" } : entry)),
+      );
     } catch {
-      setReviewRequestStatus("error");
+      onMessagesChange((current) =>
+        current.map((entry) => (entry.id === item.id ? { ...entry, reviewStatus: "error" } : entry)),
+      );
     }
   };
 
   const chooseScenario = (next: CoachScenario) => {
-    setScenario(next);
-    const message = coachScenarios[next].user;
-    setCustomMessage(message);
-    void askCoach(message, next);
+    void askCoach(coachScenarios[next].user, next);
   };
 
   const sendCustomMessage = () => {
@@ -3462,10 +3492,7 @@ function AICoachScreen({
                 normalized.includes("ядене")
               ? "nutrition"
               : "tired";
-    setCustomMessage(message);
     setDraft("");
-    setScenario(inferredScenario);
-    setApplied(false);
     void askCoach(message, inferredScenario);
   };
 
@@ -3517,17 +3544,111 @@ function AICoachScreen({
 
           <View style={styles.coachQuickActions}>
             {(Object.keys(coachScenarios) as CoachScenario[]).map((key) => (
-              <Pressable
-                key={key}
-                onPress={() => chooseScenario(key)}
-                style={[styles.coachQuickAction, scenario === key && styles.coachQuickActionActive]}
-              >
-                <Text style={[styles.coachQuickActionText, scenario === key && styles.coachQuickActionTextActive]}>
-                  {coachScenarios[key].label}
-                </Text>
+              <Pressable key={key} onPress={() => chooseScenario(key)} style={styles.coachQuickAction}>
+                <Text style={styles.coachQuickActionText}>{coachScenarios[key].label}</Text>
               </Pressable>
             ))}
           </View>
+
+          {messages.map((item, index) =>
+            item.role === "user" ? (
+              <View key={item.id} style={styles.userBubble}>
+                <Text style={styles.userBubbleText}>{item.text}</Text>
+              </View>
+            ) : (
+              <View key={item.id}>
+                <View style={styles.coachBubbleRow}>
+                  <View style={styles.coachBubbleMark}><Text style={styles.coachBubbleMarkText}>G</Text></View>
+                  <View style={styles.coachBubble}>
+                    <Text style={styles.coachBubbleText}>{item.text}</Text>
+                  </View>
+                </View>
+
+                {item.scenario && isActionableScenario(item.scenario) ? (
+                  <View style={styles.coachAdjustmentCard}>
+                    <View style={styles.coachAdjustmentTop}>
+                      <Text style={styles.coachAdjustmentLabel}>ADJUSTED WORKOUT</Text>
+                      <Text style={styles.coachAdjustmentBadge}>AI PROPOSAL</Text>
+                    </View>
+                    {(item.changes ?? []).map((change) => (
+                      <View key={change} style={styles.coachChangeRow}>
+                        <Text style={styles.coachChangeCheck}>✓</Text>
+                        <Text style={styles.coachChangeText}>{change}</Text>
+                      </View>
+                    ))}
+                    <Pressable
+                      onPress={() => {
+                        onApply(item.scenario as CoachScenario);
+                        onMessagesChange((current) =>
+                          current.map((entry) => (entry.id === item.id ? { ...entry, applied: true } : entry)),
+                        );
+                      }}
+                      disabled={item.applied}
+                      style={[styles.coachApplyButton, item.applied && styles.coachApplyButtonDone]}
+                    >
+                      <Text style={styles.coachApplyButtonText}>
+                        {item.applied ? "PLAN UPDATED ✓" : "APPLY CHANGES"}
+                      </Text>
+                    </Pressable>
+                    {item.applied ? (
+                      <Pressable onPress={onStartWorkout} style={styles.coachStartButton}>
+                        <Text style={styles.coachStartButtonText}>START ADAPTED WORKOUT</Text>
+                        <Text style={styles.coachStartButtonArrow}>→</Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                ) : item.scenario === "nutrition" ? (
+                  <View style={styles.coachAdjustmentCard}>
+                    <View style={styles.coachAdjustmentTop}>
+                      <Text style={styles.coachAdjustmentLabel}>NUTRITION</Text>
+                      <Text style={styles.coachAdjustmentBadge}>AI SUGGESTION</Text>
+                    </View>
+                    {(item.changes ?? []).map((change) => (
+                      <View key={change} style={styles.coachChangeRow}>
+                        <Text style={styles.coachChangeCheck}>✓</Text>
+                        <Text style={styles.coachChangeText}>{change}</Text>
+                      </View>
+                    ))}
+                    <Pressable onPress={onOpenDietPlan} style={styles.coachApplyButton}>
+                      <Text style={styles.coachApplyButtonText}>OPEN DIET PLAN</Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+
+                {item.requiresHumanReview ? (
+                  <View style={styles.coachAdjustmentCard}>
+                    <View style={styles.coachAdjustmentTop}>
+                      <Text style={styles.coachAdjustmentLabel}>HUMAN REVIEW</Text>
+                      <Text style={styles.coachAdjustmentBadge}>REAL COACH</Text>
+                    </View>
+                    <Text style={styles.coachChangeText}>
+                      {item.reviewStatus === "sent"
+                        ? "Sent to your coach — typically answered within 24–48h."
+                        : item.reviewStatus === "error"
+                          ? "Could not send that just now. Try again shortly."
+                          : "Flag this for your real coach to review directly."}
+                    </Text>
+                    <Pressable
+                      onPress={() => requestCoachReview(item, messages[index - 1]?.text ?? "")}
+                      disabled={item.reviewStatus === "sending" || item.reviewStatus === "sent"}
+                      style={[
+                        styles.coachApplyButton,
+                        item.reviewStatus === "sent" && styles.coachApplyButtonDone,
+                      ]}
+                    >
+                      <Text style={styles.coachApplyButtonText}>
+                        {item.reviewStatus === "sending"
+                          ? "SENDING..."
+                          : item.reviewStatus === "sent"
+                            ? "REQUEST SENT ✓"
+                            : "REQUEST COACH REVIEW"}
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+              </View>
+            ),
+          )}
 
           {isThinking ? (
             <View style={styles.coachBubbleRow}>
@@ -3538,101 +3659,7 @@ function AICoachScreen({
             </View>
           ) : null}
 
-          {scenario && !isThinking ? (
-            <>
-              <View style={styles.userBubble}>
-                <Text style={styles.userBubbleText}>{customMessage}</Text>
-              </View>
-              <View style={styles.coachBubbleRow}>
-                <View style={styles.coachBubbleMark}><Text style={styles.coachBubbleMarkText}>G</Text></View>
-                <View style={styles.coachBubble}>
-                  <Text style={styles.coachBubbleText}>{aiReply}</Text>
-                </View>
-              </View>
-              {coachError ? <Text style={styles.coachFallbackText}>{coachError}</Text> : null}
-
-              {isActionableScenario(scenario) ? (
-                <View style={styles.coachAdjustmentCard}>
-                  <View style={styles.coachAdjustmentTop}>
-                    <Text style={styles.coachAdjustmentLabel}>ADJUSTED WORKOUT</Text>
-                    <Text style={styles.coachAdjustmentBadge}>AI PROPOSAL</Text>
-                  </View>
-                  {(aiChanges.length ? aiChanges : coachScenarios[scenario].changes).map((change) => (
-                    <View key={change} style={styles.coachChangeRow}>
-                      <Text style={styles.coachChangeCheck}>✓</Text>
-                      <Text style={styles.coachChangeText}>{change}</Text>
-                    </View>
-                  ))}
-                  <Pressable
-                    onPress={() => {
-                      onApply(scenario);
-                      setApplied(true);
-                    }}
-                    disabled={applied}
-                    style={[styles.coachApplyButton, applied && styles.coachApplyButtonDone]}
-                  >
-                    <Text style={styles.coachApplyButtonText}>
-                      {applied ? "PLAN UPDATED ✓" : "APPLY CHANGES"}
-                    </Text>
-                  </Pressable>
-                  {applied ? (
-                    <Pressable onPress={onStartWorkout} style={styles.coachStartButton}>
-                      <Text style={styles.coachStartButtonText}>START ADAPTED WORKOUT</Text>
-                      <Text style={styles.coachStartButtonArrow}>→</Text>
-                    </Pressable>
-                  ) : null}
-                </View>
-              ) : scenario === "nutrition" ? (
-                <View style={styles.coachAdjustmentCard}>
-                  <View style={styles.coachAdjustmentTop}>
-                    <Text style={styles.coachAdjustmentLabel}>NUTRITION</Text>
-                    <Text style={styles.coachAdjustmentBadge}>AI SUGGESTION</Text>
-                  </View>
-                  {(aiChanges.length ? aiChanges : nonWorkoutFallback.nutrition.changes).map((change) => (
-                    <View key={change} style={styles.coachChangeRow}>
-                      <Text style={styles.coachChangeCheck}>✓</Text>
-                      <Text style={styles.coachChangeText}>{change}</Text>
-                    </View>
-                  ))}
-                  <Pressable onPress={onOpenDietPlan} style={styles.coachApplyButton}>
-                    <Text style={styles.coachApplyButtonText}>OPEN DIET PLAN</Text>
-                  </Pressable>
-                </View>
-              ) : null}
-
-              {requiresHumanReview ? (
-                <View style={styles.coachAdjustmentCard}>
-                  <View style={styles.coachAdjustmentTop}>
-                    <Text style={styles.coachAdjustmentLabel}>HUMAN REVIEW</Text>
-                    <Text style={styles.coachAdjustmentBadge}>REAL COACH</Text>
-                  </View>
-                  <Text style={styles.coachChangeText}>
-                    {reviewRequestStatus === "sent"
-                      ? "Sent to your coach — typically answered within 24–48h."
-                      : reviewRequestStatus === "error"
-                        ? "Could not send that just now. Try again shortly."
-                        : "Flag this for your real coach to review directly."}
-                  </Text>
-                  <Pressable
-                    onPress={requestCoachReview}
-                    disabled={reviewRequestStatus === "sending" || reviewRequestStatus === "sent"}
-                    style={[
-                      styles.coachApplyButton,
-                      reviewRequestStatus === "sent" && styles.coachApplyButtonDone,
-                    ]}
-                  >
-                    <Text style={styles.coachApplyButtonText}>
-                      {reviewRequestStatus === "sending"
-                        ? "SENDING..."
-                        : reviewRequestStatus === "sent"
-                          ? "REQUEST SENT ✓"
-                          : "REQUEST COACH REVIEW"}
-                    </Text>
-                  </Pressable>
-                </View>
-              ) : null}
-            </>
-          ) : null}
+          {coachError && !isThinking ? <Text style={styles.coachFallbackText}>{coachError}</Text> : null}
         </ScrollView>
 
         <View style={styles.coachComposer}>
@@ -5626,6 +5653,7 @@ export default function App() {
   );
   const [profile, setProfile] = useState<Record<string, string>>({});
   const [coachAdjustment, setCoachAdjustment] = useState<CoachScenario | null>(null);
+  const [coachMessages, setCoachMessages] = useState<CoachMessage[]>([]);
   const [selectedLibraryRecipeId, setSelectedLibraryRecipeId] = useState<string | null>(null);
   const [hasLoadedTestState, setHasLoadedTestState] = useState(false);
   const [nutritionTotals, setNutritionTotals] = useState<NutritionTotals>({
@@ -5672,8 +5700,24 @@ export default function App() {
     setScreen("workout");
   };
 
-  const stateRef = useRef({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory, dietPlan });
-  stateRef.current = { profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory, dietPlan };
+  const stateRef = useRef({
+    profile,
+    nutritionTotals,
+    coachAdjustment,
+    coachMessages,
+    exerciseProgress,
+    workoutHistory,
+    dietPlan,
+  });
+  stateRef.current = {
+    profile,
+    nutritionTotals,
+    coachAdjustment,
+    coachMessages,
+    exerciseProgress,
+    workoutHistory,
+    dietPlan,
+  };
 
   useEffect(() => {
     if (Platform.OS !== "web" || !isSupabaseConfigured) {
@@ -5697,6 +5741,7 @@ export default function App() {
             profile?: Record<string, string>;
             nutritionTotals?: NutritionTotals;
             coachAdjustment?: CoachScenario | null;
+            coachMessages?: CoachMessage[];
             exerciseProgress?: Record<string, ExerciseProgress>;
             workoutHistory?: WorkoutHistoryEntry[];
             dietPlan?: SavedDietPlan | null;
@@ -5705,6 +5750,7 @@ export default function App() {
             setProfile(parsed.profile);
             setNutritionTotals(parsed.nutritionTotals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 });
             setCoachAdjustment(parsed.coachAdjustment ?? null);
+            setCoachMessages(parsed.coachMessages ?? []);
             setExerciseProgress(parsed.exerciseProgress ?? {});
             setWorkoutHistory(parsed.workoutHistory ?? []);
             setDietPlan(parsed.dietPlan ?? null);
@@ -5721,7 +5767,7 @@ export default function App() {
         const { data } = await supabase
           .from("user_data")
           .select(
-            "profile, nutrition_totals, coach_adjustment, exercise_progress, workout_history, diet_plan, trial_started_at",
+            "profile, nutrition_totals, coach_adjustment, coach_messages, exercise_progress, workout_history, diet_plan, trial_started_at",
           )
           .eq("user_id", id)
           .maybeSingle();
@@ -5733,6 +5779,7 @@ export default function App() {
             (data?.nutrition_totals as NutritionTotals) ?? { calories: 0, protein: 0, carbs: 0, fat: 0 },
           );
           setCoachAdjustment((data?.coach_adjustment as CoachScenario | null) ?? null);
+          setCoachMessages((data?.coach_messages as CoachMessage[]) ?? []);
           setExerciseProgress((data?.exercise_progress as Record<string, ExerciseProgress>) ?? {});
           setWorkoutHistory((data?.workout_history as WorkoutHistoryEntry[]) ?? []);
           setDietPlan((data?.diet_plan as SavedDietPlan | null) ?? null);
@@ -5746,6 +5793,7 @@ export default function App() {
             profile: stateRef.current.profile,
             nutrition_totals: stateRef.current.nutritionTotals,
             coach_adjustment: stateRef.current.coachAdjustment,
+            coach_messages: stateRef.current.coachMessages,
             exercise_progress: stateRef.current.exerciseProgress,
             workout_history: stateRef.current.workoutHistory,
             diet_plan: stateRef.current.dietPlan,
@@ -5798,10 +5846,19 @@ export default function App() {
     if (!hasLoadedTestState || Platform.OS !== "web" || session || Object.keys(profile).length === 0) return;
     window.localStorage.setItem(
       "project-g-test-state",
-      JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory, dietPlan }),
+      JSON.stringify({
+        profile,
+        nutritionTotals,
+        coachAdjustment,
+        coachMessages,
+        exerciseProgress,
+        workoutHistory,
+        dietPlan,
+      }),
     );
   }, [
     coachAdjustment,
+    coachMessages,
     dietPlan,
     exerciseProgress,
     hasLoadedTestState,
@@ -5821,6 +5878,7 @@ export default function App() {
         profile,
         nutrition_totals: nutritionTotals,
         coach_adjustment: coachAdjustment,
+        coach_messages: coachMessages,
         exercise_progress: exerciseProgress,
         workout_history: workoutHistory,
         diet_plan: dietPlan,
@@ -5830,7 +5888,17 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [coachAdjustment, dietPlan, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, userId, workoutHistory]);
+  }, [
+    coachAdjustment,
+    coachMessages,
+    dietPlan,
+    exerciseProgress,
+    hasLoadedTestState,
+    nutritionTotals,
+    profile,
+    userId,
+    workoutHistory,
+  ]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -5998,6 +6066,8 @@ export default function App() {
             profile={profile}
             workoutHistory={workoutHistory}
             exerciseProgress={exerciseProgress}
+            messages={coachMessages}
+            onMessagesChange={setCoachMessages}
             onBack={() => setScreen("dashboard")}
             onApply={setCoachAdjustment}
             onStartWorkout={startWorkout}
@@ -7910,9 +7980,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
-  coachQuickActionActive: { borderColor: colors.lime, backgroundColor: "#18200E" },
   coachQuickActionText: { color: "#C7CCC4", fontSize: 9, fontWeight: "700" },
-  coachQuickActionTextActive: { color: colors.lime },
   userBubble: {
     alignSelf: "flex-end",
     maxWidth: "82%",

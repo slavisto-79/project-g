@@ -62,3 +62,7 @@ alter table public.user_data add column if not exists trial_started_at timestamp
 -- exactly like getting logged out on every reload.
 grant usage on schema public to authenticated;
 grant select, insert, update on public.user_data to authenticated;
+
+-- Safe to re-run: adds coach_messages so the AI Coach chat thread persists
+-- across reloads/devices instead of resetting every time the screen opens.
+alter table public.user_data add column if not exists coach_messages jsonb not null default '[]'::jsonb;
