@@ -4351,29 +4351,21 @@ function ActiveWorkoutScreen({
   const isBodyweight = exercise.weight === "Bodyweight";
   const currentWeightKg = isBodyweight ? null : parseInt(exercise.weight, 10);
   const currentReps = parseInt(exercise.reps, 10);
-  // Reserve space for every chrome element that can appear at once (header,
-  // optional deload/rest banners, set rows, adjust panel, next-exercise
-  // button) so the screen fits one viewport without scrolling, then let the
-  // video fill whatever's left. The flat 36%-of-height guess this replaced
-  // didn't account for the rest banner and "next exercise" button both being
-  // visible at the same time (right when the last set of an exercise is
-  // marked done), which is exactly when the button ran off-screen.
-  const completedSetsCount = completedSets.filter(Boolean).length;
-  const chromeHeight =
-    58 + // activeHeader
-    (isDeload ? 30 : 0) + // deload banner
-    22 + // exerciseSheet vertical padding
-    47 + // heading row (step/name/target)
-    46 + // swap/coach-tips action row
-    (restSeconds > 0 ? 48 : 0) + // rest timer banner
-    21 + // set table header
-    targetSetCount * 38 +
-    Math.max(0, targetSetCount - 1) * 5 + // set rows
-    167 + // weight/reps adjust panel
-    (completedSetsCount >= targetSetCount ? 54 : 0) + // next-exercise button
-    18 + // scroll content bottom padding
-    20; // safety buffer for text line-height rounding
-  const exerciseVisualHeight = Math.min(300, Math.max(130, height - chromeHeight));
+  // The video fills whatever's left after the real (measured) height of
+  // everything else on screen -- header, optional deload/rest banners, set
+  // rows, adjust panel, next-exercise button. A hand-counted pixel budget
+  // here previously fit the browser preview's math but still needed
+  // scrolling on a real phone (different font metrics, safe-area insets,
+  // etc.), so instead of guessing constants we measure the actual rendered
+  // height of the sheet below via onLayout and size the video against that,
+  // which self-corrects for any screen size or content change (rest timer
+  // showing, deload banner, set count, next-exercise button appearing).
+  const [sheetHeight, setSheetHeight] = useState(0);
+  const [deloadBannerHeight, setDeloadBannerHeight] = useState(0);
+  const exerciseVisualHeight = Math.min(
+    340,
+    Math.max(130, height - 58 - deloadBannerHeight - (sheetHeight || 460) - 18),
+  );
   const workoutTitle = splitLabel
     ? splitLabel.toUpperCase()
     : profile.sex === "female"
@@ -4690,7 +4682,10 @@ function ActiveWorkoutScreen({
       </View>
 
       {isDeload ? (
-        <View style={styles.deloadBanner}>
+        <View
+          style={styles.deloadBanner}
+          onLayout={(event) => setDeloadBannerHeight(event.nativeEvent.layout.height)}
+        >
           <Text style={styles.deloadBannerText}>DELOAD WEEK · LIGHTER LOAD, SAME EFFORT</Text>
         </View>
       ) : null}
@@ -4711,7 +4706,10 @@ function ActiveWorkoutScreen({
         </View>
       </View>
 
-      <View style={styles.exerciseSheet}>
+      <View
+        style={styles.exerciseSheet}
+        onLayout={(event) => setSheetHeight(event.nativeEvent.layout.height)}
+      >
         <View style={styles.exerciseHeadingRow}>
           <View>
             <Text style={styles.exerciseStep}>EXERCISE {exerciseIndex + 1} OF {personalizedExercises.length}</Text>
@@ -7393,7 +7391,6 @@ const styles = StyleSheet.create({
   formDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.lime, marginRight: 6 },
   formBadgeText: { color: colors.text, fontSize: 6, fontWeight: "800", letterSpacing: 0.8 },
   exerciseSheet: {
-    flexGrow: 1,
     paddingHorizontal: 18,
     paddingTop: 10,
     paddingBottom: 12,
