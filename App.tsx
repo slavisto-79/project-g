@@ -3795,14 +3795,18 @@ const BASE_SET_COUNT_BY_FREQUENCY: Record<string, number> = {
   "5": 2,
 };
 
+// Fat-loss/general-fitness goals train for density (more total work in the
+// session) rather than pure strength/hypertrophy load, so they get one extra
+// set per exercise on top of the frequency-based baseline.
 function setCountForProfile(
   profile: Record<string, string>,
   adjustment?: CoachScenario | null,
   isDeload?: boolean,
 ): number {
   const baseSetCount = BASE_SET_COUNT_BY_FREQUENCY[profile.frequency ?? "3"] ?? 3;
+  const densityBonus = profile.goal === "fat-loss" || profile.goal === "fitness" ? 1 : 0;
   const reduction = (adjustment === "tired" ? 1 : 0) + (isDeload ? 1 : 0);
-  return Math.max(2, baseSetCount - reduction);
+  return Math.max(2, baseSetCount + densityBonus - reduction);
 }
 
 const REFERENCE_BODY_WEIGHT_KG = 70;
@@ -3843,12 +3847,41 @@ function scaledStartingWeightLabel(baseKg: number, bodyWeightKg: number): string
   return `${scaledKg} kg`;
 }
 
+// Classic strength/hypertrophy/endurance rep ranges, picked per training
+// goal instead of one number for everyone -- strength trains low-rep/heavy,
+// hypertrophy (muscle) trains moderate reps, fat-loss/fitness train
+// higher-rep for metabolic density. "health" gets a moderate general baseline.
+const GOAL_REP_TARGET: Record<string, number> = {
+  strength: 5,
+  muscle: 10,
+  "fat-loss": 14,
+  fitness: 12,
+  health: 10,
+};
+
+// Rest between sets follows the same logic: strength needs full recovery to
+// keep the weight heavy, fat-loss/fitness keep rest short to stay in a
+// higher heart-rate, higher-density zone.
+const GOAL_REST_SECONDS: Record<string, number> = {
+  strength: 120,
+  muscle: 75,
+  "fat-loss": 40,
+  fitness: 45,
+  health: 60,
+};
+
 function baseRepsForProfile(profile: Record<string, string>): number {
   const ageYears = Number(profile.age);
   const reducedLoad =
     (Number.isFinite(ageYears) && ageYears >= 45) ||
     profile.experience === "beginner";
-  return reducedLoad ? 8 : profile.goal === "strength" ? 6 : 10;
+  const target = GOAL_REP_TARGET[profile.goal ?? ""] ?? 10;
+  return reducedLoad ? Math.max(4, target - 2) : target;
+}
+
+function restSecondsForProfile(profile: Record<string, string>, adjustment?: CoachScenario | null): number {
+  const base = GOAL_REST_SECONDS[profile.goal ?? ""] ?? 60;
+  return adjustment === "tired" ? base + 30 : base;
 }
 
 // Isometric holds (plank and its variants) are timed, not counted -- "10
@@ -4411,7 +4444,7 @@ function ActiveWorkoutScreen({
     // Rest after every set, including the last one -- when it runs out, an
     // effect below moves on to the next exercise automatically.
     if (!wasDone) {
-      setRestSeconds(adjustment === "tired" ? 90 : 60);
+      setRestSeconds(restSecondsForProfile(profile, adjustment));
     }
   };
 
