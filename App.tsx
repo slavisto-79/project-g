@@ -2150,6 +2150,18 @@ function sumNutrition(items: NutritionItem[]): NutritionTotals {
   );
 }
 
+const DIET_MODE_OPTIONS: { value: DietMode; label: string }[] = [
+  { value: "bulk", label: "BULK" },
+  { value: "cut", label: "CUT" },
+  { value: "recomp", label: "RECOMP" },
+];
+
+const DIET_MODE_HINT: Record<DietMode, string> = {
+  bulk: "Calorie surplus to build muscle.",
+  cut: "Calorie deficit, higher protein to keep muscle.",
+  recomp: "Maintenance calories, high protein to build while leaning out.",
+};
+
 function NutritionScreen({
   onBack,
   onSave,
@@ -2161,6 +2173,7 @@ function NutritionScreen({
   onOpenCoach,
   profile,
   nutritionTotals,
+  onUpdateProfile,
 }: {
   onBack: () => void;
   onSave: (totals: NutritionTotals) => void;
@@ -2172,7 +2185,9 @@ function NutritionScreen({
   onOpenCoach: () => void;
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
+  onUpdateProfile: (id: string, value: string) => void;
 }) {
+  const dietMode = inferDietMode(profile);
   const proteinTarget = dailyProteinTargetGrams(profile);
   const proteinRemaining = Math.max(0, proteinTarget - nutritionTotals.protein);
   const [imageData, setImageData] = useState("");
@@ -2288,6 +2303,25 @@ function NutritionScreen({
             Take a clear overhead photo. You can correct every portion before saving.
           </Text>
         </View>
+
+        <View style={styles.dietModeRow}>
+          {DIET_MODE_OPTIONS.map((option) => (
+            <Pressable
+              key={option.value}
+              accessibilityRole="button"
+              accessibilityLabel={`Switch to ${option.label.toLowerCase()} mode`}
+              onPress={() => onUpdateProfile("dietMode", option.value)}
+              style={[styles.dietModePill, dietMode === option.value && styles.dietModePillActive]}
+            >
+              <Text
+                style={[styles.dietModePillText, dietMode === option.value && styles.dietModePillTextActive]}
+              >
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={styles.dietModeHint}>{DIET_MODE_HINT[dietMode]}</Text>
 
         <View style={styles.foodPhotoCard}>
           {imageData ? (
@@ -3820,23 +3854,41 @@ function estimateSessionCalories(bodyWeightKg: number, elapsedSeconds: number): 
   return Math.max(0, Math.round(RESISTANCE_TRAINING_MET * weightKg * hours));
 }
 
+export type DietMode = "bulk" | "cut" | "recomp";
+
+// The Nutrition screen lets the user set this directly, independent of the
+// training goal (someone training for "muscle" can still be mid-cut, and
+// vice versa). Falls back to inferring from the training goal for anyone
+// who hasn't touched the new toggle yet, so existing profiles keep working.
+function inferDietMode(profile: Record<string, string>): DietMode {
+  if (profile.dietMode === "bulk" || profile.dietMode === "cut" || profile.dietMode === "recomp") {
+    return profile.dietMode;
+  }
+  return profile.goal === "muscle" ? "bulk" : profile.goal === "fat-loss" ? "cut" : "recomp";
+}
+
 // Standard sports-nutrition range for active adults is roughly 1.6-2.2g of
 // protein per kg of body weight; this is a general heuristic, not medical
-// or dietary advice.
+// or dietary advice. Protein stays high across all three modes -- a cut
+// needs it most to preserve muscle in a deficit, recomp needs it to build
+// while at maintenance, and bulk needs it to actually use the surplus.
 function dailyProteinTargetGrams(profile: Record<string, string>): number {
   const bodyWeightKg = Number(profile.weight);
   const weightKg = Number.isFinite(bodyWeightKg) && bodyWeightKg > 0 ? bodyWeightKg : REFERENCE_BODY_WEIGHT_KG;
-  const factor = profile.goal === "muscle" || profile.goal === "strength" ? 2.0 : profile.goal === "fat-loss" ? 1.8 : 1.6;
+  const factor = inferDietMode(profile) === "cut" ? 2.2 : 2.0;
   return Math.round(weightKg * factor);
 }
 
-// A rough Mifflin-St Jeor-style maintenance estimate scaled by goal; this is
-// a general heuristic to size a sample meal plan, not medical or dietary advice.
+// A rough Mifflin-St Jeor-style maintenance estimate scaled by diet mode;
+// this is a general heuristic to size a sample meal plan, not medical or
+// dietary advice. Recomp trains at maintenance -- no surplus or deficit --
+// relying on the higher protein target above to do the work instead.
 function dailyCalorieTargetKcal(profile: Record<string, string>): number {
   const bodyWeightKg = Number(profile.weight);
   const weightKg = Number.isFinite(bodyWeightKg) && bodyWeightKg > 0 ? bodyWeightKg : REFERENCE_BODY_WEIGHT_KG;
   const maintenance = weightKg * 30;
-  const factor = profile.goal === "fat-loss" ? 0.82 : profile.goal === "muscle" ? 1.12 : 1;
+  const mode = inferDietMode(profile);
+  const factor = mode === "cut" ? 0.82 : mode === "bulk" ? 1.12 : 1;
   return Math.round((maintenance * factor) / 10) * 10;
 }
 
@@ -5893,6 +5945,7 @@ export default function App() {
           <NutritionScreen
             profile={profile}
             nutritionTotals={nutritionTotals}
+            onUpdateProfile={(id, value) => setProfile((current) => ({ ...current, [id]: value }))}
             onBack={() => setScreen("dashboard")}
             onOpenRecipes={() => setScreen("recipes")}
             onOpenRecipeLibrary={() => setScreen("recipeLibrary")}
@@ -6777,6 +6830,21 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   nutritionSubtitle: { color: colors.muted, fontSize: 11, lineHeight: 15, marginTop: 4 },
+  dietModeRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
+  dietModePill: {
+    flex: 1,
+    minHeight: 40,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0E100E",
+  },
+  dietModePillActive: { borderColor: colors.lime, backgroundColor: colors.lime },
+  dietModePillText: { color: colors.muted, fontSize: 11, fontWeight: "900", letterSpacing: 0.6 },
+  dietModePillTextActive: { color: colors.ink },
+  dietModeHint: { color: colors.muted, fontSize: 11, marginBottom: 14, textAlign: "center" },
   foodPhotoCard: {
     position: "relative",
     width: "100%",
