@@ -4808,43 +4808,47 @@ function ActiveWorkoutScreen({
         </View>
 
         <View style={styles.adjustPanel}>
-          <Text style={styles.adjustPanelLabel}>
-            {isBodyweight ? "HOW MANY REPS DID YOU DO" : "HOW MANY KG & REPS DID YOU DO"}
-          </Text>
-          <View style={styles.adjustPanelPickers}>
-            {!isBodyweight ? (
-              <View style={styles.adjustPanelSlot}>
-                <Text style={styles.adjustPanelColumnLabel}>WEIGHT</Text>
-                <NumberWheelPicker
-                  key={`${exercise.name}-weight`}
-                  itemHeight={26}
-                  visibleItems={3}
-                  fontSize={16}
-                  min={2}
-                  max={100}
-                  step={1}
-                  unit="kg"
-                  value={currentWeightKg ?? 20}
-                  onChange={(next) => saveExerciseAdjustment(next, currentReps)}
-                />
+          {completedCount < targetSetCount ? (
+            <>
+              <Text style={styles.adjustPanelLabel}>
+                {isBodyweight ? "HOW MANY REPS DID YOU DO" : "HOW MANY KG & REPS DID YOU DO"}
+              </Text>
+              <View style={styles.adjustPanelPickers}>
+                {!isBodyweight ? (
+                  <View style={styles.adjustPanelSlot}>
+                    <Text style={styles.adjustPanelColumnLabel}>WEIGHT</Text>
+                    <NumberWheelPicker
+                      key={`${exercise.name}-weight`}
+                      itemHeight={26}
+                      visibleItems={3}
+                      fontSize={16}
+                      min={2}
+                      max={100}
+                      step={1}
+                      unit="kg"
+                      value={currentWeightKg ?? 20}
+                      onChange={(next) => saveExerciseAdjustment(next, currentReps)}
+                    />
+                  </View>
+                ) : null}
+                <View style={styles.adjustPanelSlot}>
+                  <Text style={styles.adjustPanelColumnLabel}>REPS</Text>
+                  <NumberWheelPicker
+                    key={`${exercise.name}-reps`}
+                    itemHeight={26}
+                    visibleItems={3}
+                    fontSize={16}
+                    min={1}
+                    max={30}
+                    step={1}
+                    unit=""
+                    value={currentReps}
+                    onChange={(next) => saveExerciseAdjustment(isBodyweight ? 0 : currentWeightKg ?? 20, next)}
+                  />
+                </View>
               </View>
-            ) : null}
-            <View style={styles.adjustPanelSlot}>
-              <Text style={styles.adjustPanelColumnLabel}>REPS</Text>
-              <NumberWheelPicker
-                key={`${exercise.name}-reps`}
-                itemHeight={26}
-                visibleItems={3}
-                fontSize={16}
-                min={1}
-                max={30}
-                step={1}
-                unit=""
-                value={currentReps}
-                onChange={(next) => saveExerciseAdjustment(isBodyweight ? 0 : currentWeightKg ?? 20, next)}
-              />
-            </View>
-          </View>
+            </>
+          ) : null}
           <View style={styles.adjustPanelMarkRow}>
             <Text style={styles.adjustPanelMarkText}>
               {completedCount === 0
