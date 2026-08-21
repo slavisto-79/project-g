@@ -2700,6 +2700,13 @@ type SavedDietPlan = {
   days: DietPlanResult[];
   generatedAt: string;
   isFallback: boolean;
+  // The targets this plan's meals were actually sized against. Kept so the
+  // screen can tell the user their plan has gone stale after they edit their
+  // weight/height/age/goal, instead of silently showing old meals under a
+  // freshly recalculated header. Optional: plans saved before this existed
+  // simply skip the staleness check.
+  calorieTarget?: number;
+  proteinTarget?: number;
 };
 
 function MealDetailModal({
@@ -2886,12 +2893,23 @@ function DietPlanScreen({
   const [generatedAt, setGeneratedAt] = useState(savedPlan?.generatedAt ?? "");
   const [isFallback, setIsFallback] = useState(savedPlan?.isFallback ?? false);
   const [selectedMeal, setSelectedMeal] = useState<DietPlanMeal | null>(null);
+  const [builtForCalories, setBuiltForCalories] = useState(savedPlan?.calorieTarget);
+  const [builtForProtein, setBuiltForProtein] = useState(savedPlan?.proteinTarget);
 
   const calorieTarget = dailyCalorieTargetKcal(profile);
   const proteinTarget = dailyProteinTargetGrams(profile);
   const daysSince = generatedAt ? daysSinceDate(generatedAt) : 0;
   const activeDayIndex = days.length ? daysSince % days.length : 0;
   const cycleComplete = days.length > 0 && daysSince >= days.length;
+  // Editing weight/height/age/goal/diet mode moves the targets immediately, but
+  // the meals on screen were written for the old ones. Flag that rather than
+  // showing stale meals under a freshly recalculated header. Small drifts are
+  // ignored so a 1kg weight edit doesn't nag about a rebuild.
+  const targetsDrifted =
+    days.length > 0 &&
+    builtForCalories !== undefined &&
+    builtForProtein !== undefined &&
+    (Math.abs(calorieTarget - builtForCalories) >= 100 || Math.abs(proteinTarget - builtForProtein) >= 10);
 
   const buildPlan = async () => {
     setStage("loading");
@@ -2916,13 +2934,37 @@ function DietPlanScreen({
       setDays(data.days);
       setGeneratedAt(nowIso);
       setIsFallback(false);
-      onSave({ dietaryStyle, mealsPerDay, prepTime, avoid, days: data.days, generatedAt: nowIso, isFallback: false });
+      setBuiltForCalories(calorieTarget);
+      setBuiltForProtein(proteinTarget);
+      onSave({
+        dietaryStyle,
+        mealsPerDay,
+        prepTime,
+        avoid,
+        days: data.days,
+        generatedAt: nowIso,
+        isFallback: false,
+        calorieTarget,
+        proteinTarget,
+      });
     } catch {
       const nowIso = new Date().toISOString();
       setDays(fallbackDietWeek);
       setGeneratedAt(nowIso);
       setIsFallback(true);
-      onSave({ dietaryStyle, mealsPerDay, prepTime, avoid, days: fallbackDietWeek, generatedAt: nowIso, isFallback: true });
+      setBuiltForCalories(calorieTarget);
+      setBuiltForProtein(proteinTarget);
+      onSave({
+        dietaryStyle,
+        mealsPerDay,
+        prepTime,
+        avoid,
+        days: fallbackDietWeek,
+        generatedAt: nowIso,
+        isFallback: true,
+        calorieTarget,
+        proteinTarget,
+      });
     } finally {
       setStage("result");
     }
@@ -3051,6 +3093,14 @@ function DietPlanScreen({
             {isFallback ? (
               <Text style={styles.nutritionError}>
                 Live plan generation is unavailable. Showing a saved sample instead.
+              </Text>
+            ) : null}
+
+            {targetsDrifted ? (
+              <Text style={styles.dietCycleNote}>
+                Your profile changed — these meals were built for {builtForCalories} kcal ·{" "}
+                {builtForProtein}g protein. Rebuild to match your new {calorieTarget} kcal ·{" "}
+                {proteinTarget}g target.
               </Text>
             ) : null}
 
@@ -3896,29 +3946,79 @@ function inferDietMode(profile: Record<string, string>): DietMode {
   return profile.goal === "muscle" ? "bulk" : profile.goal === "fat-loss" ? "cut" : "recomp";
 }
 
+const REFERENCE_HEIGHT_CM = 175;
+const REFERENCE_AGE_YEARS = 30;
+
+// Reads the onboarding body-measurement answers, falling back to the same
+// reference values the interview defaults to when an answer is missing or
+// unparseable, so every downstream target degrades gracefully instead of
+// producing NaN.
+function readBodyMetrics(profile: Record<string, string>) {
+  const rawWeight = Number(profile.weight);
+  const rawHeight = Number(profile.height);
+  const rawAge = Number(profile.age);
+  return {
+    weightKg: Number.isFinite(rawWeight) && rawWeight > 0 ? rawWeight : REFERENCE_BODY_WEIGHT_KG,
+    heightCm: Number.isFinite(rawHeight) && rawHeight > 0 ? rawHeight : REFERENCE_HEIGHT_CM,
+    ageYears: Number.isFinite(rawAge) && rawAge > 0 ? rawAge : REFERENCE_AGE_YEARS,
+    isMale: profile.sex === "male",
+  };
+}
+
+// Mifflin-St Jeor resting metabolic rate -- the standard clinical estimate,
+// and the reason height and age are collected during onboarding at all.
+function restingMetabolicRateKcal(profile: Record<string, string>): number {
+  const { weightKg, heightCm, ageYears, isMale } = readBodyMetrics(profile);
+  return 10 * weightKg + 6.25 * heightCm - 5 * ageYears + (isMale ? 5 : -161);
+}
+
+// Training frequency is the only activity signal the interview collects, so
+// it drives the activity multiplier. These sit in the usual sedentary-to-very-
+// active band; they deliberately stay conservative since the answer only
+// describes planned training, not overall daily movement.
+function activityMultiplier(profile: Record<string, string>): number {
+  const daysPerWeek = Number(profile.frequency);
+  if (!Number.isFinite(daysPerWeek)) return 1.45;
+  if (daysPerWeek <= 2) return 1.375;
+  if (daysPerWeek === 3) return 1.45;
+  if (daysPerWeek === 4) return 1.55;
+  return 1.65;
+}
+
 // Standard sports-nutrition range for active adults is roughly 1.6-2.2g of
 // protein per kg of body weight; this is a general heuristic, not medical
 // or dietary advice. Protein stays high across all three modes -- a cut
 // needs it most to preserve muscle in a deficit, recomp needs it to build
 // while at maintenance, and bulk needs it to actually use the surplus.
 function dailyProteinTargetGrams(profile: Record<string, string>): number {
-  const bodyWeightKg = Number(profile.weight);
-  const weightKg = Number.isFinite(bodyWeightKg) && bodyWeightKg > 0 ? bodyWeightKg : REFERENCE_BODY_WEIGHT_KG;
-  const factor = inferDietMode(profile) === "cut" ? 2.2 : 2.0;
-  return Math.round(weightKg * factor);
+  const { weightKg, heightCm } = readBodyMetrics(profile);
+  // Protein needs scale with lean mass, not total mass, so past roughly BMI 30
+  // the usual g/kg factors overshoot badly. Standard practice is to dose off an
+  // adjusted body weight instead -- here, the weight that would put this person
+  // at BMI 27.5, plus a quarter of the excess above it. This is the one place
+  // height legitimately enters a protein target (via BMI).
+  const heightM = heightCm / 100;
+  const bmi = weightKg / (heightM * heightM);
+  const referenceWeightKg = 27.5 * heightM * heightM;
+  const dosingWeightKg =
+    bmi > 30 ? referenceWeightKg + (weightKg - referenceWeightKg) * 0.25 : weightKg;
+  const mode = inferDietMode(profile);
+  const factor = mode === "cut" ? 2.2 : mode === "recomp" ? 2.0 : 1.8;
+  return Math.round(dosingWeightKg * factor);
 }
 
-// A rough Mifflin-St Jeor-style maintenance estimate scaled by diet mode;
-// this is a general heuristic to size a sample meal plan, not medical or
-// dietary advice. Recomp trains at maintenance -- no surplus or deficit --
-// relying on the higher protein target above to do the work instead.
+// Total daily energy expenditure (Mifflin-St Jeor RMR x activity), then shifted
+// by diet mode. This is a general heuristic to size a sample meal plan, not
+// medical or dietary advice. Recomp sits at maintenance -- no surplus or
+// deficit -- relying on the higher protein target above to do the work instead.
 function dailyCalorieTargetKcal(profile: Record<string, string>): number {
-  const bodyWeightKg = Number(profile.weight);
-  const weightKg = Number.isFinite(bodyWeightKg) && bodyWeightKg > 0 ? bodyWeightKg : REFERENCE_BODY_WEIGHT_KG;
-  const maintenance = weightKg * 30;
+  const maintenance = restingMetabolicRateKcal(profile) * activityMultiplier(profile);
   const mode = inferDietMode(profile);
   const factor = mode === "cut" ? 0.82 : mode === "bulk" ? 1.12 : 1;
-  return Math.round((maintenance * factor) / 10) * 10;
+  // Floor at a conservative minimum so an aggressive cut on a small frame can
+  // never render a dangerously low number as if it were a recommendation.
+  const target = Math.max(1200, maintenance * factor);
+  return Math.round(target / 10) * 10;
 }
 
 function scaledStartingWeightLabel(baseKg: number, bodyWeightKg: number): string {
