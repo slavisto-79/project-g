@@ -725,6 +725,7 @@ function InterviewScreen({
     "home-gym": "Home gym",
     minimal: "Dumbbells + bands",
     bodyweight: "Bodyweight",
+    bars: "Pull-up bar",
   };
 
   useEffect(() => {
