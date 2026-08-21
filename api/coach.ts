@@ -13,17 +13,24 @@ type CoachRequest = {
   message?: string;
   profile?: Record<string, string>;
   memory?: string;
+  history?: Array<{ role?: string; content?: string }>;
 };
 
+// Mirrors the actual field ids the app stores on the profile object (see
+// InterviewScreen's questions in App.tsx) -- this previously listed "days"
+// and "injuries", which don't exist (the real fields are "frequency" and
+// "limitations"), so the coach was silently never receiving them.
 const allowedProfileFields = [
   "goal",
   "sex",
   "age",
+  "weight",
+  "height",
   "experience",
-  "days",
+  "frequency",
   "duration",
   "equipment",
-  "injuries",
+  "limitations",
 ] as const;
 
 function safeProfile(input: unknown) {
@@ -56,6 +63,7 @@ const safeScenarioChanges = {
   equipment: ["Use available-equipment alternatives", "Preserve the planned movement patterns", "Match the planned effort"],
   nutrition: ["Answer a few quick questions there", "Get a sample day sized to your goal", "Revisit it anytime in Nutrition"],
   general: ["Keep today’s planned session", "Prioritize controlled technique", "Review progress after training"],
+  off_topic: ["Ask about today's session", "Ask about recovery or soreness", "Ask about your training plan"],
 } as const;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -81,6 +89,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const profile = safeProfile(body.profile);
   const memory = typeof body.memory === "string" ? body.memory.slice(0, 700) : "No workouts logged yet.";
+  // Prior turns of THIS conversation, distinct from `memory` (which summarizes
+  // past workouts). Capped to the last 30 turns so a long-running chat can't
+  // grow the request unbounded.
+  const history = Array.isArray(body.history)
+    ? body.history
+        .filter(
+          (entry): entry is { role: string; content: string } =>
+            !!entry && typeof entry.role === "string" && typeof entry.content === "string",
+        )
+        .slice(-30)
+        .map((entry) => ({
+          role: entry.role === "assistant" ? "assistant" : "user",
+          content: entry.content.slice(0, 600),
+        }))
+    : [];
 
   try {
     const openAIResponse = await fetch("https://api.openai.com/v1/responses", {
@@ -96,17 +119,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         instructions: [
           "You are Project G AI Coach, a concise, supportive fitness coach backed by a real human coach.",
           "You have an ongoing coaching relationship with this user: use their training history to sound like a coach who remembers their progress, not a stranger meeting them for the first time. Reference specific numbers or trends from it when relevant (e.g. workout count, recent working weights), but only if the current message calls for it -- don't force it in.",
-          "Adapt training conservatively using the user's profile, training history, and current message.",
+          "You also have the earlier turns of this exact conversation. Read them before replying -- if the user already told you something (how they're feeling, what changed, a constraint they mentioned), don't ask again or contradict it; build on it like a real ongoing conversation, not a series of one-off questions.",
+          "Adapt training conservatively using the user's profile, training history, conversation so far, and current message.",
           "Never diagnose an injury or disease. For severe, sudden, worsening, chest-related, neurological, or unexplained pain, tell the user to stop training and seek qualified medical help.",
           "For ordinary discomfort, recommend stopping the aggravating movement, a pain-free alternative, and human coach review.",
           "Do not prescribe medication, supplements, or extreme calorie restriction.",
           "If the user asks about diet, nutrition, meal plans, or what to eat, do not build a diet plan yourself in this chat -- this app already has a dedicated Nutrition -> \"Build a diet plan\" feature that asks the right questions and builds a real one sized to their profile. Classify this as the 'nutrition' scenario and reply with a brief, friendly acknowledgement that points them there instead.",
+          "You only discuss training, exercise technique, soreness or pain from training, recovery, workout scheduling, and equipment for this user's fitness plan. If the message is not about one of those topics or nutrition (unrelated small talk, general knowledge, other apps, coding, news, or any other off-topic request), do not answer the off-topic question at all -- classify it as the 'off_topic' scenario and reply with one brief, friendly sentence declining and inviting them to ask about their training instead.",
           "Reply in the same language as the user's message.",
           "Keep the reply under 80 words and each proposed change under 12 words.",
           "Do not include drafting notes, self-critique, alternatives, or hidden reasoning.",
           "Return only JSON matching the requested schema.",
         ].join(" "),
-        input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nTRAINING HISTORY:\n${memory}\n\nCURRENT MESSAGE:\n${message}`,
+        input: [
+          {
+            role: "user",
+            content: `USER PROFILE:\n${JSON.stringify(profile)}\n\nTRAINING HISTORY:\n${memory}`,
+          },
+          ...history,
+          { role: "user", content: message },
+        ],
         text: {
           format: {
             type: "json_schema",
@@ -119,7 +151,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 reply: { type: "string" },
                 scenario: {
                   type: "string",
-                  enum: ["tired", "pain", "time", "equipment", "nutrition", "general"],
+                  enum: ["tired", "pain", "time", "equipment", "nutrition", "general", "off_topic"],
                 },
                 changes: {
                   type: "array",
@@ -160,7 +192,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const outputText = readOutputText(responseData);
     const result = JSON.parse(outputText) as {
       reply: string;
-      scenario: "tired" | "pain" | "time" | "equipment" | "nutrition" | "general";
+      scenario: "tired" | "pain" | "time" | "equipment" | "nutrition" | "general" | "off_topic";
       changes: string[];
       requiresHumanReview: boolean;
     };

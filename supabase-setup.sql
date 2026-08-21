@@ -50,3 +50,19 @@ create trigger on_auth_user_created
 
 -- Safe to re-run: adds the diet_plan column for databases created before it existed.
 alter table public.user_data add column if not exists diet_plan jsonb;
+
+-- Safe to re-run: adds trial_started_at (defaults to now() for new rows via the
+-- signup trigger above; backfills existing rows to now() as well).
+alter table public.user_data add column if not exists trial_started_at timestamptz not null default now();
+
+-- Safe to re-run: RLS policies above only control WHICH rows a role can touch --
+-- the role also needs base table privileges, or every query 403s with
+-- "permission denied" (Postgres error 42501) even though the policies are correct.
+-- Without this, signed-in users can never load or save their profile, which looks
+-- exactly like getting logged out on every reload.
+grant usage on schema public to authenticated;
+grant select, insert, update on public.user_data to authenticated;
+
+-- Safe to re-run: adds coach_messages so the AI Coach chat thread persists
+-- across reloads/devices instead of resetting every time the screen opens.
+alter table public.user_data add column if not exists coach_messages jsonb not null default '[]'::jsonb;

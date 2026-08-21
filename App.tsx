@@ -4,6 +4,7 @@ import {
   Easing,
   Image,
   ImageBackground,
+  type ImageSourcePropType,
   KeyboardAvoidingView,
   Modal,
   type NativeScrollEvent,
@@ -22,6 +23,14 @@ import {
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
+import {
+  buildProgram,
+  determineSplitDay,
+  splitDaySlotCount,
+  type ProgramBuilderProfile,
+  type SplitDay,
+} from "./lib/programBuilder";
+import type { ExerciseTag, MovementPattern, PrimaryMuscle } from "./lib/exerciseCatalog";
 
 const colors = {
   background: "#050505",
@@ -47,7 +56,7 @@ type Screen =
   | "dietPlan"
   | "auth"
   | "resetPassword"
-  | "editProfile";
+  | "profile";
 
 type InterviewAnswer = {
   label: string;
@@ -406,7 +415,13 @@ function SplashScreen({ onComplete }: { onComplete: () => void }) {
   );
 }
 
-function WelcomeScreen({ onStart }: { onStart: () => void }) {
+function WelcomeScreen({
+  onSignIn,
+  onCreateAccount,
+}: {
+  onSignIn: () => void;
+  onCreateAccount: () => void;
+}) {
   const { height } = useWindowDimensions();
   const heroContentOffset = Math.max(160, Math.min(420, height * 0.38));
   const contentY = useRef(new Animated.Value(26)).current;
@@ -474,18 +489,192 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Get started"
-            onPress={onStart}
+            accessibilityLabel="Create account"
+            onPress={onCreateAccount}
             style={({ pressed }) => [styles.startButton, pressed && styles.startButtonPressed]}
           >
-            <Text style={styles.startButtonText}>GET STARTED</Text>
+            <Text style={styles.startButtonText}>CREATE ACCOUNT</Text>
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
+          <View style={styles.welcomeAuthRow}>
+            <Text style={styles.welcomeAuthLabel}>Already have an account?</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Sign in" onPress={onSignIn}>
+              <Text style={[styles.welcomeAuthLinkText, { textDecorationLine: "underline" }]}>Sign in</Text>
+            </Pressable>
+          </View>
           <Text style={styles.disclaimer}>Built for your goals. Adapted to your life.</Text>
           </Animated.View>
         </ScrollView>
       </SafeAreaView>
     </View>
+  );
+}
+
+const scheduleDayOptions: { id: string; label: string; short: string }[] = [
+  { id: "mon", label: "M", short: "Mon" },
+  { id: "tue", label: "T", short: "Tue" },
+  { id: "wed", label: "W", short: "Wed" },
+  { id: "thu", label: "T", short: "Thu" },
+  { id: "fri", label: "F", short: "Fri" },
+  { id: "sat", label: "S", short: "Sat" },
+  { id: "sun", label: "S", short: "Sun" },
+];
+
+const scheduleTimeOptions: { id: string; label: string; short: string }[] = [
+  { id: "07:00", label: "Morning · 7:00 AM", short: "7 AM" },
+  { id: "12:00", label: "Midday · 12:00 PM", short: "12 PM" },
+  { id: "18:00", label: "Evening · 6:00 PM", short: "6 PM" },
+  { id: "20:00", label: "Night · 8:00 PM", short: "8 PM" },
+];
+
+const scheduleDefaultDaysForFrequency: Record<string, string[]> = {
+  "2": ["mon", "thu"],
+  "3": ["mon", "wed", "fri"],
+  "4": ["mon", "tue", "thu", "fri"],
+  "5": ["mon", "tue", "wed", "thu", "fri"],
+};
+
+// Shared by onboarding (auto-opens once the plan is ready) and the profile
+// screen (opened by tapping "How often can you train?") so both stay in sync
+// instead of maintaining two copies of this picker.
+function ScheduleModal({
+  visible,
+  onClose,
+  initialDays,
+  initialTime,
+  frequency,
+  onConfirm,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  initialDays: string[];
+  initialTime: string;
+  frequency: string;
+  onConfirm: (days: string[], time: string, frequency: string) => void;
+}) {
+  const [days, setDays] = useState<string[]>(initialDays);
+  const [time, setTime] = useState(initialTime);
+  const [mismatchConfirm, setMismatchConfirm] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    setMismatchConfirm(false);
+    setDays(initialDays.length > 0 ? initialDays : scheduleDefaultDaysForFrequency[frequency] ?? ["mon", "wed", "fri"]);
+    setTime(initialTime);
+    // Only reset when the modal opens, not on every parent re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  const toggleDay = (id: string) => {
+    // Plain add/remove -- the DONE confirmation below catches it if the final
+    // count drifts from the stored weekly frequency and offers to sync it.
+    setDays((current) => (current.includes(id) ? current.filter((day) => day !== id) : [...current, id]));
+  };
+
+  const handleClose = () => {
+    setMismatchConfirm(false);
+    onClose();
+  };
+
+  const requestDone = () => {
+    if (days.length > 0 && days.length !== Number(frequency || 0)) {
+      setMismatchConfirm(true);
+      return;
+    }
+    onConfirm(days, time, frequency);
+    handleClose();
+  };
+
+  const confirmMismatch = () => {
+    onConfirm(days, time, String(days.length));
+    handleClose();
+  };
+
+  return (
+    <Modal transparent animationType="slide" visible={visible} statusBarTranslucent onRequestClose={handleClose}>
+      <Pressable style={styles.exerciseInfoBackdrop} onPress={handleClose}>
+        <Pressable style={styles.exerciseInfoPanel} onPress={(event) => event.stopPropagation()}>
+          <View style={styles.exerciseInfoHandle} />
+          <View style={styles.exerciseInfoPanelHeader}>
+            <View style={styles.exerciseInfoPanelTitleWrap}>
+              <Text style={styles.exerciseInfoPanelEyebrow}>REMINDERS</Text>
+              <Text style={styles.exerciseInfoPanelTitle}>Day & time</Text>
+            </View>
+            <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={handleClose} style={styles.exerciseInfoClose}>
+              <Text style={styles.exerciseInfoCloseText}>×</Text>
+            </Pressable>
+          </View>
+
+          <Text style={styles.planSectionTitle}>TRAINING DAYS</Text>
+          <View style={styles.scheduleDaysRow}>
+            {scheduleDayOptions.map((day, index) => {
+              const isSelected = days.includes(day.id);
+              return (
+                <Pressable
+                  key={`${day.id}-${index}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Toggle ${day.id}`}
+                  onPress={() => toggleDay(day.id)}
+                  style={[styles.scheduleDayChip, isSelected && styles.scheduleDayChipSelected]}
+                >
+                  <Text style={[styles.scheduleDayChipText, isSelected && styles.scheduleDayChipTextSelected]}>
+                    {day.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={styles.planSectionTitle}>REMINDER TIME</Text>
+          <View style={styles.answerList}>
+            {scheduleTimeOptions.map((option) => {
+              const isSelected = option.id === time;
+              return (
+                <Pressable
+                  key={option.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  onPress={() => setTime(option.id)}
+                  style={({ pressed }) => [
+                    styles.answerCard,
+                    isSelected && styles.answerCardSelected,
+                    pressed && styles.answerCardPressed,
+                  ]}
+                >
+                  <View style={[styles.answerRadio, isSelected && styles.answerRadioSelected]}>
+                    {isSelected ? <View style={styles.answerRadioDot} /> : null}
+                  </View>
+                  <Text style={[styles.answerText, isSelected && styles.answerTextSelected]}>{option.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {mismatchConfirm ? (
+            <View style={styles.mismatchWarning}>
+              <Text style={styles.mismatchWarningText}>
+                You said {frequency || "3"}×/week in the questionnaire, but picked {days.length} day
+                {days.length === 1 ? "" : "s"} here. Continue with {days.length}× and update your plan to match?
+              </Text>
+              <Pressable onPress={confirmMismatch} style={styles.exerciseInfoDone}>
+                <Text style={styles.exerciseInfoDoneText}>YES, UPDATE MY PLAN</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Go back and adjust"
+                onPress={() => setMismatchConfirm(false)}
+              >
+                <Text style={styles.mismatchBackText}>Go back and adjust</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable onPress={requestDone} style={styles.exerciseInfoDone}>
+              <Text style={styles.exerciseInfoDoneText}>DONE</Text>
+            </Pressable>
+          )}
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -502,6 +691,24 @@ function InterviewScreen({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [complete, setComplete] = useState(false);
   const [planStage, setPlanStage] = useState<"review" | "generating" | "ready">("review");
+  const [reminderDays, setReminderDays] = useState<string[]>([]);
+  const [reminderTime, setReminderTime] = useState<string>("");
+  const toggleFrequencyDay = (id: string) => {
+    setReminderDays((current) => {
+      const next = current.includes(id) ? current.filter((day) => day !== id) : [...current, id];
+      // Keep the "how many days" answer in lockstep with the actual days picked,
+      // so there's one source of truth instead of asking for a count separately.
+      setAnswers((currentAnswers) => ({ ...currentAnswers, frequency: String(next.length) }));
+      return next;
+    });
+  };
+  const finishWithReminders = () => {
+    onFinish({
+      ...answers,
+      ...(reminderDays.length > 0 ? { reminderDays: reminderDays.join(",") } : {}),
+      ...(reminderTime ? { reminderTime } : {}),
+    });
+  };
   const question = interviewQuestions[step];
   const selected = question ? answers[question.id] : undefined;
   const progress = complete ? 1 : (step + 1) / interviewQuestions.length;
@@ -590,9 +797,6 @@ function InterviewScreen({
                 <Text style={styles.planMetaLabel}>WEEK 01 · FOUNDATION</Text>
                 <Text style={styles.planName}>{goalLabels[answers.goal ?? ""] ?? "Personal training"}</Text>
               </View>
-              <View style={styles.aiBadge}>
-                <Text style={styles.aiBadgeText}>AI + COACH</Text>
-              </View>
             </View>
             <View style={styles.planStats}>
               <View style={styles.planStat}>
@@ -616,7 +820,13 @@ function InterviewScreen({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Open Full Body Foundation workout"
-            onPress={() => onStartWorkout(answers)}
+            onPress={() =>
+              onStartWorkout({
+                ...answers,
+                ...(reminderDays.length > 0 ? { reminderDays: reminderDays.join(",") } : {}),
+                ...(reminderTime ? { reminderTime } : {}),
+              })
+            }
             style={({ pressed }) => [styles.sessionCard, pressed && { opacity: 0.78 }]}
           >
             <View style={styles.sessionNumber}><Text style={styles.sessionNumberText}>01</Text></View>
@@ -629,7 +839,7 @@ function InterviewScreen({
             <Text style={styles.sessionArrow}>›</Text>
           </Pressable>
 
-          <Pressable onPress={() => onFinish(answers)} style={styles.startButton}>
+          <Pressable onPress={finishWithReminders} style={styles.startButton}>
             <Text style={styles.startButtonText}>ENTER MY DASHBOARD</Text>
             <Text style={styles.startArrow}>↗</Text>
           </Pressable>
@@ -685,7 +895,52 @@ function InterviewScreen({
             <Text style={styles.previewStep}>{question.kicker}</Text>
             <Text style={styles.previewTitle}>{question.title}</Text>
             <Text style={styles.previewBody}>{question.subtitle}</Text>
-            {question.kind === "picker" ? (
+            {question.id === "frequency" ? (
+              <>
+                <View style={[styles.scheduleDaysRow, { marginTop: 24 }]}>
+                  {scheduleDayOptions.map((day, index) => {
+                    const isSelected = reminderDays.includes(day.id);
+                    return (
+                      <Pressable
+                        key={`${day.id}-${index}`}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Toggle ${day.id}`}
+                        onPress={() => toggleFrequencyDay(day.id)}
+                        style={[styles.scheduleDayChip, isSelected && styles.scheduleDayChipSelected]}
+                      >
+                        <Text style={[styles.scheduleDayChipText, isSelected && styles.scheduleDayChipTextSelected]}>
+                          {day.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <Text style={[styles.planSectionTitle, { marginTop: 22 }]}>REMINDER TIME · OPTIONAL</Text>
+                <View style={styles.answerList}>
+                  {scheduleTimeOptions.map((time) => {
+                    const isSelected = time.id === reminderTime;
+                    return (
+                      <Pressable
+                        key={time.id}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: isSelected }}
+                        onPress={() => setReminderTime(isSelected ? "" : time.id)}
+                        style={({ pressed }) => [
+                          styles.answerCard,
+                          isSelected && styles.answerCardSelected,
+                          pressed && styles.answerCardPressed,
+                        ]}
+                      >
+                        <View style={[styles.answerRadio, isSelected && styles.answerRadioSelected]}>
+                          {isSelected ? <View style={styles.answerRadioDot} /> : null}
+                        </View>
+                        <Text style={[styles.answerText, isSelected && styles.answerTextSelected]}>{time.label}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </>
+            ) : question.kind === "picker" ? (
               <View style={styles.wheelPickerWrap}>
                 <NumberWheelPicker
                   min={question.min}
@@ -748,26 +1003,275 @@ function InterviewScreen({
   );
 }
 
+function ProfileScreen({
+  profile,
+  onUpdateProfile,
+  onBack,
+  session,
+  onOpenAccount,
+  onLogout,
+  trialDaysLeft,
+  trialEndsAtLabel,
+}: {
+  profile: Record<string, string>;
+  onUpdateProfile: (id: string, value: string) => void;
+  onBack: () => void;
+  session: { email: string } | null;
+  onOpenAccount: (mode: "signup" | "login") => void;
+  onLogout: () => void;
+  trialDaysLeft: number | null;
+  trialEndsAtLabel: string | null;
+}) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftValue, setDraftValue] = useState<string>("");
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const editingQuestion = interviewQuestions.find((question) => question.id === editingId) ?? null;
+
+  // Shrink each profile row just enough that all of them plus the header/account
+  // bar fit on one screen without scrolling, instead of a fixed height that
+  // overflows on smaller phones.
+  const { height: windowHeight } = useWindowDimensions();
+  const chromeHeight = 70 + 50 + (trialDaysLeft !== null ? 46 : 0) + 30 + 40;
+  const availableForRows = Math.max(280, windowHeight - chromeHeight);
+  const profileRowHeight = Math.max(40, Math.min(52, availableForRows / interviewQuestions.length));
+
+  const startEditing = (question: InterviewQuestion) => {
+    // "How often can you train?" also drives the reminders day/time picker --
+    // edit both together instead of just the plain number.
+    if (question.id === "frequency") {
+      setScheduleModalOpen(true);
+      return;
+    }
+    setDraftValue(profile[question.id] ?? (question.kind === "picker" ? String(question.defaultValue) : ""));
+    setEditingId(question.id);
+  };
+
+  const saveEdit = () => {
+    if (!editingQuestion || !draftValue) return;
+    onUpdateProfile(editingQuestion.id, draftValue);
+    setEditingId(null);
+  };
+
+  const formatValue = (question: InterviewQuestion): string => {
+    const value = profile[question.id];
+    if (question.kind === "picker") {
+      return `${value ?? question.defaultValue} ${question.unit}`;
+    }
+    if (question.id === "frequency" && value) {
+      // The day/time picker allows any count from 1-7, not just the
+      // original 2/3/4/5 preset answers, so format it directly.
+      const count = Number(value);
+      return Number.isFinite(count) ? `${count} day${count === 1 ? "" : "s"} a week` : "Not set";
+    }
+    return question.answers.find((answer) => answer.value === value)?.label ?? "Not set";
+  };
+
+  if (editingQuestion) {
+    return (
+      <SafeAreaView style={styles.preview}>
+        <View style={styles.interviewHeader}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Cancel"
+            onPress={() => setEditingId(null)}
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>‹</Text>
+          </Pressable>
+          <Text style={[styles.progressText, { flex: 1, textAlign: "center" }]}>EDIT</Text>
+          <View style={{ width: 44 }} />
+        </View>
+        <View style={styles.questionContent}>
+          <Text style={styles.previewStep}>{editingQuestion.kicker}</Text>
+          <Text style={styles.previewTitle}>{editingQuestion.title}</Text>
+          <Text style={styles.previewBody}>{editingQuestion.subtitle}</Text>
+          {editingQuestion.kind === "picker" ? (
+            <View style={styles.wheelPickerWrap}>
+              <NumberWheelPicker
+                min={editingQuestion.min}
+                max={editingQuestion.max}
+                step={editingQuestion.step}
+                unit={editingQuestion.unit}
+                value={Number(draftValue || editingQuestion.defaultValue)}
+                onChange={(next) => setDraftValue(String(next))}
+              />
+            </View>
+          ) : (
+            <View style={styles.answerList}>
+              {editingQuestion.answers.map((answer) => {
+                const isSelected = answer.value === draftValue;
+                return (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    key={answer.value}
+                    onPress={() => setDraftValue(answer.value)}
+                    style={({ pressed }) => [
+                      styles.answerCard,
+                      isSelected && styles.answerCardSelected,
+                      pressed && styles.answerCardPressed,
+                    ]}
+                  >
+                    <View style={[styles.answerRadio, isSelected && styles.answerRadioSelected]}>
+                      {isSelected ? <View style={styles.answerRadioDot} /> : null}
+                    </View>
+                    <Text style={[styles.answerText, isSelected && styles.answerTextSelected]}>
+                      {answer.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+        </View>
+        <View style={styles.interviewFooter}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Save"
+            disabled={!draftValue}
+            onPress={saveEdit}
+            style={({ pressed }) => [
+              styles.continueButton,
+              !draftValue && styles.continueButtonDisabled,
+              pressed && draftValue ? styles.startButtonPressed : null,
+            ]}
+          >
+            <Text style={[styles.continueButtonText, !draftValue && styles.continueButtonTextDisabled]}>
+              SAVE
+            </Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.dashboard}>
+      <View style={styles.interviewHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.backButton}>
+          <Text style={styles.backButtonText}>‹</Text>
+        </Pressable>
+        <Text style={[styles.progressText, { flex: 1, textAlign: "center" }]}>PROFILE</Text>
+        <View style={{ width: 44 }} />
+      </View>
+      <ScrollView
+        style={styles.dashboardBody}
+        contentContainerStyle={styles.dashboardBodyContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.accountBar}>
+          {session ? (
+            <>
+              <View style={[styles.testModeIdentity, { flexShrink: 1 }]}>
+                <View style={styles.testModeDot} />
+                <Text style={[styles.testModeLabel, { flexShrink: 1 }]} numberOfLines={1}>
+                  SIGNED IN · {session.email}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Log out"
+                onPress={onLogout}
+                style={styles.testModeReset}
+              >
+                <Text style={styles.testModeResetText}>LOG OUT</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Text style={styles.accountPromptText}>Save your progress across devices</Text>
+              <View style={styles.accountActions}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign in"
+                  onPress={() => onOpenAccount("login")}
+                  style={styles.accountButton}
+                >
+                  <Text style={styles.accountButtonText}>SIGN IN</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Create account"
+                  onPress={() => onOpenAccount("signup")}
+                  style={styles.accountButton}
+                >
+                  <Text style={styles.accountButtonText}>CREATE ACCOUNT</Text>
+                </Pressable>
+              </View>
+            </>
+          )}
+        </View>
+
+        {trialDaysLeft !== null ? (
+          <View style={[styles.trialBar, trialDaysLeft === 0 && styles.trialBarEnded]}>
+            <Text style={[styles.trialBarText, trialDaysLeft === 0 && styles.trialBarTextEnded]}>
+              {trialDaysLeft > 0
+                ? `${trialDaysLeft} DAY${trialDaysLeft === 1 ? "" : "S"} LEFT · ENDS ${trialEndsAtLabel}`
+                : `YOUR TRIAL ENDED ${trialEndsAtLabel}`}
+            </Text>
+          </View>
+        ) : null}
+
+        <Text style={styles.sectionEyebrow}>YOUR PROFILE</Text>
+        <View style={styles.profileList}>
+          {interviewQuestions.map((question, index) => (
+            <Pressable
+              key={question.id}
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${question.title}`}
+              onPress={() => startEditing(question)}
+              style={({ pressed }) => [
+                styles.profileRow,
+                { minHeight: profileRowHeight },
+                index === interviewQuestions.length - 1 && { borderBottomWidth: 0 },
+                pressed && { opacity: 0.8 },
+              ]}
+            >
+              <Text style={styles.profileRowLabel}>{question.title}</Text>
+              <View style={styles.profileRowRight}>
+                <Text style={styles.profileRowValue} numberOfLines={1}>
+                  {formatValue(question)}
+                </Text>
+                <Text style={styles.cardChevron}>›</Text>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      </ScrollView>
+
+      <ScheduleModal
+        visible={scheduleModalOpen}
+        onClose={() => setScheduleModalOpen(false)}
+        initialDays={profile.reminderDays ? profile.reminderDays.split(",") : []}
+        initialTime={profile.reminderTime ?? ""}
+        frequency={profile.frequency ?? "3"}
+        onConfirm={(days, time, frequency) => {
+          onUpdateProfile("reminderDays", days.join(","));
+          onUpdateProfile("reminderTime", time);
+          if (frequency !== profile.frequency) onUpdateProfile("frequency", frequency);
+        }}
+      />
+    </SafeAreaView>
+  );
+}
+
 type BottomNavKey = "dashboard" | "nutrition" | "progress" | "coach";
 
 function BottomNav({
   active,
   onHome,
-  onWorkout,
   onNutrition,
   onProgress,
   onCoach,
 }: {
   active: BottomNavKey;
   onHome: () => void;
-  onWorkout: () => void;
   onNutrition: () => void;
   onProgress: () => void;
   onCoach: () => void;
 }) {
-  const items: { key: BottomNavKey | "workout"; icon: string; label: string; onPress: () => void }[] = [
+  const items: { key: BottomNavKey; icon: string; label: string; onPress: () => void }[] = [
     { key: "dashboard", icon: "🏠", label: "HOME", onPress: onHome },
-    { key: "workout", icon: "🏋️", label: "WORKOUT", onPress: onWorkout },
     { key: "nutrition", icon: "🥗", label: "NUTRITION", onPress: onNutrition },
     { key: "progress", icon: "📈", label: "PROGRESS", onPress: onProgress },
     { key: "coach", icon: "🎯", label: "COACH", onPress: onCoach },
@@ -801,32 +1305,37 @@ function DashboardScreen({
   onOpenCoach,
   onOpenNutrition,
   onOpenProgress,
-  onResetTestProfile,
-  onOpenEditProfile,
   session,
   onOpenAccount,
   onLogout,
+  onOpenProfile,
   profile,
   nutritionTotals,
+  workoutHistory,
+  trialDaysLeft,
 }: {
   onStartWorkout: () => void;
   onOpenCoach: () => void;
   onOpenNutrition: () => void;
   onOpenProgress: () => void;
-  onResetTestProfile: () => void;
-  onOpenEditProfile: () => void;
   session: { email: string } | null;
   onOpenAccount: (mode: "signup" | "login") => void;
   onLogout: () => void;
+  onOpenProfile: () => void;
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
+  workoutHistory: WorkoutHistoryEntry[];
+  trialDaysLeft: number | null;
 }) {
-  const workoutName =
-    profile.sex === "female"
-      ? profile.goal === "strength" ? "Women’s Strength" : "Lower Body + Full Body"
-      : profile.sex === "male"
-        ? profile.goal === "fat-loss" ? "Metabolic Full Body" : "Strength + Muscle"
-        : "Balanced Full Body";
+  const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
+  const todaySplit = determineSplitDay(reminderDays, recentSplitDaysFromHistory(workoutHistory));
+  const workoutName = todaySplit.label;
+  const exerciseCount = splitDaySlotCount(todaySplit.day);
+  const { isDeload } = getMesocycleWeek(workoutHistory);
+  const weeklyGoal = profile.frequency ?? "3";
+  const thisWeekCount = workoutHistory.filter((entry) => isWithinLastDays(entry.date, 7)).length;
+  const lastWorkout = workoutHistory[0];
+  const readiness = computeReadiness(workoutHistory);
 
   return (
     <SafeAreaView style={styles.dashboard}>
@@ -835,10 +1344,16 @@ function DashboardScreen({
           <Text style={styles.dashboardGreeting}>GOOD MORNING</Text>
           <Text style={styles.dashboardName}>Ready for today?</Text>
         </View>
-        <View style={styles.dashboardAvatar}>
-          <Text style={styles.dashboardAvatarText}>G</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open your profile"
+          onPress={onOpenProfile}
+          style={styles.myProfilePill}
+        >
           <View style={styles.avatarStatus} />
-        </View>
+          <Text style={styles.myProfilePillText}>MY PROFILE</Text>
+          <Text style={styles.dashboardAvatarChevron}>›</Text>
+        </Pressable>
       </View>
 
       <ScrollView
@@ -846,30 +1361,6 @@ function DashboardScreen({
         contentContainerStyle={styles.dashboardBodyContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.testModeBar}>
-          <View style={styles.testModeIdentity}>
-            <View style={styles.testModeDot} />
-            <Text style={styles.testModeLabel}>TEST MODE</Text>
-          </View>
-          <View style={styles.testModeActions}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Edit your profile answers"
-              onPress={onOpenEditProfile}
-              style={styles.testModeReset}
-            >
-              <Text style={styles.testModeResetText}>EDIT PROFILE</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Reset test profile"
-              onPress={onResetTestProfile}
-              style={styles.testModeReset}
-            >
-              <Text style={styles.testModeResetText}>RESET PROFILE</Text>
-            </Pressable>
-          </View>
-        </View>
 
         <View style={styles.accountBar}>
           {session ? (
@@ -903,7 +1394,7 @@ function DashboardScreen({
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Create a free account"
+                  accessibilityLabel="Create account"
                   onPress={() => onOpenAccount("signup")}
                   style={styles.accountButton}
                 >
@@ -914,6 +1405,16 @@ function DashboardScreen({
           )}
         </View>
 
+        {trialDaysLeft !== null ? (
+          <View style={[styles.trialBar, trialDaysLeft === 0 && styles.trialBarEnded]}>
+            <Text style={[styles.trialBarText, trialDaysLeft === 0 && styles.trialBarTextEnded]}>
+              {trialDaysLeft > 0
+                ? `${trialDaysLeft} DAY${trialDaysLeft === 1 ? "" : "S"} LEFT IN YOUR TRIAL`
+                : "YOUR TRIAL HAS ENDED"}
+            </Text>
+          </View>
+        ) : null}
+
         <View style={styles.workoutCard}>
           <View style={styles.workoutCardTop}>
             <View style={styles.workoutTypeBadge}>
@@ -922,7 +1423,9 @@ function DashboardScreen({
             <Text style={styles.workoutDuration}>{profile.duration ?? "45"} MIN</Text>
           </View>
           <Text style={styles.workoutTitle}>{workoutName}</Text>
-          <Text style={styles.workoutMeta}>5 guided exercises · Personalized intensity</Text>
+          <Text style={styles.workoutMeta}>
+            {exerciseCount} guided exercises · {isDeload ? "Deload week — lighter load" : "Personalized intensity"}
+          </Text>
           <View style={styles.workoutCoachNote}>
             <View style={styles.coachMiniAvatar}><Text style={styles.coachMiniText}>G</Text></View>
             <Text style={styles.workoutCoachText}>Adapted to your profile, recovery, and equipment.</Text>
@@ -940,21 +1443,20 @@ function DashboardScreen({
 
         <View style={styles.readinessCard}>
           <View style={styles.recoveryScore}>
-            <Text style={styles.recoveryValue}>78</Text>
+            <Text style={styles.recoveryValue}>{readiness.score}</Text>
             <Text style={styles.recoveryLabel}>READY</Text>
           </View>
           <View style={styles.readinessCopy}>
             <Text style={styles.sectionEyebrow}>TODAY’S READINESS</Text>
-            <Text style={styles.readinessTitle}>Good readiness</Text>
-            <Text style={styles.readinessHint}>You’re ready for the planned session.</Text>
+            <Text style={styles.readinessTitle}>{readiness.title}</Text>
+            <Text style={styles.readinessHint}>{readiness.hint}</Text>
           </View>
-          <Text style={styles.cardChevron}>›</Text>
         </View>
 
         <Text style={styles.quickTitle}>QUICK OVERVIEW</Text>
         <View style={styles.metricGrid}>
           {[
-            ["1 / 3", "WORKOUTS"],
+            [`${thisWeekCount} / ${weeklyGoal}`, "WORKOUTS"],
             [nutritionTotals.calories ? nutritionTotals.calories.toLocaleString() : "0", "CALORIES"],
             [`${nutritionTotals.protein}g`, "PROTEIN"],
           ].map(([value, label]) => (
@@ -965,113 +1467,28 @@ function DashboardScreen({
           ))}
         </View>
 
-        <View style={styles.lastWorkoutCard}>
-          <View>
-            <Text style={styles.weekLabel}>LAST WORKOUT</Text>
-            <Text style={styles.weekValue}>Full Body · 42 min</Text>
+        {lastWorkout ? (
+          <View style={styles.lastWorkoutCard}>
+            <View>
+              <Text style={styles.weekLabel}>LAST WORKOUT</Text>
+              <Text style={styles.weekValue}>
+                {lastWorkout.title} · {formatHistoryDuration(lastWorkout.seconds)}
+              </Text>
+            </View>
+            <View style={styles.lastWorkoutScore}>
+              <Text style={styles.lastWorkoutScoreText}>{lastWorkout.calories} kcal</Text>
+            </View>
           </View>
-          <View style={styles.lastWorkoutScore}>
-            <Text style={styles.lastWorkoutScoreText}>86%</Text>
-          </View>
-        </View>
+        ) : null}
       </ScrollView>
 
       <BottomNav
         active="dashboard"
         onHome={() => {}}
-        onWorkout={onStartWorkout}
         onNutrition={onOpenNutrition}
         onProgress={onOpenProgress}
         onCoach={onOpenCoach}
       />
-    </SafeAreaView>
-  );
-}
-
-function EditProfileScreen({
-  profile,
-  onBack,
-  onSave,
-}: {
-  profile: Record<string, string>;
-  onBack: () => void;
-  onSave: (profile: Record<string, string>) => void;
-}) {
-  const [answers, setAnswers] = useState<Record<string, string>>(profile);
-
-  const selectAnswer = (questionId: string, value: string) => {
-    setAnswers((current) => ({ ...current, [questionId]: value }));
-  };
-
-  return (
-    <SafeAreaView style={styles.recipesScreen}>
-      <View style={styles.nutritionHeader}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
-          <Text style={styles.coachBackText}>‹</Text>
-        </Pressable>
-        <View>
-          <Text style={styles.nutritionHeaderTitle}>EDIT PROFILE</Text>
-          <Text style={styles.nutritionHeaderSubtitle}>Update any answer, anytime</Text>
-        </View>
-        <View style={styles.coachHeaderSpacer} />
-      </View>
-
-      <ScrollView
-        style={styles.nutritionScroll}
-        contentContainerStyle={styles.nutritionContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {interviewQuestions.map((question) => (
-          <View key={question.id} style={styles.editProfileGroup}>
-            <Text style={styles.dietGroupLabel}>{question.kicker}</Text>
-            <Text style={styles.editProfileQuestionTitle}>{question.title}</Text>
-            {question.kind === "picker" ? (
-              <View style={styles.editProfileWheelWrap}>
-                <NumberWheelPicker
-                  min={question.min}
-                  max={question.max}
-                  step={question.step}
-                  unit={question.unit}
-                  value={Number(answers[question.id] ?? question.defaultValue)}
-                  onChange={(next) => selectAnswer(question.id, String(next))}
-                  itemHeight={30}
-                  visibleItems={3}
-                  fontSize={18}
-                />
-              </View>
-            ) : (
-              <View style={styles.dietChipRow}>
-                {question.answers.map((answer) => {
-                  const isSelected = answer.value === answers[question.id];
-                  return (
-                    <Pressable
-                      key={answer.value}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: isSelected }}
-                      onPress={() => selectAnswer(question.id, answer.value)}
-                      style={[styles.dietChip, isSelected && styles.dietChipSelected]}
-                    >
-                      <Text style={[styles.dietChipText, isSelected && styles.dietChipTextSelected]}>
-                        {answer.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            )}
-          </View>
-        ))}
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Save changes"
-          onPress={() => onSave(answers)}
-          style={styles.dietBuildButton}
-        >
-          <Text style={styles.dietBuildButtonText}>SAVE CHANGES</Text>
-          <Text style={styles.dietBuildButtonArrow}>→</Text>
-        </Pressable>
-      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -1104,6 +1521,7 @@ type WorkoutHistoryEntry = {
   seconds: number;
   calories: number;
   exerciseBreakdown?: WorkoutHistoryExercise[];
+  splitDay?: SplitDay;
 };
 
 function formatHistoryDate(iso: string): string {
@@ -1124,6 +1542,79 @@ function isWithinLastDays(iso: string, days: number): boolean {
   const parsed = new Date(iso).getTime();
   if (Number.isNaN(parsed)) return false;
   return Date.now() - parsed <= days * 24 * 60 * 60 * 1000;
+}
+
+type ReadinessInfo = { score: number; title: string; hint: string };
+
+// A simple recovery-time heuristic, not a biometric measurement -- we have no
+// sleep/HRV data, only workout history, so this approximates readiness from
+// how long it's been since the last session.
+// Null when there's no previous workout to compare against.
+function hoursSinceLastWorkout(workoutHistory: WorkoutHistoryEntry[]): number | null {
+  const lastWorkoutMs = new Date(workoutHistory[0]?.date ?? "").getTime();
+  if (Number.isNaN(lastWorkoutMs)) return null;
+  return (Date.now() - lastWorkoutMs) / (60 * 60 * 1000);
+}
+
+// A simple 4-week mesocycle: 3 weeks of normal progressive overload, then one
+// deload week (lighter weight, one fewer set) so fatigue doesn't just stack
+// forever. Week is anchored to the very first logged workout, not a
+// separately-stored "program start date" we don't have.
+function getMesocycleWeek(workoutHistory: WorkoutHistoryEntry[]): { weekNumber: number; isDeload: boolean } {
+  const firstWorkout = workoutHistory[workoutHistory.length - 1];
+  if (!firstWorkout) return { weekNumber: 1, isDeload: false };
+  const firstMs = new Date(firstWorkout.date).getTime();
+  if (Number.isNaN(firstMs)) return { weekNumber: 1, isDeload: false };
+  const daysSince = (Date.now() - firstMs) / (24 * 60 * 60 * 1000);
+  const weekInCycle = (Math.floor(daysSince / 7) % 4) + 1;
+  return { weekNumber: weekInCycle, isDeload: weekInCycle === 4 };
+}
+
+// Most-recent-first, matching workoutHistory's own order -- feeds determineSplitDay's
+// least-recently-trained balancing.
+function recentSplitDaysFromHistory(workoutHistory: WorkoutHistoryEntry[]): SplitDay[] {
+  return workoutHistory.map((entry) => entry.splitDay).filter((day): day is SplitDay => Boolean(day));
+}
+
+function computeReadiness(workoutHistory: WorkoutHistoryEntry[]): ReadinessInfo {
+  const lastWorkout = workoutHistory[0];
+  if (!lastWorkout) {
+    return { score: 85, title: "Ready to start", hint: "No sessions logged yet — go for it." };
+  }
+  const lastWorkoutMs = new Date(lastWorkout.date).getTime();
+  if (Number.isNaN(lastWorkoutMs)) {
+    return { score: 85, title: "Ready to start", hint: "You’re ready for the planned session." };
+  }
+  const hoursSince = (Date.now() - lastWorkoutMs) / (60 * 60 * 1000);
+  if (hoursSince < 8) {
+    return { score: 55, title: "Still recovering", hint: "You trained recently — an easy session helps." };
+  }
+  if (hoursSince < 20) {
+    return { score: 72, title: "Good readiness", hint: "You’re ready for the planned session." };
+  }
+  if (hoursSince < 40) {
+    return { score: 88, title: "Fully recovered", hint: "Good day to push a bit harder." };
+  }
+  return { score: 80, title: "Well rested", hint: "It’s been a few days — ease back in." };
+}
+
+const TRIAL_LENGTH_DAYS = 14;
+
+// Returns null when there's no trial to report (not signed in / no start date yet).
+function trialDaysRemaining(trialStartedAt: string | null): number | null {
+  if (!trialStartedAt) return null;
+  const startMs = new Date(trialStartedAt).getTime();
+  if (!Number.isFinite(startMs)) return null;
+  const elapsedDays = Math.floor((Date.now() - startMs) / (24 * 60 * 60 * 1000));
+  return Math.max(0, TRIAL_LENGTH_DAYS - elapsedDays);
+}
+
+function trialEndDateLabel(trialStartedAt: string | null): string | null {
+  if (!trialStartedAt) return null;
+  const startMs = new Date(trialStartedAt).getTime();
+  if (!Number.isFinite(startMs)) return null;
+  const endDate = new Date(startMs + TRIAL_LENGTH_DAYS * 24 * 60 * 60 * 1000);
+  return endDate.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
 // A compact plain-text summary of the user's training history, sent to the
@@ -1659,6 +2150,18 @@ function sumNutrition(items: NutritionItem[]): NutritionTotals {
   );
 }
 
+const DIET_MODE_OPTIONS: { value: DietMode; label: string }[] = [
+  { value: "bulk", label: "BULK" },
+  { value: "cut", label: "CUT" },
+  { value: "recomp", label: "RECOMP" },
+];
+
+const DIET_MODE_HINT: Record<DietMode, string> = {
+  bulk: "Calorie surplus to build muscle.",
+  cut: "Calorie deficit, higher protein to keep muscle.",
+  recomp: "Maintenance calories, high protein to build while leaning out.",
+};
+
 function NutritionScreen({
   onBack,
   onSave,
@@ -1670,6 +2173,7 @@ function NutritionScreen({
   onOpenCoach,
   profile,
   nutritionTotals,
+  onUpdateProfile,
 }: {
   onBack: () => void;
   onSave: (totals: NutritionTotals) => void;
@@ -1681,7 +2185,9 @@ function NutritionScreen({
   onOpenCoach: () => void;
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
+  onUpdateProfile: (id: string, value: string) => void;
 }) {
+  const dietMode = inferDietMode(profile);
   const proteinTarget = dailyProteinTargetGrams(profile);
   const proteinRemaining = Math.max(0, proteinTarget - nutritionTotals.protein);
   const [imageData, setImageData] = useState("");
@@ -1797,6 +2303,25 @@ function NutritionScreen({
             Take a clear overhead photo. You can correct every portion before saving.
           </Text>
         </View>
+
+        <View style={styles.dietModeRow}>
+          {DIET_MODE_OPTIONS.map((option) => (
+            <Pressable
+              key={option.value}
+              accessibilityRole="button"
+              accessibilityLabel={`Switch to ${option.label.toLowerCase()} mode`}
+              onPress={() => onUpdateProfile("dietMode", option.value)}
+              style={[styles.dietModePill, dietMode === option.value && styles.dietModePillActive]}
+            >
+              <Text
+                style={[styles.dietModePillText, dietMode === option.value && styles.dietModePillTextActive]}
+              >
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={styles.dietModeHint}>{DIET_MODE_HINT[dietMode]}</Text>
 
         <View style={styles.foodPhotoCard}>
           {imageData ? (
@@ -2026,7 +2551,6 @@ function NutritionScreen({
       <BottomNav
         active="nutrition"
         onHome={onBack}
-        onWorkout={onStartWorkout}
         onNutrition={() => {}}
         onProgress={onOpenProgress}
         onCoach={onOpenCoach}
@@ -2775,13 +3299,27 @@ const coachScenarios: Record<
   },
 };
 
-type ResolvedCoachScenario = CoachScenario | "nutrition" | "general";
+type ResolvedCoachScenario = CoachScenario | "nutrition" | "general" | "off_topic";
+
+// A full chat turn, persisted (unlike the old single-slot reply state) so the
+// coach can see -- and the user can scroll back through -- the whole
+// conversation, not just the latest exchange.
+type CoachMessage = {
+  id: string;
+  role: "user" | "ai";
+  text: string;
+  scenario?: ResolvedCoachScenario;
+  changes?: string[];
+  requiresHumanReview?: boolean;
+  applied?: boolean;
+  reviewStatus?: "idle" | "sending" | "sent" | "error";
+};
 
 function isActionableScenario(scenario: ResolvedCoachScenario | null): scenario is CoachScenario {
   return scenario === "tired" || scenario === "pain" || scenario === "time" || scenario === "equipment";
 }
 
-const nonWorkoutFallback: Record<"nutrition" | "general", { reply: string; changes: string[] }> = {
+const nonWorkoutFallback: Record<"nutrition" | "general" | "off_topic", { reply: string; changes: string[] }> = {
   nutrition: {
     reply:
       "For a real diet plan built around your goal, head to Nutrition → Build a diet plan — it asks a few quick questions and builds a sample day for you.",
@@ -2791,12 +3329,18 @@ const nonWorkoutFallback: Record<"nutrition" | "general", { reply: string; chang
     reply: "Live AI is unavailable right now. Ask about fatigue, discomfort, limited time, or limited equipment and I can adjust today's session.",
     changes: [],
   },
+  off_topic: {
+    reply: "I'm focused on your training — ask me about today's session, technique, recovery, or your plan.",
+    changes: [],
+  },
 };
 
 function AICoachScreen({
   profile,
   workoutHistory,
   exerciseProgress,
+  messages,
+  onMessagesChange,
   onBack,
   onApply,
   onStartWorkout,
@@ -2805,20 +3349,19 @@ function AICoachScreen({
   profile: Record<string, string>;
   workoutHistory: WorkoutHistoryEntry[];
   exerciseProgress: Record<string, ExerciseProgress>;
+  messages: CoachMessage[];
+  onMessagesChange: (updater: (current: CoachMessage[]) => CoachMessage[]) => void;
   onBack: () => void;
   onApply: (scenario: CoachScenario) => void;
   onStartWorkout: () => void;
   onOpenDietPlan: () => void;
 }) {
   const [draft, setDraft] = useState("");
-  const [scenario, setScenario] = useState<ResolvedCoachScenario | null>(null);
-  const [customMessage, setCustomMessage] = useState("");
-  const [applied, setApplied] = useState(false);
-  const [aiReply, setAiReply] = useState("");
-  const [aiChanges, setAiChanges] = useState<string[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const [coachError, setCoachError] = useState("");
   const scrollRef = useRef<ScrollView>(null);
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   const goalLabel =
     profile.goal === "fat-loss"
@@ -2830,11 +3373,15 @@ function AICoachScreen({
           : "fitness";
 
   const askCoach = async (message: string, fallbackScenario: ResolvedCoachScenario) => {
+    // Everything already in the thread becomes conversation history for this
+    // turn -- the coach sees what was said before, not just this one message.
+    const history = messagesRef.current.slice(-30).map((entry) => ({
+      role: entry.role === "user" ? "user" : "assistant",
+      content: entry.text,
+    }));
+    onMessagesChange((current) => [...current, { id: `${Date.now()}-user`, role: "user", text: message }]);
     setIsThinking(true);
     setCoachError("");
-    setAiReply("");
-    setAiChanges([]);
-    setApplied(false);
     try {
       const response = await fetch("/api/coach", {
         method: "POST",
@@ -2843,6 +3390,7 @@ function AICoachScreen({
           message,
           profile,
           memory: summarizeCoachMemory(workoutHistory, exerciseProgress),
+          history,
         }),
       });
       if (!response.ok) throw new Error("Coach request failed");
@@ -2850,34 +3398,47 @@ function AICoachScreen({
         reply?: string;
         scenario?: ResolvedCoachScenario;
         changes?: string[];
+        requiresHumanReview?: boolean;
       };
       const resolvedScenario: ResolvedCoachScenario = result.scenario ?? fallbackScenario;
-      setScenario(resolvedScenario);
-      setAiReply(
-        result.reply ??
-          (isActionableScenario(resolvedScenario)
-            ? coachScenarios[resolvedScenario].reply
-            : nonWorkoutFallback[resolvedScenario].reply),
-      );
-      setAiChanges(
-        result.changes?.length
-          ? result.changes
-          : isActionableScenario(resolvedScenario)
-            ? coachScenarios[resolvedScenario].changes
-            : nonWorkoutFallback[resolvedScenario].changes,
-      );
+      onMessagesChange((current) => [
+        ...current,
+        {
+          id: `${Date.now()}-ai`,
+          role: "ai",
+          text:
+            result.reply ??
+            (isActionableScenario(resolvedScenario)
+              ? coachScenarios[resolvedScenario].reply
+              : nonWorkoutFallback[resolvedScenario].reply),
+          scenario: resolvedScenario,
+          changes: result.changes?.length
+            ? result.changes
+            : isActionableScenario(resolvedScenario)
+              ? coachScenarios[resolvedScenario].changes
+              : nonWorkoutFallback[resolvedScenario].changes,
+          requiresHumanReview: Boolean(result.requiresHumanReview),
+          applied: false,
+          reviewStatus: "idle",
+        },
+      ]);
     } catch {
-      setScenario(fallbackScenario);
-      setAiReply(
-        isActionableScenario(fallbackScenario)
-          ? coachScenarios[fallbackScenario].reply
-          : nonWorkoutFallback[fallbackScenario].reply,
-      );
-      setAiChanges(
-        isActionableScenario(fallbackScenario)
-          ? coachScenarios[fallbackScenario].changes
-          : nonWorkoutFallback[fallbackScenario].changes,
-      );
+      onMessagesChange((current) => [
+        ...current,
+        {
+          id: `${Date.now()}-ai`,
+          role: "ai",
+          text: isActionableScenario(fallbackScenario)
+            ? coachScenarios[fallbackScenario].reply
+            : nonWorkoutFallback[fallbackScenario].reply,
+          scenario: fallbackScenario,
+          changes: isActionableScenario(fallbackScenario)
+            ? coachScenarios[fallbackScenario].changes
+            : nonWorkoutFallback[fallbackScenario].changes,
+          applied: false,
+          reviewStatus: "idle",
+        },
+      ]);
       setCoachError("Live AI is unavailable. Safe coaching mode is active.");
     } finally {
       setIsThinking(false);
@@ -2885,11 +3446,29 @@ function AICoachScreen({
     }
   };
 
+  const requestCoachReview = async (item: CoachMessage, precedingUserText: string) => {
+    onMessagesChange((current) =>
+      current.map((entry) => (entry.id === item.id ? { ...entry, reviewStatus: "sending" } : entry)),
+    );
+    try {
+      const response = await fetch("/api/request-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: precedingUserText, reply: item.text, profile }),
+      });
+      if (!response.ok) throw new Error("Review request failed");
+      onMessagesChange((current) =>
+        current.map((entry) => (entry.id === item.id ? { ...entry, reviewStatus: "sent" } : entry)),
+      );
+    } catch {
+      onMessagesChange((current) =>
+        current.map((entry) => (entry.id === item.id ? { ...entry, reviewStatus: "error" } : entry)),
+      );
+    }
+  };
+
   const chooseScenario = (next: CoachScenario) => {
-    setScenario(next);
-    const message = coachScenarios[next].user;
-    setCustomMessage(message);
-    void askCoach(message, next);
+    void askCoach(coachScenarios[next].user, next);
   };
 
   const sendCustomMessage = () => {
@@ -2913,10 +3492,7 @@ function AICoachScreen({
                 normalized.includes("ядене")
               ? "nutrition"
               : "tired";
-    setCustomMessage(message);
     setDraft("");
-    setScenario(inferredScenario);
-    setApplied(false);
     void askCoach(message, inferredScenario);
   };
 
@@ -2936,7 +3512,7 @@ function AICoachScreen({
               <Text style={styles.coachName}>AI COACH</Text>
               <View style={styles.coachOnlineRow}>
                 <View style={styles.coachOnlineDot} />
-                <Text style={styles.coachOnlineText}>ONLINE · HUMAN BACKED</Text>
+                <Text style={styles.coachOnlineText}>AI + HUMAN REVIEW</Text>
               </View>
             </View>
           </View>
@@ -2968,17 +3544,111 @@ function AICoachScreen({
 
           <View style={styles.coachQuickActions}>
             {(Object.keys(coachScenarios) as CoachScenario[]).map((key) => (
-              <Pressable
-                key={key}
-                onPress={() => chooseScenario(key)}
-                style={[styles.coachQuickAction, scenario === key && styles.coachQuickActionActive]}
-              >
-                <Text style={[styles.coachQuickActionText, scenario === key && styles.coachQuickActionTextActive]}>
-                  {coachScenarios[key].label}
-                </Text>
+              <Pressable key={key} onPress={() => chooseScenario(key)} style={styles.coachQuickAction}>
+                <Text style={styles.coachQuickActionText}>{coachScenarios[key].label}</Text>
               </Pressable>
             ))}
           </View>
+
+          {messages.map((item, index) =>
+            item.role === "user" ? (
+              <View key={item.id} style={styles.userBubble}>
+                <Text style={styles.userBubbleText}>{item.text}</Text>
+              </View>
+            ) : (
+              <View key={item.id}>
+                <View style={styles.coachBubbleRow}>
+                  <View style={styles.coachBubbleMark}><Text style={styles.coachBubbleMarkText}>G</Text></View>
+                  <View style={styles.coachBubble}>
+                    <Text style={styles.coachBubbleText}>{item.text}</Text>
+                  </View>
+                </View>
+
+                {item.scenario && isActionableScenario(item.scenario) ? (
+                  <View style={styles.coachAdjustmentCard}>
+                    <View style={styles.coachAdjustmentTop}>
+                      <Text style={styles.coachAdjustmentLabel}>ADJUSTED WORKOUT</Text>
+                      <Text style={styles.coachAdjustmentBadge}>AI PROPOSAL</Text>
+                    </View>
+                    {(item.changes ?? []).map((change) => (
+                      <View key={change} style={styles.coachChangeRow}>
+                        <Text style={styles.coachChangeCheck}>✓</Text>
+                        <Text style={styles.coachChangeText}>{change}</Text>
+                      </View>
+                    ))}
+                    <Pressable
+                      onPress={() => {
+                        onApply(item.scenario as CoachScenario);
+                        onMessagesChange((current) =>
+                          current.map((entry) => (entry.id === item.id ? { ...entry, applied: true } : entry)),
+                        );
+                      }}
+                      disabled={item.applied}
+                      style={[styles.coachApplyButton, item.applied && styles.coachApplyButtonDone]}
+                    >
+                      <Text style={styles.coachApplyButtonText}>
+                        {item.applied ? "PLAN UPDATED ✓" : "APPLY CHANGES"}
+                      </Text>
+                    </Pressable>
+                    {item.applied ? (
+                      <Pressable onPress={onStartWorkout} style={styles.coachStartButton}>
+                        <Text style={styles.coachStartButtonText}>START ADAPTED WORKOUT</Text>
+                        <Text style={styles.coachStartButtonArrow}>→</Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                ) : item.scenario === "nutrition" ? (
+                  <View style={styles.coachAdjustmentCard}>
+                    <View style={styles.coachAdjustmentTop}>
+                      <Text style={styles.coachAdjustmentLabel}>NUTRITION</Text>
+                      <Text style={styles.coachAdjustmentBadge}>AI SUGGESTION</Text>
+                    </View>
+                    {(item.changes ?? []).map((change) => (
+                      <View key={change} style={styles.coachChangeRow}>
+                        <Text style={styles.coachChangeCheck}>✓</Text>
+                        <Text style={styles.coachChangeText}>{change}</Text>
+                      </View>
+                    ))}
+                    <Pressable onPress={onOpenDietPlan} style={styles.coachApplyButton}>
+                      <Text style={styles.coachApplyButtonText}>OPEN DIET PLAN</Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+
+                {item.requiresHumanReview ? (
+                  <View style={styles.coachAdjustmentCard}>
+                    <View style={styles.coachAdjustmentTop}>
+                      <Text style={styles.coachAdjustmentLabel}>HUMAN REVIEW</Text>
+                      <Text style={styles.coachAdjustmentBadge}>REAL COACH</Text>
+                    </View>
+                    <Text style={styles.coachChangeText}>
+                      {item.reviewStatus === "sent"
+                        ? "Sent to your coach — typically answered within 24–48h."
+                        : item.reviewStatus === "error"
+                          ? "Could not send that just now. Try again shortly."
+                          : "Flag this for your real coach to review directly."}
+                    </Text>
+                    <Pressable
+                      onPress={() => requestCoachReview(item, messages[index - 1]?.text ?? "")}
+                      disabled={item.reviewStatus === "sending" || item.reviewStatus === "sent"}
+                      style={[
+                        styles.coachApplyButton,
+                        item.reviewStatus === "sent" && styles.coachApplyButtonDone,
+                      ]}
+                    >
+                      <Text style={styles.coachApplyButtonText}>
+                        {item.reviewStatus === "sending"
+                          ? "SENDING..."
+                          : item.reviewStatus === "sent"
+                            ? "REQUEST SENT ✓"
+                            : "REQUEST COACH REVIEW"}
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+              </View>
+            ),
+          )}
 
           {isThinking ? (
             <View style={styles.coachBubbleRow}>
@@ -2989,69 +3659,7 @@ function AICoachScreen({
             </View>
           ) : null}
 
-          {scenario && !isThinking ? (
-            <>
-              <View style={styles.userBubble}>
-                <Text style={styles.userBubbleText}>{customMessage}</Text>
-              </View>
-              <View style={styles.coachBubbleRow}>
-                <View style={styles.coachBubbleMark}><Text style={styles.coachBubbleMarkText}>G</Text></View>
-                <View style={styles.coachBubble}>
-                  <Text style={styles.coachBubbleText}>{aiReply}</Text>
-                </View>
-              </View>
-              {coachError ? <Text style={styles.coachFallbackText}>{coachError}</Text> : null}
-
-              {isActionableScenario(scenario) ? (
-                <View style={styles.coachAdjustmentCard}>
-                  <View style={styles.coachAdjustmentTop}>
-                    <Text style={styles.coachAdjustmentLabel}>ADJUSTED WORKOUT</Text>
-                    <Text style={styles.coachAdjustmentBadge}>AI PROPOSAL</Text>
-                  </View>
-                  {(aiChanges.length ? aiChanges : coachScenarios[scenario].changes).map((change) => (
-                    <View key={change} style={styles.coachChangeRow}>
-                      <Text style={styles.coachChangeCheck}>✓</Text>
-                      <Text style={styles.coachChangeText}>{change}</Text>
-                    </View>
-                  ))}
-                  <Pressable
-                    onPress={() => {
-                      onApply(scenario);
-                      setApplied(true);
-                    }}
-                    disabled={applied}
-                    style={[styles.coachApplyButton, applied && styles.coachApplyButtonDone]}
-                  >
-                    <Text style={styles.coachApplyButtonText}>
-                      {applied ? "PLAN UPDATED ✓" : "APPLY CHANGES"}
-                    </Text>
-                  </Pressable>
-                  {applied ? (
-                    <Pressable onPress={onStartWorkout} style={styles.coachStartButton}>
-                      <Text style={styles.coachStartButtonText}>START ADAPTED WORKOUT</Text>
-                      <Text style={styles.coachStartButtonArrow}>→</Text>
-                    </Pressable>
-                  ) : null}
-                </View>
-              ) : scenario === "nutrition" ? (
-                <View style={styles.coachAdjustmentCard}>
-                  <View style={styles.coachAdjustmentTop}>
-                    <Text style={styles.coachAdjustmentLabel}>NUTRITION</Text>
-                    <Text style={styles.coachAdjustmentBadge}>AI SUGGESTION</Text>
-                  </View>
-                  {(aiChanges.length ? aiChanges : nonWorkoutFallback.nutrition.changes).map((change) => (
-                    <View key={change} style={styles.coachChangeRow}>
-                      <Text style={styles.coachChangeCheck}>✓</Text>
-                      <Text style={styles.coachChangeText}>{change}</Text>
-                    </View>
-                  ))}
-                  <Pressable onPress={onOpenDietPlan} style={styles.coachApplyButton}>
-                    <Text style={styles.coachApplyButtonText}>OPEN DIET PLAN</Text>
-                  </Pressable>
-                </View>
-              ) : null}
-            </>
-          ) : null}
+          {coachError && !isThinking ? <Text style={styles.coachFallbackText}>{coachError}</Text> : null}
         </ScrollView>
 
         <View style={styles.coachComposer}>
@@ -3087,9 +3695,17 @@ type WorkoutExercise = {
   reps: string;
   tempo: string;
   phases: string[];
-  formFrames: [number, number];
+  formFrames: [ImageSourcePropType, ImageSourcePropType];
   poseGuide: PoseGuide;
-  video?: number;
+  video?: number | string;
+  // Only present for exercises sourced from the live MuscleWiki catalog --
+  // needed to look up "similar exercise" alternatives. Absent for the
+  // built-in fallback roster, which has no such data to search by.
+  catalogMeta?: {
+    externalId: number;
+    movementPattern: MovementPattern;
+    primaryMuscle: PrimaryMuscle;
+  };
 };
 
 type PoseSegment = [number, number, number, number];
@@ -3240,9 +3856,18 @@ const BASE_SET_COUNT_BY_FREQUENCY: Record<string, number> = {
   "5": 2,
 };
 
-function setCountForProfile(profile: Record<string, string>, adjustment?: CoachScenario | null): number {
+// Fat-loss/general-fitness goals train for density (more total work in the
+// session) rather than pure strength/hypertrophy load, so they get one extra
+// set per exercise on top of the frequency-based baseline.
+function setCountForProfile(
+  profile: Record<string, string>,
+  adjustment?: CoachScenario | null,
+  isDeload?: boolean,
+): number {
   const baseSetCount = BASE_SET_COUNT_BY_FREQUENCY[profile.frequency ?? "3"] ?? 3;
-  return Math.max(2, baseSetCount - (adjustment === "tired" ? 1 : 0));
+  const densityBonus = profile.goal === "fat-loss" || profile.goal === "fitness" ? 1 : 0;
+  const reduction = (adjustment === "tired" ? 1 : 0) + (isDeload ? 1 : 0);
+  return Math.max(2, baseSetCount + densityBonus - reduction);
 }
 
 const REFERENCE_BODY_WEIGHT_KG = 70;
@@ -3256,23 +3881,41 @@ function estimateSessionCalories(bodyWeightKg: number, elapsedSeconds: number): 
   return Math.max(0, Math.round(RESISTANCE_TRAINING_MET * weightKg * hours));
 }
 
+export type DietMode = "bulk" | "cut" | "recomp";
+
+// The Nutrition screen lets the user set this directly, independent of the
+// training goal (someone training for "muscle" can still be mid-cut, and
+// vice versa). Falls back to inferring from the training goal for anyone
+// who hasn't touched the new toggle yet, so existing profiles keep working.
+function inferDietMode(profile: Record<string, string>): DietMode {
+  if (profile.dietMode === "bulk" || profile.dietMode === "cut" || profile.dietMode === "recomp") {
+    return profile.dietMode;
+  }
+  return profile.goal === "muscle" ? "bulk" : profile.goal === "fat-loss" ? "cut" : "recomp";
+}
+
 // Standard sports-nutrition range for active adults is roughly 1.6-2.2g of
 // protein per kg of body weight; this is a general heuristic, not medical
-// or dietary advice.
+// or dietary advice. Protein stays high across all three modes -- a cut
+// needs it most to preserve muscle in a deficit, recomp needs it to build
+// while at maintenance, and bulk needs it to actually use the surplus.
 function dailyProteinTargetGrams(profile: Record<string, string>): number {
   const bodyWeightKg = Number(profile.weight);
   const weightKg = Number.isFinite(bodyWeightKg) && bodyWeightKg > 0 ? bodyWeightKg : REFERENCE_BODY_WEIGHT_KG;
-  const factor = profile.goal === "muscle" || profile.goal === "strength" ? 2.0 : profile.goal === "fat-loss" ? 1.8 : 1.6;
+  const factor = inferDietMode(profile) === "cut" ? 2.2 : 2.0;
   return Math.round(weightKg * factor);
 }
 
-// A rough Mifflin-St Jeor-style maintenance estimate scaled by goal; this is
-// a general heuristic to size a sample meal plan, not medical or dietary advice.
+// A rough Mifflin-St Jeor-style maintenance estimate scaled by diet mode;
+// this is a general heuristic to size a sample meal plan, not medical or
+// dietary advice. Recomp trains at maintenance -- no surplus or deficit --
+// relying on the higher protein target above to do the work instead.
 function dailyCalorieTargetKcal(profile: Record<string, string>): number {
   const bodyWeightKg = Number(profile.weight);
   const weightKg = Number.isFinite(bodyWeightKg) && bodyWeightKg > 0 ? bodyWeightKg : REFERENCE_BODY_WEIGHT_KG;
   const maintenance = weightKg * 30;
-  const factor = profile.goal === "fat-loss" ? 0.82 : profile.goal === "muscle" ? 1.12 : 1;
+  const mode = inferDietMode(profile);
+  const factor = mode === "cut" ? 0.82 : mode === "bulk" ? 1.12 : 1;
   return Math.round((maintenance * factor) / 10) * 10;
 }
 
@@ -3283,12 +3926,70 @@ function scaledStartingWeightLabel(baseKg: number, bodyWeightKg: number): string
   return `${scaledKg} kg`;
 }
 
+// Classic strength/hypertrophy/endurance rep ranges, picked per training
+// goal instead of one number for everyone -- strength trains low-rep/heavy,
+// hypertrophy (muscle) trains moderate reps, fat-loss/fitness train
+// higher-rep for metabolic density. "health" gets a moderate general baseline.
+const GOAL_REP_TARGET: Record<string, number> = {
+  strength: 5,
+  muscle: 10,
+  "fat-loss": 14,
+  fitness: 12,
+  health: 10,
+};
+
+// Rest between sets follows the same logic: strength needs full recovery to
+// keep the weight heavy, fat-loss/fitness keep rest short to stay in a
+// higher heart-rate, higher-density zone.
+const GOAL_REST_SECONDS: Record<string, number> = {
+  strength: 120,
+  muscle: 75,
+  "fat-loss": 40,
+  fitness: 45,
+  health: 60,
+};
+
 function baseRepsForProfile(profile: Record<string, string>): number {
   const ageYears = Number(profile.age);
   const reducedLoad =
     (Number.isFinite(ageYears) && ageYears >= 45) ||
     profile.experience === "beginner";
-  return reducedLoad ? 8 : profile.goal === "strength" ? 6 : 10;
+  const target = GOAL_REP_TARGET[profile.goal ?? ""] ?? 10;
+  return reducedLoad ? Math.max(4, target - 2) : target;
+}
+
+function restSecondsForProfile(profile: Record<string, string>, adjustment?: CoachScenario | null): number {
+  const base = GOAL_REST_SECONDS[profile.goal ?? ""] ?? 60;
+  return adjustment === "tired" ? base + 30 : base;
+}
+
+// A same-day readiness discount applied to suggested weight -- only ever
+// reduces load, never adds to it, since normal double-progression already
+// handles increases and an algorithm should never talk someone into more
+// weight than usual on a day it has no real evidence they're ready for.
+// Two signals are available today: how recently they last trained (real
+// under-recovery, not just "yesterday" being close by design) and whether
+// they told the coach they're tired going into this session. Sleep and
+// diet-adherence trend aren't tracked yet, so they're left out rather than
+// guessed at -- see the memory note for why.
+function readinessWeightModifier(workoutHistory: WorkoutHistoryEntry[], adjustment?: CoachScenario | null): number {
+  let modifier = 1;
+  const hoursSince = hoursSinceLastWorkout(workoutHistory);
+  if (hoursSince !== null && hoursSince < 20) modifier -= 0.06;
+  if (adjustment === "tired") modifier -= 0.06;
+  return Math.max(0.88, modifier);
+}
+
+// Isometric holds (plank and its variants) are timed, not counted -- "10
+// reps" of a hold means nothing, so these get a starting hold length in
+// seconds instead, and the UI shows "sec" wherever it would otherwise show
+// "reps" for this exercise.
+function holdSecondsForProfile(profile: Record<string, string>): number {
+  return profile.experience === "beginner" ? 20 : profile.experience === "advanced" ? 40 : 30;
+}
+
+function isHoldExercise(exercise: { name: string; catalogMeta?: { movementPattern?: string } }): boolean {
+  return exercise.catalogMeta?.movementPattern === "isometric" || exercise.name.includes("Plank");
 }
 
 function isBodyweightExerciseName(name: string): boolean {
@@ -3632,7 +4333,11 @@ function createWorkout(
     const saved = exerciseProgress[exercise.name];
     return {
       ...exercise,
-      reps: saved ? String(saved.reps) : reps,
+      reps: saved
+        ? String(saved.reps)
+        : exercise.name.includes("Plank")
+          ? String(holdSecondsForProfile(profile))
+          : reps,
       tempo: Number.isFinite(ageYears) && ageYears >= 55 ? "3–1–2" : exercise.tempo,
       weight: isBodyweight
         ? "Bodyweight"
@@ -3679,7 +4384,156 @@ function createWorkout(
   return exercises;
 }
 
-function ExerciseStill({ frame }: { frame: number }) {
+function catalogExerciseToWorkoutExercise(
+  tag: ExerciseTag,
+  profile: Record<string, string>,
+  exerciseProgress: Record<string, ExerciseProgress>,
+  isDeload: boolean = false,
+  weightModifier: number = 1,
+): WorkoutExercise {
+  const bodyWeightKg = Number(profile.weight);
+  const isBodyweight = tag.equipment.toLowerCase() === "bodyweight";
+  const saved = exerciseProgress[tag.name];
+  const reps = saved
+    ? String(saved.reps)
+    : String(tag.movementPattern === "isometric" ? holdSecondsForProfile(profile) : baseRepsForProfile(profile));
+  // Deload week backs off the weight on its own (lighter session, not a rest
+  // day) -- the readiness modifier is for everything else (poor recovery,
+  // self-reported "tired"), so the two never stack; deload wins when both apply.
+  const savedWeightKg = saved
+    ? isDeload
+      ? Math.max(2, Math.round(saved.weightKg * 0.85))
+      : Math.max(2, Math.round(saved.weightKg * weightModifier))
+    : null;
+  const weight = isBodyweight
+    ? "Bodyweight"
+    : savedWeightKg !== null
+      ? `${savedWeightKg} kg`
+      : scaledStartingWeightLabel(Math.round(12 * (isDeload ? 0.85 : weightModifier)), bodyWeightKg);
+  const media = tag.media[profile.sex === "male" ? "male" : "female"];
+  const poster: ImageSourcePropType = media
+    ? { uri: media.poster }
+    : require("./assets/exercises/goblet-squat/start.jpg");
+
+  return {
+    name: tag.name,
+    target: `${tag.primaryMuscle.replace("-", " ")} · ${tag.movementPattern}`,
+    weight,
+    reps,
+    tempo: "3-1-1",
+    phases: ["LOWER", "BRACE", "LIFT"],
+    formFrames: [poster, poster],
+    poseGuide: poseGuides.squat!,
+    video: media?.video,
+    catalogMeta: {
+      externalId: tag.source.externalId,
+      movementPattern: tag.movementPattern,
+      primaryMuscle: tag.primaryMuscle,
+    },
+  };
+}
+
+// Representative search keyword per movement pattern, used to look up
+// "similar exercise" alternatives for the swap feature.
+const movementPatternSearchKeyword: Record<MovementPattern, string> = {
+  squat: "squat",
+  hinge: "deadlift",
+  push: "press",
+  pull: "row",
+  lunge: "lunge",
+  carry: "carry",
+  rotation: "twist",
+  isometric: "plank",
+};
+
+async function fetchAlternativeExercises(
+  catalogMeta: { externalId: number; movementPattern: MovementPattern; primaryMuscle: PrimaryMuscle },
+  profile: Record<string, string>,
+  exerciseProgress: Record<string, ExerciseProgress>,
+  excludeNames: Set<string>,
+  isDeload: boolean = false,
+  weightModifier: number = 1,
+): Promise<WorkoutExercise[]> {
+  const keyword = movementPatternSearchKeyword[catalogMeta.movementPattern];
+  const params = new URLSearchParams({ search: keyword, limit: "25" });
+  const response = await fetch(`/api/exercise-catalog?${params.toString()}`);
+  if (!response.ok) return [];
+  const body = (await response.json()) as { exercises?: ExerciseTag[] };
+  const sex = profile.sex === "male" ? "male" : "female";
+  const alternatives = (body.exercises ?? []).filter(
+    (candidate) =>
+      candidate.primaryMuscle === catalogMeta.primaryMuscle &&
+      candidate.source.externalId !== catalogMeta.externalId &&
+      !excludeNames.has(candidate.name) &&
+      candidate.media[sex] !== null,
+  );
+  return alternatives
+    .slice(0, 5)
+    .map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress, isDeload, weightModifier));
+}
+
+async function createWorkoutFromCatalog(
+  profile: Record<string, string>,
+  exerciseProgress: Record<string, ExerciseProgress>,
+  workoutHistory: WorkoutHistoryEntry[],
+  coachAdjustment: CoachScenario | null,
+): Promise<{
+  exercises: WorkoutExercise[];
+  splitLabel: string;
+  splitDay: SplitDay;
+  isDeload: boolean;
+  weightModifier: number;
+} | null> {
+  const equipmentMap: Record<string, ProgramBuilderProfile["equipment"]> = {
+    gym: "gym",
+    "home-gym": "home-gym",
+    minimal: "minimal",
+    bodyweight: "bodyweight",
+  };
+  const limitationsMap: Record<string, ProgramBuilderProfile["limitations"]> = {
+    knee: "knee",
+    shoulder: "shoulder",
+    back: "back",
+    none: "none",
+    "coach-review": "coach-review",
+  };
+
+  const builderProfile: ProgramBuilderProfile = {
+    equipment: equipmentMap[profile.equipment ?? ""] ?? "minimal",
+    experience: (profile.experience as ProgramBuilderProfile["experience"]) ?? "beginner",
+    limitations: limitationsMap[profile.limitations ?? ""] ?? "none",
+    sex: profile.sex === "male" ? "male" : "female",
+  };
+
+  const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
+  const { day: splitDay, label: splitLabel } = determineSplitDay(reminderDays, recentSplitDaysFromHistory(workoutHistory));
+  const { isDeload } = getMesocycleWeek(workoutHistory);
+  const weightModifier = isDeload ? 1 : readinessWeightModifier(workoutHistory, coachAdjustment);
+
+  try {
+    const tags = await buildProgram(builderProfile, splitDay);
+    // Split templates range from 4 (push/pull) to 8 (full-body) slots -- judge
+    // "did this work" against a floor, not a fixed count meant for full-body.
+    if (tags.length < 4) {
+      console.error(`Catalog program only filled ${tags.length} slots for "${splitDay}" -- falling back to the built-in workout`);
+      return null;
+    }
+    return {
+      exercises: tags.map((tag) =>
+        catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress, isDeload, weightModifier),
+      ),
+      splitLabel,
+      splitDay,
+      isDeload,
+      weightModifier,
+    };
+  } catch (error) {
+    console.error("Catalog workout build failed -- falling back to the built-in workout", error);
+    return null;
+  }
+}
+
+function ExerciseStill({ frame }: { frame: ImageSourcePropType }) {
   return (
     <View style={StyleSheet.absoluteFill}>
       <Image source={frame} style={styles.exerciseFrameBackdrop} resizeMode="cover" />
@@ -3689,7 +4543,7 @@ function ExerciseStill({ frame }: { frame: number }) {
   );
 }
 
-function RealExerciseVideo({ source, poster }: { source: number; poster: number }) {
+function RealExerciseVideo({ source, poster }: { source: number | string; poster: ImageSourcePropType }) {
   const player = useVideoPlayer(source, (videoPlayer) => {
     videoPlayer.loop = true;
     videoPlayer.muted = true;
@@ -3720,7 +4574,7 @@ function RealExerciseVideo({ source, poster }: { source: number; poster: number 
   );
 }
 
-function PreloadExerciseVideo({ source }: { source: number }) {
+function PreloadExerciseVideo({ source }: { source: number | string }) {
   const player = useVideoPlayer(source, (videoPlayer) => {
     videoPlayer.muted = true;
   });
@@ -3744,21 +4598,13 @@ function PreloadExerciseVideo({ source }: { source: number }) {
 
 function ExerciseDemo({
   exerciseIndex,
-  paused,
   exercises,
 }: {
   exerciseIndex: number;
-  paused: boolean;
   exercises: WorkoutExercise[];
 }) {
-  const [phaseIndex, setPhaseIndex] = useState(0);
   const exercise = exercises[exerciseIndex] ?? exercises[0]!;
   const nextExercise = exercises[exerciseIndex + 1];
-
-  useEffect(() => {
-    const phaseTimer = setInterval(() => setPhaseIndex((value) => (value + 1) % 3), 1100);
-    return () => clearInterval(phaseTimer);
-  }, []);
 
   return (
     <View style={styles.demoStage}>
@@ -3779,16 +4625,16 @@ function ExerciseDemo({
         <View style={styles.formDot} />
         <Text style={styles.videoSourceText}>REAL FORM DEMO</Text>
       </View>
-      <View style={styles.tempoPanel}>
-        <Text style={styles.tempoLabel}>REP TEMPO</Text>
-        <Text style={styles.tempoValue}>{exercise.tempo}</Text>
-        <Text style={styles.phaseValue}>{paused ? "REST" : exercise.phases[phaseIndex]}</Text>
-      </View>
     </View>
   );
 }
 
 function ActiveWorkoutScreen({
+  exercises,
+  splitLabel,
+  splitDay,
+  isDeload,
+  weightModifier = 1,
   adjustment,
   onExit,
   onViewProgress,
@@ -3797,6 +4643,11 @@ function ActiveWorkoutScreen({
   onUpdateExerciseProgress,
   onCompleteWorkout,
 }: {
+  exercises: WorkoutExercise[];
+  splitLabel?: string | null;
+  splitDay?: SplitDay | null;
+  isDeload?: boolean;
+  weightModifier?: number;
   adjustment?: CoachScenario | null;
   onExit: () => void;
   onViewProgress: () => void;
@@ -3806,9 +4657,10 @@ function ActiveWorkoutScreen({
   onCompleteWorkout: (entry: WorkoutHistoryEntry) => void;
 }) {
   const { height } = useWindowDimensions();
-  const baseExercises = createWorkout(profile, exerciseProgress);
+  const [exerciseList, setExerciseList] = useState<WorkoutExercise[]>(exercises);
+  const baseExercises = exerciseList;
   const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
-  const targetSetCount = setCountForProfile(profile, adjustment);
+  const targetSetCount = setCountForProfile(profile, adjustment, isDeload);
   const scrollRef = useRef<ScrollView>(null);
 
   const [exerciseIndex, setExerciseIndex] = useState(0);
@@ -3817,13 +4669,30 @@ function ActiveWorkoutScreen({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [workoutComplete, setWorkoutComplete] = useState(false);
   const [exerciseInfoOpen, setExerciseInfoOpen] = useState(false);
+  const [swapState, setSwapState] = useState<"closed" | "loading" | { options: WorkoutExercise[] }>("closed");
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
   const isBodyweight = exercise.weight === "Bodyweight";
+  const isHold = isHoldExercise(exercise);
   const currentWeightKg = isBodyweight ? null : parseInt(exercise.weight, 10);
   const currentReps = parseInt(exercise.reps, 10);
-  const exerciseVisualHeight = Math.min(170, Math.max(130, height * 0.18));
-  const workoutTitle =
-    profile.sex === "female"
+  // The video fills whatever's left after the real (measured) height of
+  // everything else on screen -- header, optional deload/rest banners, set
+  // rows, adjust panel, next-exercise button. A hand-counted pixel budget
+  // here previously fit the browser preview's math but still needed
+  // scrolling on a real phone (different font metrics, safe-area insets,
+  // etc.), so instead of guessing constants we measure the actual rendered
+  // height of the sheet below via onLayout and size the video against that,
+  // which self-corrects for any screen size or content change (rest timer
+  // showing, deload banner, set count, next-exercise button appearing).
+  const [sheetHeight, setSheetHeight] = useState(0);
+  const [deloadBannerHeight, setDeloadBannerHeight] = useState(0);
+  const exerciseVisualHeight = Math.min(
+    340,
+    Math.max(130, height - 58 - deloadBannerHeight - (sheetHeight || 460) - 18),
+  );
+  const workoutTitle = splitLabel
+    ? splitLabel.toUpperCase()
+    : profile.sex === "female"
       ? "WOMEN’S STRENGTH FOUNDATION"
       : profile.sex === "male"
         ? "MEN’S STRENGTH FOUNDATION"
@@ -3836,17 +4705,18 @@ function ActiveWorkoutScreen({
   }, [workoutComplete]);
 
   useEffect(() => {
-    if (restSeconds <= 0) return;
+    if (restSeconds <= 0 || exerciseInfoOpen) return;
     const timer = setInterval(() => setRestSeconds((value) => Math.max(0, value - 1)), 1000);
     return () => clearInterval(timer);
-  }, [restSeconds]);
+  }, [restSeconds, exerciseInfoOpen]);
 
   const finishSet = (index: number) => {
     const wasDone = completedSets[index];
-    const doneAfter = completedSets.filter(Boolean).length + (wasDone ? -1 : 1);
     setCompletedSets((current) => current.map((value, setIndex) => (setIndex === index ? !value : value)));
+    // Rest after every set, including the last one -- when it runs out, an
+    // effect below moves on to the next exercise automatically.
     if (!wasDone) {
-      setRestSeconds(doneAfter >= targetSetCount ? 0 : adjustment === "tired" ? 90 : 60);
+      setRestSeconds(restSecondsForProfile(profile, adjustment));
     }
   };
 
@@ -3854,17 +4724,45 @@ function ActiveWorkoutScreen({
     onUpdateExerciseProgress(exercise.name, { weightKg: nextWeightKg, reps: nextReps });
   };
 
+  const openSwap = async () => {
+    if (!exercise.catalogMeta) return;
+    setSwapState("loading");
+    const excludeNames = new Set(baseExercises.map((item) => item.name));
+    const options = await fetchAlternativeExercises(
+      exercise.catalogMeta,
+      profile,
+      exerciseProgress,
+      excludeNames,
+      isDeload,
+      weightModifier,
+    );
+    setSwapState({ options });
+  };
+
+  const applySwap = (replacement: WorkoutExercise) => {
+    setExerciseList((current) =>
+      current.map((item, index) => (index === exerciseIndex ? replacement : item)),
+    );
+    setSwapState("closed");
+  };
+
   // Called when leaving an exercise (moving on, or finishing the workout on
   // the last one). Double progression: add a rep each session until a small
   // ceiling above the profile's base reps, then reset reps and add weight.
+  // Progresses from what was actually logged this session (exerciseProgress,
+  // already updated live by the kg/reps picker below) rather than the
+  // exercise's original planned target -- otherwise a real mid-set adjustment
+  // (e.g. going heavier for fewer reps) would just get overwritten here with
+  // a number derived from the plan instead of from what really happened.
   const commitExerciseProgress = (finishedExercise: WorkoutExercise) => {
-    const reps = parseInt(finishedExercise.reps, 10);
+    const logged = exerciseProgress[finishedExercise.name];
+    const reps = logged ? logged.reps : parseInt(finishedExercise.reps, 10);
     if (!Number.isFinite(reps)) return;
     if (finishedExercise.weight === "Bodyweight") {
       onUpdateExerciseProgress(finishedExercise.name, { weightKg: 0, reps: reps + 1 });
       return;
     }
-    const weightKg = parseInt(finishedExercise.weight, 10);
+    const weightKg = logged ? logged.weightKg : parseInt(finishedExercise.weight, 10);
     if (!Number.isFinite(weightKg)) return;
     const baseReps = baseRepsForProfile(profile);
     const repCeiling = baseReps + 2;
@@ -3905,10 +4803,23 @@ function ActiveWorkoutScreen({
         reps: parseInt(item.reps, 10),
         sets: targetSetCount,
       })),
+      ...(splitDay ? { splitDay } : {}),
     });
   };
 
   const completedCount = completedSets.filter(Boolean).length;
+
+  useEffect(() => {
+    if (restSeconds !== 0 || completedCount < targetSetCount || workoutComplete) return;
+    if (exerciseIndex === personalizedExercises.length - 1) {
+      finishWorkout();
+    } else {
+      nextExercise();
+    }
+    // Only react to the rest countdown reaching zero.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restSeconds]);
+
   const nextSetIndex = completedSets.findIndex((done) => !done);
   const workoutProgress = (exerciseIndex + completedCount / targetSetCount) / personalizedExercises.length;
   const elapsedLabel = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(
@@ -4095,6 +5006,22 @@ function ActiveWorkoutScreen({
         <View style={styles.workoutElapsed}><Text style={styles.workoutElapsedText}>{elapsedLabel}</Text></View>
       </View>
 
+      {isDeload ? (
+        <View
+          style={styles.deloadBanner}
+          onLayout={(event) => setDeloadBannerHeight(event.nativeEvent.layout.height)}
+        >
+          <Text style={styles.deloadBannerText}>DELOAD WEEK · LIGHTER LOAD, SAME EFFORT</Text>
+        </View>
+      ) : weightModifier < 1 ? (
+        <View
+          style={styles.deloadBanner}
+          onLayout={(event) => setDeloadBannerHeight(event.nativeEvent.layout.height)}
+        >
+          <Text style={styles.deloadBannerText}>LIGHTER LOAD TODAY · STILL RECOVERING</Text>
+        </View>
+      ) : null}
+
       <ScrollView
         ref={scrollRef}
         style={styles.activeWorkoutScroll}
@@ -4104,32 +5031,43 @@ function ActiveWorkoutScreen({
       <View style={[styles.exerciseVisual, { height: exerciseVisualHeight }]}>
         <View style={styles.exerciseGlow} />
         <Text style={styles.exerciseNumber}>0{exerciseIndex + 1}</Text>
-        <ExerciseDemo
-          key={exerciseIndex}
-          exerciseIndex={exerciseIndex}
-          paused={restSeconds > 0}
-          exercises={personalizedExercises}
-        />
+        <ExerciseDemo key={exerciseIndex} exerciseIndex={exerciseIndex} exercises={personalizedExercises} />
         <View style={styles.formBadge}>
           <View style={styles.formDot} />
           <Text style={styles.formBadgeText}>{remainingLabel} REMAINING</Text>
         </View>
       </View>
 
-      <View style={styles.exerciseSheet}>
+      <View
+        style={styles.exerciseSheet}
+        onLayout={(event) => setSheetHeight(event.nativeEvent.layout.height)}
+      >
         <View style={styles.exerciseHeadingRow}>
           <View>
             <Text style={styles.exerciseStep}>EXERCISE {exerciseIndex + 1} OF {personalizedExercises.length}</Text>
             <Text style={styles.exerciseName}>{exercise.name}</Text>
             <Text style={styles.exerciseTarget}>{exercise.target}</Text>
           </View>
+        </View>
+
+        <View style={styles.exerciseActionRow}>
+          {exercise.catalogMeta ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Swap ${exercise.name} for a similar exercise`}
+              onPress={openSwap}
+              style={styles.exerciseActionPill}
+            >
+              <Text style={styles.exerciseActionPillText}>SWAP EXERCISE</Text>
+            </Pressable>
+          ) : null}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Exercise guidance for ${exercise.name}`}
             onPress={() => setExerciseInfoOpen(true)}
-            style={styles.exerciseInfo}
+            style={styles.exerciseActionPill}
           >
-            <Text style={styles.exerciseInfoText}>i</Text>
+            <Text style={styles.exerciseActionPillText}>COACH TIPS</Text>
           </Pressable>
         </View>
 
@@ -4137,16 +5075,48 @@ function ActiveWorkoutScreen({
           <View style={styles.restBanner}>
             <View>
               <Text style={styles.restLabel}>REST TIMER</Text>
-              <Text style={styles.restHint}>Breathe. Your next set is ready.</Text>
+              <Text style={styles.restHint}>
+                {completedCount >= targetSetCount
+                  ? exerciseIndex === personalizedExercises.length - 1
+                    ? "Breathe. Finishing up next."
+                    : "Breathe. Next exercise starts after this."
+                  : "Breathe. Your next set is ready."}
+              </Text>
             </View>
-            <Text style={styles.restValue}>0:{String(restSeconds).padStart(2, "0")}</Text>
+            <View style={styles.restAdjustRow}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Subtract 15 seconds"
+                onPress={() => setRestSeconds((value) => Math.max(0, value - 15))}
+                style={styles.restAdjustButton}
+              >
+                <Text style={styles.restAdjustButtonText}>−15</Text>
+              </Pressable>
+              <Text style={styles.restValue}>0:{String(restSeconds).padStart(2, "0")}</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Add 15 seconds"
+                onPress={() => setRestSeconds((value) => value + 15)}
+                style={styles.restAdjustButton}
+              >
+                <Text style={styles.restAdjustButtonText}>+15</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Skip rest"
+                onPress={() => setRestSeconds(0)}
+                style={styles.restSkipButton}
+              >
+                <Text style={styles.restSkipButtonText}>SKIP</Text>
+              </Pressable>
+            </View>
           </View>
         ) : null}
 
         <View style={styles.setTableHeader}>
           <Text style={[styles.setHeaderText, styles.setColumn]}>SET</Text>
           <Text style={[styles.setHeaderText, styles.weightColumn]}>WEIGHT</Text>
-          <Text style={[styles.setHeaderText, styles.repsColumn]}>REPS</Text>
+          <Text style={[styles.setHeaderText, styles.repsColumn]}>{isHold ? "SEC" : "REPS"}</Text>
           <View style={styles.doneColumn} />
         </View>
 
@@ -4157,7 +5127,9 @@ function ActiveWorkoutScreen({
               <Text style={[styles.setValue, styles.weightColumn, done && styles.setTextDone]}>
                 {isBodyweight ? "Bodyweight" : `${currentWeightKg} kg`}
               </Text>
-              <Text style={[styles.setValue, styles.repsColumn, done && styles.setTextDone]}>{exercise.reps}</Text>
+              <Text style={[styles.setValue, styles.repsColumn, done && styles.setTextDone]}>
+                {isHold ? `${exercise.reps}s` : exercise.reps}
+              </Text>
               <View
                 accessibilityRole="text"
                 accessibilityLabel={done ? `Set ${index + 1} done` : `Set ${index + 1} not done yet`}
@@ -4170,43 +5142,51 @@ function ActiveWorkoutScreen({
         </View>
 
         <View style={styles.adjustPanel}>
-          <Text style={styles.adjustPanelLabel}>
-            {isBodyweight ? "HOW MANY REPS DID YOU DO" : "HOW MANY KG & REPS DID YOU DO"}
-          </Text>
-          <View style={styles.adjustPanelPickers}>
-            {!isBodyweight ? (
-              <View style={styles.adjustPanelSlot}>
-                <Text style={styles.adjustPanelColumnLabel}>WEIGHT</Text>
-                <NumberWheelPicker
-                  key={`${exercise.name}-weight`}
-                  itemHeight={26}
-                  visibleItems={3}
-                  fontSize={16}
-                  min={2}
-                  max={100}
-                  step={1}
-                  unit="kg"
-                  value={currentWeightKg ?? 20}
-                  onChange={(next) => saveExerciseAdjustment(next, currentReps)}
-                />
+          {completedCount < targetSetCount ? (
+            <>
+              <Text style={styles.adjustPanelLabel}>
+                {isHold
+                  ? "HOW MANY SECONDS DID YOU HOLD"
+                  : isBodyweight
+                    ? "HOW MANY REPS DID YOU DO"
+                    : "HOW MANY KG & REPS DID YOU DO"}
+              </Text>
+              <View style={styles.adjustPanelPickers}>
+                {!isBodyweight ? (
+                  <View style={styles.adjustPanelSlot}>
+                    <Text style={styles.adjustPanelColumnLabel}>WEIGHT</Text>
+                    <NumberWheelPicker
+                      key={`${exercise.name}-weight`}
+                      itemHeight={26}
+                      visibleItems={3}
+                      fontSize={16}
+                      min={2}
+                      max={100}
+                      step={1}
+                      unit="kg"
+                      value={currentWeightKg ?? 20}
+                      onChange={(next) => saveExerciseAdjustment(next, currentReps)}
+                    />
+                  </View>
+                ) : null}
+                <View style={styles.adjustPanelSlot}>
+                  <Text style={styles.adjustPanelColumnLabel}>{isHold ? "SEC" : "REPS"}</Text>
+                  <NumberWheelPicker
+                    key={`${exercise.name}-reps`}
+                    itemHeight={26}
+                    visibleItems={3}
+                    fontSize={16}
+                    min={isHold ? 5 : 1}
+                    max={isHold ? 120 : 30}
+                    step={isHold ? 5 : 1}
+                    unit={isHold ? "s" : ""}
+                    value={currentReps}
+                    onChange={(next) => saveExerciseAdjustment(isBodyweight ? 0 : currentWeightKg ?? 20, next)}
+                  />
+                </View>
               </View>
-            ) : null}
-            <View style={styles.adjustPanelSlot}>
-              <Text style={styles.adjustPanelColumnLabel}>REPS</Text>
-              <NumberWheelPicker
-                key={`${exercise.name}-reps`}
-                itemHeight={26}
-                visibleItems={3}
-                fontSize={16}
-                min={1}
-                max={30}
-                step={1}
-                unit=""
-                value={currentReps}
-                onChange={(next) => saveExerciseAdjustment(isBodyweight ? 0 : currentWeightKg ?? 20, next)}
-              />
-            </View>
-          </View>
+            </>
+          ) : null}
           <View style={styles.adjustPanelMarkRow}>
             <Text style={styles.adjustPanelMarkText}>
               {completedCount === 0
@@ -4266,7 +5246,7 @@ function ActiveWorkoutScreen({
             <View style={styles.exerciseInfoHandle} />
             <View style={styles.exerciseInfoPanelHeader}>
               <View style={styles.exerciseInfoPanelTitleWrap}>
-                <Text style={styles.exerciseInfoPanelEyebrow}>FORM GUIDE</Text>
+                <Text style={styles.exerciseInfoPanelEyebrow}>COACH TIPS</Text>
                 <Text style={styles.exerciseInfoPanelTitle}>{exercise.name}</Text>
                 <Text style={styles.exerciseInfoPanelTempo}>Tempo {exercise.tempo}</Text>
               </View>
@@ -4298,6 +5278,57 @@ function ActiveWorkoutScreen({
             <Pressable onPress={() => setExerciseInfoOpen(false)} style={styles.exerciseInfoDone}>
               <Text style={styles.exerciseInfoDoneText}>GOT IT</Text>
             </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        transparent
+        animationType="slide"
+        visible={swapState !== "closed"}
+        statusBarTranslucent
+        onRequestClose={() => setSwapState("closed")}
+      >
+        <Pressable style={styles.exerciseInfoBackdrop} onPress={() => setSwapState("closed")}>
+          <Pressable style={styles.exerciseInfoPanel} onPress={(event) => event.stopPropagation()}>
+            <View style={styles.exerciseInfoHandle} />
+            <View style={styles.exerciseInfoPanelHeader}>
+              <View style={styles.exerciseInfoPanelTitleWrap}>
+                <Text style={styles.exerciseInfoPanelEyebrow}>SWAP EXERCISE</Text>
+                <Text style={styles.exerciseInfoPanelTitle}>Same muscle, different move</Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close swap exercise"
+                onPress={() => setSwapState("closed")}
+                style={styles.exerciseInfoClose}
+              >
+                <Text style={styles.exerciseInfoCloseText}>×</Text>
+              </Pressable>
+            </View>
+
+            {swapState === "closed" ? null : swapState === "loading" ? (
+              <Text style={styles.swapLoadingText}>Finding alternatives…</Text>
+            ) : swapState.options.length === 0 ? (
+              <Text style={styles.swapLoadingText}>No alternatives found for this exercise right now.</Text>
+            ) : (
+              swapState.options.map((option) => (
+                <Pressable
+                  key={option.name}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Swap in ${option.name}`}
+                  onPress={() => applySwap(option)}
+                  style={({ pressed }) => [styles.swapOptionRow, pressed && { opacity: 0.8 }]}
+                >
+                  <Image source={option.formFrames[0]} style={styles.swapOptionThumb} resizeMode="cover" />
+                  <View style={styles.swapOptionCopy}>
+                    <Text style={styles.swapOptionName}>{option.name}</Text>
+                    <Text style={styles.swapOptionTarget}>{option.target}</Text>
+                  </View>
+                  <Text style={styles.cardChevron}>›</Text>
+                </Pressable>
+              ))
+            )}
           </Pressable>
         </Pressable>
       </Modal>
@@ -4433,22 +5464,11 @@ function ProgressScreen({
             </Text>
           </View>
         </View>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Back to dashboard"
-          onPress={onDashboard}
-          style={styles.progressButton}
-        >
-          <Text style={styles.progressButtonText}>BACK TO DASHBOARD</Text>
-          <Text style={styles.progressButtonArrow}>→</Text>
-        </Pressable>
       </ScrollView>
 
       <BottomNav
         active="progress"
         onHome={onDashboard}
-        onWorkout={onStartWorkout}
         onNutrition={onOpenNutrition}
         onProgress={() => {}}
         onCoach={onOpenCoach}
@@ -4463,9 +5483,11 @@ function isMediumPassword(password: string): boolean {
 
 function AuthScreen({
   onBack,
+  onSuccess,
   initialMode = "signup",
 }: {
   onBack: () => void;
+  onSuccess: () => void;
   initialMode?: "signup" | "login";
 }) {
   const [mode, setMode] = useState<"signup" | "login" | "forgot">(initialMode);
@@ -4508,7 +5530,7 @@ function AuthScreen({
           ? await supabase.auth.signUp({ email: trimmedEmail, password })
           : await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
       if (authError) throw new Error(authError.message);
-      onBack();
+      onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -4553,7 +5575,7 @@ function AuthScreen({
         <View style={styles.nutritionIntro}>
           <Text style={styles.nutritionEyebrow}>SAVE YOUR PROGRESS</Text>
           <Text style={styles.nutritionTitle}>
-            {mode === "signup" ? "Create a free account." : mode === "login" ? "Log back in." : "Forgot password."}
+            {mode === "signup" ? "Create an account." : mode === "login" ? "Log back in." : "Forgot password."}
           </Text>
           <Text style={styles.nutritionSubtitle}>
             {mode === "forgot"
@@ -4787,6 +5809,7 @@ export default function App() {
   );
   const [profile, setProfile] = useState<Record<string, string>>({});
   const [coachAdjustment, setCoachAdjustment] = useState<CoachScenario | null>(null);
+  const [coachMessages, setCoachMessages] = useState<CoachMessage[]>([]);
   const [selectedLibraryRecipeId, setSelectedLibraryRecipeId] = useState<string | null>(null);
   const [hasLoadedTestState, setHasLoadedTestState] = useState(false);
   const [nutritionTotals, setNutritionTotals] = useState<NutritionTotals>({
@@ -4800,10 +5823,57 @@ export default function App() {
   const [dietPlan, setDietPlan] = useState<SavedDietPlan | null>(null);
   const [session, setSession] = useState<{ email: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [trialStartedAt, setTrialStartedAt] = useState<string | null>(null);
   const [authInitialMode, setAuthInitialMode] = useState<"signup" | "login">("signup");
+  const [authOrigin, setAuthOrigin] = useState<"welcome" | "dashboard">("dashboard");
+  const [activeWorkoutExercises, setActiveWorkoutExercises] = useState<WorkoutExercise[] | null>(null);
+  const [activeWorkoutSplitLabel, setActiveWorkoutSplitLabel] = useState<string | null>(null);
+  const [activeWorkoutSplitDay, setActiveWorkoutSplitDay] = useState<SplitDay | null>(null);
+  const [activeWorkoutIsDeload, setActiveWorkoutIsDeload] = useState(false);
+  const [activeWorkoutWeightModifier, setActiveWorkoutWeightModifier] = useState(1);
+  const [workoutLoading, setWorkoutLoading] = useState(false);
+  const [tooSoonWarningOpen, setTooSoonWarningOpen] = useState(false);
 
-  const stateRef = useRef({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory, dietPlan });
-  stateRef.current = { profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory, dietPlan };
+  const startWorkout = async () => {
+    const hoursSince = hoursSinceLastWorkout(workoutHistory);
+    if (hoursSince !== null && hoursSince < 8) {
+      setTooSoonWarningOpen(true);
+      return;
+    }
+    await beginWorkout();
+  };
+
+  const beginWorkout = async () => {
+    setTooSoonWarningOpen(false);
+    setWorkoutLoading(true);
+    const result = await createWorkoutFromCatalog(profile, exerciseProgress, workoutHistory, coachAdjustment);
+    setActiveWorkoutExercises(result?.exercises ?? null);
+    setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
+    setActiveWorkoutSplitDay(result?.splitDay ?? null);
+    setActiveWorkoutIsDeload(result?.isDeload ?? false);
+    setActiveWorkoutWeightModifier(result?.weightModifier ?? 1);
+    setWorkoutLoading(false);
+    setScreen("workout");
+  };
+
+  const stateRef = useRef({
+    profile,
+    nutritionTotals,
+    coachAdjustment,
+    coachMessages,
+    exerciseProgress,
+    workoutHistory,
+    dietPlan,
+  });
+  stateRef.current = {
+    profile,
+    nutritionTotals,
+    coachAdjustment,
+    coachMessages,
+    exerciseProgress,
+    workoutHistory,
+    dietPlan,
+  };
 
   useEffect(() => {
     if (Platform.OS !== "web" || !isSupabaseConfigured) {
@@ -4827,6 +5897,7 @@ export default function App() {
             profile?: Record<string, string>;
             nutritionTotals?: NutritionTotals;
             coachAdjustment?: CoachScenario | null;
+            coachMessages?: CoachMessage[];
             exerciseProgress?: Record<string, ExerciseProgress>;
             workoutHistory?: WorkoutHistoryEntry[];
             dietPlan?: SavedDietPlan | null;
@@ -4835,6 +5906,7 @@ export default function App() {
             setProfile(parsed.profile);
             setNutritionTotals(parsed.nutritionTotals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 });
             setCoachAdjustment(parsed.coachAdjustment ?? null);
+            setCoachMessages(parsed.coachMessages ?? []);
             setExerciseProgress(parsed.exerciseProgress ?? {});
             setWorkoutHistory(parsed.workoutHistory ?? []);
             setDietPlan(parsed.dietPlan ?? null);
@@ -4850,34 +5922,39 @@ export default function App() {
       try {
         const { data } = await supabase
           .from("user_data")
-          .select("profile, nutrition_totals, coach_adjustment, exercise_progress, workout_history, diet_plan")
+          .select(
+            "profile, nutrition_totals, coach_adjustment, coach_messages, exercise_progress, workout_history, diet_plan, trial_started_at",
+          )
           .eq("user_id", id)
           .maybeSingle();
         const remoteProfile = (data?.profile ?? {}) as Record<string, string>;
+        setTrialStartedAt((data?.trial_started_at as string | undefined) ?? null);
         if (Object.keys(remoteProfile).length > 0) {
           setProfile(remoteProfile);
           setNutritionTotals(
             (data?.nutrition_totals as NutritionTotals) ?? { calories: 0, protein: 0, carbs: 0, fat: 0 },
           );
           setCoachAdjustment((data?.coach_adjustment as CoachScenario | null) ?? null);
+          setCoachMessages((data?.coach_messages as CoachMessage[]) ?? []);
           setExerciseProgress((data?.exercise_progress as Record<string, ExerciseProgress>) ?? {});
           setWorkoutHistory((data?.workout_history as WorkoutHistoryEntry[]) ?? []);
           setDietPlan((data?.diet_plan as SavedDietPlan | null) ?? null);
           setScreen("dashboard");
         } else if (Object.keys(stateRef.current.profile).length > 0) {
           // Fresh account with no saved data yet: migrate whatever local/guest
-          // progress already existed into it.
-          await supabase
-            .from("user_data")
-            .update({
-              profile: stateRef.current.profile,
-              nutrition_totals: stateRef.current.nutritionTotals,
-              coach_adjustment: stateRef.current.coachAdjustment,
-              exercise_progress: stateRef.current.exerciseProgress,
-              workout_history: stateRef.current.workoutHistory,
-              diet_plan: stateRef.current.dietPlan,
-            })
-            .eq("user_id", id);
+          // progress already existed into it. Upsert (not update) so this still
+          // works even if the on-signup trigger hasn't created the row yet.
+          const { error: migrateError } = await supabase.from("user_data").upsert({
+            user_id: id,
+            profile: stateRef.current.profile,
+            nutrition_totals: stateRef.current.nutritionTotals,
+            coach_adjustment: stateRef.current.coachAdjustment,
+            coach_messages: stateRef.current.coachMessages,
+            exercise_progress: stateRef.current.exerciseProgress,
+            workout_history: stateRef.current.workoutHistory,
+            diet_plan: stateRef.current.dietPlan,
+          });
+          if (migrateError) console.error("Failed to migrate guest progress to account", migrateError);
         }
         if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
         setUserId(id);
@@ -4896,6 +5973,7 @@ export default function App() {
       if (event === "SIGNED_OUT") {
         setSession(null);
         setUserId(null);
+        setTrialStartedAt(null);
         finishInitialLoad();
         return;
       }
@@ -4924,10 +6002,19 @@ export default function App() {
     if (!hasLoadedTestState || Platform.OS !== "web" || session || Object.keys(profile).length === 0) return;
     window.localStorage.setItem(
       "project-g-test-state",
-      JSON.stringify({ profile, nutritionTotals, coachAdjustment, exerciseProgress, workoutHistory, dietPlan }),
+      JSON.stringify({
+        profile,
+        nutritionTotals,
+        coachAdjustment,
+        coachMessages,
+        exerciseProgress,
+        workoutHistory,
+        dietPlan,
+      }),
     );
   }, [
     coachAdjustment,
+    coachMessages,
     dietPlan,
     exerciseProgress,
     hasLoadedTestState,
@@ -4942,32 +6029,32 @@ export default function App() {
     let cancelled = false;
     void (async () => {
       if (cancelled) return;
-      await supabase
-        .from("user_data")
-        .update({
-          profile,
-          nutrition_totals: nutritionTotals,
-          coach_adjustment: coachAdjustment,
-          exercise_progress: exerciseProgress,
-          workout_history: workoutHistory,
-          diet_plan: dietPlan,
-        })
-        .eq("user_id", userId);
+      const { error } = await supabase.from("user_data").upsert({
+        user_id: userId,
+        profile,
+        nutrition_totals: nutritionTotals,
+        coach_adjustment: coachAdjustment,
+        coach_messages: coachMessages,
+        exercise_progress: exerciseProgress,
+        workout_history: workoutHistory,
+        diet_plan: dietPlan,
+      });
+      if (error) console.error("Failed to sync progress to account", error);
     })();
     return () => {
       cancelled = true;
     };
-  }, [coachAdjustment, dietPlan, exerciseProgress, hasLoadedTestState, nutritionTotals, profile, userId, workoutHistory]);
-
-  const resetTestProfile = () => {
-    if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
-    setProfile({});
-    setCoachAdjustment(null);
-    setNutritionTotals({ calories: 0, protein: 0, carbs: 0, fat: 0 });
-    setExerciseProgress({});
-    setDietPlan(null);
-    setScreen("welcome");
-  };
+  }, [
+    coachAdjustment,
+    coachMessages,
+    dietPlan,
+    exerciseProgress,
+    hasLoadedTestState,
+    nutritionTotals,
+    profile,
+    userId,
+    workoutHistory,
+  ]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -4978,13 +6065,34 @@ export default function App() {
 
   if (!hasLoadedTestState) return <View style={styles.app} />;
 
+  if (workoutLoading) {
+    return (
+      <View style={[styles.app, styles.workoutLoadingScreen]}>
+        <Text style={styles.workoutLoadingText}>Building your workout…</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.app}>
       {Platform.OS === "android" ? <StatusBar backgroundColor={colors.background} /> : null}
       <ExpoStatusBar style="light" />
       <View style={styles.mobileViewport}>
         {screen === "splash" && <SplashScreen onComplete={() => setScreen("welcome")} />}
-        {screen === "welcome" && <WelcomeScreen onStart={() => setScreen("interview")} />}
+        {screen === "welcome" && (
+          <WelcomeScreen
+            onSignIn={() => {
+              setAuthInitialMode("login");
+              setAuthOrigin("welcome");
+              setScreen("auth");
+            }}
+            onCreateAccount={() => {
+              setAuthInitialMode("signup");
+              setAuthOrigin("welcome");
+              setScreen("auth");
+            }}
+          />
+        )}
         {screen === "interview" && (
           <InterviewScreen
             onBack={() => setScreen("welcome")}
@@ -4992,8 +6100,16 @@ export default function App() {
               setProfile(answers);
               setScreen("dashboard");
             }}
-            onStartWorkout={(answers) => {
+            onStartWorkout={async (answers) => {
               setProfile(answers);
+              setWorkoutLoading(true);
+              const result = await createWorkoutFromCatalog(answers, exerciseProgress, workoutHistory, coachAdjustment);
+              setActiveWorkoutExercises(result?.exercises ?? null);
+              setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
+              setActiveWorkoutSplitDay(result?.splitDay ?? null);
+              setActiveWorkoutIsDeload(result?.isDeload ?? false);
+              setActiveWorkoutWeightModifier(result?.weightModifier ?? 1);
+              setWorkoutLoading(false);
               setScreen("workout");
             }}
           />
@@ -5002,32 +6118,44 @@ export default function App() {
           <DashboardScreen
             profile={profile}
             nutritionTotals={nutritionTotals}
-            onStartWorkout={() => setScreen("workout")}
+            workoutHistory={workoutHistory}
+            onStartWorkout={startWorkout}
             onOpenCoach={() => setScreen("coach")}
             onOpenNutrition={() => setScreen("nutrition")}
             onOpenProgress={() => setScreen("progress")}
-            onResetTestProfile={resetTestProfile}
-            onOpenEditProfile={() => setScreen("editProfile")}
             session={session}
             onOpenAccount={(mode) => {
               setAuthInitialMode(mode);
+              setAuthOrigin("dashboard");
               setScreen("auth");
             }}
             onLogout={handleLogout}
+            onOpenProfile={() => setScreen("profile")}
+            trialDaysLeft={trialDaysRemaining(trialStartedAt)}
           />
         )}
-        {screen === "editProfile" && (
-          <EditProfileScreen
+        {screen === "profile" && (
+          <ProfileScreen
             profile={profile}
+            onUpdateProfile={(id, value) => setProfile((current) => ({ ...current, [id]: value }))}
             onBack={() => setScreen("dashboard")}
-            onSave={(next) => {
-              setProfile(next);
-              setScreen("dashboard");
+            session={session}
+            onOpenAccount={(mode) => {
+              setAuthInitialMode(mode);
+              setAuthOrigin("dashboard");
+              setScreen("auth");
             }}
+            onLogout={handleLogout}
+            trialDaysLeft={trialDaysRemaining(trialStartedAt)}
+            trialEndsAtLabel={trialEndDateLabel(trialStartedAt)}
           />
         )}
         {screen === "auth" && (
-          <AuthScreen initialMode={authInitialMode} onBack={() => setScreen("dashboard")} />
+          <AuthScreen
+            initialMode={authInitialMode}
+            onBack={() => setScreen(authOrigin)}
+            onSuccess={() => setScreen(authOrigin === "welcome" ? "interview" : "dashboard")}
+          />
         )}
         {screen === "resetPassword" && (
           <ResetPasswordScreen
@@ -5041,11 +6169,12 @@ export default function App() {
           <NutritionScreen
             profile={profile}
             nutritionTotals={nutritionTotals}
+            onUpdateProfile={(id, value) => setProfile((current) => ({ ...current, [id]: value }))}
             onBack={() => setScreen("dashboard")}
             onOpenRecipes={() => setScreen("recipes")}
             onOpenRecipeLibrary={() => setScreen("recipeLibrary")}
             onOpenDietPlan={() => setScreen("dietPlan")}
-            onStartWorkout={() => setScreen("workout")}
+            onStartWorkout={startWorkout}
             onOpenProgress={() => setScreen("progress")}
             onOpenCoach={() => setScreen("coach")}
             onSave={(meal) =>
@@ -5093,14 +6222,21 @@ export default function App() {
             profile={profile}
             workoutHistory={workoutHistory}
             exerciseProgress={exerciseProgress}
+            messages={coachMessages}
+            onMessagesChange={setCoachMessages}
             onBack={() => setScreen("dashboard")}
             onApply={setCoachAdjustment}
-            onStartWorkout={() => setScreen("workout")}
+            onStartWorkout={startWorkout}
             onOpenDietPlan={() => setScreen("dietPlan")}
           />
         )}
         {screen === "workout" && (
           <ActiveWorkoutScreen
+            exercises={activeWorkoutExercises ?? createWorkout(profile, exerciseProgress)}
+            splitLabel={activeWorkoutSplitLabel}
+            splitDay={activeWorkoutSplitDay}
+            isDeload={activeWorkoutIsDeload}
+            weightModifier={activeWorkoutWeightModifier}
             adjustment={coachAdjustment}
             profile={profile}
             exerciseProgress={exerciseProgress}
@@ -5117,12 +6253,40 @@ export default function App() {
             profile={profile}
             workoutHistory={workoutHistory}
             onDashboard={() => setScreen("dashboard")}
-            onStartWorkout={() => setScreen("workout")}
+            onStartWorkout={startWorkout}
             onOpenNutrition={() => setScreen("nutrition")}
             onOpenCoach={() => setScreen("coach")}
           />
         )}
       </View>
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={tooSoonWarningOpen}
+        statusBarTranslucent
+        onRequestClose={() => setTooSoonWarningOpen(false)}
+      >
+        <Pressable style={styles.exerciseInfoBackdrop} onPress={() => setTooSoonWarningOpen(false)}>
+          <Pressable style={styles.tooSoonCard} onPress={(event) => event.stopPropagation()}>
+            <Text style={styles.tooSoonTitle}>Already trained today?</Text>
+            <Text style={styles.tooSoonBody}>
+              You logged a workout less than 8 hours ago. Your body needs time to recover — start another session
+              anyway?
+            </Text>
+            <Pressable onPress={beginWorkout} style={styles.exerciseInfoDone}>
+              <Text style={styles.exerciseInfoDoneText}>START ANYWAY</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cancel"
+              onPress={() => setTooSoonWarningOpen(false)}
+            >
+              <Text style={styles.mismatchBackText}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -5132,6 +6296,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "#020302",
+  },
+  workoutLoadingScreen: {
+    justifyContent: "center",
+  },
+  workoutLoadingText: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: "600",
   },
   mobileViewport: {
     flex: 1,
@@ -5294,6 +6466,15 @@ const styles = StyleSheet.create({
   startButtonText: { color: colors.ink, fontSize: 13, fontWeight: "900", letterSpacing: 1.35 },
   startArrow: { color: colors.ink, fontSize: 23, fontWeight: "500" },
   disclaimer: { color: "#7D827A", fontSize: 10, textAlign: "center", marginTop: 10 },
+  welcomeAuthRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 16,
+  },
+  welcomeAuthLabel: { color: "#7D827A", fontSize: 12, fontWeight: "600" },
+  welcomeAuthLinkText: { color: colors.text, fontSize: 12, fontWeight: "700" },
   preview: { flex: 1, backgroundColor: colors.background },
   interviewHeader: {
     flexDirection: "row",
@@ -5345,6 +6526,19 @@ const styles = StyleSheet.create({
   },
   previewBody: { color: colors.muted, fontSize: 14, lineHeight: 21, marginTop: 14, maxWidth: 480 },
   answerList: { marginTop: 24, gap: 10 },
+  scheduleDaysRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 14 },
+  scheduleDayChip: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#353A34",
+  },
+  scheduleDayChipSelected: { backgroundColor: colors.lime, borderColor: colors.lime },
+  scheduleDayChipText: { color: colors.muted, fontSize: 12, fontWeight: "800" },
+  scheduleDayChipTextSelected: { color: colors.ink },
   answerCard: {
     minHeight: 58,
     borderRadius: 16,
@@ -5525,13 +6719,6 @@ const styles = StyleSheet.create({
   planHeroTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
   planMetaLabel: { color: colors.lime, fontSize: 8, fontWeight: "800", letterSpacing: 1.3 },
   planName: { color: colors.text, fontSize: 21, fontWeight: "700", marginTop: 6 },
-  aiBadge: {
-    paddingVertical: 6,
-    paddingHorizontal: 9,
-    borderRadius: 12,
-    backgroundColor: "rgba(200,255,50,0.12)",
-  },
-  aiBadgeText: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1 },
   planStats: { flexDirection: "row", alignItems: "center", marginTop: 24 },
   planStat: { flex: 1 },
   planStatValue: { color: colors.text, fontSize: 22, fontWeight: "800" },
@@ -5569,57 +6756,61 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 22,
     paddingTop: Platform.OS === "android" ? 16 : 6,
-    paddingBottom: 13,
+    paddingBottom: 9,
   },
   dashboardGreeting: { color: colors.muted, fontSize: 8, fontWeight: "800", letterSpacing: 1.6 },
   dashboardName: { color: colors.text, fontSize: 22, fontWeight: "700", letterSpacing: -0.7, marginTop: 4 },
-  dashboardAvatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+  dashboardAvatarChevron: { color: colors.muted, fontSize: 16 },
+  myProfilePill: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 6,
+    minHeight: 34,
+    paddingHorizontal: 12,
+    borderRadius: 17,
     borderWidth: 1,
     borderColor: "#353A31",
     backgroundColor: "#131612",
   },
-  dashboardAvatarText: { color: colors.text, fontSize: 16, fontWeight: "800" },
+  myProfilePillText: { color: colors.text, fontSize: 10, fontWeight: "900", letterSpacing: 0.6 },
   avatarStatus: {
-    position: "absolute",
-    right: 1,
-    bottom: 2,
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: colors.background,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
     backgroundColor: colors.lime,
   },
   dashboardBody: { flex: 1 },
-  dashboardBodyContent: { paddingHorizontal: 18, paddingBottom: 16 },
-  testModeBar: {
-    minHeight: 38,
-    marginBottom: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+  dashboardBodyContent: { paddingHorizontal: 18, paddingBottom: 10 },
+  profileList: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0E100E",
+    marginTop: 10,
+    overflow: "hidden",
+  },
+  profileRow: {
+    minHeight: 52,
+    paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "#30382A",
-    backgroundColor: "#0D1209",
+    borderBottomWidth: 1,
+    borderBottomColor: "#1B1E1A",
   },
+  profileRowLabel: { color: colors.text, fontSize: 13, fontWeight: "600", flexShrink: 1, marginRight: 10 },
+  profileRowRight: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 0 },
+  profileRowValue: { color: colors.muted, fontSize: 12, fontWeight: "600", maxWidth: 140 },
   testModeIdentity: { flexDirection: "row", alignItems: "center" },
-  testModeActions: { flexDirection: "row", alignItems: "center" },
-  testModeDot: { width: 6, height: 6, borderRadius: 3, marginRight: 7, backgroundColor: colors.lime },
-  testModeLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.2 },
-  testModeReset: { minHeight: 30, paddingHorizontal: 8, alignItems: "center", justifyContent: "center" },
-  testModeResetText: { color: "#B6BDB2", fontSize: 7, fontWeight: "900", letterSpacing: 0.8 },
+  testModeDot: { width: 7, height: 7, borderRadius: 4, marginRight: 8, backgroundColor: colors.lime },
+  testModeLabel: { color: colors.lime, fontSize: 12, fontWeight: "900", letterSpacing: 0.7 },
+  testModeReset: { minHeight: 34, paddingHorizontal: 10, alignItems: "center", justifyContent: "center" },
+  testModeResetText: { color: "#B6BDB2", fontSize: 11, fontWeight: "900", letterSpacing: 0.5 },
   accountBar: {
-    minHeight: 38,
-    marginBottom: 14,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    minHeight: 46,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    borderRadius: 14,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -5628,18 +6819,32 @@ const styles = StyleSheet.create({
     borderColor: "#242824",
     backgroundColor: "#0E100E",
   },
-  accountPromptText: { color: colors.muted, fontSize: 9, fontWeight: "700", flexShrink: 1 },
+  accountPromptText: { color: colors.muted, fontSize: 13, fontWeight: "700", flexShrink: 1 },
   accountActions: { flexDirection: "row", alignItems: "center", gap: 8 },
   accountButton: {
-    minHeight: 26,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 13,
+    minHeight: 32,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 16,
     backgroundColor: colors.lime,
     alignItems: "center",
     justifyContent: "center",
   },
-  accountButtonText: { color: colors.ink, fontSize: 8, fontWeight: "900", letterSpacing: 0.6 },
+  accountButtonText: { color: colors.ink, fontSize: 11, fontWeight: "900", letterSpacing: 0.5 },
+  trialBar: {
+    paddingVertical: 8,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#30382A",
+    backgroundColor: "#0D1209",
+  },
+  trialBarEnded: { borderColor: "#3A2A22", backgroundColor: "#160F0B" },
+  trialBarText: { color: colors.lime, fontSize: 13, fontWeight: "900", letterSpacing: 0.6, lineHeight: 16 },
+  trialBarTextEnded: { color: "#D98E5C" },
   readinessRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -5647,10 +6852,10 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   readinessCard: {
-    minHeight: 78,
+    minHeight: 62,
     borderRadius: 18,
     paddingHorizontal: 13,
-    marginBottom: 16,
+    marginBottom: 9,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
@@ -5665,7 +6870,7 @@ const styles = StyleSheet.create({
     fontSize: 7,
     fontWeight: "800",
     letterSpacing: 1.4,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   sectionEyebrow: { color: colors.lime, fontSize: 8, fontWeight: "800", letterSpacing: 1.5 },
   readinessTitle: { color: colors.text, fontSize: 17, fontWeight: "700", marginTop: 5 },
@@ -5683,8 +6888,8 @@ const styles = StyleSheet.create({
   recoveryLabel: { color: colors.muted, fontSize: 5, fontWeight: "800", letterSpacing: 0.7 },
   workoutCard: {
     borderRadius: 24,
-    padding: 18,
-    marginBottom: 12,
+    padding: 13,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: "#2B3126",
     backgroundColor: "#121610",
@@ -5695,18 +6900,18 @@ const styles = StyleSheet.create({
   workoutDuration: { color: colors.muted, fontSize: 8, fontWeight: "800", letterSpacing: 1.2 },
   workoutTitle: {
     color: colors.text,
-    fontSize: 31,
-    lineHeight: 32,
+    fontSize: 24,
+    lineHeight: 26,
     fontWeight: "700",
-    letterSpacing: -1.3,
-    marginTop: 15,
+    letterSpacing: -1.1,
+    marginTop: 8,
   },
-  workoutMeta: { color: colors.muted, fontSize: 11, marginTop: 8 },
+  workoutMeta: { color: colors.muted, fontSize: 11, marginTop: 4 },
   workoutCoachNote: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 15,
-    paddingTop: 13,
+    marginTop: 8,
+    paddingTop: 8,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: "#343A30",
   },
@@ -5723,10 +6928,10 @@ const styles = StyleSheet.create({
   coachMiniText: { color: colors.text, fontSize: 9, fontWeight: "800" },
   workoutCoachText: { color: "#C6CBC2", fontSize: 10, flex: 1 },
   workoutButton: {
-    height: 50,
-    borderRadius: 25,
+    height: 42,
+    borderRadius: 21,
     paddingHorizontal: 18,
-    marginTop: 15,
+    marginTop: 8,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -5734,12 +6939,12 @@ const styles = StyleSheet.create({
   },
   workoutButtonText: { color: colors.ink, fontSize: 11, fontWeight: "900", letterSpacing: 1.1 },
   workoutButtonArrow: { color: colors.ink, fontSize: 19, fontWeight: "700" },
-  metricGrid: { flexDirection: "row", gap: 8, marginBottom: 10 },
+  metricGrid: { flexDirection: "row", gap: 8, marginBottom: 8 },
   metricCard: {
     flex: 1,
-    minHeight: 68,
+    minHeight: 58,
     borderRadius: 15,
-    padding: 12,
+    padding: 10,
     borderWidth: 1,
     borderColor: "#242824",
     backgroundColor: "#0D0F0D",
@@ -5749,7 +6954,7 @@ const styles = StyleSheet.create({
   metricLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 1.2, marginTop: 2 },
   metricTrend: { color: "#6F756C", fontSize: 8, marginTop: 7 },
   lastWorkoutCard: {
-    minHeight: 58,
+    minHeight: 50,
     borderRadius: 16,
     paddingHorizontal: 14,
     flexDirection: "row",
@@ -5768,7 +6973,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#37C85A",
   },
-  lastWorkoutScoreText: { color: "#37C85A", fontSize: 10, fontWeight: "900" },
+  lastWorkoutScoreText: { color: "#37C85A", fontSize: 10, fontWeight: "900", textAlign: "center" },
   weekCard: {
     minHeight: 58,
     borderRadius: 17,
@@ -5851,6 +7056,21 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   nutritionSubtitle: { color: colors.muted, fontSize: 11, lineHeight: 15, marginTop: 4 },
+  dietModeRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
+  dietModePill: {
+    flex: 1,
+    minHeight: 40,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0E100E",
+  },
+  dietModePillActive: { borderColor: colors.lime, backgroundColor: colors.lime },
+  dietModePillText: { color: colors.muted, fontSize: 11, fontWeight: "900", letterSpacing: 0.6 },
+  dietModePillTextActive: { color: colors.ink },
+  dietModeHint: { color: colors.muted, fontSize: 11, marginBottom: 14, textAlign: "center" },
   foodPhotoCard: {
     position: "relative",
     width: "100%",
@@ -6037,14 +7257,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
-  editProfileGroup: {
-    marginBottom: 6,
-    paddingBottom: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#212521",
-  },
-  editProfileQuestionTitle: { color: colors.text, fontSize: 13, fontWeight: "700", marginBottom: 10 },
-  editProfileWheelWrap: { alignItems: "center" },
   dietChipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   dietChip: {
     height: 34,
@@ -6250,8 +7462,8 @@ const styles = StyleSheet.create({
     minHeight: "100%",
     alignSelf: "center",
     paddingHorizontal: 22,
-    paddingTop: 34,
-    paddingBottom: 34,
+    paddingTop: 18,
+    paddingBottom: 18,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -6264,31 +7476,31 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(200,255,50,0.08)",
   },
   completeMark: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.lime,
-    marginBottom: 24,
+    marginBottom: 14,
   },
-  completeMarkText: { color: colors.ink, fontSize: 38, lineHeight: 44, fontWeight: "900" },
+  completeMarkText: { color: colors.ink, fontSize: 30, lineHeight: 35, fontWeight: "900" },
   completeEyebrow: { color: colors.lime, fontSize: 10, fontWeight: "900", letterSpacing: 1.8 },
   workoutCompleteTitle: {
     color: colors.text,
-    fontSize: 42,
-    lineHeight: 48,
+    fontSize: 32,
+    lineHeight: 36,
     fontWeight: "900",
-    letterSpacing: -1.6,
-    marginTop: 10,
+    letterSpacing: -1.2,
+    marginTop: 6,
   },
   completeSubtitle: {
     maxWidth: 350,
     color: colors.muted,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 13,
+    lineHeight: 18,
     textAlign: "center",
-    marginTop: 12,
+    marginTop: 8,
   },
   completeStats: {
     width: "100%",
@@ -6299,13 +7511,13 @@ const styles = StyleSheet.create({
     borderColor: "rgba(200,255,50,0.28)",
     borderRadius: 22,
     backgroundColor: "#0E110D",
-    paddingVertical: 22,
-    marginTop: 30,
+    paddingVertical: 15,
+    marginTop: 16,
   },
   completeStat: { flex: 1, alignItems: "center" },
-  completeStatValue: { color: colors.text, fontSize: 21, fontWeight: "900" },
-  completeStatLabel: { color: colors.muted, fontSize: 7, fontWeight: "900", letterSpacing: 1.1, marginTop: 5 },
-  completeStatDivider: { width: 1, height: 34, backgroundColor: "rgba(255,255,255,0.12)" },
+  completeStatValue: { color: colors.text, fontSize: 19, fontWeight: "900" },
+  completeStatLabel: { color: colors.muted, fontSize: 7, fontWeight: "900", letterSpacing: 1.1, marginTop: 4 },
+  completeStatDivider: { width: 1, height: 30, backgroundColor: "rgba(255,255,255,0.12)" },
   completeAnalysis: {
     width: "100%",
     borderRadius: 18,
@@ -6313,18 +7525,18 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.1)",
     backgroundColor: "#0D0F0D",
     paddingHorizontal: 16,
-    paddingTop: 15,
-    marginTop: 14,
+    paddingTop: 11,
+    marginTop: 10,
   },
   completeAnalysisTitle: {
     color: colors.lime,
     fontSize: 8,
     fontWeight: "900",
     letterSpacing: 1.3,
-    marginBottom: 7,
+    marginBottom: 3,
   },
   completeAnalysisRow: {
-    minHeight: 34,
+    minHeight: 28,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -6339,21 +7551,21 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 18,
     backgroundColor: colors.surface,
-    padding: 18,
-    marginTop: 14,
+    padding: 14,
+    marginTop: 10,
   },
   completeCoachLabel: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 1.2 },
-  completeCoachText: { color: colors.text, fontSize: 12, lineHeight: 18, marginTop: 7 },
+  completeCoachText: { color: colors.text, fontSize: 12, lineHeight: 17, marginTop: 5 },
   completeButton: {
     width: "100%",
-    minHeight: 62,
-    borderRadius: 31,
+    minHeight: 52,
+    borderRadius: 26,
     backgroundColor: colors.lime,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 24,
-    marginTop: 18,
+    marginTop: 12,
   },
   completeButtonText: { color: colors.ink, fontSize: 11, fontWeight: "900", letterSpacing: 1.4 },
   completeButtonArrow: { color: colors.ink, fontSize: 22, fontWeight: "800" },
@@ -6378,6 +7590,15 @@ const styles = StyleSheet.create({
   workoutCloseText: { color: colors.text, fontSize: 25, lineHeight: 27, fontWeight: "300" },
   activeHeaderCenter: { flex: 1, marginHorizontal: 13 },
   activeHeaderLabel: { color: colors.muted, fontSize: 7, fontWeight: "800", letterSpacing: 1.2, textAlign: "center" },
+  deloadBanner: {
+    marginHorizontal: 16,
+    marginBottom: 6,
+    paddingVertical: 6,
+    borderRadius: 10,
+    alignItems: "center",
+    backgroundColor: "rgba(200,255,50,0.1)",
+  },
+  deloadBannerText: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
   activeProgressTrack: {
     height: 3,
     borderRadius: 2,
@@ -6561,19 +7782,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lime,
   },
   demoWeightText: { color: colors.ink, fontSize: 9 },
-  tempoPanel: {
-    position: "absolute",
-    right: 14,
-    top: 14,
-    alignItems: "flex-end",
-    paddingVertical: 7,
-    paddingHorizontal: 9,
-    borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.72)",
-  },
-  tempoLabel: { color: "#666D63", fontSize: 6, fontWeight: "800", letterSpacing: 1 },
-  tempoValue: { color: colors.text, fontSize: 16, fontWeight: "800", marginTop: 2 },
-  phaseValue: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1, marginTop: 3 },
   formBadge: {
     position: "absolute",
     right: 15,
@@ -6588,7 +7796,6 @@ const styles = StyleSheet.create({
   formDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.lime, marginRight: 6 },
   formBadgeText: { color: colors.text, fontSize: 6, fontWeight: "800", letterSpacing: 0.8 },
   exerciseSheet: {
-    flexGrow: 1,
     paddingHorizontal: 18,
     paddingTop: 10,
     paddingBottom: 12,
@@ -6597,25 +7804,37 @@ const styles = StyleSheet.create({
     backgroundColor: "#090A09",
   },
   exerciseHeadingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  exerciseActionRow: { flexDirection: "row", gap: 8, marginTop: 12 },
+  exerciseActionPill: {
+    flex: 1,
+    minHeight: 34,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.lime,
+  },
+  exerciseActionPillText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 0.8 },
   exerciseStep: { color: colors.lime, fontSize: 7, fontWeight: "800", letterSpacing: 1.2 },
   exerciseName: { color: colors.text, fontSize: 19, lineHeight: 22, fontWeight: "700", marginTop: 3, letterSpacing: -0.7 },
   exerciseTarget: { color: colors.muted, fontSize: 9, marginTop: 2 },
-  exerciseInfo: {
-    width: 31,
-    height: 31,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#353A34",
-  },
-  exerciseInfoText: { color: colors.muted, fontSize: 13, fontWeight: "700" },
   exerciseInfoBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.72)",
     justifyContent: "flex-end",
     alignItems: "center",
   },
+  tooSoonCard: {
+    width: "100%",
+    maxWidth: 520,
+    padding: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: colors.background,
+  },
+  tooSoonTitle: { color: colors.text, fontSize: 19, fontWeight: "800", marginBottom: 10 },
+  tooSoonBody: { color: colors.muted, fontSize: 13, lineHeight: 19, marginBottom: 20 },
   exerciseInfoPanel: {
     width: "100%",
     maxWidth: 520,
@@ -6682,6 +7901,39 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lime,
   },
   exerciseInfoDoneText: { color: colors.ink, fontSize: 12, fontWeight: "900", letterSpacing: 1.7 },
+  mismatchWarning: {
+    marginTop: 8,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.3)",
+    backgroundColor: "rgba(200,255,50,0.08)",
+  },
+  mismatchWarningText: { color: colors.text, fontSize: 13, lineHeight: 19, marginBottom: 14 },
+  mismatchBackText: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
+    marginTop: 12,
+  },
+  swapLoadingText: { color: colors.muted, fontSize: 13, marginTop: 24, textAlign: "center" },
+  swapOptionRow: {
+    minHeight: 64,
+    marginTop: 12,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0E100E",
+  },
+  swapOptionThumb: { width: 44, height: 44, borderRadius: 10, backgroundColor: "#1A1D19" },
+  swapOptionCopy: { flex: 1 },
+  swapOptionName: { color: colors.text, fontSize: 14, fontWeight: "700" },
+  swapOptionTarget: { color: colors.muted, fontSize: 10, marginTop: 2, textTransform: "capitalize" },
   restBanner: {
     minHeight: 40,
     borderRadius: 13,
@@ -6698,6 +7950,27 @@ const styles = StyleSheet.create({
   restLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.1 },
   restHint: { color: colors.muted, fontSize: 8, marginTop: 2 },
   restValue: { color: colors.text, fontSize: 18, fontWeight: "800" },
+  restAdjustRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  restAdjustButton: {
+    minWidth: 34,
+    minHeight: 26,
+    paddingHorizontal: 6,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.3)",
+  },
+  restAdjustButtonText: { color: colors.lime, fontSize: 10, fontWeight: "800" },
+  restSkipButton: {
+    minHeight: 26,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.lime,
+  },
+  restSkipButtonText: { color: colors.ink, fontSize: 8, fontWeight: "900", letterSpacing: 0.5 },
   setTableHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: 11, marginTop: 8, marginBottom: 4 },
   setHeaderText: { color: "#666C64", fontSize: 7, fontWeight: "800", letterSpacing: 1 },
   setColumn: { width: 42 },
@@ -6863,9 +8136,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
-  coachQuickActionActive: { borderColor: colors.lime, backgroundColor: "#18200E" },
   coachQuickActionText: { color: "#C7CCC4", fontSize: 9, fontWeight: "700" },
-  coachQuickActionTextActive: { color: colors.lime },
   userBubble: {
     alignSelf: "flex-end",
     maxWidth: "82%",
@@ -6957,7 +8228,7 @@ const styles = StyleSheet.create({
   coachSendText: { color: colors.ink, fontSize: 20, fontWeight: "900", marginTop: -2 },
   progressScreen: { flex: 1, backgroundColor: colors.background },
   progressScroll: { flex: 1 },
-  progressContent: { paddingHorizontal: 20, paddingBottom: 16 },
+  progressContent: { paddingHorizontal: 20, paddingBottom: 32, flexGrow: 1 },
   progressHeader: {
     height: 50,
     flexDirection: "row",
@@ -6993,10 +8264,10 @@ const styles = StyleSheet.create({
   },
   progressSubtitle: { color: colors.muted, fontSize: 11, lineHeight: 15, marginTop: 4 },
   progressHero: {
-    minHeight: 84,
+    minHeight: 104,
     borderRadius: 20,
-    marginTop: 12,
-    paddingHorizontal: 16,
+    marginTop: 20,
+    paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -7019,9 +8290,9 @@ const styles = StyleSheet.create({
   progressHeroBadgeValue: { color: colors.text, fontSize: 18, fontWeight: "900" },
   progressHeroBadgeLabel: { color: colors.muted, fontSize: 5, fontWeight: "900", letterSpacing: 0.7 },
   progressMetrics: {
-    minHeight: 64,
+    minHeight: 80,
     borderRadius: 18,
-    marginTop: 8,
+    marginTop: 18,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
@@ -7034,8 +8305,8 @@ const styles = StyleSheet.create({
   progressMetricLabel: { color: colors.muted, fontSize: 6, fontWeight: "900", letterSpacing: 1, marginTop: 3 },
   progressSection: {
     borderRadius: 18,
-    marginTop: 8,
-    padding: 12,
+    marginTop: 18,
+    padding: 18,
     borderWidth: 1,
     borderColor: "#252A24",
     backgroundColor: colors.surface,
@@ -7082,8 +8353,9 @@ const styles = StyleSheet.create({
   progressPriorityValue: { color: colors.text, fontSize: 10, fontWeight: "800" },
   progressCoachCard: {
     borderRadius: 18,
-    marginTop: 8,
-    padding: 11,
+    marginTop: 18,
+    marginBottom: 8,
+    padding: 16,
     flexDirection: "row",
     alignItems: "flex-start",
     backgroundColor: "#111510",
@@ -7101,16 +8373,4 @@ const styles = StyleSheet.create({
   progressCoachCopy: { flex: 1, marginLeft: 12 },
   progressCoachLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1 },
   progressCoachText: { color: "#C4CAC1", fontSize: 10, lineHeight: 15, marginTop: 5 },
-  progressButton: {
-    height: 48,
-    borderRadius: 24,
-    marginTop: 8,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: colors.lime,
-  },
-  progressButtonText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 1.2 },
-  progressButtonArrow: { color: colors.ink, fontSize: 20, fontWeight: "800" },
 });
