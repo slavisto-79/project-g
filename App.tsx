@@ -46,7 +46,8 @@ type Screen =
   | "recipeDetail"
   | "dietPlan"
   | "auth"
-  | "resetPassword";
+  | "resetPassword"
+  | "editProfile";
 
 type InterviewAnswer = {
   label: string;
@@ -801,6 +802,7 @@ function DashboardScreen({
   onOpenNutrition,
   onOpenProgress,
   onResetTestProfile,
+  onOpenEditProfile,
   session,
   onOpenAccount,
   onLogout,
@@ -812,6 +814,7 @@ function DashboardScreen({
   onOpenNutrition: () => void;
   onOpenProgress: () => void;
   onResetTestProfile: () => void;
+  onOpenEditProfile: () => void;
   session: { email: string } | null;
   onOpenAccount: (mode: "signup" | "login") => void;
   onLogout: () => void;
@@ -848,14 +851,24 @@ function DashboardScreen({
             <View style={styles.testModeDot} />
             <Text style={styles.testModeLabel}>TEST MODE</Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Reset test profile"
-            onPress={onResetTestProfile}
-            style={styles.testModeReset}
-          >
-            <Text style={styles.testModeResetText}>RESET PROFILE</Text>
-          </Pressable>
+          <View style={styles.testModeActions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Edit your profile answers"
+              onPress={onOpenEditProfile}
+              style={styles.testModeReset}
+            >
+              <Text style={styles.testModeResetText}>EDIT PROFILE</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Reset test profile"
+              onPress={onResetTestProfile}
+              style={styles.testModeReset}
+            >
+              <Text style={styles.testModeResetText}>RESET PROFILE</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.accountBar}>
@@ -971,6 +984,94 @@ function DashboardScreen({
         onProgress={onOpenProgress}
         onCoach={onOpenCoach}
       />
+    </SafeAreaView>
+  );
+}
+
+function EditProfileScreen({
+  profile,
+  onBack,
+  onSave,
+}: {
+  profile: Record<string, string>;
+  onBack: () => void;
+  onSave: (profile: Record<string, string>) => void;
+}) {
+  const [answers, setAnswers] = useState<Record<string, string>>(profile);
+
+  const selectAnswer = (questionId: string, value: string) => {
+    setAnswers((current) => ({ ...current, [questionId]: value }));
+  };
+
+  return (
+    <SafeAreaView style={styles.recipesScreen}>
+      <View style={styles.nutritionHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onBack} style={styles.coachBack}>
+          <Text style={styles.coachBackText}>‹</Text>
+        </Pressable>
+        <View>
+          <Text style={styles.nutritionHeaderTitle}>EDIT PROFILE</Text>
+          <Text style={styles.nutritionHeaderSubtitle}>Update any answer, anytime</Text>
+        </View>
+        <View style={styles.coachHeaderSpacer} />
+      </View>
+
+      <ScrollView
+        style={styles.nutritionScroll}
+        contentContainerStyle={styles.nutritionContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {interviewQuestions.map((question) => (
+          <View key={question.id} style={styles.editProfileGroup}>
+            <Text style={styles.dietGroupLabel}>{question.kicker}</Text>
+            <Text style={styles.editProfileQuestionTitle}>{question.title}</Text>
+            {question.kind === "picker" ? (
+              <View style={styles.editProfileWheelWrap}>
+                <NumberWheelPicker
+                  min={question.min}
+                  max={question.max}
+                  step={question.step}
+                  unit={question.unit}
+                  value={Number(answers[question.id] ?? question.defaultValue)}
+                  onChange={(next) => selectAnswer(question.id, String(next))}
+                  itemHeight={30}
+                  visibleItems={3}
+                  fontSize={18}
+                />
+              </View>
+            ) : (
+              <View style={styles.dietChipRow}>
+                {question.answers.map((answer) => {
+                  const isSelected = answer.value === answers[question.id];
+                  return (
+                    <Pressable
+                      key={answer.value}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: isSelected }}
+                      onPress={() => selectAnswer(question.id, answer.value)}
+                      style={[styles.dietChip, isSelected && styles.dietChipSelected]}
+                    >
+                      <Text style={[styles.dietChipText, isSelected && styles.dietChipTextSelected]}>
+                        {answer.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        ))}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Save changes"
+          onPress={() => onSave(answers)}
+          style={styles.dietBuildButton}
+        >
+          <Text style={styles.dietBuildButtonText}>SAVE CHANGES</Text>
+          <Text style={styles.dietBuildButtonArrow}>→</Text>
+        </Pressable>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -3191,7 +3292,15 @@ function baseRepsForProfile(profile: Record<string, string>): number {
 }
 
 function isBodyweightExerciseName(name: string): boolean {
-  return name.includes("Push-Up") || name.includes("Plank");
+  return (
+    name.includes("Push-Up") ||
+    name.includes("Plank") ||
+    name.includes("Glute Bridge") ||
+    name.includes("Bodyweight") ||
+    name.includes("Mountain Climbers") ||
+    name.includes("High Knees") ||
+    name.includes("Burpee")
+  );
 }
 
 function createWorkout(
@@ -3368,8 +3477,156 @@ function createWorkout(
       ],
     },
   ];
-  const selectedBase =
-    profile.sex === "female" ? femaleExercises : profile.sex === "male" ? maleExercises : workoutExercises;
+  const femaleBodyweightExercises: WorkoutExercise[] = [
+    {
+      ...workoutExercises[0]!,
+      name: "Bodyweight Squat",
+      target: "Lower body · Bodyweight",
+      video: require("./assets/exercise-videos/female-bodyweight-squat.mp4"),
+      phases: ["LOWER", "HOLD", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/female-bodyweight-squat/start.jpg"),
+        require("./assets/exercises/female-bodyweight-squat/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[0]!,
+      name: "Push-Up",
+      target: "Chest & triceps · Bodyweight",
+      video: require("./assets/exercise-videos/female-push-up.mp4"),
+      phases: ["LOWER", "HOLD", "PRESS"],
+      formFrames: [
+        require("./assets/exercises/female-bodyweight-pushup/start.jpg"),
+        require("./assets/exercises/female-bodyweight-pushup/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[0]!,
+      name: "Bodyweight Reverse Lunge",
+      target: "Legs & glutes · Unilateral",
+      video: require("./assets/exercise-videos/female-bodyweight-lunge.mp4"),
+      phases: ["STEP", "LOWER", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/female-bodyweight-lunge/start.jpg"),
+        require("./assets/exercises/female-bodyweight-lunge/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[2]!,
+      name: "Glute Bridge",
+      target: "Glutes · Isolation",
+      video: require("./assets/exercise-videos/female-glute-bridge.mp4"),
+      phases: ["LOWER", "HOLD", "LIFT"],
+      formFrames: [
+        require("./assets/exercises/female-glute-bridge/start.jpg"),
+        require("./assets/exercises/female-glute-bridge/finish.jpg"),
+      ],
+      poseGuide: poseGuides.hinge!,
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Plank",
+      target: "Core · Isometric",
+      tempo: "HOLD",
+      video: require("./assets/exercise-videos/female-plank.mp4"),
+      phases: ["BRACE", "HOLD", "HOLD"],
+      formFrames: [
+        require("./assets/exercises/female-plank/start.jpg"),
+        require("./assets/exercises/female-plank/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Mountain Climbers",
+      target: "Core & cardio · Bodyweight",
+      tempo: "FAST",
+      video: require("./assets/exercise-videos/female-mountain-climbers.mp4"),
+      phases: ["BRACE", "DRIVE", "SWITCH"],
+      formFrames: [
+        require("./assets/exercises/female-mountain-climbers/start.jpg"),
+        require("./assets/exercises/female-mountain-climbers/finish.jpg"),
+      ],
+    },
+  ];
+  const maleBodyweightExercises: WorkoutExercise[] = [
+    {
+      ...workoutExercises[0]!,
+      name: "Bodyweight Squat",
+      target: "Lower body · Bodyweight",
+      video: require("./assets/exercise-videos/male-bodyweight-squat.mp4"),
+      phases: ["LOWER", "HOLD", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/male-bodyweight-squat/start.jpg"),
+        require("./assets/exercises/male-bodyweight-squat/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[0]!,
+      name: "Push-Up",
+      target: "Chest & triceps · Bodyweight",
+      video: require("./assets/exercise-videos/male-push-up.mp4"),
+      phases: ["LOWER", "HOLD", "PRESS"],
+    },
+    {
+      ...workoutExercises[0]!,
+      name: "Bodyweight Reverse Lunge",
+      target: "Legs & glutes · Unilateral",
+      video: require("./assets/exercise-videos/male-bodyweight-lunge.mp4"),
+      phases: ["STEP", "LOWER", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/male-bodyweight-lunge/start.jpg"),
+        require("./assets/exercises/male-bodyweight-lunge/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Burpee",
+      target: "Full body · Cardio",
+      tempo: "FAST",
+      video: require("./assets/exercise-videos/male-burpee.mp4"),
+      phases: ["SQUAT", "PLANK", "JUMP"],
+      formFrames: [
+        require("./assets/exercises/male-burpee/start.jpg"),
+        require("./assets/exercises/male-burpee/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Plank",
+      target: "Core · Isometric",
+      tempo: "HOLD",
+      video: require("./assets/exercise-videos/male-plank.mp4"),
+      phases: ["BRACE", "HOLD", "HOLD"],
+      formFrames: [
+        require("./assets/exercises/male-plank/start.jpg"),
+        require("./assets/exercises/male-plank/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "High Knees",
+      target: "Core & cardio · Bodyweight",
+      tempo: "FAST",
+      video: require("./assets/exercise-videos/male-high-knees.mp4"),
+      phases: ["DRIVE", "SWITCH", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/male-high-knees/start.jpg"),
+        require("./assets/exercises/male-high-knees/finish.jpg"),
+      ],
+    },
+  ];
+  const isBodyweightTier = profile.equipment === "bodyweight";
+  const selectedBase = isBodyweightTier
+    ? profile.sex === "female"
+      ? femaleBodyweightExercises
+      : profile.sex === "male"
+        ? maleBodyweightExercises
+        : femaleBodyweightExercises
+    : profile.sex === "female"
+      ? femaleExercises
+      : profile.sex === "male"
+        ? maleExercises
+        : workoutExercises;
   const exercises = selectedBase.map((exercise) => {
     const isBodyweight = isBodyweightExerciseName(exercise.name);
     const saved = exerciseProgress[exercise.name];
@@ -4750,12 +5007,23 @@ export default function App() {
             onOpenNutrition={() => setScreen("nutrition")}
             onOpenProgress={() => setScreen("progress")}
             onResetTestProfile={resetTestProfile}
+            onOpenEditProfile={() => setScreen("editProfile")}
             session={session}
             onOpenAccount={(mode) => {
               setAuthInitialMode(mode);
               setScreen("auth");
             }}
             onLogout={handleLogout}
+          />
+        )}
+        {screen === "editProfile" && (
+          <EditProfileScreen
+            profile={profile}
+            onBack={() => setScreen("dashboard")}
+            onSave={(next) => {
+              setProfile(next);
+              setScreen("dashboard");
+            }}
           />
         )}
         {screen === "auth" && (
@@ -5342,6 +5610,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0D1209",
   },
   testModeIdentity: { flexDirection: "row", alignItems: "center" },
+  testModeActions: { flexDirection: "row", alignItems: "center" },
   testModeDot: { width: 6, height: 6, borderRadius: 3, marginRight: 7, backgroundColor: colors.lime },
   testModeLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.2 },
   testModeReset: { minHeight: 30, paddingHorizontal: 8, alignItems: "center", justifyContent: "center" },
@@ -5768,6 +6037,14 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
+  editProfileGroup: {
+    marginBottom: 6,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#212521",
+  },
+  editProfileQuestionTitle: { color: colors.text, fontSize: 13, fontWeight: "700", marginBottom: 10 },
+  editProfileWheelWrap: { alignItems: "center" },
   dietChipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   dietChip: {
     height: 34,

@@ -22,6 +22,25 @@ The following prototype exercise videos are downloaded and hosted locally so the
 - Male plank: “Man Doing a Plank” by cottonbro studio  
   https://www.pexels.com/video/man-doing-a-plank-4325592/
 
+### Bodyweight-only tier (added for equipment-based workout filtering)
+
+- Female bodyweight squat: “A Woman Doing Squats” by MART PRODUCTION  
+  https://www.pexels.com/video/a-woman-doing-squats-8837118/
+- Female push-up: “A Woman Doing Push Ups” by Gustavo Fring  
+  https://www.pexels.com/video/a-woman-doing-push-ups-6286173/
+- Female bodyweight reverse lunge: “A Woman Doing Reverse Lunges” by Mikhail Nilov  
+  https://www.pexels.com/video/a-woman-doing-reverse-lunges-8456719/
+- Female mountain climbers: “Woman Doing Mountain Climbers Exercise” by Polina Tankilevitch  
+  https://www.pexels.com/video/woman-doing-mountain-climbers-exercise-6525467/
+- Male bodyweight reverse lunge: “A Man Exercising at Home” by Kampus Production  
+  https://www.pexels.com/video/a-man-exercising-at-home-8171292/
+- Male high knees: “Man Exercising High Knees” by Pavel Danilyuk  
+  https://www.pexels.com/video/man-exercising-high-knees-6326808/
+- Male bodyweight squat: “A Man Working Out” by MART PRODUCTION (sourced via Pexels search; exact page URL not retained)
+- Male burpee: “A Bearded Man Exercising At Home” by Michelangelo Buonarroti (sourced via Pexels search; exact page URL not retained)
+
+Note: the two entries above without a direct link were downloaded via Pexels' "Edit in Canva" CDN redirect during sourcing and the original listing page was not re-visited afterward; title and photographer were recorded at download time. The bodyweight tier's "Push-Up" and "Plank" exercises reuse the existing Male/Female push-up and plank videos already credited above; "Glute Bridge" reuses the existing Female glute bridge video above.
+
 ## Recipe library photos
 
 - Greek Yogurt Berry Parfait: “A Close Up Shot of Yogurt Parfaits” by Jankao  
