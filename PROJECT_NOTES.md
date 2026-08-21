@@ -23,6 +23,13 @@
 - Completing the final exercise must always open a complete session analysis.
 - The session analysis must lead to a dedicated progress screen and then back to the dashboard.
 
+## Equipment-aware workouts and profile editing
+
+- The onboarding "What equipment can you use?" answer now genuinely filters which exercises `createWorkout()` generates, not just cosmetic copy. Selecting "Bodyweight only" builds a dedicated 6-exercise, gender-matched bodyweight roster (`femaleBodyweightExercises` / `maleBodyweightExercises` in `App.tsx`) instead of the 8-exercise dumbbell/gym roster used by every other equipment answer. Bodyweight exercises show "Bodyweight" instead of a kg value for every set and prompt "HOW MANY REPS DID YOU DO" (no KG wording).
+- The Dashboard's "EDIT PROFILE" button opens `EditProfileScreen`, which re-renders every onboarding question pre-filled with the current answers on one page and lets the user change any of them (including equipment and gender) at any time, not only during onboarding.
+- Saving `EditProfileScreen` updates `profile` immediately and returns to the Dashboard. The next workout started (`START WORKOUT`) is generated fresh from the updated profile, so an equipment change takes effect in real time on the very next session -- there is no separate regeneration step or delay.
+- The bodyweight roster currently has 6 exercises (vs. 8 for the equipped tiers) because only 6 real, fully-visible, gender-matched bodyweight demonstration videos exist; do not silently pad it with equipped-tier exercises relabeled as bodyweight.
+
 ## Known prototype exception
 
 - Test mode currently permits sets to be completed before the timer expires.

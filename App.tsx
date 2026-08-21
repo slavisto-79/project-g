@@ -3993,7 +3993,15 @@ function isHoldExercise(exercise: { name: string; catalogMeta?: { movementPatter
 }
 
 function isBodyweightExerciseName(name: string): boolean {
-  return name.includes("Push-Up") || name.includes("Plank");
+  return (
+    name.includes("Push-Up") ||
+    name.includes("Plank") ||
+    name.includes("Glute Bridge") ||
+    name.includes("Bodyweight") ||
+    name.includes("Mountain Climbers") ||
+    name.includes("High Knees") ||
+    name.includes("Burpee")
+  );
 }
 
 function createWorkout(
@@ -4170,8 +4178,156 @@ function createWorkout(
       ],
     },
   ];
-  const selectedBase =
-    profile.sex === "female" ? femaleExercises : profile.sex === "male" ? maleExercises : workoutExercises;
+  const femaleBodyweightExercises: WorkoutExercise[] = [
+    {
+      ...workoutExercises[0]!,
+      name: "Bodyweight Squat",
+      target: "Lower body · Bodyweight",
+      video: require("./assets/exercise-videos/female-bodyweight-squat.mp4"),
+      phases: ["LOWER", "HOLD", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/female-bodyweight-squat/start.jpg"),
+        require("./assets/exercises/female-bodyweight-squat/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[0]!,
+      name: "Push-Up",
+      target: "Chest & triceps · Bodyweight",
+      video: require("./assets/exercise-videos/female-push-up.mp4"),
+      phases: ["LOWER", "HOLD", "PRESS"],
+      formFrames: [
+        require("./assets/exercises/female-bodyweight-pushup/start.jpg"),
+        require("./assets/exercises/female-bodyweight-pushup/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[0]!,
+      name: "Bodyweight Reverse Lunge",
+      target: "Legs & glutes · Unilateral",
+      video: require("./assets/exercise-videos/female-bodyweight-lunge.mp4"),
+      phases: ["STEP", "LOWER", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/female-bodyweight-lunge/start.jpg"),
+        require("./assets/exercises/female-bodyweight-lunge/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[2]!,
+      name: "Glute Bridge",
+      target: "Glutes · Isolation",
+      video: require("./assets/exercise-videos/female-glute-bridge.mp4"),
+      phases: ["LOWER", "HOLD", "LIFT"],
+      formFrames: [
+        require("./assets/exercises/female-glute-bridge/start.jpg"),
+        require("./assets/exercises/female-glute-bridge/finish.jpg"),
+      ],
+      poseGuide: poseGuides.hinge!,
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Plank",
+      target: "Core · Isometric",
+      tempo: "HOLD",
+      video: require("./assets/exercise-videos/female-plank.mp4"),
+      phases: ["BRACE", "HOLD", "HOLD"],
+      formFrames: [
+        require("./assets/exercises/female-plank/start.jpg"),
+        require("./assets/exercises/female-plank/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Mountain Climbers",
+      target: "Core & cardio · Bodyweight",
+      tempo: "FAST",
+      video: require("./assets/exercise-videos/female-mountain-climbers.mp4"),
+      phases: ["BRACE", "DRIVE", "SWITCH"],
+      formFrames: [
+        require("./assets/exercises/female-mountain-climbers/start.jpg"),
+        require("./assets/exercises/female-mountain-climbers/finish.jpg"),
+      ],
+    },
+  ];
+  const maleBodyweightExercises: WorkoutExercise[] = [
+    {
+      ...workoutExercises[0]!,
+      name: "Bodyweight Squat",
+      target: "Lower body · Bodyweight",
+      video: require("./assets/exercise-videos/male-bodyweight-squat.mp4"),
+      phases: ["LOWER", "HOLD", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/male-bodyweight-squat/start.jpg"),
+        require("./assets/exercises/male-bodyweight-squat/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[0]!,
+      name: "Push-Up",
+      target: "Chest & triceps · Bodyweight",
+      video: require("./assets/exercise-videos/male-push-up.mp4"),
+      phases: ["LOWER", "HOLD", "PRESS"],
+    },
+    {
+      ...workoutExercises[0]!,
+      name: "Bodyweight Reverse Lunge",
+      target: "Legs & glutes · Unilateral",
+      video: require("./assets/exercise-videos/male-bodyweight-lunge.mp4"),
+      phases: ["STEP", "LOWER", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/male-bodyweight-lunge/start.jpg"),
+        require("./assets/exercises/male-bodyweight-lunge/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Burpee",
+      target: "Full body · Cardio",
+      tempo: "FAST",
+      video: require("./assets/exercise-videos/male-burpee.mp4"),
+      phases: ["SQUAT", "PLANK", "JUMP"],
+      formFrames: [
+        require("./assets/exercises/male-burpee/start.jpg"),
+        require("./assets/exercises/male-burpee/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Plank",
+      target: "Core · Isometric",
+      tempo: "HOLD",
+      video: require("./assets/exercise-videos/male-plank.mp4"),
+      phases: ["BRACE", "HOLD", "HOLD"],
+      formFrames: [
+        require("./assets/exercises/male-plank/start.jpg"),
+        require("./assets/exercises/male-plank/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "High Knees",
+      target: "Core & cardio · Bodyweight",
+      tempo: "FAST",
+      video: require("./assets/exercise-videos/male-high-knees.mp4"),
+      phases: ["DRIVE", "SWITCH", "DRIVE"],
+      formFrames: [
+        require("./assets/exercises/male-high-knees/start.jpg"),
+        require("./assets/exercises/male-high-knees/finish.jpg"),
+      ],
+    },
+  ];
+  const isBodyweightTier = profile.equipment === "bodyweight";
+  const selectedBase = isBodyweightTier
+    ? profile.sex === "female"
+      ? femaleBodyweightExercises
+      : profile.sex === "male"
+        ? maleBodyweightExercises
+        : femaleBodyweightExercises
+    : profile.sex === "female"
+      ? femaleExercises
+      : profile.sex === "male"
+        ? maleExercises
+        : workoutExercises;
   const exercises = selectedBase.map((exercise) => {
     const isBodyweight = isBodyweightExerciseName(exercise.name);
     const saved = exerciseProgress[exercise.name];
