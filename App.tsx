@@ -3961,15 +3961,26 @@ function readBodyMetrics(profile: Record<string, string>) {
     weightKg: Number.isFinite(rawWeight) && rawWeight > 0 ? rawWeight : REFERENCE_BODY_WEIGHT_KG,
     heightCm: Number.isFinite(rawHeight) && rawHeight > 0 ? rawHeight : REFERENCE_HEIGHT_CM,
     ageYears: Number.isFinite(rawAge) && rawAge > 0 ? rawAge : REFERENCE_AGE_YEARS,
-    isMale: profile.sex === "male",
-  };
+    // Deliberately three-state, matching how createWorkout() already treats sex:
+    // a profile with no usable answer is "unknown", not silently female. Testing
+    // `=== "male"` alone would quietly apply the female constant (a systematic
+    // ~240 kcal/day error) to any legacy, partially-restored, or differently-cased
+    // profile, with nothing on screen indicating it happened.
+    sex: profile.sex === "male" ? "male" : profile.sex === "female" ? "female" : "unknown",
+  } as const;
 }
 
 // Mifflin-St Jeor resting metabolic rate -- the standard clinical estimate,
 // and the reason height and age are collected during onboarding at all.
+// The sex constant is worth ~166 kcal at rest (~240 after the activity
+// multiplier), so an unknown sex splits the difference rather than guessing:
+// that halves the worst-case error instead of biasing every unknown profile
+// in one direction.
+const MIFFLIN_SEX_CONSTANT = { male: 5, female: -161, unknown: -78 } as const;
+
 function restingMetabolicRateKcal(profile: Record<string, string>): number {
-  const { weightKg, heightCm, ageYears, isMale } = readBodyMetrics(profile);
-  return 10 * weightKg + 6.25 * heightCm - 5 * ageYears + (isMale ? 5 : -161);
+  const { weightKg, heightCm, ageYears, sex } = readBodyMetrics(profile);
+  return 10 * weightKg + 6.25 * heightCm - 5 * ageYears + MIFFLIN_SEX_CONSTANT[sex];
 }
 
 // Training frequency is the only activity signal the interview collects, so
