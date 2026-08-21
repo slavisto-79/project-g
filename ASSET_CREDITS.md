@@ -41,6 +41,21 @@ The following prototype exercise videos are downloaded and hosted locally so the
 
 Note: the two entries above without a direct link were downloaded via Pexels' "Edit in Canva" CDN redirect during sourcing and the original listing page was not re-visited afterward; title and photographer were recorded at download time. The bodyweight tier's "Push-Up" and "Plank" exercises reuse the existing Male/Female push-up and plank videos already credited above; "Glute Bridge" reuses the existing Female glute bridge video above.
 
+### Pull-up bar / calisthenics tier (added for the "bars" equipment option)
+
+- Male Pull-Up: “Gym Pull Ups” by Sport O'Scope  
+  https://www.pexels.com/video/gym-pull-ups-15859716/
+- Male Bar Dip: “Dynamic Workout: Man Exercising on Parallel Bars” by Jullian Production  
+  https://www.pexels.com/video/dynamic-workout-man-exercising-on-parallel-bars-34568748/
+- Male Hanging Leg Raise: “A Man Lifting His Legs While Hanging On A Steel Bar” by Ketut Subiyanto  
+  https://www.pexels.com/video/a-man-lifting-his-legs-while-hanging-on-a-steel-bar-4804761/
+- Female Bar Dip: “Woman Exercising Outdoors” by Mikhail Nilov  
+  https://www.pexels.com/video/woman-exercising-outdoors-8457011/
+- Female Knee Raise: “A Woman Doing Exercise on Parallel Bars” by KoolShooters  
+  https://www.pexels.com/video/a-woman-doing-exercise-on-parallel-bars-8520403/
+
+Note: this is a starter roster (2 exercises for women, 3 for men) -- several other candidate clips were downloaded and rejected during sourcing for cropping out the athlete's head or legs, or for showing a different exercise than the title claimed (Pexels auto-generated descriptions were repeatedly unreliable; verified by ffmpeg contact sheet instead). A good full-body, well-lit female Pull-Up video was not found; add one and expand this tier when better footage turns up.
+
 ## Recipe library photos
 
 - Greek Yogurt Berry Parfait: “A Close Up Shot of Yogurt Parfaits” by Jankao  
