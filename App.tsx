@@ -199,6 +199,7 @@ const interviewQuestions: InterviewQuestion[] = [
       { label: "Home gym", value: "home-gym" },
       { label: "Dumbbells and bands", value: "minimal" },
       { label: "Bodyweight only", value: "bodyweight" },
+      { label: "Pull-up bar / calisthenics", value: "bars" },
     ],
   },
   {
@@ -4000,7 +4001,11 @@ function isBodyweightExerciseName(name: string): boolean {
     name.includes("Bodyweight") ||
     name.includes("Mountain Climbers") ||
     name.includes("High Knees") ||
-    name.includes("Burpee")
+    name.includes("Burpee") ||
+    name.includes("Pull-Up") ||
+    name.includes("Bar Dip") ||
+    name.includes("Knee Raise") ||
+    name.includes("Hanging Leg Raise")
   );
 }
 
@@ -4316,18 +4321,88 @@ function createWorkout(
       ],
     },
   ];
+  // Starter roster for the "Pull-up bar / calisthenics" equipment tier -- intentionally
+  // smaller than the other tiers (2-3 exercises) since only a handful of real,
+  // fully-visible, gender-matched bar-exercise videos exist so far. Expand once more
+  // footage is sourced; do not pad it with unrelated exercises relabeled as bar work.
+  const femaleBarsExercises: WorkoutExercise[] = [
+    {
+      ...workoutExercises[1]!,
+      name: "Bar Dip",
+      target: "Chest & triceps · Bodyweight",
+      video: require("./assets/exercise-videos/female-bar-dip.mp4"),
+      phases: ["BRACE", "LOWER", "PRESS"],
+      formFrames: [
+        require("./assets/exercises/female-bar-dip/start.jpg"),
+        require("./assets/exercises/female-bar-dip/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Knee Raise",
+      target: "Core · Bodyweight",
+      video: require("./assets/exercise-videos/female-knee-raise.mp4"),
+      phases: ["BRACE", "RAISE", "LOWER"],
+      formFrames: [
+        require("./assets/exercises/female-knee-raise/start.jpg"),
+        require("./assets/exercises/female-knee-raise/finish.jpg"),
+      ],
+    },
+  ];
+  const maleBarsExercises: WorkoutExercise[] = [
+    {
+      ...workoutExercises[0]!,
+      name: "Pull-Up",
+      target: "Back & biceps · Bodyweight",
+      video: require("./assets/exercise-videos/male-pull-up.mp4"),
+      phases: ["HANG", "PULL", "LOWER"],
+      formFrames: [
+        require("./assets/exercises/male-pull-up/start.jpg"),
+        require("./assets/exercises/male-pull-up/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Bar Dip",
+      target: "Chest & triceps · Bodyweight",
+      video: require("./assets/exercise-videos/male-bar-dip.mp4"),
+      phases: ["BRACE", "LOWER", "PRESS"],
+      formFrames: [
+        require("./assets/exercises/male-bar-dip/start.jpg"),
+        require("./assets/exercises/male-bar-dip/finish.jpg"),
+      ],
+    },
+    {
+      ...workoutExercises[1]!,
+      name: "Hanging Leg Raise",
+      target: "Core · Bodyweight",
+      video: require("./assets/exercise-videos/male-hanging-leg-raise.mp4"),
+      phases: ["HANG", "RAISE", "LOWER"],
+      formFrames: [
+        require("./assets/exercises/male-hanging-leg-raise/start.jpg"),
+        require("./assets/exercises/male-hanging-leg-raise/finish.jpg"),
+      ],
+    },
+  ];
   const isBodyweightTier = profile.equipment === "bodyweight";
-  const selectedBase = isBodyweightTier
+  const isBarsTier = profile.equipment === "bars";
+  const selectedBase = isBarsTier
     ? profile.sex === "female"
-      ? femaleBodyweightExercises
+      ? femaleBarsExercises
       : profile.sex === "male"
-        ? maleBodyweightExercises
-        : femaleBodyweightExercises
-    : profile.sex === "female"
-      ? femaleExercises
-      : profile.sex === "male"
-        ? maleExercises
-        : workoutExercises;
+        ? maleBarsExercises
+        : femaleBarsExercises
+    : isBodyweightTier
+      ? profile.sex === "female"
+        ? femaleBodyweightExercises
+        : profile.sex === "male"
+          ? maleBodyweightExercises
+          : femaleBodyweightExercises
+      : profile.sex === "female"
+        ? femaleExercises
+        : profile.sex === "male"
+          ? maleExercises
+          : workoutExercises;
   const exercises = selectedBase.map((exercise) => {
     const isBodyweight = isBodyweightExerciseName(exercise.name);
     const saved = exerciseProgress[exercise.name];
@@ -4489,6 +4564,7 @@ async function createWorkoutFromCatalog(
     "home-gym": "home-gym",
     minimal: "minimal",
     bodyweight: "bodyweight",
+    bars: "bars",
   };
   const limitationsMap: Record<string, ProgramBuilderProfile["limitations"]> = {
     knee: "knee",

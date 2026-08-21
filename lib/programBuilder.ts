@@ -3,7 +3,7 @@ import type { ExerciseTag, MovementPattern } from "./exerciseCatalog";
 // Mirrors the exact values stored by the onboarding questions in App.tsx
 // (ids "equipment", "experience", "limitations", "sex") -- not a separate vocabulary.
 export type ProgramBuilderProfile = {
-  equipment: "gym" | "home-gym" | "minimal" | "bodyweight";
+  equipment: "gym" | "home-gym" | "minimal" | "bodyweight" | "bars";
   experience: "beginner" | "novice" | "intermediate" | "advanced";
   limitations: "knee" | "shoulder" | "back" | "none" | "coach-review";
   sex: "male" | "female";
@@ -124,6 +124,12 @@ export function determineSplitDay(
 const equipmentCategory: Record<ProgramBuilderProfile["equipment"], string | undefined> = {
   minimal: "Dumbbells",
   bodyweight: "Bodyweight",
+  // Best-effort guess, unlike the categories above -- not yet confirmed against a live
+  // MuscleWiki response (the catalog endpoint has been returning errors). If/when it's
+  // healthy again, verify this is the actual category string for pull-up/dip-bar
+  // exercises and correct it if not; until then this tier leans on the local fallback
+  // roster in App.tsx's createWorkout(), which does not depend on this value.
+  bars: "Bar",
   "home-gym": undefined,
   gym: undefined,
 };
