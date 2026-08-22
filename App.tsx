@@ -6440,11 +6440,17 @@ export default function App() {
 
     const applySession = async (id: string, email: string | undefined) => {
       try {
-        const { data } = await supabase
+        // Newer columns are selected separately: a column that hasn't been
+        // migrated onto this Supabase project yet fails the WHOLE select,
+        // which would strand every existing user on onboarding as if their
+        // profile had been wiped. Losing one optional feature's data is
+        // recoverable; losing the profile read is not.
+        const CORE_COLUMNS =
+          "profile, nutrition_totals, coach_adjustment, coach_messages, exercise_progress, workout_history, diet_plan, trial_started_at";
+        const { data } = await supabase.from("user_data").select(CORE_COLUMNS).eq("user_id", id).maybeSingle();
+        const { data: optionalData } = await supabase
           .from("user_data")
-          .select(
-            "profile, nutrition_totals, coach_adjustment, coach_messages, exercise_progress, workout_history, diet_plan, daily_check_in, trial_started_at",
-          )
+          .select("daily_check_in")
           .eq("user_id", id)
           .maybeSingle();
         const remoteProfile = (data?.profile ?? {}) as Record<string, string>;
@@ -6459,13 +6465,13 @@ export default function App() {
           setExerciseProgress((data?.exercise_progress as Record<string, ExerciseProgress>) ?? {});
           setWorkoutHistory((data?.workout_history as WorkoutHistoryEntry[]) ?? []);
           setDietPlan((data?.diet_plan as SavedDietPlan | null) ?? null);
-          setDailyCheckIn((data?.daily_check_in as DailyCheckIn | null) ?? null);
+          setDailyCheckIn((optionalData?.daily_check_in as DailyCheckIn | null) ?? null);
           setScreen("dashboard");
         } else if (Object.keys(stateRef.current.profile).length > 0) {
           // Fresh account with no saved data yet: migrate whatever local/guest
           // progress already existed into it. Upsert (not update) so this still
           // works even if the on-signup trigger hasn't created the row yet.
-          const { error: migrateError } = await supabase.from("user_data").upsert({
+          const migrateCore = {
             user_id: id,
             profile: stateRef.current.profile,
             nutrition_totals: stateRef.current.nutritionTotals,
@@ -6474,9 +6480,16 @@ export default function App() {
             exercise_progress: stateRef.current.exerciseProgress,
             workout_history: stateRef.current.workoutHistory,
             diet_plan: stateRef.current.dietPlan,
-            daily_check_in: stateRef.current.dailyCheckIn,
-          });
-          if (migrateError) console.error("Failed to migrate guest progress to account", migrateError);
+          };
+          const { error: migrateError } = await supabase
+            .from("user_data")
+            .upsert({ ...migrateCore, daily_check_in: stateRef.current.dailyCheckIn });
+          if (migrateError?.code === "PGRST204") {
+            const { error: retryError } = await supabase.from("user_data").upsert(migrateCore);
+            if (retryError) console.error("Failed to migrate guest progress to account", retryError);
+          } else if (migrateError) {
+            console.error("Failed to migrate guest progress to account", migrateError);
+          }
         }
         if (Platform.OS === "web") window.localStorage.removeItem("project-g-test-state");
         setUserId(id);
@@ -6553,7 +6566,7 @@ export default function App() {
     let cancelled = false;
     void (async () => {
       if (cancelled) return;
-      const { error } = await supabase.from("user_data").upsert({
+      const corePayload = {
         user_id: userId,
         profile,
         nutrition_totals: nutritionTotals,
@@ -6562,9 +6575,17 @@ export default function App() {
         exercise_progress: exerciseProgress,
         workout_history: workoutHistory,
         diet_plan: dietPlan,
-        daily_check_in: dailyCheckIn,
-      });
-      if (error) console.error("Failed to sync progress to account", error);
+      };
+      const { error } = await supabase.from("user_data").upsert({ ...corePayload, daily_check_in: dailyCheckIn });
+      // PGRST204 = the column isn't on this project yet. Retry without it so
+      // profile/history still save; the check-in is the only thing lost, and
+      // only until the migration in supabase-setup.sql is applied.
+      if (error?.code === "PGRST204") {
+        const { error: retryError } = await supabase.from("user_data").upsert(corePayload);
+        if (retryError) console.error("Failed to sync progress to account", retryError);
+      } else if (error) {
+        console.error("Failed to sync progress to account", error);
+      }
     })();
     return () => {
       cancelled = true;
