@@ -23,6 +23,18 @@
 - Completing the final exercise must always open a complete session analysis.
 - The session analysis must lead to a dedicated progress screen and then back to the dashboard.
 
+## Pre-workout readiness check-in
+
+- Tapping START WORKOUT opens a check-in first (`CheckInScreen`): four 1-10 scales -- sleep, nutrition, fatigue, stress -- rendered as tap-only dot rows. No free-text input anywhere, defaults sit at a neutral midpoint, and the whole thing is skippable, so someone who just wants to train can tap straight through or skip.
+- Skipping deliberately records **nothing**. A skip means "no signal today" and leaves the plan untouched; it must never write a neutral score, which would be indistinguishable from a real answer.
+- The check-in is date-stamped and only counts on the day it was filled in (`todaysCheckIn()`). Yesterday's answers say nothing about last night's sleep, so a stale check-in silently stops applying instead of needing a scheduled reset. It's asked once per day, not once per workout.
+- `checkInScore()` collapses the four answers into 0-1. Fatigue and stress are asked "how bad is it" (10 = worst) so they're inverted before averaging -- all four then point the same way, 1 = best possible day.
+- **Only the bottom half of the range does anything.** A score at or above 0.5 confirms the planned session; it never adds weight or sets. This preserves the pre-existing rule that the algorithm only ever discounts load -- progressive overload owns increases, not a self-reported good mood. Do not "improve" this into a bonus without a deliberate decision to change that rule.
+- The training goal scales how hard a bad day pulls back, via `GOAL_READINESS_WEIGHT_SENSITIVITY` and `GOAL_READINESS_VOLUME_SENSITIVITY`. Strength gives up load but keeps its sets (heavy technical lifts are the worst thing to grind under-recovered); fat-loss/fitness/health barely move the weight but shed sets sooner, since those goals live on consistency rather than peak load. Worked example at a 0% check-in, 3 days/week: strength 82% weight / 3 sets, fat-loss 93% weight / 2 sets (down from 4).
+- The Dashboard readiness gauge prefers today's check-in over the old hours-since-last-workout heuristic whenever one exists, since it's a direct report rather than a guess.
+- "START ANYWAY" on the trained-recently warning also routes through the check-in -- that's precisely the case where readiness matters most.
+- Persisted as `dailyCheckIn` in localStorage and the `user_data.daily_check_in` jsonb column, alongside the rest of the profile/progress state.
+
 ## Equipment-aware workouts and profile editing
 
 - There are two exercise-selection paths. The primary one, `createWorkoutFromCatalog()` (`App.tsx`) + `buildProgram()` (`lib/programBuilder.ts`), pulls live exercise data from a MuscleWiki-backed serverless endpoint (`/api/exercise-catalog`) and filters it by `profile.equipment` via `equipmentCategory` in `lib/programBuilder.ts` -- but only for `minimal` and `bars`/`bodyweight`-style tiers; `gym`/`home-gym` apply no equipment filtering at all. If the live catalog call fails or returns too few slots (`MUSCLEWIKI_API_KEY` unset, upstream error, etc.), it silently falls back to the second path: the local, hardcoded `createWorkout()`.
