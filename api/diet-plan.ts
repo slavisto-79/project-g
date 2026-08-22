@@ -15,6 +15,7 @@ type DietPlanRequest = {
   mealsPerDay?: string;
   prepTime?: string;
   budget?: string;
+  mealStyle?: string;
   avoid?: string;
   calorieTarget?: number;
   proteinTarget?: number;
@@ -69,6 +70,20 @@ const budgetGuidance: Record<string, string> = {
   any: "No particular budget constraint -- any realistic grocery ingredients are fine.",
 };
 
+const mealStyleLabels: Record<string, string> = {
+  cook: "cooking meals from scratch as normal",
+  readymade: "ready-to-eat, store-bought components with minimal to no cooking",
+  mixed: "a mix of home-cooked meals and ready-to-eat store-bought ones",
+};
+
+const mealStyleGuidance: Record<string, string> = {
+  cook: "",
+  readymade:
+    "Build every meal from ready-to-eat or near-zero-prep store-bought components that need no real cooking: rotisserie or pre-cooked chicken, deli meats, pre-cooked rice or grain pouches, bagged salads, pre-washed vegetables, canned beans/tuna/salmon, plain Greek yogurt, hummus, hard-boiled eggs, frozen steam-in-bag vegetables, protein shakes, whole fruit. Microwaving, reheating, or simply combining components is fine; cooking raw meat/fish, or cooking dry rice/pasta/grains from scratch, is not. Describe every item generically by type (e.g. 'rotisserie chicken', 'bagged salad mix', 'pre-cooked rice pouch') -- never name a specific brand or store chain.",
+  mixed:
+    "Mix genuinely home-cooked meals with ready-to-eat, minimal-assembly ones across the week -- roughly half and half. For the ready-to-eat meals, follow the same rule as a fully ready-made plan: describe every item generically by type, never a specific brand or store chain, and keep prep to reheating/assembly only.",
+};
+
 function readOutputText(response: {
   output_text?: string;
   output?: Array<{ content?: Array<{ type?: string; text?: string }> }>;
@@ -103,6 +118,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const prepGuidance = prepTimeGuidance[body.prepTime ?? "any"] ?? prepTimeGuidance.any;
   const budget = budgetLabels[body.budget ?? "any"] ?? budgetLabels.any;
   const budgetGuidanceText = budgetGuidance[body.budget ?? "any"] ?? budgetGuidance.any;
+  const mealStyle = mealStyleLabels[body.mealStyle ?? "cook"] ?? mealStyleLabels.cook;
+  const mealStyleGuidanceText = mealStyleGuidance[body.mealStyle ?? "cook"] ?? mealStyleGuidance.cook;
   const avoid = typeof body.avoid === "string" ? body.avoid.slice(0, 140) : "";
   const calorieTarget =
     typeof body.calorieTarget === "number" && Number.isFinite(body.calorieTarget)
@@ -135,6 +152,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "Make the 7 days meaningfully different from each other: rotate protein sources, cuisines, cooking methods, and ingredients. Do not reuse the same meal name or near-identical dish across days.",
           prepGuidance,
           budgetGuidanceText,
+          mealStyleGuidanceText,
           avoid ? `Avoid these foods entirely: ${avoid}.` : "",
           `Size each day to approximately ${calorieTarget} kcal and ${proteinTarget}g of protein in total; distribute reasonably across that day's meals.`,
           "Use simple, realistic, common ingredients a home cook can find easily.",
@@ -145,7 +163,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ]
           .filter(Boolean)
           .join(" "),
-        input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nMEALS PER DAY: ${mealsPerDay}\nDIETARY STYLE: ${dietaryStyle}\nPREP TIME: ${prepTime}\nBUDGET: ${budget}\nAVOID: ${avoid || "none"}\nCALORIE TARGET: ${calorieTarget} kcal\nPROTEIN TARGET: ${proteinTarget}g`,
+        input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nMEALS PER DAY: ${mealsPerDay}\nDIETARY STYLE: ${dietaryStyle}\nPREP TIME: ${prepTime}\nBUDGET: ${budget}\nMEAL STYLE: ${mealStyle}\nAVOID: ${avoid || "none"}\nCALORIE TARGET: ${calorieTarget} kcal\nPROTEIN TARGET: ${proteinTarget}g`,
         text: {
           format: {
             type: "json_schema",

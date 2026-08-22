@@ -2696,12 +2696,18 @@ const budgetOptions = [
   { label: "Moderate", value: "moderate" },
   { label: "No limit", value: "any" },
 ];
+const mealStyleOptions = [
+  { label: "Cook it myself", value: "cook" },
+  { label: "Ready-made", value: "readymade" },
+  { label: "Mix of both", value: "mixed" },
+];
 
 type SavedDietPlan = {
   dietaryStyle: string;
   mealsPerDay: string;
   prepTime: string;
   budget: string;
+  mealStyle: string;
   avoid: string;
   days: DietPlanResult[];
   generatedAt: string;
@@ -2719,11 +2725,13 @@ function MealDetailModal({
   meal,
   prepTime,
   budget,
+  mealStyle,
   onClose,
 }: {
   meal: DietPlanMeal | null;
   prepTime: string;
   budget: string;
+  mealStyle: string;
   onClose: () => void;
 }) {
   const detailCacheRef = useRef<Record<string, { ingredients: RecipeIngredient[]; steps: string[] }>>({});
@@ -2759,6 +2767,7 @@ function MealDetailModal({
               unitSystem,
               prepTime,
               budget,
+              mealStyle,
             }),
           });
           const data = await response.json();
@@ -2798,7 +2807,7 @@ function MealDetailModal({
         }
       })();
     }
-  }, [meal, prepTime, budget]);
+  }, [meal, prepTime, budget, mealStyle]);
 
   if (!meal) return null;
 
@@ -2897,6 +2906,7 @@ function DietPlanScreen({
   const [mealsPerDay, setMealsPerDay] = useState(savedPlan?.mealsPerDay ?? "3");
   const [prepTime, setPrepTime] = useState(savedPlan?.prepTime ?? "any");
   const [budget, setBudget] = useState(savedPlan?.budget ?? "any");
+  const [mealStyle, setMealStyle] = useState(savedPlan?.mealStyle ?? "cook");
   const [avoid, setAvoid] = useState(savedPlan?.avoid ?? "");
   const [stage, setStage] = useState<"form" | "loading" | "result">(hasSavedWeek ? "result" : "form");
   const [days, setDays] = useState<DietPlanResult[]>(hasSavedWeek ? savedPlan!.days : []);
@@ -2933,6 +2943,7 @@ function DietPlanScreen({
           mealsPerDay,
           prepTime,
           budget,
+          mealStyle,
           avoid: avoid.trim().slice(0, 140),
           calorieTarget,
           proteinTarget,
@@ -2952,6 +2963,7 @@ function DietPlanScreen({
         mealsPerDay,
         prepTime,
         budget,
+        mealStyle,
         avoid,
         days: data.days,
         generatedAt: nowIso,
@@ -2971,6 +2983,7 @@ function DietPlanScreen({
         mealsPerDay,
         prepTime,
         budget,
+        mealStyle,
         avoid,
         days: fallbackDietWeek,
         generatedAt: nowIso,
@@ -3081,6 +3094,23 @@ function DietPlanScreen({
                   style={[styles.dietChip, budget === option.value && styles.dietChipSelected]}
                 >
                   <Text style={[styles.dietChipText, budget === option.value && styles.dietChipTextSelected]}>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Text style={styles.dietGroupLabel}>COOKING STYLE</Text>
+            <View style={styles.dietChipRow}>
+              {mealStyleOptions.map((option) => (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: mealStyle === option.value }}
+                  onPress={() => setMealStyle(option.value)}
+                  style={[styles.dietChip, mealStyle === option.value && styles.dietChipSelected]}
+                >
+                  <Text style={[styles.dietChipText, mealStyle === option.value && styles.dietChipTextSelected]}>
                     {option.label}
                   </Text>
                 </Pressable>
@@ -3203,7 +3233,13 @@ function DietPlanScreen({
         )}
       </ScrollView>
 
-      <MealDetailModal meal={selectedMeal} prepTime={prepTime} budget={budget} onClose={() => setSelectedMeal(null)} />
+      <MealDetailModal
+        meal={selectedMeal}
+        prepTime={prepTime}
+        budget={budget}
+        mealStyle={mealStyle}
+        onClose={() => setSelectedMeal(null)}
+      />
     </SafeAreaView>
   );
 }

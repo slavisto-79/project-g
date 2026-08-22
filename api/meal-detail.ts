@@ -19,6 +19,7 @@ type MealDetailRequest = {
   unitSystem?: "metric" | "imperial";
   prepTime?: string;
   budget?: string;
+  mealStyle?: string;
 };
 
 const prepTimeGuidance: Record<string, string> = {
@@ -35,6 +36,14 @@ const budgetGuidance: Record<string, string> = {
   moderate:
     "Favor affordable everyday staples; a moderately priced ingredient (chicken breast, salmon, ground beef) is fine, but avoid premium or luxury ingredients.",
   any: "No particular budget constraint -- any realistic grocery ingredients are fine.",
+};
+
+const mealStyleGuidance: Record<string, string> = {
+  cook: "",
+  readymade:
+    "This meal is assembled from ready-to-eat, store-bought components, not cooked from scratch. List 'ingredients' as generic store-bought items to buy (e.g. 'rotisserie chicken breast', 'bagged salad mix', 'pre-cooked rice pouch') -- never a specific brand or store chain. The 'steps' must only describe reheating, slicing, or combining already-prepared components -- never cooking raw meat/fish or cooking dry rice/pasta/grains from scratch.",
+  mixed:
+    "This meal may be either home-cooked or a ready-to-eat store-bought assembly -- infer which from its name and description (mentions of 'rotisserie', 'pre-cooked', 'canned', 'bagged', or similar imply ready-to-eat). If it reads as ready-to-eat, list generic store-bought items to buy (never a specific brand or store chain) and keep steps to reheating/assembly only. Otherwise write it as a normal home-cooked recipe.",
 };
 
 function readOutputText(response: {
@@ -77,6 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const unitSystem = body.unitSystem === "imperial" ? "imperial" : "metric";
   const prepGuidance = prepTimeGuidance[body.prepTime ?? "any"] ?? prepTimeGuidance.any;
   const budgetGuidanceText = budgetGuidance[body.budget ?? "any"] ?? budgetGuidance.any;
+  const mealStyleGuidanceText = mealStyleGuidance[body.mealStyle ?? "cook"] ?? mealStyleGuidance.cook;
 
   try {
     const openAIResponse = await fetch("https://api.openai.com/v1/responses", {
@@ -95,12 +105,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "Build clear, numbered cooking steps a beginner could follow.",
           prepGuidance,
           budgetGuidanceText,
+          mealStyleGuidanceText,
           "The ingredients and portions should roughly justify the given calories and macros for this meal -- use them as a sanity check, not a rigid formula.",
           "Use simple, common ingredients and equipment.",
           "Never claim medical, clinical, or weight-loss guarantees; this is general food inspiration only.",
           "Keep each step under 18 words.",
           "Return only JSON matching the requested schema.",
-        ].join(" "),
+        ]
+          .filter(Boolean)
+          .join(" "),
         input: `MEAL: ${name}\nDESCRIPTION: ${description}\nTARGET MACROS: ${calories} kcal, P${protein}g, C${carbs}g, F${fat}g\nPREFERRED UNITS: ${unitSystem}`,
         text: {
           format: {
