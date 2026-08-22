@@ -56,7 +56,8 @@ type Screen =
   | "dietPlan"
   | "auth"
   | "resetPassword"
-  | "profile";
+  | "profile"
+  | "checkIn";
 
 type InterviewAnswer = {
   label: string;
@@ -1314,6 +1315,7 @@ function DashboardScreen({
   profile,
   nutritionTotals,
   workoutHistory,
+  dailyCheckIn,
   trialDaysLeft,
 }: {
   onStartWorkout: () => void;
@@ -1327,6 +1329,7 @@ function DashboardScreen({
   profile: Record<string, string>;
   nutritionTotals: NutritionTotals;
   workoutHistory: WorkoutHistoryEntry[];
+  dailyCheckIn: DailyCheckIn | null;
   trialDaysLeft: number | null;
 }) {
   const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
@@ -1337,7 +1340,7 @@ function DashboardScreen({
   const weeklyGoal = profile.frequency ?? "3";
   const thisWeekCount = workoutHistory.filter((entry) => isWithinLastDays(entry.date, 7)).length;
   const lastWorkout = workoutHistory[0];
-  const readiness = computeReadiness(workoutHistory);
+  const readiness = computeReadiness(workoutHistory, dailyCheckIn);
 
   return (
     <SafeAreaView style={styles.dashboard}>
@@ -1495,6 +1498,133 @@ function DashboardScreen({
   );
 }
 
+const checkInQuestions = [
+  {
+    id: "sleep" as const,
+    label: "SLEEP",
+    title: "How did you sleep?",
+    lowLabel: "Terrible",
+    highLabel: "Great",
+  },
+  {
+    id: "nutrition" as const,
+    label: "NUTRITION",
+    title: "How is your eating today?",
+    lowLabel: "Poor",
+    highLabel: "On point",
+  },
+  {
+    id: "fatigue" as const,
+    label: "FATIGUE",
+    title: "How tired do you feel?",
+    lowLabel: "Fresh",
+    highLabel: "Exhausted",
+  },
+  {
+    id: "stress" as const,
+    label: "STRESS",
+    title: "How stressed are you?",
+    lowLabel: "Calm",
+    highLabel: "Very high",
+  },
+];
+
+// Tap-only pre-workout check-in: four 1-10 scales, no text entry anywhere.
+// Defaults to the neutral midpoint so someone who just wants to train can
+// tap straight through, and can be skipped outright.
+function CheckInScreen({
+  previousCheckIn,
+  onSkip,
+  onSubmit,
+}: {
+  previousCheckIn: DailyCheckIn | null;
+  onSkip: () => void;
+  onSubmit: (checkIn: DailyCheckIn) => void;
+}) {
+  const [answers, setAnswers] = useState<Record<string, number>>({
+    sleep: previousCheckIn?.sleep ?? 6,
+    nutrition: previousCheckIn?.nutrition ?? 6,
+    fatigue: previousCheckIn?.fatigue ?? 5,
+    stress: previousCheckIn?.stress ?? 5,
+  });
+
+  return (
+    <SafeAreaView style={styles.recipesScreen}>
+      <View style={styles.nutritionHeader}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Skip check-in" onPress={onSkip} style={styles.coachBack}>
+          <Text style={styles.coachBackText}>‹</Text>
+        </Pressable>
+        <View>
+          <Text style={styles.nutritionHeaderTitle}>TODAY’S CHECK-IN</Text>
+          <Text style={styles.nutritionHeaderSubtitle}>We’ll tune today’s session to match</Text>
+        </View>
+        <View style={styles.coachHeaderSpacer} />
+      </View>
+
+      <ScrollView
+        style={styles.nutritionScroll}
+        contentContainerStyle={styles.nutritionContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {checkInQuestions.map((question) => (
+          <View key={question.id} style={styles.checkInGroup}>
+            <Text style={styles.dietGroupLabel}>{question.label}</Text>
+            <Text style={styles.checkInQuestionTitle}>{question.title}</Text>
+            <View style={styles.checkInScaleRow}>
+              {Array.from({ length: 10 }, (_, index) => index + 1).map((value) => {
+                const isSelected = answers[question.id] === value;
+                return (
+                  <Pressable
+                    key={value}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${question.label} ${value} of 10`}
+                    accessibilityState={{ selected: isSelected }}
+                    onPress={() => setAnswers((current) => ({ ...current, [question.id]: value }))}
+                    style={[styles.checkInDot, isSelected && styles.checkInDotSelected]}
+                  >
+                    <Text style={[styles.checkInDotText, isSelected && styles.checkInDotTextSelected]}>{value}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <View style={styles.checkInScaleLegend}>
+              <Text style={styles.checkInScaleLegendText}>{question.lowLabel}</Text>
+              <Text style={styles.checkInScaleLegendText}>{question.highLabel}</Text>
+            </View>
+          </View>
+        ))}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Start workout"
+          onPress={() =>
+            onSubmit({
+              date: todayDateKey(),
+              sleep: answers.sleep ?? 6,
+              nutrition: answers.nutrition ?? 6,
+              fatigue: answers.fatigue ?? 5,
+              stress: answers.stress ?? 5,
+            })
+          }
+          style={styles.dietBuildButton}
+        >
+          <Text style={styles.dietBuildButtonText}>START WORKOUT</Text>
+          <Text style={styles.dietBuildButtonArrow}>→</Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Skip and use the standard plan"
+          onPress={onSkip}
+          style={styles.checkInSkipButton}
+        >
+          <Text style={styles.checkInSkipText}>SKIP — USE STANDARD PLAN</Text>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
 type NutritionTotals = {
   calories: number;
   protein: number;
@@ -1525,6 +1655,22 @@ type WorkoutHistoryEntry = {
   exerciseBreakdown?: WorkoutHistoryExercise[];
   splitDay?: SplitDay;
 };
+
+// A once-per-day subjective check-in (sleep, nutrition, fatigue, stress),
+// each 1-10, collected via tap-only wheel pickers -- no free text. Feeds
+// readinessWeightModifier()/setCountForProfile() below so today's plan
+// reacts to how the user actually feels, not just time-since-last-session.
+type DailyCheckIn = {
+  date: string;
+  sleep: number;
+  nutrition: number;
+  fatigue: number;
+  stress: number;
+};
+
+function todayDateKey(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 function formatHistoryDate(iso: string): string {
   const parsed = new Date(iso);
@@ -1578,7 +1724,24 @@ function recentSplitDaysFromHistory(workoutHistory: WorkoutHistoryEntry[]): Spli
   return workoutHistory.map((entry) => entry.splitDay).filter((day): day is SplitDay => Boolean(day));
 }
 
-function computeReadiness(workoutHistory: WorkoutHistoryEntry[]): ReadinessInfo {
+function computeReadiness(workoutHistory: WorkoutHistoryEntry[], checkIn?: DailyCheckIn | null): ReadinessInfo {
+  // Today's check-in is a direct report of how the user feels, so it outranks
+  // the time-since-last-session guess whenever it exists.
+  const today = todaysCheckIn(checkIn ?? null);
+  if (today) {
+    const score = Math.round(checkInScore(today) * 100);
+    if (score >= 75) {
+      return { score, title: "Feeling strong", hint: "Great check-in — today’s session stands as planned." };
+    }
+    if (score >= 50) {
+      return { score, title: "Good readiness", hint: "You’re ready for the planned session." };
+    }
+    if (score >= 30) {
+      return { score, title: "Running low", hint: "We’ve eased today’s load to match how you feel." };
+    }
+    return { score, title: "Needs recovery", hint: "Lighter session today — recovery beats grinding." };
+  }
+
   const lastWorkout = workoutHistory[0];
   if (!lastWorkout) {
     return { score: 85, title: "Ready to start", hint: "No sessions logged yet — go for it." };
@@ -3981,10 +4144,14 @@ function setCountForProfile(
   profile: Record<string, string>,
   adjustment?: CoachScenario | null,
   isDeload?: boolean,
+  checkIn?: DailyCheckIn | null,
 ): number {
   const baseSetCount = BASE_SET_COUNT_BY_FREQUENCY[profile.frequency ?? "3"] ?? 3;
   const densityBonus = profile.goal === "fat-loss" || profile.goal === "fitness" ? 1 : 0;
-  const reduction = (adjustment === "tired" ? 1 : 0) + (isDeload ? 1 : 0);
+  const reduction =
+    (adjustment === "tired" ? 1 : 0) +
+    (isDeload ? 1 : 0) +
+    readinessSetPenalty(checkIn ?? null, profile.goal);
   return Math.max(2, baseSetCount + densityBonus - reduction);
 }
 
@@ -4142,21 +4309,87 @@ function restSecondsForProfile(profile: Record<string, string>, adjustment?: Coa
   return adjustment === "tired" ? base + 30 : base;
 }
 
+// Collapses the four check-in answers into one 0-1 score. Fatigue and stress
+// are asked as "how tired/stressed are you" (10 = worst), so they're inverted
+// before averaging -- all four then point the same way, 1 = best possible day.
+function checkInScore(checkIn: DailyCheckIn): number {
+  const normalized = [checkIn.sleep, checkIn.nutrition, 11 - checkIn.fatigue, 11 - checkIn.stress].map(
+    (value) => (Math.min(10, Math.max(1, value)) - 1) / 9,
+  );
+  return normalized.reduce((sum, value) => sum + value, 0) / normalized.length;
+}
+
+// Only a check-in from today counts. Yesterday's answers say nothing about
+// how the user slept last night, and silently reusing them would be worse
+// than having no signal at all.
+function todaysCheckIn(checkIn: DailyCheckIn | null): DailyCheckIn | null {
+  return checkIn && checkIn.date === todayDateKey() ? checkIn : null;
+}
+
+// How hard a bad day should pull the load down, per goal. Strength work is
+// the most punishing to grind through under-recovered (heaviest loads, most
+// technical lifts), so it backs off hardest. Fat-loss/fitness/health lean on
+// consistency more than peak load, so their weight barely moves -- the volume
+// cut below does the work for them instead.
+const GOAL_READINESS_WEIGHT_SENSITIVITY: Record<string, number> = {
+  strength: 0.18,
+  muscle: 0.12,
+  "fat-loss": 0.07,
+  fitness: 0.07,
+  health: 0.08,
+};
+
+// Same idea for set count: goals that live on training volume (muscle) or on
+// showing up at all (fat-loss/fitness/health) shed sets sooner on a rough
+// day, while strength keeps its sets and gives up load instead.
+const GOAL_READINESS_VOLUME_SENSITIVITY: Record<string, number> = {
+  strength: 0.5,
+  muscle: 1,
+  "fat-loss": 1,
+  fitness: 1,
+  health: 1.5,
+};
+
 // A same-day readiness discount applied to suggested weight -- only ever
 // reduces load, never adds to it, since normal double-progression already
 // handles increases and an algorithm should never talk someone into more
 // weight than usual on a day it has no real evidence they're ready for.
-// Two signals are available today: how recently they last trained (real
-// under-recovery, not just "yesterday" being close by design) and whether
-// they told the coach they're tired going into this session. Sleep and
-// diet-adherence trend aren't tracked yet, so they're left out rather than
-// guessed at -- see the memory note for why.
-function readinessWeightModifier(workoutHistory: WorkoutHistoryEntry[], adjustment?: CoachScenario | null): number {
+// (Deliberately still true with the check-in in place: a great check-in
+// confirms the planned session rather than adding weight on top of it.)
+// Signals: how recently they last trained, whether they told the coach
+// they're tired, and -- when they filled it in today -- the check-in.
+function readinessWeightModifier(
+  workoutHistory: WorkoutHistoryEntry[],
+  adjustment?: CoachScenario | null,
+  checkIn?: DailyCheckIn | null,
+  goal?: string,
+): number {
   let modifier = 1;
   const hoursSince = hoursSinceLastWorkout(workoutHistory);
   if (hoursSince !== null && hoursSince < 20) modifier -= 0.06;
   if (adjustment === "tired") modifier -= 0.06;
-  return Math.max(0.88, modifier);
+
+  const today = todaysCheckIn(checkIn ?? null);
+  if (today) {
+    // Only the bottom half of the range discounts anything: a score at or
+    // above 0.5 is "the planned session stands", not "add weight".
+    const shortfall = Math.max(0, 0.5 - checkInScore(today)) * 2;
+    const sensitivity = GOAL_READINESS_WEIGHT_SENSITIVITY[goal ?? ""] ?? 0.12;
+    modifier -= shortfall * sensitivity;
+  }
+
+  return Math.max(0.7, modifier);
+}
+
+// Sets dropped from the session because of today's check-in, on the same
+// bottom-half-only basis as the weight discount. Capped at 2 so a terrible
+// day still leaves a real session rather than a token one.
+function readinessSetPenalty(checkIn: DailyCheckIn | null, goal?: string): number {
+  const today = todaysCheckIn(checkIn);
+  if (!today) return 0;
+  const shortfall = Math.max(0, 0.5 - checkInScore(today)) * 2;
+  const sensitivity = GOAL_READINESS_VOLUME_SENSITIVITY[goal ?? ""] ?? 1;
+  return Math.min(2, Math.round(shortfall * 2 * sensitivity));
 }
 
 // Isometric holds (plank and its variants) are timed, not counted -- "10
@@ -4730,6 +4963,7 @@ async function createWorkoutFromCatalog(
   exerciseProgress: Record<string, ExerciseProgress>,
   workoutHistory: WorkoutHistoryEntry[],
   coachAdjustment: CoachScenario | null,
+  checkIn?: DailyCheckIn | null,
 ): Promise<{
   exercises: WorkoutExercise[];
   splitLabel: string;
@@ -4762,7 +4996,9 @@ async function createWorkoutFromCatalog(
   const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
   const { day: splitDay, label: splitLabel } = determineSplitDay(reminderDays, recentSplitDaysFromHistory(workoutHistory));
   const { isDeload } = getMesocycleWeek(workoutHistory);
-  const weightModifier = isDeload ? 1 : readinessWeightModifier(workoutHistory, coachAdjustment);
+  const weightModifier = isDeload
+    ? 1
+    : readinessWeightModifier(workoutHistory, coachAdjustment, checkIn, profile.goal);
 
   try {
     const tags = await buildProgram(builderProfile, splitDay);
@@ -4890,6 +5126,7 @@ function ActiveWorkoutScreen({
   isDeload,
   weightModifier = 1,
   adjustment,
+  checkIn,
   onExit,
   onViewProgress,
   profile,
@@ -4903,6 +5140,7 @@ function ActiveWorkoutScreen({
   isDeload?: boolean;
   weightModifier?: number;
   adjustment?: CoachScenario | null;
+  checkIn?: DailyCheckIn | null;
   onExit: () => void;
   onViewProgress: () => void;
   profile: Record<string, string>;
@@ -4914,7 +5152,7 @@ function ActiveWorkoutScreen({
   const [exerciseList, setExerciseList] = useState<WorkoutExercise[]>(exercises);
   const baseExercises = exerciseList;
   const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
-  const targetSetCount = setCountForProfile(profile, adjustment, isDeload);
+  const targetSetCount = setCountForProfile(profile, adjustment, isDeload, checkIn);
   const scrollRef = useRef<ScrollView>(null);
 
   const [exerciseIndex, setExerciseIndex] = useState(0);
@@ -6075,6 +6313,7 @@ export default function App() {
   const [exerciseProgress, setExerciseProgress] = useState<Record<string, ExerciseProgress>>({});
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistoryEntry[]>([]);
   const [dietPlan, setDietPlan] = useState<SavedDietPlan | null>(null);
+  const [dailyCheckIn, setDailyCheckIn] = useState<DailyCheckIn | null>(null);
   const [session, setSession] = useState<{ email: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [trialStartedAt, setTrialStartedAt] = useState<string | null>(null);
@@ -6094,13 +6333,36 @@ export default function App() {
       setTooSoonWarningOpen(true);
       return;
     }
+    // Ask for today's check-in first, unless they already did one today.
+    if (!todaysCheckIn(dailyCheckIn)) {
+      setScreen("checkIn");
+      return;
+    }
     await beginWorkout();
   };
 
-  const beginWorkout = async () => {
+  // "Start anyway" from the trained-recently warning still routes through the
+  // check-in -- that is exactly the case where readiness matters most.
+  const proceedAfterTooSoonWarning = () => {
+    setTooSoonWarningOpen(false);
+    if (!todaysCheckIn(dailyCheckIn)) {
+      setScreen("checkIn");
+      return;
+    }
+    void beginWorkout();
+  };
+
+  const beginWorkout = async (checkInOverride?: DailyCheckIn | null) => {
     setTooSoonWarningOpen(false);
     setWorkoutLoading(true);
-    const result = await createWorkoutFromCatalog(profile, exerciseProgress, workoutHistory, coachAdjustment);
+    const effectiveCheckIn = checkInOverride !== undefined ? checkInOverride : dailyCheckIn;
+    const result = await createWorkoutFromCatalog(
+      profile,
+      exerciseProgress,
+      workoutHistory,
+      coachAdjustment,
+      effectiveCheckIn,
+    );
     setActiveWorkoutExercises(result?.exercises ?? null);
     setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
     setActiveWorkoutSplitDay(result?.splitDay ?? null);
@@ -6118,6 +6380,7 @@ export default function App() {
     exerciseProgress,
     workoutHistory,
     dietPlan,
+    dailyCheckIn,
   });
   stateRef.current = {
     profile,
@@ -6127,6 +6390,7 @@ export default function App() {
     exerciseProgress,
     workoutHistory,
     dietPlan,
+    dailyCheckIn,
   };
 
   useEffect(() => {
@@ -6155,6 +6419,7 @@ export default function App() {
             exerciseProgress?: Record<string, ExerciseProgress>;
             workoutHistory?: WorkoutHistoryEntry[];
             dietPlan?: SavedDietPlan | null;
+            dailyCheckIn?: DailyCheckIn | null;
           };
           if (parsed.profile && Object.keys(parsed.profile).length > 0) {
             setProfile(parsed.profile);
@@ -6164,6 +6429,7 @@ export default function App() {
             setExerciseProgress(parsed.exerciseProgress ?? {});
             setWorkoutHistory(parsed.workoutHistory ?? []);
             setDietPlan(parsed.dietPlan ?? null);
+            setDailyCheckIn(parsed.dailyCheckIn ?? null);
             setScreen("dashboard");
           }
         }
@@ -6177,7 +6443,7 @@ export default function App() {
         const { data } = await supabase
           .from("user_data")
           .select(
-            "profile, nutrition_totals, coach_adjustment, coach_messages, exercise_progress, workout_history, diet_plan, trial_started_at",
+            "profile, nutrition_totals, coach_adjustment, coach_messages, exercise_progress, workout_history, diet_plan, daily_check_in, trial_started_at",
           )
           .eq("user_id", id)
           .maybeSingle();
@@ -6193,6 +6459,7 @@ export default function App() {
           setExerciseProgress((data?.exercise_progress as Record<string, ExerciseProgress>) ?? {});
           setWorkoutHistory((data?.workout_history as WorkoutHistoryEntry[]) ?? []);
           setDietPlan((data?.diet_plan as SavedDietPlan | null) ?? null);
+          setDailyCheckIn((data?.daily_check_in as DailyCheckIn | null) ?? null);
           setScreen("dashboard");
         } else if (Object.keys(stateRef.current.profile).length > 0) {
           // Fresh account with no saved data yet: migrate whatever local/guest
@@ -6207,6 +6474,7 @@ export default function App() {
             exercise_progress: stateRef.current.exerciseProgress,
             workout_history: stateRef.current.workoutHistory,
             diet_plan: stateRef.current.dietPlan,
+            daily_check_in: stateRef.current.dailyCheckIn,
           });
           if (migrateError) console.error("Failed to migrate guest progress to account", migrateError);
         }
@@ -6264,11 +6532,13 @@ export default function App() {
         exerciseProgress,
         workoutHistory,
         dietPlan,
+        dailyCheckIn,
       }),
     );
   }, [
     coachAdjustment,
     coachMessages,
+    dailyCheckIn,
     dietPlan,
     exerciseProgress,
     hasLoadedTestState,
@@ -6292,6 +6562,7 @@ export default function App() {
         exercise_progress: exerciseProgress,
         workout_history: workoutHistory,
         diet_plan: dietPlan,
+        daily_check_in: dailyCheckIn,
       });
       if (error) console.error("Failed to sync progress to account", error);
     })();
@@ -6301,6 +6572,7 @@ export default function App() {
   }, [
     coachAdjustment,
     coachMessages,
+    dailyCheckIn,
     dietPlan,
     exerciseProgress,
     hasLoadedTestState,
@@ -6373,6 +6645,7 @@ export default function App() {
             profile={profile}
             nutritionTotals={nutritionTotals}
             workoutHistory={workoutHistory}
+            dailyCheckIn={dailyCheckIn}
             onStartWorkout={startWorkout}
             onOpenCoach={() => setScreen("coach")}
             onOpenNutrition={() => setScreen("nutrition")}
@@ -6402,6 +6675,21 @@ export default function App() {
             onLogout={handleLogout}
             trialDaysLeft={trialDaysRemaining(trialStartedAt)}
             trialEndsAtLabel={trialEndDateLabel(trialStartedAt)}
+          />
+        )}
+        {screen === "checkIn" && (
+          <CheckInScreen
+            previousCheckIn={dailyCheckIn}
+            onSkip={() => {
+              // Deliberately does not record a check-in: skipping means "no
+              // signal today", which leaves the plan untouched rather than
+              // logging a neutral score that would look like a real answer.
+              void beginWorkout(null);
+            }}
+            onSubmit={(next) => {
+              setDailyCheckIn(next);
+              void beginWorkout(next);
+            }}
           />
         )}
         {screen === "auth" && (
@@ -6492,6 +6780,7 @@ export default function App() {
             isDeload={activeWorkoutIsDeload}
             weightModifier={activeWorkoutWeightModifier}
             adjustment={coachAdjustment}
+            checkIn={dailyCheckIn}
             profile={profile}
             exerciseProgress={exerciseProgress}
             onUpdateExerciseProgress={(name, next) =>
@@ -6528,7 +6817,7 @@ export default function App() {
               You logged a workout less than 8 hours ago. Your body needs time to recover — start another session
               anyway?
             </Text>
-            <Pressable onPress={beginWorkout} style={styles.exerciseInfoDone}>
+            <Pressable onPress={proceedAfterTooSoonWarning} style={styles.exerciseInfoDone}>
               <Text style={styles.exerciseInfoDoneText}>START ANYWAY</Text>
             </Pressable>
             <Pressable
@@ -7512,6 +7801,31 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dietChipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  checkInGroup: {
+    marginBottom: 4,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#212521",
+  },
+  checkInQuestionTitle: { color: colors.text, fontSize: 14, fontWeight: "700", marginBottom: 12 },
+  checkInScaleRow: { flexDirection: "row", gap: 5 },
+  checkInDot: {
+    flex: 1,
+    aspectRatio: 1,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#262A24",
+    backgroundColor: "#0C0E0C",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkInDotSelected: { borderColor: colors.lime, backgroundColor: "rgba(200,255,50,0.14)" },
+  checkInDotText: { color: "#8A907F", fontSize: 11, fontWeight: "700" },
+  checkInDotTextSelected: { color: colors.lime, fontWeight: "900" },
+  checkInScaleLegend: { flexDirection: "row", justifyContent: "space-between", marginTop: 7 },
+  checkInScaleLegendText: { color: "#5B6058", fontSize: 9, fontWeight: "600" },
+  checkInSkipButton: { minHeight: 44, alignItems: "center", justifyContent: "center", marginTop: 6 },
+  checkInSkipText: { color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 0.8 },
   dietChip: {
     height: 34,
     paddingHorizontal: 14,

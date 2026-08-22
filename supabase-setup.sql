@@ -66,3 +66,10 @@ grant select, insert, update on public.user_data to authenticated;
 -- Safe to re-run: adds coach_messages so the AI Coach chat thread persists
 -- across reloads/devices instead of resetting every time the screen opens.
 alter table public.user_data add column if not exists coach_messages jsonb not null default '[]'::jsonb;
+
+-- Safe to re-run: adds daily_check_in so the pre-workout readiness check-in
+-- (sleep/nutrition/fatigue/stress, each 1-10) survives reloads and follows the
+-- user across devices. Nullable and date-stamped -- only a check-in dated today
+-- affects the plan, so a stale row simply stops counting rather than needing a
+-- scheduled reset.
+alter table public.user_data add column if not exists daily_check_in jsonb;
