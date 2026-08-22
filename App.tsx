@@ -2691,11 +2691,17 @@ const prepTimeOptions = [
   { label: "Moderate", value: "moderate" },
   { label: "No limit", value: "any" },
 ];
+const budgetOptions = [
+  { label: "Budget-friendly", value: "budget" },
+  { label: "Moderate", value: "moderate" },
+  { label: "No limit", value: "any" },
+];
 
 type SavedDietPlan = {
   dietaryStyle: string;
   mealsPerDay: string;
   prepTime: string;
+  budget: string;
   avoid: string;
   days: DietPlanResult[];
   generatedAt: string;
@@ -2712,10 +2718,12 @@ type SavedDietPlan = {
 function MealDetailModal({
   meal,
   prepTime,
+  budget,
   onClose,
 }: {
   meal: DietPlanMeal | null;
   prepTime: string;
+  budget: string;
   onClose: () => void;
 }) {
   const detailCacheRef = useRef<Record<string, { ingredients: RecipeIngredient[]; steps: string[] }>>({});
@@ -2750,6 +2758,7 @@ function MealDetailModal({
               fat: meal.fat,
               unitSystem,
               prepTime,
+              budget,
             }),
           });
           const data = await response.json();
@@ -2789,7 +2798,7 @@ function MealDetailModal({
         }
       })();
     }
-  }, [meal, prepTime]);
+  }, [meal, prepTime, budget]);
 
   if (!meal) return null;
 
@@ -2887,6 +2896,7 @@ function DietPlanScreen({
   const [dietaryStyle, setDietaryStyle] = useState(savedPlan?.dietaryStyle ?? "none");
   const [mealsPerDay, setMealsPerDay] = useState(savedPlan?.mealsPerDay ?? "3");
   const [prepTime, setPrepTime] = useState(savedPlan?.prepTime ?? "any");
+  const [budget, setBudget] = useState(savedPlan?.budget ?? "any");
   const [avoid, setAvoid] = useState(savedPlan?.avoid ?? "");
   const [stage, setStage] = useState<"form" | "loading" | "result">(hasSavedWeek ? "result" : "form");
   const [days, setDays] = useState<DietPlanResult[]>(hasSavedWeek ? savedPlan!.days : []);
@@ -2922,6 +2932,7 @@ function DietPlanScreen({
           dietaryStyle,
           mealsPerDay,
           prepTime,
+          budget,
           avoid: avoid.trim().slice(0, 140),
           calorieTarget,
           proteinTarget,
@@ -2940,6 +2951,7 @@ function DietPlanScreen({
         dietaryStyle,
         mealsPerDay,
         prepTime,
+        budget,
         avoid,
         days: data.days,
         generatedAt: nowIso,
@@ -2958,6 +2970,7 @@ function DietPlanScreen({
         dietaryStyle,
         mealsPerDay,
         prepTime,
+        budget,
         avoid,
         days: fallbackDietWeek,
         generatedAt: nowIso,
@@ -3051,6 +3064,23 @@ function DietPlanScreen({
                   style={[styles.dietChip, prepTime === option.value && styles.dietChipSelected]}
                 >
                   <Text style={[styles.dietChipText, prepTime === option.value && styles.dietChipTextSelected]}>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Text style={styles.dietGroupLabel}>BUDGET</Text>
+            <View style={styles.dietChipRow}>
+              {budgetOptions.map((option) => (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: budget === option.value }}
+                  onPress={() => setBudget(option.value)}
+                  style={[styles.dietChip, budget === option.value && styles.dietChipSelected]}
+                >
+                  <Text style={[styles.dietChipText, budget === option.value && styles.dietChipTextSelected]}>
                     {option.label}
                   </Text>
                 </Pressable>
@@ -3173,7 +3203,7 @@ function DietPlanScreen({
         )}
       </ScrollView>
 
-      <MealDetailModal meal={selectedMeal} prepTime={prepTime} onClose={() => setSelectedMeal(null)} />
+      <MealDetailModal meal={selectedMeal} prepTime={prepTime} budget={budget} onClose={() => setSelectedMeal(null)} />
     </SafeAreaView>
   );
 }

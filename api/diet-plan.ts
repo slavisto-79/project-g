@@ -14,6 +14,7 @@ type DietPlanRequest = {
   dietaryStyle?: string;
   mealsPerDay?: string;
   prepTime?: string;
+  budget?: string;
   avoid?: string;
   calorieTarget?: number;
   proteinTarget?: number;
@@ -54,6 +55,20 @@ const prepTimeGuidance: Record<string, string> = {
   any: "No particular time limit -- oven-roasting, slow-cooking, and multi-step recipes are all fine.",
 };
 
+const budgetLabels: Record<string, string> = {
+  budget: "tight budget, affordable everyday ingredients only",
+  moderate: "moderate budget, occasional pricier ingredients are fine",
+  any: "no particular budget limit",
+};
+
+const budgetGuidance: Record<string, string> = {
+  budget:
+    "Every meal must be built from affordable, widely available staples: eggs, oats, rice, pasta, potatoes, canned tuna or beans, lentils, chicken thighs or drumsticks, ground meat, frozen or in-season vegetables, plain yogurt, and similar everyday basics. Never use premium proteins (salmon, steak, shrimp, lamb), out-of-season or exotic produce, or specialty/imported ingredients -- the whole week should be realistic for someone watching grocery spending closely.",
+  moderate:
+    "Favor affordable everyday staples but a moderately priced ingredient (chicken breast, salmon, ground beef) once or twice across the week is fine. Avoid consistently premium or luxury ingredients every day.",
+  any: "No particular budget constraint -- any realistic grocery ingredients are fine.",
+};
+
 function readOutputText(response: {
   output_text?: string;
   output?: Array<{ content?: Array<{ type?: string; text?: string }> }>;
@@ -86,6 +101,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const mealsPerDay = ["3", "4", "5"].includes(body.mealsPerDay ?? "") ? body.mealsPerDay! : "3";
   const prepTime = prepTimeLabels[body.prepTime ?? "any"] ?? prepTimeLabels.any;
   const prepGuidance = prepTimeGuidance[body.prepTime ?? "any"] ?? prepTimeGuidance.any;
+  const budget = budgetLabels[body.budget ?? "any"] ?? budgetLabels.any;
+  const budgetGuidanceText = budgetGuidance[body.budget ?? "any"] ?? budgetGuidance.any;
   const avoid = typeof body.avoid === "string" ? body.avoid.slice(0, 140) : "";
   const calorieTarget =
     typeof body.calorieTarget === "number" && Number.isFinite(body.calorieTarget)
@@ -117,6 +134,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           `Build exactly ${mealsPerDay} meals per day, for 7 distinct days, following a ${dietaryStyle} eating style.`,
           "Make the 7 days meaningfully different from each other: rotate protein sources, cuisines, cooking methods, and ingredients. Do not reuse the same meal name or near-identical dish across days.",
           prepGuidance,
+          budgetGuidanceText,
           avoid ? `Avoid these foods entirely: ${avoid}.` : "",
           `Size each day to approximately ${calorieTarget} kcal and ${proteinTarget}g of protein in total; distribute reasonably across that day's meals.`,
           "Use simple, realistic, common ingredients a home cook can find easily.",
@@ -127,7 +145,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ]
           .filter(Boolean)
           .join(" "),
-        input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nMEALS PER DAY: ${mealsPerDay}\nDIETARY STYLE: ${dietaryStyle}\nPREP TIME: ${prepTime}\nAVOID: ${avoid || "none"}\nCALORIE TARGET: ${calorieTarget} kcal\nPROTEIN TARGET: ${proteinTarget}g`,
+        input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nMEALS PER DAY: ${mealsPerDay}\nDIETARY STYLE: ${dietaryStyle}\nPREP TIME: ${prepTime}\nBUDGET: ${budget}\nAVOID: ${avoid || "none"}\nCALORIE TARGET: ${calorieTarget} kcal\nPROTEIN TARGET: ${proteinTarget}g`,
         text: {
           format: {
             type: "json_schema",

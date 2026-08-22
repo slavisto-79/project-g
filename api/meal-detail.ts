@@ -18,6 +18,7 @@ type MealDetailRequest = {
   fat?: number;
   unitSystem?: "metric" | "imperial";
   prepTime?: string;
+  budget?: string;
 };
 
 const prepTimeGuidance: Record<string, string> = {
@@ -26,6 +27,14 @@ const prepTimeGuidance: Record<string, string> = {
   moderate:
     "The steps must realistically take 15-30 minutes of active prep in total. Simple stovetop cooking is fine, but avoid oven-roasting whole vegetables, marinating, slow-cooking, or multi-stage techniques.",
   any: "No particular time limit -- oven-roasting, slow-cooking, and multi-step techniques are all fine.",
+};
+
+const budgetGuidance: Record<string, string> = {
+  budget:
+    "The ingredients must be affordable, widely available staples: eggs, oats, rice, pasta, potatoes, canned tuna or beans, lentils, chicken thighs or drumsticks, ground meat, frozen or in-season vegetables, plain yogurt, and similar everyday basics. Never use premium proteins (salmon, steak, shrimp, lamb), out-of-season or exotic produce, or specialty/imported ingredients.",
+  moderate:
+    "Favor affordable everyday staples; a moderately priced ingredient (chicken breast, salmon, ground beef) is fine, but avoid premium or luxury ingredients.",
+  any: "No particular budget constraint -- any realistic grocery ingredients are fine.",
 };
 
 function readOutputText(response: {
@@ -67,6 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const fat = typeof body.fat === "number" && Number.isFinite(body.fat) ? body.fat : 0;
   const unitSystem = body.unitSystem === "imperial" ? "imperial" : "metric";
   const prepGuidance = prepTimeGuidance[body.prepTime ?? "any"] ?? prepTimeGuidance.any;
+  const budgetGuidanceText = budgetGuidance[body.budget ?? "any"] ?? budgetGuidance.any;
 
   try {
     const openAIResponse = await fetch("https://api.openai.com/v1/responses", {
@@ -84,6 +94,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "Build a realistic ingredient list with a home-cook-friendly quantity for each ingredient, given in both metric (g/ml) and US customary (cups/oz/tbsp) units.",
           "Build clear, numbered cooking steps a beginner could follow.",
           prepGuidance,
+          budgetGuidanceText,
           "The ingredients and portions should roughly justify the given calories and macros for this meal -- use them as a sanity check, not a rigid formula.",
           "Use simple, common ingredients and equipment.",
           "Never claim medical, clinical, or weight-loss guarantees; this is general food inspiration only.",
