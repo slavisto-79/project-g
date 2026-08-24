@@ -134,6 +134,31 @@ const equipmentCategory: Record<ProgramBuilderProfile["equipment"], string | und
   gym: undefined,
 };
 
+// The hardest exercise tier a given training background should be handed.
+// Ranked, so "intermediate" accepts everything up to and including
+// intermediate. A beginner has no business being handed a barbell snatch on
+// day one just because it matched the movement pattern.
+const difficultyRank: Record<ExerciseTag["difficulty"], number> = {
+  novice: 0,
+  beginner: 1,
+  intermediate: 2,
+  advanced: 3,
+};
+
+const maxDifficultyRank: Record<ProgramBuilderProfile["experience"], number> = {
+  beginner: 1,
+  novice: 1,
+  intermediate: 2,
+  advanced: 3,
+};
+
+function isDifficultyAppropriate(
+  exercise: ExerciseTag,
+  experience: ProgramBuilderProfile["experience"],
+): boolean {
+  return difficultyRank[exercise.difficulty] <= maxDifficultyRank[experience];
+}
+
 function isInjurySafeForProfile(exercise: ExerciseTag, limitations: ProgramBuilderProfile["limitations"]): boolean {
   if (limitations === "knee") return exercise.injurySafe.kneeSafe;
   if (limitations === "shoulder") return exercise.injurySafe.shoulderSafe;
@@ -183,12 +208,19 @@ export async function buildProgram(
 
   const program: ExerciseTag[] = [];
   for (const candidates of candidatesBySlot) {
-    const pick = candidates.find(
+    const eligible = candidates.filter(
       (candidate) =>
         !usedIds.has(candidate.id) &&
         candidate.media[profile.sex] !== null &&
         isInjurySafeForProfile(candidate, profile.limitations),
     );
+    // Difficulty is a strong preference, not a hard filter: if this keyword
+    // only returned exercises above the user's level, a too-hard exercise
+    // still beats an empty slot, since enough empty slots sink the whole
+    // program back to the built-in fallback roster. Injury-safety and media
+    // availability stay hard requirements -- those aren't negotiable.
+    const pick =
+      eligible.find((candidate) => isDifficultyAppropriate(candidate, profile.experience)) ?? eligible[0];
     if (pick) {
       program.push(pick);
       usedIds.add(pick.id);
