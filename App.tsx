@@ -226,6 +226,7 @@ function NumberWheelPicker({
   min,
   max,
   step,
+  values,
   unit,
   value,
   onChange,
@@ -236,6 +237,11 @@ function NumberWheelPicker({
   min: number;
   max: number;
   step: number;
+  // Explicit list of selectable numbers, for scales that aren't evenly
+  // spaced -- gym weights being the case that matters: dumbbells jump 1kg
+  // then 2kg then 2.5kg, so an even min/max/step ladder would offer weights
+  // that don't exist. Falls back to min/max/step when omitted.
+  values?: number[];
   unit: string;
   value: number;
   onChange: (value: number) => void;
@@ -244,10 +250,11 @@ function NumberWheelPicker({
   fontSize?: number;
 }) {
   const numbers = useMemo(() => {
+    if (values) return values;
     const list: number[] = [];
     for (let n = min; n <= max; n += step) list.push(n);
     return list;
-  }, [min, max, step]);
+  }, [min, max, step, values]);
   const scrollRef = useRef<ScrollView>(null);
   const initialIndex = Math.max(0, numbers.indexOf(value));
   const [liveIndex, setLiveIndex] = useState(initialIndex);
@@ -4039,6 +4046,14 @@ type WorkoutExercise = {
   target: string;
   weight: string;
   reps: string;
+  // Top of the prescribed rep range, shown alongside `reps` (the working
+  // target) so the trainee can see the whole range they're working within --
+  // e.g. "8-12" -- rather than a single number that hides where progression
+  // is actually heading. Absent for timed holds, which have no range.
+  repsHigh?: string;
+  // Which real-world implement this exercise loads, so weights only ever land
+  // on values that exist in a gym. Absent means "not weighted".
+  implement?: LoadableImplement;
   tempo: string;
   phases: string[];
   formFrames: [ImageSourcePropType, ImageSourcePropType];
@@ -4331,11 +4346,94 @@ function dailyCalorieTargetKcal(profile: Record<string, string>): number {
   return Math.round(target / 10) * 10;
 }
 
-function scaledStartingWeightLabel(baseKg: number, bodyWeightKg: number): string {
-  if (!Number.isFinite(bodyWeightKg) || bodyWeightKg <= 0) return `${baseKg} kg`;
-  const factor = Math.min(1.3, Math.max(0.75, bodyWeightKg / REFERENCE_BODY_WEIGHT_KG));
-  const scaledKg = Math.max(2, Math.round(baseKg * factor));
-  return `${scaledKg} kg`;
+// A real gym does not stock every kilogram, so an arithmetically-derived
+// number like "27 kg" is worse than useless -- there is no 27kg dumbbell to
+// pick up. What is actually loadable depends entirely on the implement:
+// dumbbells come in fixed castings, a barbell is a fixed bar plus plates
+// added in PAIRS (so the smallest real change is twice the smallest plate),
+// and a selectorized machine moves one stack plate at a time.
+type LoadableImplement = "dumbbell" | "kettlebell" | "barbell" | "machine" | "other";
+
+// Single-kg castings up to 10, then the 2kg jumps every commercial rack has,
+// then 2.5kg jumps once the weights get heavy enough that nobody stocks
+// finer steps.
+const DUMBBELL_LADDER_KG = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32.5, 35, 37.5, 40, 42.5,
+  45, 47.5, 50, 55, 60,
+];
+
+// Kettlebells are cast in a much coarser ladder than dumbbells.
+const KETTLEBELL_LADDER_KG = [4, 6, 8, 12, 16, 20, 24, 28, 32, 36, 40];
+
+// Standard olympic bar, and plates loaded in pairs -- the smallest commonly
+// stocked plate is 1.25kg a side, making 2.5kg the smallest honest jump.
+// You cannot go below the empty bar, so that is the floor.
+const BARBELL_BAR_KG = 20;
+const BARBELL_INCREMENT_KG = 2.5;
+
+// Selectorized stacks move a whole plate at a time; 5kg is the common plate.
+const MACHINE_INCREMENT_KG = 5;
+
+function loadableWeightOptions(implement: LoadableImplement): number[] {
+  if (implement === "dumbbell") return DUMBBELL_LADDER_KG;
+  if (implement === "kettlebell") return KETTLEBELL_LADDER_KG;
+  const list: number[] = [];
+  if (implement === "barbell") {
+    for (let kg = BARBELL_BAR_KG; kg <= 200; kg += BARBELL_INCREMENT_KG) list.push(kg);
+    return list;
+  }
+  if (implement === "machine") {
+    for (let kg = MACHINE_INCREMENT_KG; kg <= 150; kg += MACHINE_INCREMENT_KG) list.push(kg);
+    return list;
+  }
+  for (let kg = 2; kg <= 100; kg += 2) list.push(kg);
+  return list;
+}
+
+// Nearest weight that actually exists on the gym floor for this implement.
+function snapToLoadableWeight(kg: number, implement: LoadableImplement): number {
+  const options = loadableWeightOptions(implement);
+  return options.reduce((best, option) => (Math.abs(option - kg) < Math.abs(best - kg) ? option : best));
+}
+
+// The next real rung up -- what "add a little weight" means in practice.
+// Progression has to move between rungs that exist, not by a flat +1kg that
+// would land on weights nobody can load.
+function nextLoadableWeight(kg: number, implement: LoadableImplement): number {
+  const options = loadableWeightOptions(implement);
+  return options.find((option) => option > kg) ?? options[options.length - 1] ?? kg;
+}
+
+function implementForExerciseName(name: string): LoadableImplement {
+  if (/barbell|smith/i.test(name)) return "barbell";
+  if (/kettlebell/i.test(name)) return "kettlebell";
+  if (/cable|machine|pulldown|seated row|pec deck|leg press|leg curl|leg extension/i.test(name)) {
+    return "machine";
+  }
+  return "dumbbell";
+}
+
+// The catalog's `equipment` is MuscleWiki's own category string, which is the
+// more reliable signal when present; the name is the fallback.
+function implementForCatalogExercise(equipment: string, name: string): LoadableImplement {
+  const category = equipment.toLowerCase();
+  if (category.includes("barbell") || category.includes("smith")) return "barbell";
+  if (category.includes("dumbbell")) return "dumbbell";
+  if (category.includes("kettlebell")) return "kettlebell";
+  if (category.includes("cable") || category.includes("machine")) return "machine";
+  return implementForExerciseName(name);
+}
+
+function scaledStartingWeightLabel(
+  baseKg: number,
+  bodyWeightKg: number,
+  implement: LoadableImplement,
+): string {
+  const factor =
+    Number.isFinite(bodyWeightKg) && bodyWeightKg > 0
+      ? Math.min(1.3, Math.max(0.75, bodyWeightKg / REFERENCE_BODY_WEIGHT_KG))
+      : 1;
+  return `${snapToLoadableWeight(baseKg * factor, implement)} kg`;
 }
 
 // Classic strength/hypertrophy/endurance rep ranges, picked per training
@@ -4975,23 +5073,30 @@ function createWorkout(
           : workoutExercises;
   const exercises = selectedBase.map((exercise) => {
     const isBodyweight = isBodyweightExerciseName(exercise.name);
-    const saved = exerciseProgress[exercise.name];
+    const isHold = exercise.name.includes("Plank");
+    const implement = implementForExerciseName(exercise.name);
+    const savedProgress = exerciseProgress[exercise.name]
+      ? normalizeExerciseProgress(exerciseProgress[exercise.name]!, baseRepRangeForProfile(profile))
+      : null;
     return {
       ...exercise,
-      reps: saved
-        ? String(normalizeExerciseProgress(saved, baseRepRangeForProfile(profile)).repsLow)
-        : exercise.name.includes("Plank")
+      implement: isBodyweight ? undefined : implement,
+      reps: savedProgress
+        ? String(savedProgress.repsLow)
+        : isHold
           ? String(holdSecondsForProfile(profile))
           : reps,
+      repsHigh: isHold
+        ? undefined
+        : String(savedProgress ? savedProgress.repsHigh : baseRepRangeForProfile(profile).high),
       tempo: Number.isFinite(ageYears) && ageYears >= 55 ? "3–1–2" : exercise.tempo,
       weight: isBodyweight
         ? "Bodyweight"
-        : saved
-          ? `${saved.weightKg} kg`
-          : scaledStartingWeightLabel(
-              Math.max(2, Math.round(parseFloat(exercise.weight) * loadFactor)),
-              bodyWeightKg,
-            ),
+        : savedProgress
+          ? // Snap saved progress too: records written before weights were
+            // constrained to real gym increments can hold unloadable numbers.
+            `${snapToLoadableWeight(savedProgress.weightKg, implement)} kg`
+          : scaledStartingWeightLabel(parseFloat(exercise.weight) * loadFactor, bodyWeightKg, implement),
     };
   });
 
@@ -5025,6 +5130,42 @@ function createWorkout(
   return exercises;
 }
 
+// Conservative starting anchors for catalog exercises, expressed as what one
+// DUMBBELL would hold for an average untrained adult -- a shoulder press and a
+// biceps curl are not the same load, and neither is a row and a squat, so a
+// single number for the whole catalog (which is what this used to be) is
+// always wrong for almost every exercise. These are deliberately light
+// starting points, not strength predictions: the double-progression system is
+// what finds each person's real working weight from here.
+const CATALOG_BASE_DUMBBELL_KG: Record<PrimaryMuscle, number> = {
+  chest: 12,
+  back: 14,
+  shoulders: 8,
+  biceps: 8,
+  triceps: 7,
+  quads: 14,
+  hamstrings: 12,
+  glutes: 12,
+  calves: 14,
+  core: 5,
+  "full-body": 10,
+};
+
+// A dumbbell number is per hand; a barbell or a machine stack moves the whole
+// body of work at once, so the same effort reads as a much bigger number.
+const IMPLEMENT_LOAD_FACTOR: Record<LoadableImplement, number> = {
+  dumbbell: 1,
+  kettlebell: 1,
+  barbell: 1.8,
+  machine: 1.8,
+  other: 1,
+};
+
+// Bodyweight scaling alone understates the gap in upper-body starting loads,
+// so the catalog path (which has no per-sex exercise roster to draw from,
+// unlike createWorkout) applies a modest explicit factor as well.
+const CATALOG_SEX_LOAD_FACTOR: Record<string, number> = { male: 1, female: 0.7 };
+
 function catalogExerciseToWorkoutExercise(
   tag: ExerciseTag,
   profile: Record<string, string>,
@@ -5034,25 +5175,33 @@ function catalogExerciseToWorkoutExercise(
 ): WorkoutExercise {
   const bodyWeightKg = Number(profile.weight);
   const isBodyweight = tag.equipment.toLowerCase() === "bodyweight";
-  const saved = exerciseProgress[tag.name];
-  const reps = saved
-    ? String(normalizeExerciseProgress(saved, baseRepRangeForProfile(profile)).repsLow)
-    : String(tag.movementPattern === "isometric" ? holdSecondsForProfile(profile) : baseRepRangeForProfile(profile).low);
+  const isHold = tag.movementPattern === "isometric";
+  const implement = implementForCatalogExercise(tag.equipment, tag.name);
+  const range = baseRepRangeForProfile(profile);
+  const savedProgress = exerciseProgress[tag.name]
+    ? normalizeExerciseProgress(exerciseProgress[tag.name]!, range)
+    : null;
+  const reps = savedProgress
+    ? String(savedProgress.repsLow)
+    : String(isHold ? holdSecondsForProfile(profile) : range.low);
   // Deload week backs off the weight on its own (lighter session, not a rest
   // day) -- the readiness modifier is for everything else (poor recovery,
   // self-reported "tired"), so the two never stack; deload wins when both apply.
-  const savedWeightKg = saved
-    ? isDeload
-      ? Math.max(2, Math.round(saved.weightKg * 0.85))
-      : Math.max(2, Math.round(saved.weightKg * weightModifier))
+  const savedWeightKg = savedProgress
+    ? snapToLoadableWeight(savedProgress.weightKg * (isDeload ? 0.85 : weightModifier), implement)
     : null;
   const weight = isBodyweight
     ? "Bodyweight"
     : savedWeightKg !== null
       ? `${savedWeightKg} kg`
       : scaledStartingWeightLabel(
-          Math.max(2, Math.round(12 * experienceLoadFactor(profile) * (isDeload ? 0.85 : weightModifier))),
+          CATALOG_BASE_DUMBBELL_KG[tag.primaryMuscle] *
+            IMPLEMENT_LOAD_FACTOR[implement] *
+            (CATALOG_SEX_LOAD_FACTOR[profile.sex ?? ""] ?? 0.85) *
+            experienceLoadFactor(profile) *
+            (isDeload ? 0.85 : weightModifier),
           bodyWeightKg,
+          implement,
         );
   const media = tag.media[profile.sex === "male" ? "male" : "female"];
   const poster: ImageSourcePropType = media
@@ -5064,6 +5213,8 @@ function catalogExerciseToWorkoutExercise(
     target: `${tag.primaryMuscle.replace("-", " ")} · ${tag.movementPattern}`,
     weight,
     reps,
+    repsHigh: isHold ? undefined : String(savedProgress ? savedProgress.repsHigh : range.high),
+    implement: isBodyweight ? undefined : implement,
     tempo: "3-1-1",
     phases: ["LOWER", "BRACE", "LIFT"],
     formFrames: [poster, poster],
@@ -5331,7 +5482,7 @@ function ActiveWorkoutScreen({
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
   const isBodyweight = exercise.weight === "Bodyweight";
   const isHold = isHoldExercise(exercise);
-  const currentWeightKg = isBodyweight ? null : parseInt(exercise.weight, 10);
+  const currentWeightKg = isBodyweight ? null : parseFloat(exercise.weight);
   const currentReps = parseInt(exercise.reps, 10);
   // The video fills whatever's left after the real (measured) height of
   // everything else on screen -- header, optional deload/rest banners, set
@@ -5419,7 +5570,7 @@ function ActiveWorkoutScreen({
   const commitExerciseProgress = (finishedExercise: WorkoutExercise) => {
     const isBW = finishedExercise.weight === "Bodyweight";
     const startRange = baseRepRangeForProfile(profile);
-    const plannedWeightKg = isBW ? 0 : parseInt(finishedExercise.weight, 10);
+    const plannedWeightKg = isBW ? 0 : parseFloat(finishedExercise.weight);
     const savedProgress = exerciseProgress[finishedExercise.name];
     const previous: ExerciseProgress = savedProgress
       ? normalizeExerciseProgress(savedProgress, startRange)
@@ -5450,9 +5601,10 @@ function ActiveWorkoutScreen({
     }
 
     // Two strong sessions in a row -- advance, gradually. Weighted exercises
-    // add a single kg and the range resets to try again at the new weight;
-    // bodyweight exercises have no weight to add, so the whole range shifts
-    // up by one rep instead -- same size step, same idea, just no barbell.
+    // step up to the next weight that actually exists for their implement
+    // (a flat +1kg would keep landing on dumbbells no gym stocks) and the
+    // range resets to try again there; bodyweight exercises have no weight to
+    // add, so the whole range shifts up by one rep instead -- same idea.
     if (isBW) {
       onUpdateExerciseProgress(finishedExercise.name, {
         weightKg: 0,
@@ -5471,8 +5623,12 @@ function ActiveWorkoutScreen({
       const canStepDown = previous.repsLow > target.low && totalAdvances % ADVANCES_PER_GRADUATION_STEP === 0;
       const nextRepsLow = canStepDown ? previous.repsLow - 1 : previous.repsLow;
       const nextRepsHigh = canStepDown ? previous.repsHigh - 1 : previous.repsHigh;
+      const baseWeightKg = Number.isFinite(loggedWeightKg) ? loggedWeightKg : previous.weightKg;
       onUpdateExerciseProgress(finishedExercise.name, {
-        weightKg: (Number.isFinite(loggedWeightKg) ? loggedWeightKg : previous.weightKg) + 1,
+        weightKg: nextLoadableWeight(
+          baseWeightKg,
+          finishedExercise.implement ?? implementForExerciseName(finishedExercise.name),
+        ),
         repsLow: nextRepsLow,
         repsHigh: nextRepsHigh,
         streak: 0,
@@ -5508,7 +5664,7 @@ function ActiveWorkoutScreen({
       calories: estimateSessionCalories(Number(profile.weight), elapsedSeconds),
       exerciseBreakdown: personalizedExercises.map((item) => ({
         name: item.name,
-        weightKg: isBodyweightExerciseName(item.name) ? null : parseInt(item.weight, 10),
+        weightKg: isBodyweightExerciseName(item.name) ? null : parseFloat(item.weight),
         reps: parseInt(item.reps, 10),
         sets: targetSetCount,
       })),
@@ -5837,7 +5993,11 @@ function ActiveWorkoutScreen({
                 {isBodyweight ? "Bodyweight" : `${currentWeightKg} kg`}
               </Text>
               <Text style={[styles.setValue, styles.repsColumn, done && styles.setTextDone]}>
-                {isHold ? `${exercise.reps}s` : exercise.reps}
+                {isHold
+                  ? `${exercise.reps}s`
+                  : exercise.repsHigh && exercise.repsHigh !== exercise.reps
+                    ? `${exercise.reps}–${exercise.repsHigh}`
+                    : exercise.reps}
               </Text>
               <View
                 accessibilityRole="text"
@@ -5872,6 +6032,9 @@ function ActiveWorkoutScreen({
                       min={2}
                       max={100}
                       step={1}
+                      values={loadableWeightOptions(
+                        exercise.implement ?? implementForExerciseName(exercise.name),
+                      )}
                       unit="kg"
                       value={currentWeightKg ?? 20}
                       onChange={(next) => saveExerciseAdjustment(next, currentReps)}
