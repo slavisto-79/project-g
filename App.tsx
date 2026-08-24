@@ -4054,6 +4054,13 @@ type WorkoutExercise = {
   // Which real-world implement this exercise loads, so weights only ever land
   // on values that exist in a gym. Absent means "not weighted".
   implement?: LoadableImplement;
+  // True when `weight` is the load in each hand (two dumbbells) rather than
+  // the total being moved.
+  weightPerHand?: boolean;
+  // Set when `reps` is a per-side target -- "leg" for lunges and other
+  // single-leg work, "side" for single-arm work. Absent means both sides
+  // together, the normal case.
+  repsPerSide?: "leg" | "side";
   tempo: string;
   phases: string[];
   formFrames: [ImageSourcePropType, ImageSourcePropType];
@@ -4422,6 +4429,27 @@ function implementForCatalogExercise(equipment: string, name: string): LoadableI
   if (category.includes("kettlebell")) return "kettlebell";
   if (category.includes("cable") || category.includes("machine")) return "machine";
   return implementForExerciseName(name);
+}
+
+// A dumbbell number is what goes in EACH hand, not the total being moved --
+// "7 kg" on a curl means picking up two 7kg dumbbells. That distinction has to
+// be on screen or the trainee either halves their load or doubles it.
+// Goblet-style holds are the exception: one bell, both hands on it. Barbells,
+// machines and kettlebells are single-implement, so they carry no such note.
+function isPerHandLoad(name: string, implement: LoadableImplement): boolean {
+  return implement === "dumbbell" && !/goblet/i.test(name);
+}
+
+// Unilateral work prescribes reps PER SIDE, not split across both -- 8 reps on
+// a lunge means 8 on each leg. Which word to use depends on the limb doing
+// the work, so a one-arm row doesn't say "per leg".
+function perSideUnitLabel(name: string, primaryMuscle?: PrimaryMuscle): "leg" | "side" | null {
+  if (/lunge|step[- ]?up|split squat|pistol|bulgarian|curtsy|single[- ]?leg/i.test(name)) return "leg";
+  if (/one[- ]?arm|single[- ]?arm/i.test(name)) return "side";
+  if (!primaryMuscle) return null;
+  // Catalog exercises flagged unilateral whose name doesn't match either
+  // pattern above -- fall back to the muscle being worked.
+  return ["quads", "hamstrings", "glutes", "calves"].includes(primaryMuscle) ? "leg" : "side";
 }
 
 function scaledStartingWeightLabel(
@@ -5081,6 +5109,8 @@ function createWorkout(
     return {
       ...exercise,
       implement: isBodyweight ? undefined : implement,
+      weightPerHand: !isBodyweight && isPerHandLoad(exercise.name, implement),
+      repsPerSide: isHold ? undefined : (perSideUnitLabel(exercise.name) ?? undefined),
       reps: savedProgress
         ? String(savedProgress.repsLow)
         : isHold
@@ -5107,6 +5137,9 @@ function createWorkout(
         ...exercises[squatIndex]!,
         name: "Box Goblet Squat",
         target: "Lower body · Knee-aware",
+        // A goblet hold is one bell in both hands, unlike the two-dumbbell
+        // squat this replaces -- so the load stops being a per-hand number.
+        weightPerHand: false,
       };
     }
   }
@@ -5215,6 +5248,11 @@ function catalogExerciseToWorkoutExercise(
     reps,
     repsHigh: isHold ? undefined : String(savedProgress ? savedProgress.repsHigh : range.high),
     implement: isBodyweight ? undefined : implement,
+    weightPerHand: !isBodyweight && isPerHandLoad(tag.name, implement),
+    repsPerSide:
+      isHold || !tag.unilateral
+        ? undefined
+        : (perSideUnitLabel(tag.name, tag.primaryMuscle) ?? undefined),
     tempo: "3-1-1",
     phases: ["LOWER", "BRACE", "LIFT"],
     formFrames: [poster, poster],
@@ -5484,6 +5522,8 @@ function ActiveWorkoutScreen({
   const isHold = isHoldExercise(exercise);
   const currentWeightKg = isBodyweight ? null : parseFloat(exercise.weight);
   const currentReps = parseInt(exercise.reps, 10);
+  const perHandLoad = !isBodyweight && exercise.weightPerHand === true;
+  const perSideUnit = isHold ? null : (exercise.repsPerSide ?? null);
   // The video fills whatever's left after the real (measured) height of
   // everything else on screen -- header, optional deload/rest banners, set
   // rows, adjust panel, next-exercise button. A hand-counted pixel budget
@@ -5980,8 +6020,13 @@ function ActiveWorkoutScreen({
 
         <View style={styles.setTableHeader}>
           <Text style={[styles.setHeaderText, styles.setColumn]}>SET</Text>
-          <Text style={[styles.setHeaderText, styles.weightColumn]}>WEIGHT</Text>
-          <Text style={[styles.setHeaderText, styles.repsColumn]}>{isHold ? "SEC" : "REPS"}</Text>
+          <Text style={[styles.setHeaderText, styles.weightColumn]}>
+            WEIGHT{perHandLoad ? " / HAND" : ""}
+          </Text>
+          <Text style={[styles.setHeaderText, styles.repsColumn]}>
+            {isHold ? "SEC" : "REPS"}
+            {perSideUnit ? ` / ${perSideUnit.toUpperCase()}` : ""}
+          </Text>
           <View style={styles.doneColumn} />
         </View>
 
@@ -6017,13 +6062,15 @@ function ActiveWorkoutScreen({
                 {isHold
                   ? "HOW MANY SECONDS DID YOU HOLD"
                   : isBodyweight
-                    ? "HOW MANY REPS DID YOU DO"
+                    ? `HOW MANY REPS DID YOU DO${perSideUnit ? ` PER ${perSideUnit.toUpperCase()}` : ""}`
                     : "HOW MANY KG & REPS DID YOU DO"}
               </Text>
               <View style={styles.adjustPanelPickers}>
                 {!isBodyweight ? (
                   <View style={styles.adjustPanelSlot}>
-                    <Text style={styles.adjustPanelColumnLabel}>WEIGHT</Text>
+                    <Text style={styles.adjustPanelColumnLabel}>
+                      WEIGHT{perHandLoad ? " / HAND" : ""}
+                    </Text>
                     <NumberWheelPicker
                       key={`${exercise.name}-weight`}
                       itemHeight={26}
@@ -6042,7 +6089,10 @@ function ActiveWorkoutScreen({
                   </View>
                 ) : null}
                 <View style={styles.adjustPanelSlot}>
-                  <Text style={styles.adjustPanelColumnLabel}>{isHold ? "SEC" : "REPS"}</Text>
+                  <Text style={styles.adjustPanelColumnLabel}>
+                    {isHold ? "SEC" : "REPS"}
+                    {perSideUnit ? ` / ${perSideUnit.toUpperCase()}` : ""}
+                  </Text>
                   <NumberWheelPicker
                     key={`${exercise.name}-reps`}
                     itemHeight={26}

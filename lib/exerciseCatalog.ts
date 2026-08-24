@@ -137,7 +137,13 @@ export function deriveMovementPattern(exercise: MuscleWikiExercise): MovementPat
 }
 
 export function isUnilateral(name: string): boolean {
-  return /split|single|one[- ]?arm|alternating|staggered|step[- ]?up/i.test(name);
+  // Lunges (and their named variants) are the most common unilateral movement
+  // there is -- one leg at a time, so a prescribed rep count means per leg.
+  // They were missing here originally, which made every lunge read as if the
+  // rep target covered both legs together.
+  return /split|single|one[- ]?arm|alternating|staggered|step[- ]?up|lunge|pistol|bulgarian|curtsy/i.test(
+    name,
+  );
 }
 
 export function deriveInjurySafe(exercise: MuscleWikiExercise): ExerciseTag["injurySafe"] {
