@@ -4582,6 +4582,7 @@ function createWorkout(
     {
       ...workoutExercises[0]!,
       name: "Dumbbell Front Squat",
+      weight: "14 kg",
       video: require("./assets/exercise-videos/female-dumbbell-squat.mp4"),
       formFrames: [
         require("./assets/exercises/female-goblet-squat/start.jpg"),
@@ -4592,6 +4593,7 @@ function createWorkout(
       ...workoutExercises[2]!,
       name: "Dumbbell Romanian Deadlift",
       target: "Glutes & hamstrings · Controlled",
+      weight: "10 kg",
       video: require("./assets/exercise-videos/female-dumbbell-deadlift.mp4"),
       phases: ["HINGE", "STRETCH", "DRIVE"],
       formFrames: [
@@ -4604,6 +4606,7 @@ function createWorkout(
       ...workoutExercises[1]!,
       name: "Dumbbell Shoulder Press",
       target: "Shoulders · Strength",
+      weight: "6 kg",
       video: require("./assets/exercise-videos/female-shoulder-press.mp4"),
       phases: ["LOWER", "BRACE", "PRESS"],
       formFrames: [
@@ -4615,6 +4618,7 @@ function createWorkout(
       ...workoutExercises[0]!,
       name: "Dumbbell Reverse Lunge",
       target: "Legs & glutes · Unilateral",
+      weight: "6 kg",
       video: require("./assets/exercise-videos/female-dumbbell-lunge.mp4"),
       phases: ["STEP", "LOWER", "DRIVE"],
       formFrames: [
@@ -4626,6 +4630,7 @@ function createWorkout(
       ...workoutExercises[2]!,
       name: "Dumbbell Biceps Curl",
       target: "Arms · Controlled",
+      weight: "5 kg",
       video: require("./assets/exercise-videos/female-bicep-curl.mp4"),
       phases: ["LOWER", "CURL", "SQUEEZE"],
       formFrames: [
@@ -4637,6 +4642,7 @@ function createWorkout(
       ...workoutExercises[2]!,
       name: "Dumbbell Row",
       target: "Back · Controlled",
+      weight: "8 kg",
       video: require("./assets/exercise-videos/female-dumbbell-row.mp4"),
       phases: ["REACH", "PULL", "RETURN"],
       formFrames: [
@@ -4675,6 +4681,7 @@ function createWorkout(
       ...workoutExercises[1]!,
       name: "Dumbbell Shoulder Press",
       target: "Shoulders · Strength",
+      weight: "10 kg",
       video: require("./assets/exercise-videos/male-shoulder-press.mp4"),
       phases: ["LOWER", "BRACE", "PRESS"],
       formFrames: [
@@ -4691,6 +4698,7 @@ function createWorkout(
       ...workoutExercises[1]!,
       name: "Dumbbell Bench Press",
       target: "Chest · Strength",
+      weight: "14 kg",
       video: require("./assets/exercise-videos/male-dumbbell-bench-press.mp4"),
     },
     {
@@ -4704,6 +4712,7 @@ function createWorkout(
       ...workoutExercises[1]!,
       name: "Dumbbell Biceps Curl",
       target: "Arms · Controlled",
+      weight: "8 kg",
       video: require("./assets/exercise-videos/male-bicep-curl.mp4"),
       phases: ["LOWER", "CURL", "SQUEEZE"],
     },
@@ -4711,6 +4720,7 @@ function createWorkout(
       ...workoutExercises[0]!,
       name: "Dumbbell Lunge",
       target: "Legs & glutes · Unilateral",
+      weight: "10 kg",
       video: require("./assets/exercise-videos/male-dumbbell-lunge.mp4"),
       phases: ["STEP", "LOWER", "DRIVE"],
       formFrames: [
@@ -4722,6 +4732,7 @@ function createWorkout(
       ...workoutExercises[0]!,
       name: "Calf Raise",
       target: "Calves · Isolation",
+      weight: "14 kg",
       video: require("./assets/exercise-videos/male-calf-raise.mp4"),
       phases: ["LOWER", "HOLD", "RAISE"],
       formFrames: [
@@ -4978,16 +4989,7 @@ function createWorkout(
         : saved
           ? `${saved.weightKg} kg`
           : scaledStartingWeightLabel(
-              Math.max(
-                2,
-                Math.round(
-                  (exercise.name.includes("Squat")
-                    ? profile.sex === "male" ? 20 : 14
-                    : exercise.name === "Dumbbell Press"
-                      ? profile.sex === "male" ? 16 : 10
-                      : profile.sex === "male" ? 30 : 22) * loadFactor,
-                ),
-              ),
+              Math.max(2, Math.round(parseFloat(exercise.weight) * loadFactor)),
               bodyWeightKg,
             ),
     };
