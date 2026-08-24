@@ -1714,7 +1714,26 @@ type WorkoutHistoryExercise = {
   weightKg: number | null;
   reps: number;
   sets: number;
+  // Both mirror the same fields on WorkoutExercise, recorded here so volume
+  // can be totalled honestly later. Optional because entries logged before
+  // per-hand/per-side labelling existed don't carry them -- see
+  // exerciseVolumeKg, which falls back to deriving them from the name.
+  weightPerHand?: boolean;
+  repsPerSide?: "leg" | "side";
 };
+
+// True kilograms moved for one logged exercise. Both flags double the work
+// and they stack: a lunge holding a dumbbell in each hand, prescribed per
+// leg, moves four times what the raw numbers suggest. Counting the raw
+// numbers understated volume on most of the roster, and this figure is fed
+// to the AI coach as fact.
+function exerciseVolumeKg(item: WorkoutHistoryExercise): number {
+  const weightKg = item.weightKg ?? 0;
+  if (weightKg === 0 || !Number.isFinite(item.reps) || !Number.isFinite(item.sets)) return 0;
+  const perHand = item.weightPerHand ?? isPerHandLoad(item.name, implementForExerciseName(item.name));
+  const perSide = item.repsPerSide ?? perSideUnitLabel(item.name);
+  return weightKg * (perHand ? 2 : 1) * item.reps * (perSide ? 2 : 1) * item.sets;
+}
 
 type WorkoutHistoryEntry = {
   id: string;
@@ -1873,7 +1892,7 @@ function summarizeCoachMemory(
     (sum, entry) =>
       sum +
       (entry.exerciseBreakdown ?? []).reduce(
-        (exerciseSum, item) => exerciseSum + (item.weightKg ?? 0) * item.reps * item.sets,
+        (exerciseSum, item) => exerciseSum + exerciseVolumeKg(item),
         0,
       ),
     0,
@@ -5707,6 +5726,8 @@ function ActiveWorkoutScreen({
         weightKg: isBodyweightExerciseName(item.name) ? null : parseFloat(item.weight),
         reps: parseInt(item.reps, 10),
         sets: targetSetCount,
+        weightPerHand: item.weightPerHand === true,
+        ...(item.repsPerSide ? { repsPerSide: item.repsPerSide } : {}),
       })),
       ...(splitDay ? { splitDay } : {}),
     });
