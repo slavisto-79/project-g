@@ -1643,6 +1643,10 @@ type ExerciseProgress = {
   repsLow: number;
   repsHigh: number;
   streak: number;
+  // Cumulative successful weight advances on this exercise, ever. Only used
+  // to graduate a weighted exercise out of the beginner/novice rep floor
+  // (see commitExerciseProgress) -- bodyweight exercises don't read it.
+  totalAdvances: number;
 };
 
 // Real accounts already have progress saved in the old shape (a flat
@@ -1656,13 +1660,18 @@ function normalizeExerciseProgress(
   fallbackRange: { low: number; high: number },
 ): ExerciseProgress {
   if (typeof saved.repsLow === "number" && typeof saved.repsHigh === "number") {
-    return { ...saved, streak: typeof saved.streak === "number" ? saved.streak : 0 };
+    return {
+      ...saved,
+      streak: typeof saved.streak === "number" ? saved.streak : 0,
+      totalAdvances: typeof saved.totalAdvances === "number" ? saved.totalAdvances : 0,
+    };
   }
   return {
     weightKg: typeof saved.weightKg === "number" ? saved.weightKg : 0,
     repsLow: fallbackRange.low,
     repsHigh: fallbackRange.high,
     streak: 0,
+    totalAdvances: 0,
   };
 }
 
@@ -4400,6 +4409,24 @@ function baseRepRangeForProfile(profile: Record<string, string>): { low: number;
   return { low, high: low + 4 };
 }
 
+// The goal's real rep range, with no experience-driven safety floor applied
+// -- what an exercise should eventually settle into once someone has proven
+// (not just claimed) they're ready. See the graduation step in
+// commitExerciseProgress: a weighted exercise that started elevated by
+// EXPERIENCE_REP_FLOOR gradually eases back down toward this as real
+// advances accumulate, instead of staying parked at the beginner-safe range
+// forever while only the weight keeps climbing.
+function goalRepRange(profile: Record<string, string>): { low: number; high: number } {
+  const target = GOAL_REP_TARGET[profile.goal ?? ""] ?? 10;
+  return { low: target, high: target + 4 };
+}
+
+// How many successful weight advances (not sessions -- see
+// EXPERIENCE_ADVANCE_SESSIONS for that) between each 1-rep graduation step.
+// Same "slow but steady" reasoning as everything else here: the range should
+// never jump down in one move, no matter how many advances have piled up.
+const ADVANCES_PER_GRADUATION_STEP = 2;
+
 function restSecondsForProfile(profile: Record<string, string>, adjustment?: CoachScenario | null): number {
   const base = GOAL_REST_SECONDS[profile.goal ?? ""] ?? 60;
   return adjustment === "tired" ? base + 30 : base;
@@ -5372,6 +5399,7 @@ function ActiveWorkoutScreen({
           repsLow: startRange.low,
           repsHigh: startRange.high,
           streak: 0,
+          totalAdvances: 0,
         };
     const loggedThisSession = sessionLog[finishedExercise.name];
     const loggedReps = loggedThisSession ? loggedThisSession.reps : parseInt(finishedExercise.reps, 10);
@@ -5402,13 +5430,24 @@ function ActiveWorkoutScreen({
         repsLow: previous.repsLow + 1,
         repsHigh: previous.repsHigh + 1,
         streak: 0,
+        totalAdvances: previous.totalAdvances,
       });
     } else {
+      const totalAdvances = previous.totalAdvances + 1;
+      // Graduation: a weighted exercise that started elevated above the
+      // goal's real range (the beginner/novice safety floor) eases back
+      // toward it one rep at a time as real advances accumulate -- never in
+      // one jump, and it never overshoots below the goal's own target.
+      const target = goalRepRange(profile);
+      const canStepDown = previous.repsLow > target.low && totalAdvances % ADVANCES_PER_GRADUATION_STEP === 0;
+      const nextRepsLow = canStepDown ? previous.repsLow - 1 : previous.repsLow;
+      const nextRepsHigh = canStepDown ? previous.repsHigh - 1 : previous.repsHigh;
       onUpdateExerciseProgress(finishedExercise.name, {
         weightKg: (Number.isFinite(loggedWeightKg) ? loggedWeightKg : previous.weightKg) + 1,
-        repsLow: previous.repsLow,
-        repsHigh: previous.repsHigh,
+        repsLow: nextRepsLow,
+        repsHigh: nextRepsHigh,
         streak: 0,
+        totalAdvances,
       });
     }
   };
