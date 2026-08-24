@@ -1714,25 +1714,79 @@ type WorkoutHistoryExercise = {
   weightKg: number | null;
   reps: number;
   sets: number;
-  // Both mirror the same fields on WorkoutExercise, recorded here so volume
-  // can be totalled honestly later. Optional because entries logged before
-  // per-hand/per-side labelling existed don't carry them -- see
-  // exerciseVolumeKg, which falls back to deriving them from the name.
+  // These mirror fields on WorkoutExercise, recorded here so volume can be
+  // totalled honestly later. Optional because entries logged before this
+  // existed don't carry them -- see exerciseVolumeKg, which falls back to
+  // deriving each one from the exercise name.
   weightPerHand?: boolean;
   repsPerSide?: "leg" | "side";
+  // Whether `reps` holds seconds rather than repetitions. Worth storing
+  // rather than re-deriving: a catalog isometric isn't always named "Plank",
+  // and the movement pattern that identifies it isn't kept on this record.
+  isHold?: boolean;
 };
 
-// True kilograms moved for one logged exercise. Both flags double the work
-// and they stack: a lunge holding a dumbbell in each hand, prescribed per
-// leg, moves four times what the raw numbers suggest. Counting the raw
-// numbers understated volume on most of the roster, and this figure is fed
-// to the AI coach as fact.
-function exerciseVolumeKg(item: WorkoutHistoryExercise): number {
-  const weightKg = item.weightKg ?? 0;
-  if (weightKg === 0 || !Number.isFinite(item.reps) || !Number.isFinite(item.sets)) return 0;
-  const perHand = item.weightPerHand ?? isPerHandLoad(item.name, implementForExerciseName(item.name));
+// A bodyweight rep moves real mass, so counting it as zero was wrong -- but
+// counting it as a full bodyweight is wrong too. What you actually lift is
+// the share of your body above the pivot: a pull-up suspends all of you, a
+// push-up leaves a good part of your weight on your toes, and a glute bridge
+// only lifts the hips and torso. These fractions are the commonly cited
+// biomechanical estimates, rounded; they are approximations by nature, which
+// is exactly why the number is reported as "~".
+const BODYWEIGHT_LOAD_FRACTION: { match: RegExp; fraction: number }[] = [
+  // Fully suspended -- all of your mass, nothing supported.
+  { match: /pull-?up|chin-?up|bar dip|muscle-?up/i, fraction: 1 },
+  // Hanging, but only the legs travel.
+  { match: /hanging leg raise|knee raise|leg raise/i, fraction: 0.2 },
+  // Standing on one leg: nearly everything, minus the shank of the working leg.
+  { match: /lunge|split squat|pistol|step-?up/i, fraction: 0.85 },
+  // Both feet down: everything above the knees.
+  { match: /squat/i, fraction: 0.8 },
+  { match: /burpee/i, fraction: 0.7 },
+  // Hands and toes down -- a measured ~64% of bodyweight at the top.
+  { match: /push-?up|mountain climbers/i, fraction: 0.64 },
+  // Hips and torso only; shoulders and feet stay planted.
+  { match: /glute bridge|hip thrust/i, fraction: 0.4 },
+  { match: /high knees/i, fraction: 0.3 },
+];
+
+function bodyweightLoadFraction(name: string): number | null {
+  return BODYWEIGHT_LOAD_FRACTION.find((entry) => entry.match.test(name))?.fraction ?? null;
+}
+
+// True kilograms moved for one logged exercise.
+//
+// Per-hand and per-side both double the work and they stack: a lunge holding
+// a dumbbell in each hand, prescribed per leg, moves four times what the raw
+// numbers suggest.
+//
+// Timed holds are deliberately excluded. Their `reps` field stores SECONDS,
+// not repetitions, so folding them in would multiply a duration by a mass and
+// call the result kilograms. A 40-second plank is real work, but it isn't
+// "weight lifted" and doesn't belong in this total.
+//
+// This figure is fed to the AI coach as fact, so it needs to be defensible.
+function exerciseVolumeKg(item: WorkoutHistoryExercise, bodyWeightKg?: number): number {
+  if (!Number.isFinite(item.reps) || !Number.isFinite(item.sets)) return 0;
+  if (item.isHold ?? isHoldExercise({ name: item.name })) return 0;
+
   const perSide = item.repsPerSide ?? perSideUnitLabel(item.name);
-  return weightKg * (perHand ? 2 : 1) * item.reps * (perSide ? 2 : 1) * item.sets;
+  const totalReps = item.reps * (perSide ? 2 : 1) * item.sets;
+
+  // A non-finite weight means the record couldn't express a load at all --
+  // treat it as bodyweight rather than letting NaN poison the running total.
+  if (item.weightKg === null || !Number.isFinite(item.weightKg) || item.weightKg === 0) {
+    const fraction = bodyweightLoadFraction(item.name);
+    // No usable bodyweight for this session, or a movement with no sensible
+    // load estimate -- count nothing rather than invent a number.
+    if (fraction === null || !Number.isFinite(bodyWeightKg ?? NaN) || (bodyWeightKg ?? 0) <= 0) {
+      return 0;
+    }
+    return bodyWeightKg! * fraction * totalReps;
+  }
+
+  const perHand = item.weightPerHand ?? isPerHandLoad(item.name, implementForExerciseName(item.name));
+  return item.weightKg * (perHand ? 2 : 1) * totalReps;
 }
 
 type WorkoutHistoryEntry = {
@@ -1745,6 +1799,10 @@ type WorkoutHistoryEntry = {
   calories: number;
   exerciseBreakdown?: WorkoutHistoryExercise[];
   splitDay?: SplitDay;
+  // Bodyweight AT THE TIME of this session, so bodyweight-exercise volume
+  // stays historically honest -- a push-up done at 90kg shouldn't be
+  // retroactively recounted at today's 80kg once the user loses weight.
+  bodyWeightKg?: number;
 };
 
 // A once-per-day subjective check-in (sleep, nutrition, fatigue, stress),
@@ -1879,6 +1937,9 @@ function trialEndDateLabel(trialStartedAt: string | null): string | null {
 function summarizeCoachMemory(
   workoutHistory: WorkoutHistoryEntry[],
   exerciseProgress: Record<string, ExerciseProgress>,
+  // Only used for sessions logged before bodyweight was recorded on the
+  // entry itself; newer entries carry their own.
+  currentBodyWeightKg?: number,
 ): string {
   if (workoutHistory.length === 0) return "No workouts logged yet.";
 
@@ -1892,7 +1953,8 @@ function summarizeCoachMemory(
     (sum, entry) =>
       sum +
       (entry.exerciseBreakdown ?? []).reduce(
-        (exerciseSum, item) => exerciseSum + exerciseVolumeKg(item),
+        (exerciseSum, item) =>
+          exerciseSum + exerciseVolumeKg(item, entry.bodyWeightKg ?? currentBodyWeightKg),
         0,
       ),
     0,
@@ -3761,7 +3823,7 @@ function AICoachScreen({
         body: JSON.stringify({
           message,
           profile,
-          memory: summarizeCoachMemory(workoutHistory, exerciseProgress),
+          memory: summarizeCoachMemory(workoutHistory, exerciseProgress, Number(profile.weight)),
           history,
         }),
       });
@@ -5727,8 +5789,12 @@ function ActiveWorkoutScreen({
         reps: parseInt(item.reps, 10),
         sets: targetSetCount,
         weightPerHand: item.weightPerHand === true,
+        isHold: isHoldExercise(item),
         ...(item.repsPerSide ? { repsPerSide: item.repsPerSide } : {}),
       })),
+      ...(Number.isFinite(Number(profile.weight)) && Number(profile.weight) > 0
+        ? { bodyWeightKg: Number(profile.weight) }
+        : {}),
       ...(splitDay ? { splitDay } : {}),
     });
   };
