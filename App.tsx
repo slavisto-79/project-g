@@ -4304,6 +4304,17 @@ function baseRepsForProfile(profile: Record<string, string>): number {
   return reducedLoad ? Math.max(4, target - 2) : target;
 }
 
+// Weighted exercises progress by adding a rep each session until this same
+// ceiling, then reset reps and add weight instead -- there's no "add weight"
+// move for a bodyweight exercise, so without a ceiling here reps grow by one
+// forever, session after session, with nothing to ever roll it back. Capping
+// it at the same ceiling stops the runaway growth; it's a conservative stop
+// rather than a full bodyweight progression model (e.g. advancing to a
+// harder variation), which is a reasonable next step but out of scope here.
+function bodyweightRepCeiling(profile: Record<string, string>): number {
+  return baseRepsForProfile(profile) + 2;
+}
+
 function restSecondsForProfile(profile: Record<string, string>, adjustment?: CoachScenario | null): number {
   const base = GOAL_REST_SECONDS[profile.goal ?? ""] ?? 60;
   return adjustment === "tired" ? base + 30 : base;
@@ -4820,7 +4831,9 @@ function createWorkout(
     return {
       ...exercise,
       reps: saved
-        ? String(saved.reps)
+        ? exercise.name.includes("Plank")
+          ? String(saved.reps)
+          : String(isBodyweight ? Math.min(saved.reps, bodyweightRepCeiling(profile)) : saved.reps)
         : exercise.name.includes("Plank")
           ? String(holdSecondsForProfile(profile))
           : reps,
@@ -4881,7 +4894,7 @@ function catalogExerciseToWorkoutExercise(
   const isBodyweight = tag.equipment.toLowerCase() === "bodyweight";
   const saved = exerciseProgress[tag.name];
   const reps = saved
-    ? String(saved.reps)
+    ? String(isBodyweight && tag.movementPattern !== "isometric" ? Math.min(saved.reps, bodyweightRepCeiling(profile)) : saved.reps)
     : String(tag.movementPattern === "isometric" ? holdSecondsForProfile(profile) : baseRepsForProfile(profile));
   // Deload week backs off the weight on its own (lighter session, not a rest
   // day) -- the readiness modifier is for everything else (poor recovery,
@@ -5251,7 +5264,10 @@ function ActiveWorkoutScreen({
     const reps = logged ? logged.reps : parseInt(finishedExercise.reps, 10);
     if (!Number.isFinite(reps)) return;
     if (finishedExercise.weight === "Bodyweight") {
-      onUpdateExerciseProgress(finishedExercise.name, { weightKg: 0, reps: reps + 1 });
+      onUpdateExerciseProgress(finishedExercise.name, {
+        weightKg: 0,
+        reps: Math.min(reps + 1, bodyweightRepCeiling(profile)),
+      });
       return;
     }
     const weightKg = logged ? logged.weightKg : parseInt(finishedExercise.weight, 10);
