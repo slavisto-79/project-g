@@ -4177,11 +4177,12 @@ function setCountForProfile(
 ): number {
   const baseSetCount = BASE_SET_COUNT_BY_FREQUENCY[profile.frequency ?? "3"] ?? 3;
   const densityBonus = profile.goal === "fat-loss" || profile.goal === "fitness" ? 1 : 0;
+  const experienceBonus = EXPERIENCE_SET_BONUS[profile.experience ?? ""] ?? 0;
   const reduction =
     (adjustment === "tired" ? 1 : 0) +
     (isDeload ? 1 : 0) +
     readinessSetPenalty(checkIn ?? null, profile.goal);
-  return Math.max(2, baseSetCount + densityBonus - reduction);
+  return Math.max(2, baseSetCount + densityBonus + experienceBonus - reduction);
 }
 
 const REFERENCE_BODY_WEIGHT_KG = 70;
@@ -4324,16 +4325,78 @@ const GOAL_REST_SECONDS: Record<string, number> = {
   health: 60,
 };
 
+// --- Training background ---------------------------------------------------
+// The interview asks for experience across four levels, and all four have to
+// mean something distinct: someone with three years under the bar should not
+// be handed a first-timer's plan. Each constant below is deliberately modest,
+// because the answer is a self-report, not a measurement -- double
+// progression corrects an underestimate within a few sessions, whereas
+// overestimating someone's starting point risks injury on session one.
+
+// Multiplier on the suggested starting weight.
+const EXPERIENCE_LOAD_FACTOR: Record<string, number> = {
+  beginner: 0.75,
+  novice: 0.9,
+  intermediate: 1,
+  advanced: 1.15,
+};
+
+// A moderate-rep floor for the less experienced. Low-rep, near-maximal work
+// is a technique-and-injury risk for someone still learning the lifts,
+// whatever their goal says -- so a "get stronger" beginner trains 8 solid
+// reps light rather than 3 heavy ones, and the load factor above brings the
+// weight down to match. Experienced trainees keep their goal's real range.
+const EXPERIENCE_REP_FLOOR: Record<string, number> = {
+  beginner: 8,
+  novice: 6,
+  intermediate: 0,
+  advanced: 0,
+};
+
+// Sessions at the top of the rep range required before the load advances.
+// Beginners genuinely do adapt fast (early gains are largely neural), so
+// making them wait as long as an advanced lifter wastes the window where
+// progress comes easiest. An advanced trainee is nearer their ceiling, so a
+// longer confirmation avoids chasing a good day that won't repeat.
+const EXPERIENCE_ADVANCE_SESSIONS: Record<string, number> = {
+  beginner: 2,
+  novice: 2,
+  intermediate: 3,
+  advanced: 4,
+};
+
+// Working sets added or removed. A beginner's limiting factor is recovery and
+// technique under fatigue, not willingness; an advanced trainee needs more
+// total volume before anything adapts at all.
+const EXPERIENCE_SET_BONUS: Record<string, number> = {
+  beginner: -1,
+  novice: 0,
+  intermediate: 0,
+  advanced: 1,
+};
+
+// Age is a separate axis from experience -- a 50-year-old returning lifter is
+// experienced AND needs a gentler entry point, so the two stack rather than
+// one overriding the other (which is what the old single `reducedLoad`
+// boolean did, treating "beginner" and "over 45" as the same thing).
+function experienceLoadFactor(profile: Record<string, string>): number {
+  const ageYears = Number(profile.age);
+  const base = EXPERIENCE_LOAD_FACTOR[profile.experience ?? ""] ?? 1;
+  return base * (Number.isFinite(ageYears) && ageYears >= 45 ? 0.85 : 1);
+}
+
+function advanceSessionsForProfile(profile: Record<string, string>): number {
+  return EXPERIENCE_ADVANCE_SESSIONS[profile.experience ?? ""] ?? 2;
+}
+
 // The starting target rep RANGE for an exercise with no logged history yet.
 // The suggested number shown is always the low end (see ExerciseProgress) --
 // conservative on purpose, since this is a first guess, not a measurement.
 function baseRepRangeForProfile(profile: Record<string, string>): { low: number; high: number } {
   const ageYears = Number(profile.age);
-  const reducedLoad =
-    (Number.isFinite(ageYears) && ageYears >= 45) ||
-    profile.experience === "beginner";
   const target = GOAL_REP_TARGET[profile.goal ?? ""] ?? 10;
-  const low = reducedLoad ? Math.max(4, target - 2) : target;
+  const withFloor = Math.max(target, EXPERIENCE_REP_FLOOR[profile.experience ?? ""] ?? 0);
+  const low = Number.isFinite(ageYears) && ageYears >= 45 ? Math.max(4, withFloor - 2) : withFloor;
   return { low, high: low + 4 };
 }
 
@@ -4459,9 +4522,7 @@ function createWorkout(
 ): WorkoutExercise[] {
   const bodyWeightKg = Number(profile.weight);
   const ageYears = Number(profile.age);
-  const reducedLoad =
-    (Number.isFinite(ageYears) && ageYears >= 45) ||
-    profile.experience === "beginner";
+  const loadFactor = experienceLoadFactor(profile);
   const reps = String(baseRepRangeForProfile(profile).low);
   const femaleExercises: WorkoutExercise[] = [
     {
@@ -4863,11 +4924,16 @@ function createWorkout(
         : saved
           ? `${saved.weightKg} kg`
           : scaledStartingWeightLabel(
-              exercise.name.includes("Squat")
-                ? reducedLoad ? 8 : profile.sex === "male" ? 20 : 14
-                : exercise.name === "Dumbbell Press"
-                  ? reducedLoad ? 6 : profile.sex === "male" ? 16 : 10
-                  : reducedLoad ? 15 : profile.sex === "male" ? 30 : 22,
+              Math.max(
+                2,
+                Math.round(
+                  (exercise.name.includes("Squat")
+                    ? profile.sex === "male" ? 20 : 14
+                    : exercise.name === "Dumbbell Press"
+                      ? profile.sex === "male" ? 16 : 10
+                      : profile.sex === "male" ? 30 : 22) * loadFactor,
+                ),
+              ),
               bodyWeightKg,
             ),
     };
@@ -4928,7 +4994,10 @@ function catalogExerciseToWorkoutExercise(
     ? "Bodyweight"
     : savedWeightKg !== null
       ? `${savedWeightKg} kg`
-      : scaledStartingWeightLabel(Math.round(12 * (isDeload ? 0.85 : weightModifier)), bodyWeightKg);
+      : scaledStartingWeightLabel(
+          Math.max(2, Math.round(12 * experienceLoadFactor(profile) * (isDeload ? 0.85 : weightModifier))),
+          bodyWeightKg,
+        );
   const media = tag.media[profile.sex === "male" ? "male" : "female"];
   const poster: ImageSourcePropType = media
     ? { uri: media.poster }
@@ -5318,7 +5387,7 @@ function ActiveWorkoutScreen({
     }
 
     const streak = previous.streak + 1;
-    if (streak < 2) {
+    if (streak < advanceSessionsForProfile(profile)) {
       onUpdateExerciseProgress(finishedExercise.name, { ...previous, streak });
       return;
     }
