@@ -121,8 +121,8 @@
 ## Test mode and accounts
 
 - Test mode (no account) persists the selected profile, nutrition totals, and AI coach adjustment in `localStorage` after a browser refresh, unchanged from before.
-- The Dashboard must always provide a one-tap `RESET PROFILE` action so male, female, age, goal, equipment, and duration scenarios can be retested quickly.
-- Resetting a test profile returns to onboarding and clears the locally saved test state.
+- The Profile screen's account bar always offers a `RESET PROFILE` action (two-tap confirm, mirrors the existing `LOG OUT` control) so male, female, age, goal, equipment, and duration scenarios can be retested quickly.
+- Resetting clears profile answers, exercise progress, workout history, coach adjustment/messages, diet plan, check-in, and nutrition totals, then returns to onboarding -- without logging the account out or touching the session. Only shown next to `LOG OUT` in the signed-in state, since anonymous test mode shows sign-in/create-account prompts there instead.
 - Do not automatically resume an active workout after refresh; only stable profile-level test data is persisted.
 - **Real accounts are now implemented via Supabase** (not the earlier Neon + hand-rolled cookie session; that was replaced before shipping to users). The Dashboard's account bar offers "SIGN IN" / "CREATE ACCOUNT" (or shows "SIGNED IN · email" + "LOG OUT" once signed in). Supabase Auth handles signup/login/logout/session/password reset; app data lives in a `user_data` table in the same Supabase Postgres project, with Row Level Security restricting each row to its owner (`auth.uid() = user_id`). See `supabase-setup.sql` for the schema, RLS policies, and the trigger that creates an empty `user_data` row on signup.
 - The client talks to Supabase directly via `@supabase/supabase-js` (`lib/supabase.ts`), using the public `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` (safe to expose; protection comes from RLS, not secrecy). There is no custom `/api/auth/*` or `/api/user-data` backend.
