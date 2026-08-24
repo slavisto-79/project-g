@@ -1013,6 +1013,7 @@ function ProfileScreen({
   session,
   onOpenAccount,
   onLogout,
+  onResetProfile,
   trialDaysLeft,
   trialEndsAtLabel,
 }: {
@@ -1022,13 +1023,24 @@ function ProfileScreen({
   session: { email: string } | null;
   onOpenAccount: (mode: "signup" | "login") => void;
   onLogout: () => void;
+  onResetProfile: () => void;
   trialDaysLeft: number | null;
   trialEndsAtLabel: string | null;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftValue, setDraftValue] = useState<string>("");
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  // Two-tap confirm for a destructive action -- first tap arms it, second
+  // (within a few seconds) actually resets. Auto-disarms so a stray second
+  // tap much later, after forgetting it was armed, can't trigger it.
+  const [resetArmed, setResetArmed] = useState(false);
   const editingQuestion = interviewQuestions.find((question) => question.id === editingId) ?? null;
+
+  useEffect(() => {
+    if (!resetArmed) return;
+    const timer = setTimeout(() => setResetArmed(false), 4000);
+    return () => clearTimeout(timer);
+  }, [resetArmed]);
 
   // Shrink each profile row just enough that all of them plus the header/account
   // bar fit on one screen without scrolling, instead of a fixed height that
@@ -1171,6 +1183,21 @@ function ProfileScreen({
                   SIGNED IN · {session.email}
                 </Text>
               </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={resetArmed ? "Confirm reset profile and progress" : "Reset profile and progress"}
+                onPress={() => {
+                  if (resetArmed) {
+                    onResetProfile();
+                    setResetArmed(false);
+                  } else {
+                    setResetArmed(true);
+                  }
+                }}
+                style={styles.testModeReset}
+              >
+                <Text style={styles.testModeResetText}>{resetArmed ? "TAP AGAIN TO RESET" : "RESET PROFILE"}</Text>
+              </Pressable>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Log out"
@@ -6798,6 +6825,24 @@ export default function App() {
     setScreen("dashboard");
   };
 
+  // Wipes the answers and all progress but keeps the account itself signed
+  // in -- for testing a fresh onboarding/progression flow without having to
+  // create a whole new account each time. The existing auto-save effect
+  // below picks up every one of these state changes and pushes the cleared
+  // state to Supabase on its own; nothing extra to upsert here.
+  const handleResetProfile = () => {
+    setProfile({});
+    setExerciseProgress({});
+    setWorkoutHistory([]);
+    setCoachAdjustment(null);
+    setCoachMessages([]);
+    setDietPlan(null);
+    setDailyCheckIn(null);
+    setNutritionTotals({ calories: 0, protein: 0, carbs: 0, fat: 0 });
+    setActiveWorkoutExercises(null);
+    setScreen("interview");
+  };
+
   if (!hasLoadedTestState) return <View style={styles.app} />;
 
   if (workoutLoading) {
@@ -6882,6 +6927,7 @@ export default function App() {
               setScreen("auth");
             }}
             onLogout={handleLogout}
+            onResetProfile={handleResetProfile}
             trialDaysLeft={trialDaysRemaining(trialStartedAt)}
             trialEndsAtLabel={trialEndDateLabel(trialStartedAt)}
           />
