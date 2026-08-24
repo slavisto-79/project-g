@@ -1632,10 +1632,39 @@ type NutritionTotals = {
   fat: number;
 };
 
+// A target rep RANGE, not a single number, is what makes progression
+// individual instead of formulaic: the suggested number is always the
+// conservative bottom of the range (repsLow), and only a genuinely strong
+// session -- logging repsHigh or more, on every prescribed set, two times in
+// a row -- earns an advance. One good day never counts; a fluke never
+// derails it either (streak just resets, nothing is lost).
 type ExerciseProgress = {
   weightKg: number;
-  reps: number;
+  repsLow: number;
+  repsHigh: number;
+  streak: number;
 };
+
+// Real accounts already have progress saved in the old shape (a flat
+// { weightKg, reps }, from before ranges existed). Rather than a one-time
+// data migration, every read of a saved entry goes through this so an old
+// record just quietly starts fresh at the profile's current range on next
+// view -- the weight, if it's a real number, is the only part worth keeping
+// from a shape that no longer matches.
+function normalizeExerciseProgress(
+  saved: ExerciseProgress,
+  fallbackRange: { low: number; high: number },
+): ExerciseProgress {
+  if (typeof saved.repsLow === "number" && typeof saved.repsHigh === "number") {
+    return { ...saved, streak: typeof saved.streak === "number" ? saved.streak : 0 };
+  }
+  return {
+    weightKg: typeof saved.weightKg === "number" ? saved.weightKg : 0,
+    repsLow: fallbackRange.low,
+    repsHigh: fallbackRange.high,
+    streak: 0,
+  };
+}
 
 type WorkoutHistoryExercise = {
   name: string;
@@ -1813,7 +1842,7 @@ function summarizeCoachMemory(
   const progressEntries = Object.entries(exerciseProgress).slice(0, 8);
   const progressLine = progressEntries.length
     ? `Current working weights: ${progressEntries
-        .map(([name, entry]) => `${name} ${entry.weightKg}kg x${entry.reps}`)
+        .map(([name, entry]) => `${name} ${entry.weightKg}kg x${entry.repsLow}-${entry.repsHigh}`)
         .join(", ")}.`
     : "";
 
@@ -4295,24 +4324,17 @@ const GOAL_REST_SECONDS: Record<string, number> = {
   health: 60,
 };
 
-function baseRepsForProfile(profile: Record<string, string>): number {
+// The starting target rep RANGE for an exercise with no logged history yet.
+// The suggested number shown is always the low end (see ExerciseProgress) --
+// conservative on purpose, since this is a first guess, not a measurement.
+function baseRepRangeForProfile(profile: Record<string, string>): { low: number; high: number } {
   const ageYears = Number(profile.age);
   const reducedLoad =
     (Number.isFinite(ageYears) && ageYears >= 45) ||
     profile.experience === "beginner";
   const target = GOAL_REP_TARGET[profile.goal ?? ""] ?? 10;
-  return reducedLoad ? Math.max(4, target - 2) : target;
-}
-
-// Weighted exercises progress by adding a rep each session until this same
-// ceiling, then reset reps and add weight instead -- there's no "add weight"
-// move for a bodyweight exercise, so without a ceiling here reps grow by one
-// forever, session after session, with nothing to ever roll it back. Capping
-// it at the same ceiling stops the runaway growth; it's a conservative stop
-// rather than a full bodyweight progression model (e.g. advancing to a
-// harder variation), which is a reasonable next step but out of scope here.
-function bodyweightRepCeiling(profile: Record<string, string>): number {
-  return baseRepsForProfile(profile) + 2;
+  const low = reducedLoad ? Math.max(4, target - 2) : target;
+  return { low, high: low + 4 };
 }
 
 function restSecondsForProfile(profile: Record<string, string>, adjustment?: CoachScenario | null): number {
@@ -4440,7 +4462,7 @@ function createWorkout(
   const reducedLoad =
     (Number.isFinite(ageYears) && ageYears >= 45) ||
     profile.experience === "beginner";
-  const reps = String(baseRepsForProfile(profile));
+  const reps = String(baseRepRangeForProfile(profile).low);
   const femaleExercises: WorkoutExercise[] = [
     {
       ...workoutExercises[0]!,
@@ -4831,9 +4853,7 @@ function createWorkout(
     return {
       ...exercise,
       reps: saved
-        ? exercise.name.includes("Plank")
-          ? String(saved.reps)
-          : String(isBodyweight ? Math.min(saved.reps, bodyweightRepCeiling(profile)) : saved.reps)
+        ? String(normalizeExerciseProgress(saved, baseRepRangeForProfile(profile)).repsLow)
         : exercise.name.includes("Plank")
           ? String(holdSecondsForProfile(profile))
           : reps,
@@ -4894,8 +4914,8 @@ function catalogExerciseToWorkoutExercise(
   const isBodyweight = tag.equipment.toLowerCase() === "bodyweight";
   const saved = exerciseProgress[tag.name];
   const reps = saved
-    ? String(isBodyweight && tag.movementPattern !== "isometric" ? Math.min(saved.reps, bodyweightRepCeiling(profile)) : saved.reps)
-    : String(tag.movementPattern === "isometric" ? holdSecondsForProfile(profile) : baseRepsForProfile(profile));
+    ? String(normalizeExerciseProgress(saved, baseRepRangeForProfile(profile)).repsLow)
+    : String(tag.movementPattern === "isometric" ? holdSecondsForProfile(profile) : baseRepRangeForProfile(profile).low);
   // Deload week backs off the weight on its own (lighter session, not a rest
   // day) -- the readiness modifier is for everything else (poor recovery,
   // self-reported "tired"), so the two never stack; deload wins when both apply.
@@ -5169,6 +5189,14 @@ function ActiveWorkoutScreen({
   const scrollRef = useRef<ScrollView>(null);
 
   const [exerciseIndex, setExerciseIndex] = useState(0);
+  // What the user actually dialed in via the weight/reps picker this session,
+  // keyed by exercise name -- separate from `exerciseProgress` (the
+  // persisted, cross-session tracking state) so a live mid-session
+  // adjustment doesn't have to masquerade as a finished progression record.
+  // commitExerciseProgress reads from here (falling back to the exercise's
+  // planned suggestion if the user never touched the picker) when it decides
+  // whether this session earns progress.
+  const [sessionLog, setSessionLog] = useState<Record<string, { weightKg: number; reps: number }>>({});
   const [completedSets, setCompletedSets] = useState<boolean[]>(Array(targetSetCount).fill(false));
   const [restSeconds, setRestSeconds] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -5226,7 +5254,7 @@ function ActiveWorkoutScreen({
   };
 
   const saveExerciseAdjustment = (nextWeightKg: number, nextReps: number) => {
-    onUpdateExerciseProgress(exercise.name, { weightKg: nextWeightKg, reps: nextReps });
+    setSessionLog((current) => ({ ...current, [exercise.name]: { weightKg: nextWeightKg, reps: nextReps } }));
   };
 
   const openSwap = async () => {
@@ -5252,32 +5280,68 @@ function ActiveWorkoutScreen({
   };
 
   // Called when leaving an exercise (moving on, or finishing the workout on
-  // the last one). Double progression: add a rep each session until a small
-  // ceiling above the profile's base reps, then reset reps and add weight.
-  // Progresses from what was actually logged this session (exerciseProgress,
-  // already updated live by the kg/reps picker below) rather than the
-  // exercise's original planned target -- otherwise a real mid-set adjustment
-  // (e.g. going heavier for fewer reps) would just get overwritten here with
-  // a number derived from the plan instead of from what really happened.
+  // the last one). Double progression against a target RANGE, not a fixed
+  // number: the suggested reps shown is always the conservative bottom of
+  // the range (repsLow); only logging the TOP of the range (repsHigh) on
+  // every prescribed set, two sessions in a row, earns an advance. One
+  // strong session never counts on its own (streak just needs to reach 2),
+  // and a rough or incomplete session never costs anything beyond resetting
+  // that streak -- the range and weight stay exactly where they were.
+  // Progresses from what was actually logged this session (sessionLog,
+  // live-updated by the kg/reps picker below) rather than the exercise's
+  // original planned suggestion, falling back to that suggestion only if the
+  // user never touched the picker (i.e. they did exactly what was asked).
   const commitExerciseProgress = (finishedExercise: WorkoutExercise) => {
-    const logged = exerciseProgress[finishedExercise.name];
-    const reps = logged ? logged.reps : parseInt(finishedExercise.reps, 10);
-    if (!Number.isFinite(reps)) return;
-    if (finishedExercise.weight === "Bodyweight") {
-      onUpdateExerciseProgress(finishedExercise.name, {
-        weightKg: 0,
-        reps: Math.min(reps + 1, bodyweightRepCeiling(profile)),
-      });
+    const isBW = finishedExercise.weight === "Bodyweight";
+    const startRange = baseRepRangeForProfile(profile);
+    const plannedWeightKg = isBW ? 0 : parseInt(finishedExercise.weight, 10);
+    const savedProgress = exerciseProgress[finishedExercise.name];
+    const previous: ExerciseProgress = savedProgress
+      ? normalizeExerciseProgress(savedProgress, startRange)
+      : {
+          weightKg: Number.isFinite(plannedWeightKg) ? plannedWeightKg : 0,
+          repsLow: startRange.low,
+          repsHigh: startRange.high,
+          streak: 0,
+        };
+    const loggedThisSession = sessionLog[finishedExercise.name];
+    const loggedReps = loggedThisSession ? loggedThisSession.reps : parseInt(finishedExercise.reps, 10);
+    const loggedWeightKg = loggedThisSession ? loggedThisSession.weightKg : plannedWeightKg;
+    if (!Number.isFinite(loggedReps)) return;
+
+    const allSetsCompleted = completedSets.length > 0 && completedSets.every(Boolean);
+    const hitTop = allSetsCompleted && loggedReps >= previous.repsHigh;
+
+    if (!hitTop) {
+      onUpdateExerciseProgress(finishedExercise.name, { ...previous, streak: 0 });
       return;
     }
-    const weightKg = logged ? logged.weightKg : parseInt(finishedExercise.weight, 10);
-    if (!Number.isFinite(weightKg)) return;
-    const baseReps = baseRepsForProfile(profile);
-    const repCeiling = baseReps + 2;
-    onUpdateExerciseProgress(
-      finishedExercise.name,
-      reps < repCeiling ? { weightKg, reps: reps + 1 } : { weightKg: weightKg + 1, reps: baseReps },
-    );
+
+    const streak = previous.streak + 1;
+    if (streak < 2) {
+      onUpdateExerciseProgress(finishedExercise.name, { ...previous, streak });
+      return;
+    }
+
+    // Two strong sessions in a row -- advance, gradually. Weighted exercises
+    // add a single kg and the range resets to try again at the new weight;
+    // bodyweight exercises have no weight to add, so the whole range shifts
+    // up by one rep instead -- same size step, same idea, just no barbell.
+    if (isBW) {
+      onUpdateExerciseProgress(finishedExercise.name, {
+        weightKg: 0,
+        repsLow: previous.repsLow + 1,
+        repsHigh: previous.repsHigh + 1,
+        streak: 0,
+      });
+    } else {
+      onUpdateExerciseProgress(finishedExercise.name, {
+        weightKg: (Number.isFinite(loggedWeightKg) ? loggedWeightKg : previous.weightKg) + 1,
+        repsLow: previous.repsLow,
+        repsHigh: previous.repsHigh,
+        streak: 0,
+      });
+    }
   };
 
   const nextExercise = () => {
