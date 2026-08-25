@@ -92,7 +92,7 @@ const interviewQuestions: InterviewQuestion[] = [
     id: "sex",
     kicker: "PERSONALIZE YOUR TRAINING",
     title: "How should we personalize your plan?",
-    subtitle: "This helps tailor training emphasis and coaching. You can change it later.",
+    subtitle: "This sets your calorie maths and exercise demos. It can’t be changed later.",
     answers: [
       { label: "Woman", value: "female" },
       { label: "Man", value: "male" },
@@ -216,6 +216,25 @@ const interviewQuestions: InterviewQuestion[] = [
     ],
   },
 ];
+
+// Answers that are fixed once onboarding is done, each for its own reason.
+//
+// "sex" feeds the BMR constant and picks which demo videos load -- it isn't a
+// preference to retune, and flipping it would silently rewrite every calorie
+// target.
+//
+// "experience" exists to place someone correctly on day one. After that the
+// app earns their progression for them, session by session: rep floors, load
+// factors, set counts and how many sessions an advance takes all key off this
+// answer. Letting someone jump to "advanced" would reprice progress they
+// haven't made yet, on top of exercise history recorded under the old rules.
+//
+// Both stay editable during onboarding itself, and RESET PROFILE clears
+// everything and re-runs the interview -- that's the deliberate way back.
+const LOCKED_AFTER_ONBOARDING: Record<string, string> = {
+  sex: "Set during onboarding",
+  experience: "Your plan progresses this for you",
+};
 
 const WHEEL_ITEM_HEIGHT = 52;
 const WHEEL_VISIBLE_ITEMS = 5;
@@ -1056,6 +1075,9 @@ function ProfileScreen({
   const profileRowHeight = Math.max(40, Math.min(52, availableForRows / interviewQuestions.length));
 
   const startEditing = (question: InterviewQuestion) => {
+    // Locked rows aren't pressable, but guard here too so the only mutation
+    // path out of this screen can't be reached by any other route.
+    if (LOCKED_AFTER_ONBOARDING[question.id]) return;
     // "How often can you train?" also drives the reminders day/time picker --
     // edit both together instead of just the plain number.
     if (question.id === "frequency") {
@@ -1249,29 +1271,60 @@ function ProfileScreen({
 
         <Text style={styles.sectionEyebrow}>YOUR PROFILE</Text>
         <View style={styles.profileList}>
-          {interviewQuestions.map((question, index) => (
-            <Pressable
-              key={question.id}
-              accessibilityRole="button"
-              accessibilityLabel={`Edit ${question.title}`}
-              onPress={() => startEditing(question)}
-              style={({ pressed }) => [
-                styles.profileRow,
-                { minHeight: profileRowHeight },
-                index === interviewQuestions.length - 1 && { borderBottomWidth: 0 },
-                pressed && { opacity: 0.8 },
-              ]}
-            >
-              <Text style={styles.profileRowLabel}>{question.title}</Text>
-              <View style={styles.profileRowRight}>
-                <Text style={styles.profileRowValue} numberOfLines={1}>
-                  {formatValue(question)}
+          {interviewQuestions.map((question, index) => {
+            const lockedReason = LOCKED_AFTER_ONBOARDING[question.id];
+            const rowStyle = [
+              styles.profileRow,
+              { minHeight: profileRowHeight },
+              index === interviewQuestions.length - 1 && { borderBottomWidth: 0 },
+            ];
+            const rowBody = (
+              <>
+                <Text style={[styles.profileRowLabel, lockedReason && styles.profileRowLabelLocked]}>
+                  {question.title}
                 </Text>
-                <Text style={styles.cardChevron}>›</Text>
+                <View style={styles.profileRowRight}>
+                  <Text
+                    style={[styles.profileRowValue, lockedReason && styles.profileRowValueLocked]}
+                    numberOfLines={1}
+                  >
+                    {formatValue(question)}
+                  </Text>
+                  <Text style={lockedReason ? styles.profileRowLock : styles.cardChevron}>
+                    {lockedReason ? "🔒" : "›"}
+                  </Text>
+                </View>
+              </>
+            );
+
+            // Rendered as a plain View, not a disabled Pressable: nothing to
+            // press means no tap feedback promising an edit that won't happen.
+            return lockedReason ? (
+              <View
+                key={question.id}
+                accessibilityRole="text"
+                accessibilityLabel={`${question.title}: ${formatValue(question)}. ${lockedReason}, cannot be changed.`}
+                style={rowStyle}
+              >
+                {rowBody}
               </View>
-            </Pressable>
-          ))}
+            ) : (
+              <Pressable
+                key={question.id}
+                accessibilityRole="button"
+                accessibilityLabel={`Edit ${question.title}`}
+                onPress={() => startEditing(question)}
+                style={({ pressed }) => [...rowStyle, pressed && { opacity: 0.8 }]}
+              >
+                {rowBody}
+              </Pressable>
+            );
+          })}
         </View>
+        <Text style={styles.profileLockedNote}>
+          🔒 Locked after setup. Your training background moves as you earn it — reset your profile
+          to start over.
+        </Text>
       </ScrollView>
 
       <ScheduleModal
@@ -7425,6 +7478,19 @@ const styles = StyleSheet.create({
   profileRowLabel: { color: colors.text, fontSize: 13, fontWeight: "600", flexShrink: 1, marginRight: 10 },
   profileRowRight: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 0 },
   profileRowValue: { color: colors.muted, fontSize: 12, fontWeight: "600", maxWidth: 140 },
+  // Locked rows read a shade quieter than editable ones, so the list shows at
+  // a glance which answers are still yours to change.
+  profileRowLabelLocked: { color: colors.muted },
+  profileRowValueLocked: { color: "#5A6058" },
+  profileRowLock: { color: "#5A6058", fontSize: 11 },
+  profileLockedNote: {
+    color: "#5A6058",
+    fontSize: 10,
+    fontWeight: "600",
+    lineHeight: 14,
+    marginTop: 10,
+    paddingHorizontal: 4,
+  },
   testModeIdentity: { flexDirection: "row", alignItems: "center" },
   testModeDot: { width: 7, height: 7, borderRadius: 4, marginRight: 8, backgroundColor: colors.lime },
   testModeLabel: { color: colors.lime, fontSize: 12, fontWeight: "900", letterSpacing: 0.7 },
