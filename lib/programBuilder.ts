@@ -5,7 +5,11 @@ import type { ExerciseTag, MovementPattern } from "./exerciseCatalog";
 export type ProgramBuilderProfile = {
   equipment: "gym" | "home-gym" | "minimal" | "bodyweight" | "bars";
   experience: "beginner" | "novice" | "intermediate" | "advanced";
-  limitations: "knee" | "shoulder" | "back" | "none" | "coach-review";
+  // "other" carries a free-text note instead of a flag. The catalog only
+  // models knee/shoulder/back safety, so there is nothing here for free text
+  // to filter on -- it is handled after the program is built, by a pass that
+  // may only remove exercises.
+  limitations: "knee" | "shoulder" | "back" | "none" | "other";
   sex: "male" | "female";
 };
 
