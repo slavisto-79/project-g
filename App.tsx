@@ -2119,14 +2119,67 @@ function buildBadges(stats: BadgeStats): Badge[] {
   ];
 }
 
+// Whether the badge's condition is met by the CURRENT numbers. Says nothing
+// about whether it was met in the past -- see EarnedBadges for that.
 function isBadgeEarned(badge: Badge): boolean {
   return badge.value >= badge.target;
 }
 
+// Badge id -> the day it was first earned. Once a badge is in here it stays
+// earned forever, regardless of what the live numbers do afterwards.
+//
+// The maxima-based conditions already stop a badge un-earning in the ordinary
+// cases, but they can't cover everything: bodyweight volume on history logged
+// before per-session bodyweight was recorded is recomputed from the current
+// profile weight, so losing weight could nudge a tonnage total back below a
+// threshold already passed. Sealing the result removes that whole class of
+// problem instead of chasing each instance.
+type EarnedBadges = Record<string, string>;
+
+function weeklyTargetForProfile(profile: Record<string, string>): number {
+  return Math.max(1, Number(profile.frequency) || 3);
+}
+
+function computeBadgeStats(
+  workoutHistory: WorkoutHistoryEntry[],
+  exerciseProgress: Record<string, ExerciseProgress>,
+  profile: Record<string, string>,
+): BadgeStats {
+  const perfect = perfectWeekKeys(workoutHistory, weeklyTargetForProfile(profile));
+  return {
+    totalWorkouts: workoutHistory.length,
+    totalVolumeKg: workoutHistory.reduce(
+      (sum, entry) => sum + entryVolumeKg(entry, Number(profile.weight)),
+      0,
+    ),
+    bestStreakWeeks: longestConsecutiveWeeks(trainedWeekKeys(workoutHistory)),
+    totalAdvances: Object.values(exerciseProgress).reduce(
+      (sum, entry) => sum + (entry.totalAdvances ?? 0),
+      0,
+    ),
+    perfectWeeks: perfect.size,
+    bestPerfectWeekRun: longestConsecutiveWeeks(perfect),
+  };
+}
+
+// Records any newly met badge against today's date. Returns null when nothing
+// changed, so the caller can skip a state update that would otherwise loop:
+// this runs in an effect keyed on the very state it writes.
+function sealNewlyEarnedBadges(badges: Badge[], alreadyEarned: EarnedBadges): EarnedBadges | null {
+  const newlyEarned = badges.filter((badge) => isBadgeEarned(badge) && !alreadyEarned[badge.id]);
+  if (newlyEarned.length === 0) return null;
+  const today = new Date().toISOString();
+  const next = { ...alreadyEarned };
+  for (const badge of newlyEarned) next[badge.id] = today;
+  return next;
+}
+
 // The unearned badge closest to completion -- the one worth putting a progress
 // bar against, so the grid always points at a concrete next step.
-function nextBadge(badges: Badge[]): Badge | null {
-  const unearned = badges.filter((badge) => !isBadgeEarned(badge));
+// Takes the unearned badges and returns whichever is closest to completion --
+// the one worth putting a progress bar against. Callers decide what "unearned"
+// means, since a sealed badge stays earned whatever the live numbers say.
+function nextBadge(unearned: Badge[]): Badge | null {
   if (unearned.length === 0) return null;
   return unearned.reduce((closest, badge) =>
     badge.value / badge.target > closest.value / closest.target ? badge : closest,
@@ -6191,6 +6244,7 @@ function ProgressScreen({
   profile,
   workoutHistory,
   exerciseProgress,
+  earnedBadges,
 }: {
   onDashboard: () => void;
   onStartWorkout: () => void;
@@ -6199,6 +6253,7 @@ function ProgressScreen({
   profile: Record<string, string>;
   workoutHistory: WorkoutHistoryEntry[];
   exerciseProgress: Record<string, ExerciseProgress>;
+  earnedBadges: EarnedBadges;
 }) {
   const nextFocus =
     profile.goal === "strength"
@@ -6248,17 +6303,11 @@ function ProgressScreen({
   const peakWeeklyVolume = Math.max(...weeklyVolume.map((week) => week.volumeKg), 1);
   const weeklyTarget = Math.max(1, Number(profile.frequency) || 3);
   const consistencyPercent = Math.min(100, Math.round((thisWeekCount / weeklyTarget) * 100));
-  const perfectWeeks = perfectWeekKeys(workoutHistory, weeklyTarget);
-  const badges = buildBadges({
-    totalWorkouts,
-    totalVolumeKg,
-    bestStreakWeeks: longestConsecutiveWeeks(trainedWeekKeys(workoutHistory)),
-    totalAdvances,
-    perfectWeeks: perfectWeeks.size,
-    bestPerfectWeekRun: longestConsecutiveWeeks(perfectWeeks),
-  });
-  const earnedBadgeCount = badges.filter(isBadgeEarned).length;
-  const upcomingBadge = nextBadge(badges);
+  const badges = buildBadges(computeBadgeStats(workoutHistory, exerciseProgress, profile));
+  // A badge counts as earned if it's met now OR was ever sealed as earned.
+  const hasBadge = (badge: Badge) => isBadgeEarned(badge) || Boolean(earnedBadges[badge.id]);
+  const earnedBadgeCount = badges.filter(hasBadge).length;
+  const upcomingBadge = nextBadge(badges.filter((badge) => !hasBadge(badge)));
 
   return (
     <SafeAreaView style={styles.progressScreen}>
@@ -6429,7 +6478,7 @@ function ProgressScreen({
 
           <View style={styles.badgeGrid}>
             {badges.map((badge) => {
-              const earned = isBadgeEarned(badge);
+              const earned = hasBadge(badge);
               return (
                 <View
                   key={badge.id}
@@ -6871,6 +6920,7 @@ export default function App() {
   });
   const [exerciseProgress, setExerciseProgress] = useState<Record<string, ExerciseProgress>>({});
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistoryEntry[]>([]);
+  const [earnedBadges, setEarnedBadges] = useState<EarnedBadges>({});
   const [dietPlan, setDietPlan] = useState<SavedDietPlan | null>(null);
   const [dailyCheckIn, setDailyCheckIn] = useState<DailyCheckIn | null>(null);
   const [session, setSession] = useState<{ email: string } | null>(null);
@@ -6940,6 +6990,7 @@ export default function App() {
     workoutHistory,
     dietPlan,
     dailyCheckIn,
+    earnedBadges,
   });
   stateRef.current = {
     profile,
@@ -6950,6 +7001,7 @@ export default function App() {
     workoutHistory,
     dietPlan,
     dailyCheckIn,
+    earnedBadges,
   };
 
   useEffect(() => {
@@ -6979,6 +7031,7 @@ export default function App() {
             workoutHistory?: WorkoutHistoryEntry[];
             dietPlan?: SavedDietPlan | null;
             dailyCheckIn?: DailyCheckIn | null;
+            earnedBadges?: EarnedBadges;
           };
           if (parsed.profile && Object.keys(parsed.profile).length > 0) {
             setProfile(parsed.profile);
@@ -6989,6 +7042,7 @@ export default function App() {
             setWorkoutHistory(parsed.workoutHistory ?? []);
             setDietPlan(parsed.dietPlan ?? null);
             setDailyCheckIn(parsed.dailyCheckIn ?? null);
+            setEarnedBadges(parsed.earnedBadges ?? {});
             setScreen("dashboard");
           }
         }
@@ -7012,6 +7066,14 @@ export default function App() {
           .select("daily_check_in")
           .eq("user_id", id)
           .maybeSingle();
+        // Selected on its own rather than alongside daily_check_in: if this
+        // column hasn't been migrated onto the project yet, a combined select
+        // would fail and take the check-in down with it.
+        const { data: badgeData } = await supabase
+          .from("user_data")
+          .select("earned_badges")
+          .eq("user_id", id)
+          .maybeSingle();
         const remoteProfile = (data?.profile ?? {}) as Record<string, string>;
         setTrialStartedAt((data?.trial_started_at as string | undefined) ?? null);
         if (Object.keys(remoteProfile).length > 0) {
@@ -7025,6 +7087,7 @@ export default function App() {
           setWorkoutHistory((data?.workout_history as WorkoutHistoryEntry[]) ?? []);
           setDietPlan((data?.diet_plan as SavedDietPlan | null) ?? null);
           setDailyCheckIn((optionalData?.daily_check_in as DailyCheckIn | null) ?? null);
+          setEarnedBadges((badgeData?.earned_badges as EarnedBadges | null) ?? {});
           setScreen("dashboard");
         } else if (Object.keys(stateRef.current.profile).length > 0) {
           // Fresh account with no saved data yet: migrate whatever local/guest
@@ -7040,9 +7103,11 @@ export default function App() {
             workout_history: stateRef.current.workoutHistory,
             diet_plan: stateRef.current.dietPlan,
           };
-          const { error: migrateError } = await supabase
-            .from("user_data")
-            .upsert({ ...migrateCore, daily_check_in: stateRef.current.dailyCheckIn });
+          const { error: migrateError } = await supabase.from("user_data").upsert({
+            ...migrateCore,
+            daily_check_in: stateRef.current.dailyCheckIn,
+            earned_badges: stateRef.current.earnedBadges,
+          });
           if (migrateError?.code === "PGRST204") {
             const { error: retryError } = await supabase.from("user_data").upsert(migrateCore);
             if (retryError) console.error("Failed to migrate guest progress to account", retryError);
@@ -7105,6 +7170,7 @@ export default function App() {
         workoutHistory,
         dietPlan,
         dailyCheckIn,
+        earnedBadges,
       }),
     );
   }, [
@@ -7112,6 +7178,7 @@ export default function App() {
     coachMessages,
     dailyCheckIn,
     dietPlan,
+    earnedBadges,
     exerciseProgress,
     hasLoadedTestState,
     nutritionTotals,
@@ -7135,10 +7202,13 @@ export default function App() {
         workout_history: workoutHistory,
         diet_plan: dietPlan,
       };
-      const { error } = await supabase.from("user_data").upsert({ ...corePayload, daily_check_in: dailyCheckIn });
-      // PGRST204 = the column isn't on this project yet. Retry without it so
-      // profile/history still save; the check-in is the only thing lost, and
-      // only until the migration in supabase-setup.sql is applied.
+      const { error } = await supabase
+        .from("user_data")
+        .upsert({ ...corePayload, daily_check_in: dailyCheckIn, earned_badges: earnedBadges });
+      // PGRST204 = one of these columns isn't on this project yet. Retry with
+      // just the core so profile/history still save; the check-in and earned
+      // badges are the only things lost, and only until the migration in
+      // supabase-setup.sql is applied.
       if (error?.code === "PGRST204") {
         const { error: retryError } = await supabase.from("user_data").upsert(corePayload);
         if (retryError) console.error("Failed to sync progress to account", retryError);
@@ -7154,6 +7224,7 @@ export default function App() {
     coachMessages,
     dailyCheckIn,
     dietPlan,
+    earnedBadges,
     exerciseProgress,
     hasLoadedTestState,
     nutritionTotals,
@@ -7161,6 +7232,17 @@ export default function App() {
     userId,
     workoutHistory,
   ]);
+
+  // Seal any badge whose condition is met right now, so it stays earned even
+  // if the underlying numbers later move against it.
+  useEffect(() => {
+    if (!hasLoadedTestState) return;
+    const badges = buildBadges(computeBadgeStats(workoutHistory, exerciseProgress, profile));
+    const sealed = sealNewlyEarnedBadges(badges, earnedBadges);
+    // null when nothing is new -- without that guard this effect would write
+    // the state it depends on and re-run forever.
+    if (sealed) setEarnedBadges(sealed);
+  }, [earnedBadges, exerciseProgress, hasLoadedTestState, profile, workoutHistory]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -7178,6 +7260,7 @@ export default function App() {
     setProfile({});
     setExerciseProgress({});
     setWorkoutHistory([]);
+    setEarnedBadges({});
     setCoachAdjustment(null);
     setCoachMessages([]);
     setDietPlan(null);
@@ -7379,6 +7462,7 @@ export default function App() {
             profile={profile}
             workoutHistory={workoutHistory}
             exerciseProgress={exerciseProgress}
+            earnedBadges={earnedBadges}
             onDashboard={() => setScreen("dashboard")}
             onStartWorkout={startWorkout}
             onOpenNutrition={() => setScreen("nutrition")}
