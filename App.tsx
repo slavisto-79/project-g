@@ -1892,6 +1892,134 @@ function isWithinLastDays(iso: string, days: number): boolean {
   return Date.now() - parsed <= days * 24 * 60 * 60 * 1000;
 }
 
+// Reps actually performed, mirroring exerciseVolumeKg's rules: holds count
+// seconds rather than reps, and a per-side target is done on both sides.
+function exerciseRepCount(item: WorkoutHistoryExercise): number {
+  if (!Number.isFinite(item.reps) || !Number.isFinite(item.sets)) return 0;
+  if (item.isHold ?? isHoldExercise({ name: item.name })) return 0;
+  const perSide = item.repsPerSide ?? perSideUnitLabel(item.name);
+  return item.reps * (perSide ? 2 : 1) * item.sets;
+}
+
+function entryVolumeKg(entry: WorkoutHistoryEntry, fallbackBodyWeightKg?: number): number {
+  return (entry.exerciseBreakdown ?? []).reduce(
+    (sum, item) => sum + exerciseVolumeKg(item, entry.bodyWeightKg ?? fallbackBodyWeightKg),
+    0,
+  );
+}
+
+// Midnight on the Monday of that date's week, as a timestamp -- the bucket key
+// for streaks and the weekly volume chart. Local time on purpose: a week
+// should end when the user's week ends, not UTC's.
+function startOfWeekMs(date: Date): number {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  // getDay() is 0 for Sunday, which belongs to the week that began 6 days ago.
+  const daysSinceMonday = (start.getDay() + 6) % 7;
+  start.setDate(start.getDate() - daysSinceMonday);
+  return start.getTime();
+}
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Consecutive weeks containing at least one session.
+//
+// An empty current week does not break the streak -- it hasn't finished yet,
+// and punishing someone on Monday morning for not having trained yet would be
+// both wrong and demoralising. It just doesn't count toward the total either.
+function weeklyStreak(workoutHistory: WorkoutHistoryEntry[]): number {
+  const trainedWeeks = new Set<number>();
+  for (const entry of workoutHistory) {
+    const parsed = new Date(entry.date);
+    if (!Number.isNaN(parsed.getTime())) trainedWeeks.add(startOfWeekMs(parsed));
+  }
+  if (trainedWeeks.size === 0) return 0;
+
+  const thisWeek = startOfWeekMs(new Date());
+  let cursor = trainedWeeks.has(thisWeek) ? thisWeek : thisWeek - WEEK_MS;
+  let streak = 0;
+  while (trainedWeeks.has(cursor)) {
+    streak += 1;
+    cursor -= WEEK_MS;
+  }
+  return streak;
+}
+
+// Volume per week for the last `weeks` weeks, oldest first, so the chart reads
+// left to right. Weeks with no training are included as zero -- a gap is part
+// of the story, and dropping it would silently flatter the trend.
+function weeklyVolumeSeries(
+  workoutHistory: WorkoutHistoryEntry[],
+  weeks: number,
+  fallbackBodyWeightKg?: number,
+): { weekStartMs: number; volumeKg: number }[] {
+  const thisWeek = startOfWeekMs(new Date());
+  const buckets = new Map<number, number>();
+  for (let i = weeks - 1; i >= 0; i -= 1) buckets.set(thisWeek - i * WEEK_MS, 0);
+
+  for (const entry of workoutHistory) {
+    const parsed = new Date(entry.date);
+    if (Number.isNaN(parsed.getTime())) continue;
+    const week = startOfWeekMs(parsed);
+    if (!buckets.has(week)) continue;
+    buckets.set(week, (buckets.get(week) ?? 0) + entryVolumeKg(entry, fallbackBodyWeightKg));
+  }
+
+  return [...buckets.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([weekStartMs, volumeKg]) => ({ weekStartMs, volumeKg }));
+}
+
+// Something everyday to picture, because "12,600 kg" alone means nothing to
+// most people. Picks the largest reference the total clears, so the count
+// stays small and legible rather than "180 washing machines".
+const VOLUME_COMPARISONS: { kg: number; one: string; many: string }[] = [
+  { kg: 70, one: "washing machine", many: "washing machines" },
+  { kg: 400, one: "grand piano", many: "grand pianos" },
+  { kg: 600, one: "horse", many: "horses" },
+  { kg: 1400, one: "small car", many: "small cars" },
+  { kg: 5000, one: "elephant", many: "elephants" },
+  { kg: 12000, one: "city bus", many: "city buses" },
+  { kg: 180000, one: "blue whale", many: "blue whales" },
+];
+
+function volumeComparison(totalKg: number): string | null {
+  const reference = [...VOLUME_COMPARISONS].reverse().find((entry) => totalKg >= entry.kg);
+  if (!reference) return null;
+  const count = totalKg / reference.kg;
+  const rounded = count >= 10 ? String(Math.round(count)) : count.toFixed(1).replace(/\.0$/, "");
+  return `about ${rounded} ${rounded === "1" ? reference.one : reference.many}`;
+}
+
+type Milestone = { label: string; hint: string; target: number; value: number };
+
+// Deliberately a mix of "keep showing up" and "keep getting stronger", so
+// progress is visible whether someone is early and consistent or long-running
+// and heavy.
+function buildMilestones(totalWorkouts: number, totalVolumeKg: number): Milestone[] {
+  const sessionTiers = [1, 5, 10, 25, 50, 100, 200];
+  const volumeTiers = [1000, 10000, 50000, 100000, 500000, 1000000];
+  const nextSession = sessionTiers.find((tier) => totalWorkouts < tier) ?? sessionTiers.at(-1)!;
+  const nextVolume = volumeTiers.find((tier) => totalVolumeKg < tier) ?? volumeTiers.at(-1)!;
+  return [
+    {
+      label: `${nextSession} sessions`,
+      hint: totalWorkouts >= nextSession ? "Earned" : `${nextSession - totalWorkouts} to go`,
+      target: nextSession,
+      value: totalWorkouts,
+    },
+    {
+      label: `${nextVolume >= 1000 ? `${nextVolume / 1000}t` : `${nextVolume}kg`} lifted`,
+      hint:
+        totalVolumeKg >= nextVolume
+          ? "Earned"
+          : `${Math.round(nextVolume - totalVolumeKg).toLocaleString()} kg to go`,
+      target: nextVolume,
+      value: totalVolumeKg,
+    },
+  ];
+}
+
 type ReadinessInfo = { score: number; title: string; hint: string };
 
 // A simple recovery-time heuristic, not a biometric measurement -- we have no
@@ -5946,6 +6074,7 @@ function ProgressScreen({
   onOpenCoach,
   profile,
   workoutHistory,
+  exerciseProgress,
 }: {
   onDashboard: () => void;
   onStartWorkout: () => void;
@@ -5953,6 +6082,7 @@ function ProgressScreen({
   onOpenCoach: () => void;
   profile: Record<string, string>;
   workoutHistory: WorkoutHistoryEntry[];
+  exerciseProgress: Record<string, ExerciseProgress>;
 }) {
   const nextFocus =
     profile.goal === "strength"
@@ -5966,6 +6096,41 @@ function ProgressScreen({
   const thisWeekCount = workoutHistory.filter((entry) => isWithinLastDays(entry.date, 7)).length;
   const totalSets = workoutHistory.reduce((sum, entry) => sum + entry.sets, 0);
   const totalSeconds = workoutHistory.reduce((sum, entry) => sum + entry.seconds, 0);
+
+  const bodyWeightKg = Number(profile.weight);
+  const totalVolumeKg = workoutHistory.reduce(
+    (sum, entry) => sum + entryVolumeKg(entry, bodyWeightKg),
+    0,
+  );
+  const comparison = volumeComparison(totalVolumeKg);
+  const totalReps = workoutHistory.reduce(
+    (sum, entry) =>
+      sum + (entry.exerciseBreakdown ?? []).reduce((inner, item) => inner + exerciseRepCount(item), 0),
+    0,
+  );
+  const progressEntries = Object.entries(exerciseProgress);
+  const totalAdvances = progressEntries.reduce(
+    (sum, [, entry]) => sum + (entry.totalAdvances ?? 0),
+    0,
+  );
+  // Every advance on a weighted exercise added exactly 1kg, so the weight it
+  // started at is recoverable without storing it -- see commitExerciseProgress.
+  const strongestLifts = progressEntries
+    .map(([name, entry]) => ({
+      name,
+      weightKg: entry.weightKg,
+      gainedKg: entry.totalAdvances ?? 0,
+    }))
+    .filter((lift) => lift.weightKg > 0)
+    .sort((a, b) => b.weightKg - a.weightKg)
+    .slice(0, 5);
+
+  const streakWeeks = weeklyStreak(workoutHistory);
+  const weeklyVolume = weeklyVolumeSeries(workoutHistory, 8, bodyWeightKg);
+  const peakWeeklyVolume = Math.max(...weeklyVolume.map((week) => week.volumeKg), 1);
+  const weeklyTarget = Math.max(1, Number(profile.frequency) || 3);
+  const consistencyPercent = Math.min(100, Math.round((thisWeekCount / weeklyTarget) * 100));
+  const milestones = buildMilestones(totalWorkouts, totalVolumeKg);
 
   return (
     <SafeAreaView style={styles.progressScreen}>
@@ -6008,6 +6173,17 @@ function ProgressScreen({
           </View>
         </View>
 
+        {totalVolumeKg > 0 ? (
+          <View style={styles.volumeCard}>
+            <Text style={styles.volumeCardLabel}>TOTAL WEIGHT LIFTED</Text>
+            <Text style={styles.volumeCardValue}>
+              {Math.round(totalVolumeKg).toLocaleString()}
+              <Text style={styles.volumeCardUnit}> kg</Text>
+            </Text>
+            {comparison ? <Text style={styles.volumeCardCompare}>That’s {comparison}.</Text> : null}
+          </View>
+        ) : null}
+
         <View style={styles.progressMetrics}>
           <View style={styles.progressMetric}>
             <Text style={styles.progressMetricValue}>{totalSets}</Text>
@@ -6025,6 +6201,115 @@ function ProgressScreen({
             </Text>
             <Text style={styles.progressMetricLabel}>AVG SESSION</Text>
           </View>
+        </View>
+
+        <View style={styles.progressMetrics}>
+          <View style={styles.progressMetric}>
+            <Text style={styles.progressMetricValue}>{totalReps.toLocaleString()}</Text>
+            <Text style={styles.progressMetricLabel}>TOTAL REPS</Text>
+          </View>
+          <View style={styles.progressMetricDivider} />
+          <View style={styles.progressMetric}>
+            <Text style={styles.progressMetricValue}>{totalAdvances}</Text>
+            <Text style={styles.progressMetricLabel}>LOADS EARNED</Text>
+          </View>
+          <View style={styles.progressMetricDivider} />
+          <View style={styles.progressMetric}>
+            <Text style={styles.progressMetricValue}>{streakWeeks > 0 ? `${streakWeeks}w` : "–"}</Text>
+            <Text style={styles.progressMetricLabel}>WEEK STREAK</Text>
+          </View>
+        </View>
+
+        <View style={styles.progressSection}>
+          <Text style={styles.progressSectionTitle}>THIS WEEK</Text>
+          <View style={styles.consistencyRow}>
+            <Text style={styles.consistencyValue}>
+              {thisWeekCount} <Text style={styles.consistencyTarget}>of {weeklyTarget}</Text>
+            </Text>
+            <Text style={styles.consistencyHint}>
+              {thisWeekCount >= weeklyTarget
+                ? "Target hit — everything from here is a bonus."
+                : `${weeklyTarget - thisWeekCount} more to hit your target.`}
+            </Text>
+          </View>
+          <View style={styles.consistencyTrack}>
+            <View style={[styles.consistencyFill, { width: `${consistencyPercent}%` }]} />
+          </View>
+        </View>
+
+        {totalVolumeKg > 0 ? (
+          <View style={styles.progressSection}>
+            <Text style={styles.progressSectionTitle}>WEEKLY VOLUME</Text>
+            <View style={styles.volumeChart}>
+              {weeklyVolume.map((week) => (
+                <View key={week.weekStartMs} style={styles.volumeChartColumn}>
+                  <View style={styles.volumeChartBarTrack}>
+                    <View
+                      style={[
+                        styles.volumeChartBar,
+                        // Always leave a sliver visible so an empty week reads
+                        // as "nothing here" rather than a rendering gap.
+                        { height: `${Math.max(2, (week.volumeKg / peakWeeklyVolume) * 100)}%` },
+                        week.volumeKg === 0 && styles.volumeChartBarEmpty,
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.volumeChartLabel}>
+                    {new Date(week.weekStartMs).toLocaleDateString(undefined, {
+                      month: "numeric",
+                      day: "numeric",
+                    })}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            <Text style={styles.volumeChartCaption}>
+              Kilograms lifted per week · peak {Math.round(peakWeeklyVolume).toLocaleString()} kg
+            </Text>
+          </View>
+        ) : null}
+
+        {strongestLifts.length > 0 ? (
+          <View style={styles.progressSection}>
+            <Text style={styles.progressSectionTitle}>YOUR STRONGEST LIFTS</Text>
+            {strongestLifts.map((lift) => (
+              <View key={lift.name} style={styles.liftRow}>
+                <Text style={styles.liftName} numberOfLines={1}>
+                  {lift.name}
+                </Text>
+                <View style={styles.liftRight}>
+                  <Text style={styles.liftWeight}>{lift.weightKg} kg</Text>
+                  {lift.gainedKg > 0 ? (
+                    <Text style={styles.liftGain}>+{lift.gainedKg} kg</Text>
+                  ) : (
+                    <Text style={styles.liftGainNeutral}>starting</Text>
+                  )}
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        <View style={styles.progressSection}>
+          <Text style={styles.progressSectionTitle}>NEXT MILESTONES</Text>
+          {milestones.map((milestone) => {
+            const percent = Math.min(100, Math.round((milestone.value / milestone.target) * 100));
+            return (
+              <View key={milestone.label} style={styles.milestoneRow}>
+                <View style={styles.milestoneTop}>
+                  <Text style={styles.milestoneLabel}>{milestone.label}</Text>
+                  <Text
+                    style={[styles.milestoneHint, milestone.hint === "Earned" && styles.milestoneHintEarned]}
+                  >
+                    {milestone.hint}
+                  </Text>
+                </View>
+                <View style={styles.milestoneTrack}>
+                  <View style={[styles.milestoneFill, { width: `${percent}%` }]} />
+                </View>
+              </View>
+            );
+          })}
         </View>
 
         <View style={styles.progressSection}>
@@ -6929,6 +7214,7 @@ export default function App() {
           <ProgressScreen
             profile={profile}
             workoutHistory={workoutHistory}
+            exerciseProgress={exerciseProgress}
             onDashboard={() => setScreen("dashboard")}
             onStartWorkout={startWorkout}
             onOpenNutrition={() => setScreen("nutrition")}
@@ -8993,6 +9279,62 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   progressSectionTitle: { color: colors.text, fontSize: 9, fontWeight: "900", letterSpacing: 1.4, marginBottom: 8 },
+
+  // The showpiece of the screen -- lime on near-black so the number is the
+  // first thing the eye lands on when Progress opens.
+  volumeCard: {
+    borderRadius: 18,
+    marginTop: 18,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: "rgba(200,255,50,0.35)",
+    backgroundColor: "rgba(200,255,50,0.07)",
+  },
+  volumeCardLabel: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 1.4 },
+  volumeCardValue: { color: colors.text, fontSize: 34, fontWeight: "900", marginTop: 6 },
+  volumeCardUnit: { color: colors.muted, fontSize: 16, fontWeight: "800" },
+  volumeCardCompare: { color: colors.muted, fontSize: 11, fontWeight: "600", marginTop: 4 },
+
+  consistencyRow: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10 },
+  consistencyValue: { color: colors.text, fontSize: 20, fontWeight: "900" },
+  consistencyTarget: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+  consistencyHint: { color: colors.muted, fontSize: 10, fontWeight: "600", flexShrink: 1, textAlign: "right" },
+  consistencyTrack: { height: 6, borderRadius: 3, backgroundColor: "#1B1E1A", marginTop: 10, overflow: "hidden" },
+  consistencyFill: { height: "100%", borderRadius: 3, backgroundColor: colors.lime },
+
+  volumeChart: { flexDirection: "row", alignItems: "flex-end", gap: 6, marginTop: 4 },
+  volumeChartColumn: { flex: 1, alignItems: "center" },
+  // Explicit height, not flex: 1 -- the bars size themselves as a percentage
+  // of this, and a percentage can only resolve against a definite height.
+  volumeChartBarTrack: { height: 72, width: "100%", justifyContent: "flex-end" },
+  volumeChartBar: { width: "100%", borderRadius: 4, backgroundColor: colors.lime, minHeight: 2 },
+  volumeChartBarEmpty: { backgroundColor: "#2C312B" },
+  volumeChartLabel: { color: colors.muted, fontSize: 6, fontWeight: "700", marginTop: 6 },
+  volumeChartCaption: { color: colors.muted, fontSize: 9, fontWeight: "600", marginTop: 10 },
+
+  liftRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#1B1E1A",
+  },
+  liftName: { color: colors.text, fontSize: 12, fontWeight: "600", flexShrink: 1 },
+  liftRight: { flexDirection: "row", alignItems: "baseline", gap: 8, flexShrink: 0 },
+  liftWeight: { color: colors.text, fontSize: 13, fontWeight: "900" },
+  liftGain: { color: colors.lime, fontSize: 10, fontWeight: "800" },
+  liftGainNeutral: { color: colors.muted, fontSize: 10, fontWeight: "700" },
+
+  milestoneRow: { marginTop: 10 },
+  milestoneTop: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10 },
+  milestoneLabel: { color: colors.text, fontSize: 12, fontWeight: "700" },
+  milestoneHint: { color: colors.muted, fontSize: 10, fontWeight: "700" },
+  milestoneHintEarned: { color: colors.lime },
+  milestoneTrack: { height: 5, borderRadius: 3, backgroundColor: "#1B1E1A", marginTop: 6, overflow: "hidden" },
+  milestoneFill: { height: "100%", borderRadius: 3, backgroundColor: colors.lime },
+
   progressRowTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 },
   progressRowLabel: { color: colors.muted, fontSize: 10 },
   progressRowValue: { color: colors.text, fontSize: 10, fontWeight: "800" },
