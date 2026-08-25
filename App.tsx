@@ -69,6 +69,10 @@ type ChoiceQuestion = {
   title: string;
   subtitle: string;
   answers: InterviewAnswer[];
+  // When set, picking the answer whose value matches `whenValue` reveals a
+  // free-text field, stored on the profile under `noteId`. A fixed list can't
+  // anticipate every limitation someone might have.
+  note?: { whenValue: string; noteId: string; placeholder: string };
 };
 
 type PickerQuestion = {
@@ -212,8 +216,13 @@ const interviewQuestions: InterviewQuestion[] = [
       { label: "Shoulder sensitivity", value: "shoulder" },
       { label: "Back sensitivity", value: "back" },
       { label: "Knee sensitivity", value: "knee" },
-      { label: "I’ll discuss it with my coach", value: "coach-review" },
+      { label: "Something else", value: "other" },
     ],
+    note: {
+      whenValue: "other",
+      noteId: "limitationsNote",
+      placeholder: "Wrist pain on push-ups, recovering ankle sprain, hernia…",
+    },
   },
 ];
 
@@ -737,6 +746,16 @@ function InterviewScreen({
   };
   const question = interviewQuestions[step];
   const selected = question ? answers[question.id] : undefined;
+  // A free-text answer that's left blank is the same dead end as the old
+  // "I'll discuss it with my coach" option: the user believes they've flagged
+  // something and nothing acts on it. So the note is required once its answer
+  // is picked.
+  const activeNote =
+    question?.kind === "choice" && question.note && selected === question.note.whenValue
+      ? question.note
+      : null;
+  const noteValue = activeNote ? (answers[activeNote.noteId] ?? "") : "";
+  const canContinue = Boolean(selected) && (!activeNote || noteValue.trim().length > 0);
   const progress = complete ? 1 : (step + 1) / interviewQuestions.length;
   const goalLabels: Record<string, string> = {
     muscle: "Build muscle",
@@ -1005,23 +1024,36 @@ function InterviewScreen({
               })}
             </View>
             )}
+            {activeNote ? (
+              <TextInput
+                accessibilityLabel="Describe your limitation"
+                value={noteValue}
+                onChangeText={(text) =>
+                  setAnswers((current) => ({ ...current, [activeNote.noteId]: text.slice(0, 300) }))
+                }
+                placeholder={activeNote.placeholder}
+                placeholderTextColor={colors.muted}
+                multiline
+                style={styles.limitationNoteInput}
+              />
+            ) : null}
           </View>
           <View style={styles.interviewFooter}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Continue"
-              disabled={!selected}
+              disabled={!canContinue}
               onPress={goNext}
               style={({ pressed }) => [
                 styles.continueButton,
-                !selected && styles.continueButtonDisabled,
-                pressed && selected ? styles.startButtonPressed : null,
+                !canContinue && styles.continueButtonDisabled,
+                pressed && canContinue ? styles.startButtonPressed : null,
               ]}
             >
-              <Text style={[styles.continueButtonText, !selected && styles.continueButtonTextDisabled]}>
+              <Text style={[styles.continueButtonText, !canContinue && styles.continueButtonTextDisabled]}>
                 CONTINUE
               </Text>
-              <Text style={[styles.continueArrow, !selected && styles.continueButtonTextDisabled]}>→</Text>
+              <Text style={[styles.continueArrow, !canContinue && styles.continueButtonTextDisabled]}>→</Text>
             </Pressable>
           </View>
         </>
@@ -1053,6 +1085,7 @@ function ProfileScreen({
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftValue, setDraftValue] = useState<string>("");
+  const [draftNote, setDraftNote] = useState<string>("");
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   // Two-tap confirm for a destructive action -- first tap arms it, second
   // (within a few seconds) actually resets. Auto-disarms so a stray second
@@ -1085,12 +1118,25 @@ function ProfileScreen({
       return;
     }
     setDraftValue(profile[question.id] ?? (question.kind === "picker" ? String(question.defaultValue) : ""));
+    setDraftNote(question.kind === "choice" && question.note ? (profile[question.note.noteId] ?? "") : "");
     setEditingId(question.id);
   };
 
+  const editingNote =
+    editingQuestion?.kind === "choice" && editingQuestion.note && draftValue === editingQuestion.note.whenValue
+      ? editingQuestion.note
+      : null;
+
   const saveEdit = () => {
     if (!editingQuestion || !draftValue) return;
+    if (editingNote && draftNote.trim().length === 0) return;
     onUpdateProfile(editingQuestion.id, draftValue);
+    if (editingQuestion.kind === "choice" && editingQuestion.note) {
+      // Clearing the note when the answer moves away from "other" keeps a
+      // stale description from being fed to the veto for a limitation the
+      // user no longer reports.
+      onUpdateProfile(editingQuestion.note.noteId, editingNote ? draftNote.trim() : "");
+    }
     setEditingId(null);
   };
 
@@ -1104,6 +1150,12 @@ function ProfileScreen({
       // original 2/3/4/5 preset answers, so format it directly.
       const count = Number(value);
       return Number.isFinite(count) ? `${count} day${count === 1 ? "" : "s"} a week` : "Not set";
+    }
+    // Show the free text itself rather than "Something else" -- what the user
+    // wrote is the actual answer, and it's what the session is adapted around.
+    if (question.note && value === question.note.whenValue) {
+      const note = (profile[question.note.noteId] ?? "").trim();
+      if (note) return note;
     }
     return question.answers.find((answer) => answer.value === value)?.label ?? "Not set";
   };
@@ -1165,6 +1217,17 @@ function ProfileScreen({
               })}
             </View>
           )}
+          {editingNote ? (
+            <TextInput
+              accessibilityLabel="Describe your limitation"
+              value={draftNote}
+              onChangeText={(text) => setDraftNote(text.slice(0, 300))}
+              placeholder={editingNote.placeholder}
+              placeholderTextColor={colors.muted}
+              multiline
+              style={styles.limitationNoteInput}
+            />
+          ) : null}
         </View>
         <View style={styles.interviewFooter}>
           <Pressable
@@ -5194,6 +5257,28 @@ function createWorkout(
       };
     }
   }
+  if (profile.limitations === "back") {
+    // The catalog path filtered on back safety from the start, but this
+    // fallback roster did nothing at all -- so someone reporting back
+    // sensitivity was still handed a Romanian deadlift, the exact loaded hip
+    // hinge they should be avoiding. Swap it for a supported hinge that keeps
+    // the spine neutral and the load off the lumbar chain.
+    const hingeIndex = exercises.findIndex(
+      (exercise) => exercise.name.includes("Deadlift") || exercise.name.includes("Hinge"),
+    );
+    if (hingeIndex >= 0) {
+      exercises[hingeIndex] = {
+        ...exercises[hingeIndex]!,
+        name: "Glute Bridge",
+        target: "Glutes & hamstrings · Back-aware",
+        weight: "Bodyweight",
+        weightPerHand: false,
+        implement: undefined,
+        phases: ["LOWER", "HOLD", "LIFT"],
+        poseGuide: poseGuides.hinge!,
+      };
+    }
+  }
   if (profile.limitations === "shoulder") {
     const pressIndex = exercises.findIndex((exercise) => exercise.name.includes("Press"));
     if (pressIndex >= 0) {
@@ -5382,7 +5467,7 @@ async function createWorkoutFromCatalog(
     shoulder: "shoulder",
     back: "back",
     none: "none",
-    "coach-review": "coach-review",
+    other: "other",
   };
 
   const builderProfile: ProgramBuilderProfile = {
@@ -5419,6 +5504,47 @@ async function createWorkoutFromCatalog(
   } catch (error) {
     console.error("Catalog workout build failed -- falling back to the built-in workout", error);
     return null;
+  }
+}
+
+// Applies the free-text limitation from onboarding to an already-built
+// session, by asking the veto endpoint which exercises to drop.
+//
+// Everything about the session -- selection, weights, reps, sets, order --
+// was decided deterministically before this runs. This can only subtract.
+// The result is re-validated here as well as server-side, because a client
+// should never drop an exercise on the strength of a name it didn't recognise.
+async function applyLimitationVeto(
+  exercises: WorkoutExercise[],
+  profile: Record<string, string>,
+): Promise<WorkoutExercise[]> {
+  const note = (profile.limitationsNote ?? "").trim();
+  if (profile.limitations !== "other" || note.length === 0 || exercises.length === 0) return exercises;
+
+  try {
+    const response = await fetch("/api/exercise-veto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ exercises: exercises.map((exercise) => exercise.name), limitationNote: note }),
+    });
+    if (!response.ok) return exercises;
+    const data = (await response.json()) as { remove?: unknown };
+    const remove = new Set(
+      (Array.isArray(data.remove) ? data.remove : []).filter(
+        (name): name is string => typeof name === "string",
+      ),
+    );
+    if (remove.size === 0) return exercises;
+
+    const kept = exercises.filter((exercise) => !remove.has(exercise.name));
+    // Deliberately no minimum here, unlike the duration trim. That floor
+    // exists because a short session is worse than a long one; this one would
+    // mean putting an exercise back that was removed for safety. A shorter
+    // session is the correct outcome. Only an empty one is rejected.
+    return kept.length > 0 ? kept : exercises;
+  } catch (error) {
+    console.error("Limitation veto failed -- using the session unchanged", error);
+    return exercises;
   }
 }
 
@@ -7062,7 +7188,10 @@ export default function App() {
       coachAdjustment,
       effectiveCheckIn,
     );
-    setActiveWorkoutExercises(result?.exercises ?? null);
+    // Resolve which list is actually being used before the veto runs, so the
+    // built-in fallback roster is reviewed too -- not just catalog sessions.
+    const builtExercises = result?.exercises ?? createWorkout(profile, exerciseProgress);
+    setActiveWorkoutExercises(await applyLimitationVeto(builtExercises, profile));
     setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
     setActiveWorkoutSplitDay(result?.splitDay ?? null);
     setActiveWorkoutIsDeload(result?.isDeload ?? false);
@@ -7401,7 +7530,10 @@ export default function App() {
               setProfile(answers);
               setWorkoutLoading(true);
               const result = await createWorkoutFromCatalog(answers, exerciseProgress, workoutHistory, coachAdjustment);
-              setActiveWorkoutExercises(result?.exercises ?? null);
+              // `answers`, not `profile` -- setProfile above hasn't landed yet,
+              // and this is the first session, where the limitation matters most.
+              const built = result?.exercises ?? createWorkout(answers, exerciseProgress);
+              setActiveWorkoutExercises(await applyLimitationVeto(built, answers));
               setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
               setActiveWorkoutSplitDay(result?.splitDay ?? null);
               setActiveWorkoutIsDeload(result?.isDeload ?? false);
@@ -8610,6 +8742,21 @@ const styles = StyleSheet.create({
   dietChipSelected: { borderColor: colors.lime, backgroundColor: "rgba(200,255,50,0.12)" },
   dietChipText: { color: "#CFD3CC", fontSize: 12, fontWeight: "700" },
   dietChipTextSelected: { color: colors.lime },
+  limitationNoteInput: {
+    marginTop: 12,
+    minHeight: 84,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#262A24",
+    backgroundColor: "#0C0E0C",
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 12,
+    color: colors.text,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlignVertical: "top",
+  },
   dietAvoidInput: {
     height: 44,
     borderRadius: 14,
