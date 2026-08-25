@@ -1760,6 +1760,24 @@ function normalizeExerciseProgress(
   };
 }
 
+// Whether a saved record's weight represents anything the person actually
+// earned.
+//
+// A record is written after every finished exercise, including when nothing
+// advanced -- and in that case its weightKg is only a copy of whatever the
+// plan suggested that day. (An in-session picker adjustment isn't persisted
+// either: commitExerciseProgress only reads the logged weight on the advance
+// branch.) So with no advances behind it, the stored number carries no
+// information worth preserving, and deferring to freshly computed logic is
+// strictly better.
+//
+// This is what heals records written before starting weights were fixed per
+// exercise and snapped to real gym increments -- a beginner carrying a stale
+// 27kg biceps curl gets repriced instead of being stuck with it forever.
+function hasEarnedWeight(saved: ExerciseProgress): boolean {
+  return (saved.totalAdvances ?? 0) > 0;
+}
+
 type WorkoutHistoryExercise = {
   name: string;
   weightKg: number | null;
@@ -1991,33 +2009,84 @@ function volumeComparison(totalKg: number): string | null {
   return `about ${rounded} ${rounded === "1" ? reference.one : reference.many}`;
 }
 
-type Milestone = { label: string; hint: string; target: number; value: number };
+type Badge = {
+  id: string;
+  icon: string;
+  name: string;
+  requirement: string;
+  value: number;
+  target: number;
+};
 
-// Deliberately a mix of "keep showing up" and "keep getting stronger", so
-// progress is visible whether someone is early and consistent or long-running
-// and heavy.
-function buildMilestones(totalWorkouts: number, totalVolumeKg: number): Milestone[] {
-  const sessionTiers = [1, 5, 10, 25, 50, 100, 200];
-  const volumeTiers = [1000, 10000, 50000, 100000, 500000, 1000000];
-  const nextSession = sessionTiers.find((tier) => totalWorkouts < tier) ?? sessionTiers.at(-1)!;
-  const nextVolume = volumeTiers.find((tier) => totalVolumeKg < tier) ?? volumeTiers.at(-1)!;
+type BadgeStats = {
+  totalWorkouts: number;
+  totalVolumeKg: number;
+  streakWeeks: number;
+  totalAdvances: number;
+  weeklyTargetHits: number;
+};
+
+// Four ladders on purpose, so there is always something within reach whoever
+// you are: showing up, tonnage moved, staying consistent week to week, and
+// weight actually earned through the progression. Someone training light but
+// never missing a week has a ladder of their own, and so does someone
+// infrequent but strong.
+//
+// Order is fixed rather than earned-first: a badge grid is a collection, and
+// collections are learned by position.
+function buildBadges(stats: BadgeStats): Badge[] {
+  const { totalWorkouts, totalVolumeKg, streakWeeks, totalAdvances, weeklyTargetHits } = stats;
   return [
-    {
-      label: `${nextSession} sessions`,
-      hint: totalWorkouts >= nextSession ? "Earned" : `${nextSession - totalWorkouts} to go`,
-      target: nextSession,
-      value: totalWorkouts,
-    },
-    {
-      label: `${nextVolume >= 1000 ? `${nextVolume / 1000}t` : `${nextVolume}kg`} lifted`,
-      hint:
-        totalVolumeKg >= nextVolume
-          ? "Earned"
-          : `${Math.round(nextVolume - totalVolumeKg).toLocaleString()} kg to go`,
-      target: nextVolume,
-      value: totalVolumeKg,
-    },
+    { id: "first", icon: "🥇", name: "First One", requirement: "1 session", value: totalWorkouts, target: 1 },
+    { id: "ten", icon: "🔥", name: "Regular", requirement: "10 sessions", value: totalWorkouts, target: 10 },
+    { id: "fifty", icon: "💪", name: "Committed", requirement: "50 sessions", value: totalWorkouts, target: 50 },
+    { id: "hundred", icon: "🏛️", name: "Century", requirement: "100 sessions", value: totalWorkouts, target: 100 },
+
+    { id: "tonne", icon: "🪨", name: "One Tonne", requirement: "1,000 kg", value: totalVolumeKg, target: 1000 },
+    { id: "tenTonnes", icon: "🚚", name: "Ten Tonnes", requirement: "10,000 kg", value: totalVolumeKg, target: 10000 },
+    { id: "fiftyTonnes", icon: "🐘", name: "Fifty Tonnes", requirement: "50,000 kg", value: totalVolumeKg, target: 50000 },
+    { id: "hundredTonnes", icon: "🌍", name: "Hundred Tonnes", requirement: "100,000 kg", value: totalVolumeKg, target: 100000 },
+
+    { id: "streak2", icon: "📅", name: "Two Weeks", requirement: "2-week streak", value: streakWeeks, target: 2 },
+    { id: "streak4", icon: "🗓️", name: "One Month", requirement: "4-week streak", value: streakWeeks, target: 4 },
+    { id: "streak12", icon: "🍀", name: "One Quarter", requirement: "12-week streak", value: streakWeeks, target: 12 },
+    { id: "streak26", icon: "👑", name: "Half a Year", requirement: "26-week streak", value: streakWeeks, target: 26 },
+
+    { id: "load1", icon: "⬆️", name: "Earned It", requirement: "1 load increase", value: totalAdvances, target: 1 },
+    { id: "load10", icon: "🎯", name: "Ten Up", requirement: "10 load increases", value: totalAdvances, target: 10 },
+    { id: "load25", icon: "🚀", name: "Twenty-Five Up", requirement: "25 load increases", value: totalAdvances, target: 25 },
+
+    { id: "perfect", icon: "✅", name: "Perfect Week", requirement: "Hit your weekly target", value: weeklyTargetHits, target: 1 },
+    { id: "perfect4", icon: "🏆", name: "Four Perfect Weeks", requirement: "4 weeks at target", value: weeklyTargetHits, target: 4 },
   ];
+}
+
+function isBadgeEarned(badge: Badge): boolean {
+  return badge.value >= badge.target;
+}
+
+// The unearned badge closest to completion -- the one worth putting a progress
+// bar against, so the grid always points at a concrete next step.
+function nextBadge(badges: Badge[]): Badge | null {
+  const unearned = badges.filter((badge) => !isBadgeEarned(badge));
+  if (unearned.length === 0) return null;
+  return unearned.reduce((closest, badge) =>
+    badge.value / badge.target > closest.value / closest.target ? badge : closest,
+  );
+}
+
+// How many distinct weeks the user actually hit their chosen frequency. Counts
+// completed weeks and the current one alike -- if you've already hit four
+// sessions by Thursday, that week is earned and shouldn't wait until Sunday.
+function weeksAtTarget(workoutHistory: WorkoutHistoryEntry[], weeklyTarget: number): number {
+  const perWeek = new Map<number, number>();
+  for (const entry of workoutHistory) {
+    const parsed = new Date(entry.date);
+    if (Number.isNaN(parsed.getTime())) continue;
+    const week = startOfWeekMs(parsed);
+    perWeek.set(week, (perWeek.get(week) ?? 0) + 1);
+  }
+  return [...perWeek.values()].filter((count) => count >= weeklyTarget).length;
 }
 
 type ReadinessInfo = { score: number; title: string; hint: string };
@@ -4925,7 +4994,7 @@ function createWorkout(
       tempo: Number.isFinite(ageYears) && ageYears >= 55 ? "3–1–2" : exercise.tempo,
       weight: isBodyweight
         ? "Bodyweight"
-        : savedProgress
+        : savedProgress && hasEarnedWeight(savedProgress)
           ? // Snap saved progress too: records written before weights were
             // constrained to real gym increments can hold unloadable numbers.
             `${snapToLoadableWeight(savedProgress.weightKg, implement)} kg`
@@ -5023,9 +5092,10 @@ function catalogExerciseToWorkoutExercise(
   // Deload week backs off the weight on its own (lighter session, not a rest
   // day) -- the readiness modifier is for everything else (poor recovery,
   // self-reported "tired"), so the two never stack; deload wins when both apply.
-  const savedWeightKg = savedProgress
-    ? snapToLoadableWeight(savedProgress.weightKg * (isDeload ? 0.85 : weightModifier), implement)
-    : null;
+  const savedWeightKg =
+    savedProgress && hasEarnedWeight(savedProgress)
+      ? snapToLoadableWeight(savedProgress.weightKg * (isDeload ? 0.85 : weightModifier), implement)
+      : null;
   const weight = isBodyweight
     ? "Bodyweight"
     : savedWeightKg !== null
@@ -6113,15 +6183,17 @@ function ProgressScreen({
     (sum, [, entry]) => sum + (entry.totalAdvances ?? 0),
     0,
   );
-  // Every advance on a weighted exercise added exactly 1kg, so the weight it
-  // started at is recoverable without storing it -- see commitExerciseProgress.
+  // Only lifts that have actually advanced. A record with no advances behind
+  // it just mirrors whatever the plan suggested that day (see hasEarnedWeight),
+  // so listing it would put a number here the person never earned -- and, for
+  // records written before starting weights were fixed, a wrong one.
   const strongestLifts = progressEntries
+    .filter(([, entry]) => entry.weightKg > 0 && hasEarnedWeight(entry))
     .map(([name, entry]) => ({
       name,
-      weightKg: entry.weightKg,
-      gainedKg: entry.totalAdvances ?? 0,
+      weightKg: snapToLoadableWeight(entry.weightKg, implementForExerciseName(name)),
+      gainedKg: entry.totalAdvances,
     }))
-    .filter((lift) => lift.weightKg > 0)
     .sort((a, b) => b.weightKg - a.weightKg)
     .slice(0, 5);
 
@@ -6130,7 +6202,15 @@ function ProgressScreen({
   const peakWeeklyVolume = Math.max(...weeklyVolume.map((week) => week.volumeKg), 1);
   const weeklyTarget = Math.max(1, Number(profile.frequency) || 3);
   const consistencyPercent = Math.min(100, Math.round((thisWeekCount / weeklyTarget) * 100));
-  const milestones = buildMilestones(totalWorkouts, totalVolumeKg);
+  const badges = buildBadges({
+    totalWorkouts,
+    totalVolumeKg,
+    streakWeeks,
+    totalAdvances,
+    weeklyTargetHits: weeksAtTarget(workoutHistory, weeklyTarget),
+  });
+  const earnedBadgeCount = badges.filter(isBadgeEarned).length;
+  const upcomingBadge = nextBadge(badges);
 
   return (
     <SafeAreaView style={styles.progressScreen}>
@@ -6269,47 +6349,83 @@ function ProgressScreen({
           </View>
         ) : null}
 
-        {strongestLifts.length > 0 ? (
-          <View style={styles.progressSection}>
-            <Text style={styles.progressSectionTitle}>YOUR STRONGEST LIFTS</Text>
-            {strongestLifts.map((lift) => (
+        <View style={styles.progressSection}>
+          <Text style={styles.progressSectionTitle}>LIFTS YOU’VE BUILT UP</Text>
+          {strongestLifts.length > 0 ? (
+            strongestLifts.map((lift) => (
               <View key={lift.name} style={styles.liftRow}>
                 <Text style={styles.liftName} numberOfLines={1}>
                   {lift.name}
                 </Text>
                 <View style={styles.liftRight}>
                   <Text style={styles.liftWeight}>{lift.weightKg} kg</Text>
-                  {lift.gainedKg > 0 ? (
-                    <Text style={styles.liftGain}>+{lift.gainedKg} kg</Text>
-                  ) : (
-                    <Text style={styles.liftGainNeutral}>starting</Text>
-                  )}
+                  <Text style={styles.liftGain}>+{lift.gainedKg} kg</Text>
                 </View>
               </View>
-            ))}
-          </View>
-        ) : null}
+            ))
+          ) : (
+            <Text style={styles.progressEmptyText}>
+              Hit the top of your rep range on every set, a couple of sessions running, and the
+              weight you earned will show up here.
+            </Text>
+          )}
+        </View>
 
         <View style={styles.progressSection}>
-          <Text style={styles.progressSectionTitle}>NEXT MILESTONES</Text>
-          {milestones.map((milestone) => {
-            const percent = Math.min(100, Math.round((milestone.value / milestone.target) * 100));
-            return (
-              <View key={milestone.label} style={styles.milestoneRow}>
-                <View style={styles.milestoneTop}>
-                  <Text style={styles.milestoneLabel}>{milestone.label}</Text>
+          <View style={styles.badgeHeader}>
+            <Text style={styles.progressSectionTitle}>ACHIEVEMENTS</Text>
+            <Text style={styles.badgeCount}>
+              {earnedBadgeCount} / {badges.length}
+            </Text>
+          </View>
+
+          <View style={styles.badgeGrid}>
+            {badges.map((badge) => {
+              const earned = isBadgeEarned(badge);
+              return (
+                <View
+                  key={badge.id}
+                  accessibilityRole="text"
+                  accessibilityLabel={`${badge.name}, ${badge.requirement}. ${earned ? "Earned" : "Not earned yet"}`}
+                  style={[styles.badgeChip, earned && styles.badgeChipEarned]}
+                >
+                  <Text style={[styles.badgeIcon, !earned && styles.badgeIconLocked]}>{badge.icon}</Text>
                   <Text
-                    style={[styles.milestoneHint, milestone.hint === "Earned" && styles.milestoneHintEarned]}
+                    style={[styles.badgeName, earned && styles.badgeNameEarned]}
+                    numberOfLines={2}
                   >
-                    {milestone.hint}
+                    {badge.name}
+                  </Text>
+                  <Text style={styles.badgeRequirement} numberOfLines={1}>
+                    {badge.requirement}
                   </Text>
                 </View>
-                <View style={styles.milestoneTrack}>
-                  <View style={[styles.milestoneFill, { width: `${percent}%` }]} />
-                </View>
+              );
+            })}
+          </View>
+
+          {upcomingBadge ? (
+            <View style={styles.milestoneRow}>
+              <View style={styles.milestoneTop}>
+                <Text style={styles.milestoneLabel}>
+                  Next up: {upcomingBadge.icon} {upcomingBadge.name}
+                </Text>
+                <Text style={styles.milestoneHint}>{upcomingBadge.requirement}</Text>
               </View>
-            );
-          })}
+              <View style={styles.milestoneTrack}>
+                <View
+                  style={[
+                    styles.milestoneFill,
+                    {
+                      width: `${Math.min(100, Math.round((upcomingBadge.value / upcomingBadge.target) * 100))}%`,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          ) : (
+            <Text style={styles.milestoneHintEarned}>Every achievement earned. Genuinely impressive.</Text>
+          )}
         </View>
 
         <View style={styles.progressSection}>
@@ -9326,6 +9442,31 @@ const styles = StyleSheet.create({
   liftWeight: { color: colors.text, fontSize: 13, fontWeight: "900" },
   liftGain: { color: colors.lime, fontSize: 10, fontWeight: "800" },
   liftGainNeutral: { color: colors.muted, fontSize: 10, fontWeight: "700" },
+
+  badgeHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  badgeCount: { color: colors.lime, fontSize: 11, fontWeight: "900", marginBottom: 8 },
+  badgeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  // Three per row at phone width, and the basis leaves room for two 8px gaps.
+  badgeChip: {
+    flexBasis: "31%",
+    flexGrow: 1,
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#242824",
+    backgroundColor: "#0C0E0C",
+    opacity: 0.45,
+  },
+  badgeChipEarned: { opacity: 1, borderColor: "rgba(200,255,50,0.4)", backgroundColor: "rgba(200,255,50,0.06)" },
+  badgeIcon: { fontSize: 20 },
+  // Locked icons read as silhouettes rather than full-colour emoji, so an
+  // earned grid is obvious at a glance instead of needing to be read.
+  badgeIconLocked: { opacity: 0.5 },
+  badgeName: { color: colors.muted, fontSize: 9, fontWeight: "800", textAlign: "center", marginTop: 5 },
+  badgeNameEarned: { color: colors.text },
+  badgeRequirement: { color: "#5A6058", fontSize: 7, fontWeight: "600", textAlign: "center", marginTop: 2 },
 
   milestoneRow: { marginTop: 10 },
   milestoneTop: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10 },
