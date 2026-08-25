@@ -1420,8 +1420,14 @@ function DashboardScreen({
   const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
   const todaySplit = determineSplitDay(reminderDays, recentSplitDaysFromHistory(workoutHistory));
   const workoutName = todaySplit.label;
-  const exerciseCount = splitDaySlotCount(todaySplit.day);
   const { isDeload } = getMesocycleWeek(workoutHistory);
+  const exerciseCount = plannedExerciseCount(
+    profile,
+    splitDaySlotCount(todaySplit.day),
+    null,
+    isDeload,
+    todaysCheckIn(dailyCheckIn),
+  );
   const weeklyGoal = profile.frequency ?? "3";
   const thisWeekCount = workoutHistory.filter((entry) => isWithinLastDays(entry.date, 7)).length;
   const lastWorkout = workoutHistory[0];
@@ -4555,6 +4561,81 @@ function restSecondsForProfile(profile: Record<string, string>, adjustment?: Coa
   return adjustment === "tired" ? base + 30 : base;
 }
 
+// --- Fitting the session to the time the user actually has -----------------
+// The interview asks how long a workout can be, so the program has to respect
+// the answer. A session is estimated rather than measured: sets of work, the
+// rest between them, and the minute or so spent walking to the next station
+// and setting up. Rest dominates on a strength plan (two minutes a set), which
+// is why the same eight exercises can fit an hour and overrun half of one.
+const SECONDS_PER_REP = 4.5;
+const EXERCISE_TRANSITION_SECONDS = 60;
+// Below this it stops being a session. If the stated budget can't hold four
+// exercises, the budget loses -- better to run a few minutes over than to hand
+// someone a token workout.
+const MIN_EXERCISES_PER_SESSION = 4;
+
+function exerciseSlotSeconds(workSecondsPerSet: number, setCount: number, restSeconds: number): number {
+  // No rest is needed after the final set -- the transition covers it.
+  return (
+    setCount * workSecondsPerSet + Math.max(0, setCount - 1) * restSeconds + EXERCISE_TRANSITION_SECONDS
+  );
+}
+
+function workSecondsForExercise(exercise: WorkoutExercise): number {
+  const value = parseInt(exercise.reps, 10);
+  if (!Number.isFinite(value)) return 10 * SECONDS_PER_REP;
+  // A hold's reps field stores seconds, so it already is the work time.
+  return isHoldExercise(exercise) ? value : value * SECONDS_PER_REP;
+}
+
+// "I only have 30 minutes today" from the coach overrides the standing answer,
+// but only for that session.
+function sessionBudgetMinutes(profile: Record<string, string>, adjustment?: CoachScenario | null): number {
+  if (adjustment === "time") return 30;
+  const stated = Number(profile.duration);
+  return Number.isFinite(stated) && stated > 0 ? stated : 45;
+}
+
+// Trims from the end, which is where the split templates put accessory and
+// core work -- so a short session loses the curl and the plank, not the squat.
+function fitExercisesToDuration(
+  exercises: WorkoutExercise[],
+  setCount: number,
+  restSeconds: number,
+  budgetMinutes: number,
+): WorkoutExercise[] {
+  if (!Number.isFinite(budgetMinutes) || budgetMinutes <= 0) return exercises;
+  const budgetSeconds = budgetMinutes * 60;
+  const kept: WorkoutExercise[] = [];
+  let usedSeconds = 0;
+  for (const exercise of exercises) {
+    const cost = exerciseSlotSeconds(workSecondsForExercise(exercise), setCount, restSeconds);
+    if (usedSeconds + cost > budgetSeconds && kept.length >= MIN_EXERCISES_PER_SESSION) break;
+    kept.push(exercise);
+    usedSeconds += cost;
+  }
+  return kept;
+}
+
+// The same estimate from counts alone, for the dashboard card -- it advertises
+// the session before the exercises have been fetched, and promising eight then
+// delivering six would be worse than not saying a number at all.
+function plannedExerciseCount(
+  profile: Record<string, string>,
+  slotCount: number,
+  adjustment?: CoachScenario | null,
+  isDeload?: boolean,
+  checkIn?: DailyCheckIn | null,
+): number {
+  const perExercise = exerciseSlotSeconds(
+    baseRepRangeForProfile(profile).low * SECONDS_PER_REP,
+    setCountForProfile(profile, adjustment, isDeload, checkIn),
+    restSecondsForProfile(profile, adjustment),
+  );
+  const fits = Math.floor((sessionBudgetMinutes(profile, adjustment) * 60) / perExercise);
+  return Math.min(slotCount, Math.max(MIN_EXERCISES_PER_SESSION, fits));
+}
+
 // Collapses the four check-in answers into one 0-1 score. Fatigue and stress
 // are asked as "how tired/stressed are you" (10 = worst), so they're inverted
 // before averaging -- all four then point the same way, 1 = best possible day.
@@ -5469,8 +5550,17 @@ function ActiveWorkoutScreen({
   const { height } = useWindowDimensions();
   const [exerciseList, setExerciseList] = useState<WorkoutExercise[]>(exercises);
   const baseExercises = exerciseList;
-  const personalizedExercises = adjustment === "time" ? baseExercises.slice(0, 3) : baseExercises;
   const targetSetCount = setCountForProfile(profile, adjustment, isDeload, checkIn);
+  // Honour the time the user said they have. This replaces a flat "keep three
+  // exercises" for the coach's time adjustment: the budget is the same 30
+  // minutes, but how much actually fits into it depends on the rest interval
+  // their goal calls for and how many sets they're doing.
+  const personalizedExercises = fitExercisesToDuration(
+    baseExercises,
+    targetSetCount,
+    restSecondsForProfile(profile, adjustment),
+    sessionBudgetMinutes(profile, adjustment),
+  );
   const scrollRef = useRef<ScrollView>(null);
 
   const [exerciseIndex, setExerciseIndex] = useState(0);
