@@ -73,3 +73,11 @@ alter table public.user_data add column if not exists coach_messages jsonb not n
 -- affects the plan, so a stale row simply stops counting rather than needing a
 -- scheduled reset.
 alter table public.user_data add column if not exists daily_check_in jsonb;
+
+-- Safe to re-run: adds earned_badges, a map of badge id -> the ISO date it was
+-- first earned. Achievements are sealed on earning rather than recomputed from
+-- live stats every render, so one can never be taken back: totals that shift
+-- (bodyweight volume on old history is recomputed from the current profile
+-- weight) would otherwise be able to drop a total back under a threshold the
+-- user had already passed.
+alter table public.user_data add column if not exists earned_badges jsonb not null default '{}'::jsonb;
