@@ -1872,6 +1872,11 @@ type WorkoutHistoryEntry = {
   // stays historically honest -- a push-up done at 90kg shouldn't be
   // retroactively recounted at today's 80kg once the user loses weight.
   bodyWeightKg?: number;
+  // Sessions-per-week the user was aiming for when this was logged. Without
+  // it, dropping your frequency from 5 to 2 would retroactively turn every
+  // past week into a "perfect" one, and raising it would strip achievements
+  // already earned.
+  weeklyTarget?: number;
 };
 
 // A once-per-day subjective check-in (sleep, nutrition, fatigue, stress),
@@ -1946,11 +1951,7 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 // and punishing someone on Monday morning for not having trained yet would be
 // both wrong and demoralising. It just doesn't count toward the total either.
 function weeklyStreak(workoutHistory: WorkoutHistoryEntry[]): number {
-  const trainedWeeks = new Set<number>();
-  for (const entry of workoutHistory) {
-    const parsed = new Date(entry.date);
-    if (!Number.isNaN(parsed.getTime())) trainedWeeks.add(startOfWeekMs(parsed));
-  }
+  const trainedWeeks = trainedWeekKeys(workoutHistory);
   if (trainedWeeks.size === 0) return 0;
 
   const thisWeek = startOfWeekMs(new Date());
@@ -1961,6 +1962,56 @@ function weeklyStreak(workoutHistory: WorkoutHistoryEntry[]): number {
     cursor -= WEEK_MS;
   }
   return streak;
+}
+
+function trainedWeekKeys(workoutHistory: WorkoutHistoryEntry[]): Set<number> {
+  const weeks = new Set<number>();
+  for (const entry of workoutHistory) {
+    const parsed = new Date(entry.date);
+    if (!Number.isNaN(parsed.getTime())) weeks.add(startOfWeekMs(parsed));
+  }
+  return weeks;
+}
+
+// The longest run of consecutive weeks in a set of week keys.
+function longestConsecutiveWeeks(weekKeys: Set<number>): number {
+  let best = 0;
+  for (const week of weekKeys) {
+    // Only start counting from the beginning of a run, so each run is walked
+    // once rather than once per week it contains.
+    if (weekKeys.has(week - WEEK_MS)) continue;
+    let run = 0;
+    let cursor = week;
+    while (weekKeys.has(cursor)) {
+      run += 1;
+      cursor += WEEK_MS;
+    }
+    if (run > best) best = run;
+  }
+  return best;
+}
+
+// Weeks where the user hit the frequency they were aiming for AT THE TIME.
+// Entries logged before weeklyTarget was recorded fall back to their current
+// target -- the best available answer for old data.
+function perfectWeekKeys(workoutHistory: WorkoutHistoryEntry[], currentTarget: number): Set<number> {
+  const sessions = new Map<number, number>();
+  const targets = new Map<number, number>();
+  for (const entry of workoutHistory) {
+    const parsed = new Date(entry.date);
+    if (Number.isNaN(parsed.getTime())) continue;
+    const week = startOfWeekMs(parsed);
+    sessions.set(week, (sessions.get(week) ?? 0) + 1);
+    // A week is judged against the highest target in force during it, so
+    // raising your goal mid-week can't hand you the badge on the old one.
+    const entryTarget = entry.weeklyTarget ?? currentTarget;
+    targets.set(week, Math.max(targets.get(week) ?? 0, entryTarget));
+  }
+  const perfect = new Set<number>();
+  for (const [week, count] of sessions) {
+    if (count >= Math.max(1, targets.get(week) ?? currentTarget)) perfect.add(week);
+  }
+  return perfect;
 }
 
 // Volume per week for the last `weeks` weeks, oldest first, so the chart reads
@@ -2021,9 +2072,13 @@ type Badge = {
 type BadgeStats = {
   totalWorkouts: number;
   totalVolumeKg: number;
-  streakWeeks: number;
+  // The BEST streak ever reached, not the current one. An achievement records
+  // something that happened; missing a week later doesn't unmake it, and a
+  // badge that can vanish isn't an achievement.
+  bestStreakWeeks: number;
   totalAdvances: number;
-  weeklyTargetHits: number;
+  perfectWeeks: number;
+  bestPerfectWeekRun: number;
 };
 
 // Four ladders on purpose, so there is always something within reach whoever
@@ -2035,7 +2090,8 @@ type BadgeStats = {
 // Order is fixed rather than earned-first: a badge grid is a collection, and
 // collections are learned by position.
 function buildBadges(stats: BadgeStats): Badge[] {
-  const { totalWorkouts, totalVolumeKg, streakWeeks, totalAdvances, weeklyTargetHits } = stats;
+  const { totalWorkouts, totalVolumeKg, bestStreakWeeks, totalAdvances, perfectWeeks, bestPerfectWeekRun } =
+    stats;
   return [
     { id: "first", icon: "🥇", name: "First One", requirement: "1 session", value: totalWorkouts, target: 1 },
     { id: "ten", icon: "🔥", name: "Regular", requirement: "10 sessions", value: totalWorkouts, target: 10 },
@@ -2047,17 +2103,19 @@ function buildBadges(stats: BadgeStats): Badge[] {
     { id: "fiftyTonnes", icon: "🐘", name: "Fifty Tonnes", requirement: "50,000 kg", value: totalVolumeKg, target: 50000 },
     { id: "hundredTonnes", icon: "🌍", name: "Hundred Tonnes", requirement: "100,000 kg", value: totalVolumeKg, target: 100000 },
 
-    { id: "streak2", icon: "📅", name: "Two Weeks", requirement: "2-week streak", value: streakWeeks, target: 2 },
-    { id: "streak4", icon: "🗓️", name: "One Month", requirement: "4-week streak", value: streakWeeks, target: 4 },
-    { id: "streak12", icon: "🍀", name: "One Quarter", requirement: "12-week streak", value: streakWeeks, target: 12 },
-    { id: "streak26", icon: "👑", name: "Half a Year", requirement: "26-week streak", value: streakWeeks, target: 26 },
+    { id: "streak2", icon: "📅", name: "Two Weeks", requirement: "2 weeks in a row", value: bestStreakWeeks, target: 2 },
+    { id: "streak4", icon: "🗓️", name: "One Month", requirement: "4 weeks in a row", value: bestStreakWeeks, target: 4 },
+    { id: "streak12", icon: "🍀", name: "One Quarter", requirement: "12 weeks in a row", value: bestStreakWeeks, target: 12 },
+    { id: "streak26", icon: "👑", name: "Half a Year", requirement: "26 weeks in a row", value: bestStreakWeeks, target: 26 },
 
     { id: "load1", icon: "⬆️", name: "Earned It", requirement: "1 load increase", value: totalAdvances, target: 1 },
     { id: "load10", icon: "🎯", name: "Ten Up", requirement: "10 load increases", value: totalAdvances, target: 10 },
     { id: "load25", icon: "🚀", name: "Twenty-Five Up", requirement: "25 load increases", value: totalAdvances, target: 25 },
 
-    { id: "perfect", icon: "✅", name: "Perfect Week", requirement: "Hit your weekly target", value: weeklyTargetHits, target: 1 },
-    { id: "perfect4", icon: "🏆", name: "Four Perfect Weeks", requirement: "4 weeks at target", value: weeklyTargetHits, target: 4 },
+    // "Perfect week" = every session you set out to do that week, actually
+    // done. Judged against the target in force at the time, not today's.
+    { id: "perfect", icon: "✅", name: "Perfect Week", requirement: "Every session in one week", value: perfectWeeks, target: 1 },
+    { id: "perfect4", icon: "🏆", name: "Four Perfect Weeks", requirement: "4 perfect weeks in a row", value: bestPerfectWeekRun, target: 4 },
   ];
 }
 
@@ -2075,19 +2133,6 @@ function nextBadge(badges: Badge[]): Badge | null {
   );
 }
 
-// How many distinct weeks the user actually hit their chosen frequency. Counts
-// completed weeks and the current one alike -- if you've already hit four
-// sessions by Thursday, that week is earned and shouldn't wait until Sunday.
-function weeksAtTarget(workoutHistory: WorkoutHistoryEntry[], weeklyTarget: number): number {
-  const perWeek = new Map<number, number>();
-  for (const entry of workoutHistory) {
-    const parsed = new Date(entry.date);
-    if (Number.isNaN(parsed.getTime())) continue;
-    const week = startOfWeekMs(parsed);
-    perWeek.set(week, (perWeek.get(week) ?? 0) + 1);
-  }
-  return [...perWeek.values()].filter((count) => count >= weeklyTarget).length;
-}
 
 type ReadinessInfo = { score: number; title: string; hint: string };
 
@@ -5587,6 +5632,7 @@ function ActiveWorkoutScreen({
       ...(Number.isFinite(Number(profile.weight)) && Number(profile.weight) > 0
         ? { bodyWeightKg: Number(profile.weight) }
         : {}),
+      ...(Number(profile.frequency) > 0 ? { weeklyTarget: Number(profile.frequency) } : {}),
       ...(splitDay ? { splitDay } : {}),
     });
   };
@@ -6202,12 +6248,14 @@ function ProgressScreen({
   const peakWeeklyVolume = Math.max(...weeklyVolume.map((week) => week.volumeKg), 1);
   const weeklyTarget = Math.max(1, Number(profile.frequency) || 3);
   const consistencyPercent = Math.min(100, Math.round((thisWeekCount / weeklyTarget) * 100));
+  const perfectWeeks = perfectWeekKeys(workoutHistory, weeklyTarget);
   const badges = buildBadges({
     totalWorkouts,
     totalVolumeKg,
-    streakWeeks,
+    bestStreakWeeks: longestConsecutiveWeeks(trainedWeekKeys(workoutHistory)),
     totalAdvances,
-    weeklyTargetHits: weeksAtTarget(workoutHistory, weeklyTarget),
+    perfectWeeks: perfectWeeks.size,
+    bestPerfectWeekRun: longestConsecutiveWeeks(perfectWeeks),
   });
   const earnedBadgeCount = badges.filter(isBadgeEarned).length;
   const upcomingBadge = nextBadge(badges);
