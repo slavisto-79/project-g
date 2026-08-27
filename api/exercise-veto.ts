@@ -12,6 +12,10 @@ type VercelResponse = {
 type VetoRequest = {
   exercises?: unknown;
   limitationNote?: unknown;
+  // How many exercises are in the full session. The caller may send only the
+  // ones it hasn't judged before, and the runaway check below needs the real
+  // total or it would reject a legitimate veto covering a small subset.
+  sessionSize?: unknown;
 };
 
 const MAX_EXERCISES = 12;
@@ -108,6 +112,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     : [];
   const limitationNote =
     typeof body.limitationNote === "string" ? body.limitationNote.trim().slice(0, MAX_NOTE_CHARS) : "";
+  // Defaults to what was sent, so a caller reviewing a whole session at once
+  // (or probing this endpoint directly) behaves exactly as before.
+  const sessionSize =
+    typeof body.sessionSize === "number" && Number.isFinite(body.sessionSize)
+      ? Math.max(exercises.length, Math.round(body.sessionSize))
+      : exercises.length;
 
   if (exercises.length === 0 || limitationNote.length === 0) {
     res.status(200).json({ remove: [] });
@@ -196,7 +206,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Vetoing the entire session is not a useful answer, it is a broken one --
     // but only the model's half is discarded. The deterministic rules are not
     // malfunctioning, so they survive.
-    const usableModelRemovals = modelRemovals.length >= exercises.length ? [] : modelRemovals;
+    const usableModelRemovals = modelRemovals.length >= sessionSize ? [] : modelRemovals;
 
     res.status(200).json({ remove: [...new Set([...usableModelRemovals, ...forcedRemovals])] });
   } catch (error) {
