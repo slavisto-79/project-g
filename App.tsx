@@ -1894,6 +1894,8 @@ const BODYWEIGHT_LOAD_FRACTION: { match: RegExp; fraction: number }[] = [
   // Hands and toes down -- a measured ~64% of bodyweight at the top.
   { match: /push-?up|mountain climbers/i, fraction: 0.64 },
   // Hips and torso only; shoulders and feet stay planted.
+  // Standing: everything above the ankles travels.
+  { match: /calf raise/i, fraction: 0.9 },
   { match: /glute bridge|hip thrust/i, fraction: 0.4 },
   { match: /high knees/i, fraction: 0.3 },
 ];
@@ -5140,6 +5142,24 @@ function createWorkout(
         require("./assets/exercises/male-high-knees/finish.jpg"),
       ],
     },
+    {
+      // Belongs in a bodyweight programme on its own merit -- it was only ever
+      // in the gym roster. It also happens to be one of the few movements here
+      // that survives an abdominal limitation, which matters while the
+      // catalog is unavailable and this roster is the entire pool.
+      // Named apart from the gym roster's loaded "Calf Raise" on purpose:
+      // isBodyweightExerciseName keys off the name, so the same label can't
+      // mean loaded in one roster and unloaded in another.
+      ...workoutExercises[0]!,
+      name: "Bodyweight Calf Raise",
+      target: "Calves · Bodyweight",
+      video: require("./assets/exercise-videos/male-calf-raise.mp4"),
+      phases: ["LOWER", "HOLD", "RAISE"],
+      formFrames: [
+        require("./assets/exercises/male-calf-raise/start.jpg"),
+        require("./assets/exercises/male-calf-raise/finish.jpg"),
+      ],
+    },
   ];
   // Starter roster for the "Pull-up bar / calisthenics" equipment tier -- intentionally
   // smaller than the other tiers (2-3 exercises) since only a handful of real,
@@ -5599,6 +5619,16 @@ async function applyLimitationVeto(
   return kept.length > 0 ? kept : exercises;
 }
 
+// What the veto took out, for the workout screen to explain. Removing
+// exercises silently leaves someone staring at a two-exercise session with no
+// idea why, and no way to tell it apart from a bug.
+function countVetoedExercises(
+  before: WorkoutExercise[],
+  after: WorkoutExercise[],
+): number {
+  return Math.max(0, before.length - after.length);
+}
+
 function ExerciseStill({ frame }: { frame: ImageSourcePropType }) {
   return (
     <View style={StyleSheet.absoluteFill}>
@@ -5701,6 +5731,7 @@ function ActiveWorkoutScreen({
   splitDay,
   isDeload,
   weightModifier = 1,
+  vetoedCount = 0,
   adjustment,
   checkIn,
   onExit,
@@ -5715,6 +5746,7 @@ function ActiveWorkoutScreen({
   splitDay?: SplitDay | null;
   isDeload?: boolean;
   weightModifier?: number;
+  vetoedCount?: number;
   adjustment?: CoachScenario | null;
   checkIn?: DailyCheckIn | null;
   onExit: () => void;
@@ -6169,6 +6201,22 @@ function ActiveWorkoutScreen({
           onLayout={(event) => setDeloadBannerHeight(event.nativeEvent.layout.height)}
         >
           <Text style={styles.deloadBannerText}>LIGHTER LOAD TODAY · STILL RECOVERING</Text>
+        </View>
+      ) : null}
+
+      {vetoedCount > 0 ? (
+        <View style={styles.vetoBanner}>
+          <Text style={styles.vetoBannerText}>
+            {vetoedCount} EXERCISE{vetoedCount === 1 ? "" : "S"} REMOVED FOR YOUR LIMITATION
+          </Text>
+          {/* A session this thin means the limitation rules out most of what
+              we can offer. Saying so beats letting it look like a bug, and a
+              person should look at it rather than the app quietly carrying on. */}
+          {personalizedExercises.length < MIN_EXERCISES_PER_SESSION ? (
+            <Text style={styles.vetoBannerHint}>
+              That leaves a very short session. Ask your coach to review this in the Coach tab.
+            </Text>
+          ) : null}
         </View>
       ) : null}
 
@@ -7201,6 +7249,7 @@ export default function App() {
   const [activeWorkoutSplitDay, setActiveWorkoutSplitDay] = useState<SplitDay | null>(null);
   const [activeWorkoutIsDeload, setActiveWorkoutIsDeload] = useState(false);
   const [activeWorkoutWeightModifier, setActiveWorkoutWeightModifier] = useState(1);
+  const [activeWorkoutVetoedCount, setActiveWorkoutVetoedCount] = useState(0);
   const [workoutLoading, setWorkoutLoading] = useState(false);
   const [tooSoonWarningOpen, setTooSoonWarningOpen] = useState(false);
 
@@ -7243,9 +7292,14 @@ export default function App() {
     // Resolve which list is actually being used before the veto runs, so the
     // built-in fallback roster is reviewed too -- not just catalog sessions.
     const builtExercises = result?.exercises ?? createWorkout(profile, exerciseProgress);
-    setActiveWorkoutExercises(
-      await applyLimitationVeto(builtExercises, profile, limitationVerdicts, setLimitationVerdicts),
+    const vettedExercises = await applyLimitationVeto(
+      builtExercises,
+      profile,
+      limitationVerdicts,
+      setLimitationVerdicts,
     );
+    setActiveWorkoutExercises(vettedExercises);
+    setActiveWorkoutVetoedCount(countVetoedExercises(builtExercises, vettedExercises));
     setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
     setActiveWorkoutSplitDay(result?.splitDay ?? null);
     setActiveWorkoutIsDeload(result?.isDeload ?? false);
@@ -7609,9 +7663,14 @@ export default function App() {
               // `answers`, not `profile` -- setProfile above hasn't landed yet,
               // and this is the first session, where the limitation matters most.
               const built = result?.exercises ?? createWorkout(answers, exerciseProgress);
-              setActiveWorkoutExercises(
-                await applyLimitationVeto(built, answers, limitationVerdicts, setLimitationVerdicts),
+              const vetted = await applyLimitationVeto(
+                built,
+                answers,
+                limitationVerdicts,
+                setLimitationVerdicts,
               );
+              setActiveWorkoutExercises(vetted);
+              setActiveWorkoutVetoedCount(countVetoedExercises(built, vetted));
               setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
               setActiveWorkoutSplitDay(result?.splitDay ?? null);
               setActiveWorkoutIsDeload(result?.isDeload ?? false);
@@ -7745,6 +7804,7 @@ export default function App() {
             splitDay={activeWorkoutSplitDay}
             isDeload={activeWorkoutIsDeload}
             weightModifier={activeWorkoutWeightModifier}
+            vetoedCount={activeWorkoutVetoedCount}
             adjustment={coachAdjustment}
             checkIn={dailyCheckIn}
             profile={profile}
@@ -9133,6 +9193,27 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(200,255,50,0.1)",
   },
   deloadBannerText: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
+  // Amber rather than lime: this is an explanation for something missing, not
+  // a feature of today's plan, and it shouldn't read as a reward.
+  vetoBanner: {
+    marginHorizontal: 16,
+    marginBottom: 6,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    backgroundColor: "rgba(217,168,99,0.12)",
+  },
+  vetoBannerText: { color: "#D9A863", fontSize: 8, fontWeight: "900", letterSpacing: 0.8, textAlign: "center" },
+  vetoBannerHint: {
+    color: "#D9A863",
+    fontSize: 9,
+    fontWeight: "600",
+    lineHeight: 13,
+    textAlign: "center",
+    marginTop: 4,
+    opacity: 0.9,
+  },
   activeProgressTrack: {
     height: 3,
     borderRadius: 2,
