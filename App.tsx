@@ -937,7 +937,12 @@ function InterviewScreen({
         </View>
       ) : question ? (
         <>
-          <View style={styles.questionContent}>
+          <ScrollView
+            style={styles.questionContent}
+            contentContainerStyle={styles.questionContentInner}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <Text style={styles.previewStep}>{question.kicker}</Text>
             <Text style={styles.previewTitle}>{question.title}</Text>
             <Text style={styles.previewBody}>{question.subtitle}</Text>
@@ -1037,7 +1042,7 @@ function InterviewScreen({
                 style={styles.limitationNoteInput}
               />
             ) : null}
-          </View>
+          </ScrollView>
           <View style={styles.interviewFooter}>
             <Pressable
               accessibilityRole="button"
@@ -1175,7 +1180,12 @@ function ProfileScreen({
           <Text style={[styles.progressText, { flex: 1, textAlign: "center" }]}>EDIT</Text>
           <View style={{ width: 44 }} />
         </View>
-        <View style={styles.questionContent}>
+        <ScrollView
+          style={styles.questionContent}
+          contentContainerStyle={styles.questionContentInner}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={styles.previewStep}>{editingQuestion.kicker}</Text>
           <Text style={styles.previewTitle}>{editingQuestion.title}</Text>
           <Text style={styles.previewBody}>{editingQuestion.subtitle}</Text>
@@ -1228,7 +1238,7 @@ function ProfileScreen({
               style={styles.limitationNoteInput}
             />
           ) : null}
-        </View>
+        </ScrollView>
         <View style={styles.interviewFooter}>
           <Pressable
             accessibilityRole="button"
@@ -7942,7 +7952,11 @@ const styles = StyleSheet.create({
     letterSpacing: 1.1,
     textAlign: "right",
   },
-  questionContent: { flex: 1, paddingHorizontal: 24, paddingTop: 34 },
+  // A ScrollView, so a long question -- the limitations list plus its
+  // free-text field is the tallest -- scrolls under a fixed footer instead of
+  // running behind the CONTINUE button.
+  questionContent: { flex: 1 },
+  questionContentInner: { paddingHorizontal: 24, paddingTop: 34, paddingBottom: 12 },
   previewStep: {
     color: colors.lime,
     fontSize: 10,
