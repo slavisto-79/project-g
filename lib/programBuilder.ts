@@ -200,15 +200,35 @@ async function fetchSlotCandidates(slot: SlotDefinition, profile: ProgramBuilder
   }
 }
 
+// A full-body day has eight slots, and firing all eight at once is exactly the
+// burst that gets an API to rate-limit you -- which is what took the catalog
+// down. Small batches with a breath between them still finish in well under a
+// second, and behave like a client the upstream is happy to serve.
+//
+// Batches run in parallel internally, so a single slow slot delays its own
+// batch rather than everything behind it.
+const CATALOG_BATCH_SIZE = 3;
+const CATALOG_BATCH_PAUSE_MS = 150;
+
+async function fetchInBatches<Item, Result>(
+  items: Item[],
+  fetchOne: (item: Item) => Promise<Result>,
+): Promise<Result[]> {
+  const results: Result[] = [];
+  for (let index = 0; index < items.length; index += CATALOG_BATCH_SIZE) {
+    if (index > 0) await new Promise((resolve) => setTimeout(resolve, CATALOG_BATCH_PAUSE_MS));
+    results.push(...(await Promise.all(items.slice(index, index + CATALOG_BATCH_SIZE).map(fetchOne))));
+  }
+  return results;
+}
+
 export async function buildProgram(
   profile: ProgramBuilderProfile,
   splitDay: SplitDay = "full-body",
   usedIds: Set<string> = new Set(),
 ): Promise<ExerciseTag[]> {
   const slots = splitTemplates[splitDay];
-  // Fetch all slots in parallel rather than one at a time -- faster, and it shrinks the
-  // window in which a single slow request can hold up (or, previously, sink) the rest.
-  const candidatesBySlot = await Promise.all(slots.map((slot) => fetchSlotCandidates(slot, profile)));
+  const candidatesBySlot = await fetchInBatches(slots, (slot) => fetchSlotCandidates(slot, profile));
 
   const program: ExerciseTag[] = [];
   for (const candidates of candidatesBySlot) {
