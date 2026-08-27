@@ -81,3 +81,12 @@ alter table public.user_data add column if not exists daily_check_in jsonb;
 -- weight) would otherwise be able to drop a total back under a threshold the
 -- user had already passed.
 alter table public.user_data add column if not exists earned_badges jsonb not null default '{}'::jsonb;
+
+-- Safe to re-run: adds limitation_verdicts, holding one keep/remove decision
+-- per exercise for the user's free-text limitation note, plus the note those
+-- decisions answer. Asking the model afresh every session made session length
+-- swing on sampling alone -- the same note could drop two exercises one day
+-- and six the next. Caching the judgement per exercise settles each one once,
+-- and a changed note voids the lot.
+alter table public.user_data
+  add column if not exists limitation_verdicts jsonb not null default '{"note":"","verdicts":{}}'::jsonb;

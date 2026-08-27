@@ -5517,6 +5517,21 @@ async function createWorkoutFromCatalog(
   }
 }
 
+// One decision per exercise, per limitation note -- kept, not re-asked.
+//
+// Asking the model fresh every session made session length unpredictable: the
+// same note could yield two removals one day and six the next, purely from
+// sampling. Judgements are now cached per exercise name and only unseen
+// exercises are ever sent, so a given note decides each exercise exactly once
+// and later sessions of a different split fill in the gaps rather than
+// re-litigating what was already settled.
+type LimitationVerdicts = {
+  // The note these judgements answer. A different note voids all of them.
+  note: string;
+  // Exercise name -> true when it should be removed.
+  verdicts: Record<string, boolean>;
+};
+
 // Applies the free-text limitation from onboarding to an already-built
 // session, by asking the veto endpoint which exercises to drop.
 //
@@ -5527,35 +5542,61 @@ async function createWorkoutFromCatalog(
 async function applyLimitationVeto(
   exercises: WorkoutExercise[],
   profile: Record<string, string>,
+  cached: LimitationVerdicts,
+  onVerdictsChange: (next: LimitationVerdicts) => void,
 ): Promise<WorkoutExercise[]> {
   const note = (profile.limitationsNote ?? "").trim();
-  if (profile.limitations !== "other" || note.length === 0 || exercises.length === 0) return exercises;
-
-  try {
-    const response = await fetch("/api/exercise-veto", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ exercises: exercises.map((exercise) => exercise.name), limitationNote: note }),
-    });
-    if (!response.ok) return exercises;
-    const data = (await response.json()) as { remove?: unknown };
-    const remove = new Set(
-      (Array.isArray(data.remove) ? data.remove : []).filter(
-        (name): name is string => typeof name === "string",
-      ),
-    );
-    if (remove.size === 0) return exercises;
-
-    const kept = exercises.filter((exercise) => !remove.has(exercise.name));
-    // Deliberately no minimum here, unlike the duration trim. That floor
-    // exists because a short session is worse than a long one; this one would
-    // mean putting an exercise back that was removed for safety. A shorter
-    // session is the correct outcome. Only an empty one is rejected.
-    return kept.length > 0 ? kept : exercises;
-  } catch (error) {
-    console.error("Limitation veto failed -- using the session unchanged", error);
+  if (profile.limitations !== "other" || note.length === 0 || exercises.length === 0) {
+    // Clear stale verdicts once the limitation is gone, so re-selecting
+    // "other" later starts from a clean judgement rather than an old one.
+    if (cached.note.length > 0) onVerdictsChange({ note: "", verdicts: {} });
     return exercises;
   }
+
+  // A changed note voids every previous judgement -- they were answers to a
+  // different question.
+  const verdicts = cached.note === note ? cached.verdicts : {};
+  const unjudged = exercises.filter((exercise) => !(exercise.name in verdicts));
+
+  let resolved = verdicts;
+  if (unjudged.length > 0) {
+    try {
+      const response = await fetch("/api/exercise-veto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exercises: unjudged.map((exercise) => exercise.name),
+          limitationNote: note,
+          // The endpoint discards a veto that covers the whole session as a
+          // malfunction. It needs the real session size to judge that, since
+          // what's being sent here is only the not-yet-judged part.
+          sessionSize: exercises.length,
+        }),
+      });
+      if (response.ok) {
+        const data = (await response.json()) as { remove?: unknown };
+        const remove = new Set(
+          (Array.isArray(data.remove) ? data.remove : []).filter(
+            (name): name is string => typeof name === "string",
+          ),
+        );
+        resolved = { ...verdicts };
+        for (const exercise of unjudged) resolved[exercise.name] = remove.has(exercise.name);
+        onVerdictsChange({ note, verdicts: resolved });
+      }
+    } catch (error) {
+      // Fall through on the verdicts already held. Anything unjudged is kept,
+      // which is the same session the user would have had regardless.
+      console.error("Limitation veto failed -- using the verdicts already held", error);
+    }
+  }
+
+  const kept = exercises.filter((exercise) => resolved[exercise.name] !== true);
+  // Deliberately no minimum here, unlike the duration trim. That floor exists
+  // because a short session is worse than a long one; this one would mean
+  // putting an exercise back that was removed for safety. A shorter session is
+  // the correct outcome. Only an empty one is rejected.
+  return kept.length > 0 ? kept : exercises;
 }
 
 function ExerciseStill({ frame }: { frame: ImageSourcePropType }) {
@@ -7147,6 +7188,7 @@ export default function App() {
   const [exerciseProgress, setExerciseProgress] = useState<Record<string, ExerciseProgress>>({});
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutHistoryEntry[]>([]);
   const [earnedBadges, setEarnedBadges] = useState<EarnedBadges>({});
+  const [limitationVerdicts, setLimitationVerdicts] = useState<LimitationVerdicts>({ note: "", verdicts: {} });
   const [dietPlan, setDietPlan] = useState<SavedDietPlan | null>(null);
   const [dailyCheckIn, setDailyCheckIn] = useState<DailyCheckIn | null>(null);
   const [session, setSession] = useState<{ email: string } | null>(null);
@@ -7201,7 +7243,9 @@ export default function App() {
     // Resolve which list is actually being used before the veto runs, so the
     // built-in fallback roster is reviewed too -- not just catalog sessions.
     const builtExercises = result?.exercises ?? createWorkout(profile, exerciseProgress);
-    setActiveWorkoutExercises(await applyLimitationVeto(builtExercises, profile));
+    setActiveWorkoutExercises(
+      await applyLimitationVeto(builtExercises, profile, limitationVerdicts, setLimitationVerdicts),
+    );
     setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
     setActiveWorkoutSplitDay(result?.splitDay ?? null);
     setActiveWorkoutIsDeload(result?.isDeload ?? false);
@@ -7220,6 +7264,7 @@ export default function App() {
     dietPlan,
     dailyCheckIn,
     earnedBadges,
+    limitationVerdicts,
   });
   stateRef.current = {
     profile,
@@ -7231,6 +7276,7 @@ export default function App() {
     dietPlan,
     dailyCheckIn,
     earnedBadges,
+    limitationVerdicts,
   };
 
   useEffect(() => {
@@ -7261,6 +7307,7 @@ export default function App() {
             dietPlan?: SavedDietPlan | null;
             dailyCheckIn?: DailyCheckIn | null;
             earnedBadges?: EarnedBadges;
+            limitationVerdicts?: LimitationVerdicts;
           };
           if (parsed.profile && Object.keys(parsed.profile).length > 0) {
             setProfile(parsed.profile);
@@ -7272,6 +7319,7 @@ export default function App() {
             setDietPlan(parsed.dietPlan ?? null);
             setDailyCheckIn(parsed.dailyCheckIn ?? null);
             setEarnedBadges(parsed.earnedBadges ?? {});
+            setLimitationVerdicts(parsed.limitationVerdicts ?? { note: "", verdicts: {} });
             setScreen("dashboard");
           }
         }
@@ -7303,6 +7351,11 @@ export default function App() {
           .select("earned_badges")
           .eq("user_id", id)
           .maybeSingle();
+        const { data: verdictData } = await supabase
+          .from("user_data")
+          .select("limitation_verdicts")
+          .eq("user_id", id)
+          .maybeSingle();
         const remoteProfile = (data?.profile ?? {}) as Record<string, string>;
         setTrialStartedAt((data?.trial_started_at as string | undefined) ?? null);
         if (Object.keys(remoteProfile).length > 0) {
@@ -7317,6 +7370,9 @@ export default function App() {
           setDietPlan((data?.diet_plan as SavedDietPlan | null) ?? null);
           setDailyCheckIn((optionalData?.daily_check_in as DailyCheckIn | null) ?? null);
           setEarnedBadges((badgeData?.earned_badges as EarnedBadges | null) ?? {});
+          setLimitationVerdicts(
+            (verdictData?.limitation_verdicts as LimitationVerdicts | null) ?? { note: "", verdicts: {} },
+          );
           setScreen("dashboard");
         } else if (Object.keys(stateRef.current.profile).length > 0) {
           // Fresh account with no saved data yet: migrate whatever local/guest
@@ -7336,6 +7392,7 @@ export default function App() {
             ...migrateCore,
             daily_check_in: stateRef.current.dailyCheckIn,
             earned_badges: stateRef.current.earnedBadges,
+            limitation_verdicts: stateRef.current.limitationVerdicts,
           });
           if (migrateError?.code === "PGRST204") {
             const { error: retryError } = await supabase.from("user_data").upsert(migrateCore);
@@ -7400,6 +7457,7 @@ export default function App() {
         dietPlan,
         dailyCheckIn,
         earnedBadges,
+        limitationVerdicts,
       }),
     );
   }, [
@@ -7410,6 +7468,7 @@ export default function App() {
     earnedBadges,
     exerciseProgress,
     hasLoadedTestState,
+    limitationVerdicts,
     nutritionTotals,
     profile,
     session,
@@ -7433,7 +7492,12 @@ export default function App() {
       };
       const { error } = await supabase
         .from("user_data")
-        .upsert({ ...corePayload, daily_check_in: dailyCheckIn, earned_badges: earnedBadges });
+        .upsert({
+          ...corePayload,
+          daily_check_in: dailyCheckIn,
+          earned_badges: earnedBadges,
+          limitation_verdicts: limitationVerdicts,
+        });
       // PGRST204 = one of these columns isn't on this project yet. Retry with
       // just the core so profile/history still save; the check-in and earned
       // badges are the only things lost, and only until the migration in
@@ -7456,6 +7520,7 @@ export default function App() {
     earnedBadges,
     exerciseProgress,
     hasLoadedTestState,
+    limitationVerdicts,
     nutritionTotals,
     profile,
     userId,
@@ -7490,6 +7555,7 @@ export default function App() {
     setExerciseProgress({});
     setWorkoutHistory([]);
     setEarnedBadges({});
+    setLimitationVerdicts({ note: "", verdicts: {} });
     setCoachAdjustment(null);
     setCoachMessages([]);
     setDietPlan(null);
@@ -7543,7 +7609,9 @@ export default function App() {
               // `answers`, not `profile` -- setProfile above hasn't landed yet,
               // and this is the first session, where the limitation matters most.
               const built = result?.exercises ?? createWorkout(answers, exerciseProgress);
-              setActiveWorkoutExercises(await applyLimitationVeto(built, answers));
+              setActiveWorkoutExercises(
+                await applyLimitationVeto(built, answers, limitationVerdicts, setLimitationVerdicts),
+              );
               setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
               setActiveWorkoutSplitDay(result?.splitDay ?? null);
               setActiveWorkoutIsDeload(result?.isDeload ?? false);
