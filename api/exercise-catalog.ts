@@ -42,7 +42,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!upstreamResponse.ok) {
         const errorText = await upstreamResponse.text();
         console.error("MuscleWiki request failed", upstreamResponse.status, errorText.slice(0, 500));
-        res.status(502).json({ error: "Exercise catalog is temporarily unavailable." });
+        res.status(502).json({
+          error: "Exercise catalog is temporarily unavailable.",
+          // The upstream status, so this is diagnosable without log access:
+          // 403 means the API key is invalid or expired, 429 means rate
+          // limited, 5xx means their side is genuinely down. Only the code
+          // is surfaced -- the upstream body stays in the server log.
+          upstreamStatus: upstreamResponse.status,
+        });
         return;
       }
 
@@ -79,7 +86,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!upstreamResponse.ok) {
       const errorText = await upstreamResponse.text();
       console.error("MuscleWiki request failed", upstreamResponse.status, errorText.slice(0, 500));
-      res.status(502).json({ error: "Exercise catalog is temporarily unavailable." });
+      res.status(502).json({
+          error: "Exercise catalog is temporarily unavailable.",
+          // The upstream status, so this is diagnosable without log access:
+          // 403 means the API key is invalid or expired, 429 means rate
+          // limited, 5xx means their side is genuinely down. Only the code
+          // is surfaced -- the upstream body stays in the server log.
+          upstreamStatus: upstreamResponse.status,
+        });
       return;
     }
 
