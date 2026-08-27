@@ -25,29 +25,47 @@ function firstValue(value: string | string[] | undefined): string | undefined {
 // everyone onto the built-in fallback roster.
 const SUCCESS_CACHE_CONTROL = "public, s-maxage=86400, stale-while-revalidate=604800";
 
-// A 429 is worth waiting out rather than failing on -- the alternative is
-// every user silently losing catalog-driven programming. Kept short and
-// shallow so a rate-limited request can't sit near the function timeout.
-const MAX_UPSTREAM_ATTEMPTS = 3;
-const MAX_RETRY_WAIT_MS = 1500;
+// Retrying a 429 only helps when the limit is a short burst window. If it's a
+// spent quota, a retry is worse than useless -- it triples the requests we
+// make during exactly the period we should be quiet, and pushes the reset
+// further away. So: at most one retry, and only when upstream either says
+// nothing about when to come back or says "soon".
+const SHORT_RETRY_CEILING_MS = 2000;
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchUpstream(url: string, apiKey: string): Promise<Response> {
-  let response = await fetch(url, { headers: { "X-API-Key": apiKey } });
-  for (let attempt = 1; attempt < MAX_UPSTREAM_ATTEMPTS && response.status === 429; attempt += 1) {
-    // Honour Retry-After when upstream sends one; otherwise back off.
-    const retryAfterSeconds = Number(response.headers.get("retry-after"));
-    const waitMs =
-      Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
-        ? Math.min(retryAfterSeconds * 1000, MAX_RETRY_WAIT_MS)
-        : Math.min(300 * 2 ** (attempt - 1), MAX_RETRY_WAIT_MS);
-    await wait(waitMs);
-    response = await fetch(url, { headers: { "X-API-Key": apiKey } });
+// Whatever upstream is willing to say about the limit. Surfaced on failure so
+// a burst window and an exhausted quota can be told apart from outside.
+function rateLimitHints(response: Response): Record<string, string> {
+  const hints: Record<string, string> = {};
+  for (const header of [
+    "retry-after",
+    "x-ratelimit-limit",
+    "x-ratelimit-remaining",
+    "x-ratelimit-reset",
+    "ratelimit-limit",
+    "ratelimit-remaining",
+    "ratelimit-reset",
+  ]) {
+    const value = response.headers.get(header);
+    if (value) hints[header] = value.slice(0, 64);
   }
-  return response;
+  return hints;
+}
+
+async function fetchUpstream(url: string, apiKey: string): Promise<Response> {
+  const response = await fetch(url, { headers: { "X-API-Key": apiKey } });
+  if (response.status !== 429) return response;
+
+  const retryAfterSeconds = Number(response.headers.get("retry-after"));
+  const hasRetryAfter = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0;
+  // A long Retry-After is upstream telling us the quota is gone. Believe it.
+  if (hasRetryAfter && retryAfterSeconds * 1000 > SHORT_RETRY_CEILING_MS) return response;
+
+  await wait(hasRetryAfter ? retryAfterSeconds * 1000 : 400);
+  return fetch(url, { headers: { "X-API-Key": apiKey } });
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -87,6 +105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           // limited, 5xx means their side is genuinely down. Only the code
           // is surfaced -- the upstream body stays in the server log.
           upstreamStatus: upstreamResponse.status,
+          rateLimit: rateLimitHints(upstreamResponse),
         });
         return;
       }
@@ -130,6 +149,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           // limited, 5xx means their side is genuinely down. Only the code
           // is surfaced -- the upstream body stays in the server log.
           upstreamStatus: upstreamResponse.status,
+          rateLimit: rateLimitHints(upstreamResponse),
         });
       return;
     }
