@@ -15,7 +15,9 @@ type RecipesRequest = {
   unitSystem?: "metric" | "imperial";
 };
 
-const allowedProfileFields = ["goal", "sex", "equipment"] as const;
+// Gym equipment says nothing about what someone should eat -- it was noise
+// in the prompt, carried over from the endpoints that genuinely need it.
+const allowedProfileFields = ["goal", "sex"] as const;
 
 function safeProfile(input: unknown) {
   if (!input || typeof input !== "object") return {};
@@ -86,7 +88,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "You are Project G's recipe assistant.",
           "Suggest simple, realistic recipes a home cook can make to help close today's remaining protein gap.",
           "Prefer whole foods and common ingredients. Keep each recipe achievable in under 30 minutes unless it is clearly a slow-cook dish.",
-          "Respect the user's equipment and stated goal when relevant.",
+          "Respect the user's stated goal when relevant.",
           "Never claim medical, nutritional, or weight-loss guarantees; this is general food inspiration only.",
           "Keep descriptions under 20 words. List 3-8 ingredients per recipe.",
           `Each ingredient must start with a realistic single-serving quantity, using ${unitInstruction}, followed by the ingredient name (e.g. "200g Greek yogurt" or "3/4 cup rolled oats").`,

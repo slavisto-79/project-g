@@ -3323,7 +3323,7 @@ function RecipesScreen({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             proteinRemaining,
-            profile: { goal: profile.goal, sex: profile.sex, equipment: profile.equipment },
+            profile: { goal: profile.goal, sex: profile.sex },
             unitSystem,
           }),
         });
@@ -4625,6 +4625,21 @@ const BASE_SET_COUNT_BY_FREQUENCY: Record<string, number> = {
 // Fat-loss/general-fitness goals train for density (more total work in the
 // session) rather than pure strength/hypertrophy load, so they get one extra
 // set per exercise on top of the frequency-based baseline.
+// Recovery is spent on everything, not just training. Someone lifting and
+// carrying all day arrives at the gym closer to their ceiling than someone who
+// sat down for eight hours, so the same session costs them more.
+//
+// Only manual work is discounted, and only by one set. Being on your feet is
+// not the same as loaded physical labour, and the people doing that work are
+// often the better conditioned -- which is exactly why this stays modest
+// rather than trying to model their recovery in detail.
+const ACTIVITY_SET_ADJUSTMENT: Record<string, number> = {
+  sedentary: 0,
+  light: 0,
+  active: 0,
+  physical: -1,
+};
+
 function setCountForProfile(
   profile: Record<string, string>,
   adjustment?: CoachScenario | null,
@@ -4634,11 +4649,12 @@ function setCountForProfile(
   const baseSetCount = BASE_SET_COUNT_BY_FREQUENCY[profile.frequency ?? "3"] ?? 3;
   const densityBonus = profile.goal === "fat-loss" || profile.goal === "fitness" ? 1 : 0;
   const experienceBonus = EXPERIENCE_SET_BONUS[profile.experience ?? ""] ?? 0;
+  const activityAdjustment = ACTIVITY_SET_ADJUSTMENT[profile.activity ?? ""] ?? 0;
   const reduction =
     (adjustment === "tired" ? 1 : 0) +
     (isDeload ? 1 : 0) +
     readinessSetPenalty(checkIn ?? null, profile.goal);
-  return Math.max(2, baseSetCount + densityBonus + experienceBonus - reduction);
+  return Math.max(2, baseSetCount + densityBonus + experienceBonus + activityAdjustment - reduction);
 }
 
 const REFERENCE_BODY_WEIGHT_KG = 70;
