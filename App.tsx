@@ -167,6 +167,18 @@ const interviewQuestions: InterviewQuestion[] = [
   },
   {
     kind: "choice",
+    id: "recentTraining",
+    kicker: "WHERE YOU ARE RIGHT NOW",
+    title: "Have you trained recently?",
+    subtitle: "Years of experience don’t fade, but conditioning does. This sets your starting load.",
+    answers: [
+      { label: "Training consistently", value: "consistent" },
+      { label: "On and off", value: "patchy" },
+      { label: "Coming back after months off", value: "returning" },
+    ],
+  },
+  {
+    kind: "choice",
     id: "frequency",
     kicker: "YOUR WEEKLY RHYTHM",
     title: "How often can you train?",
@@ -176,6 +188,19 @@ const interviewQuestions: InterviewQuestion[] = [
       { label: "3 days a week", value: "3" },
       { label: "4 days a week", value: "4" },
       { label: "5+ days a week", value: "5" },
+    ],
+  },
+  {
+    kind: "choice",
+    id: "activity",
+    kicker: "THE OTHER 23 HOURS",
+    title: "How active is the rest of your day?",
+    subtitle: "Your job and daily movement shift your calorie needs more than training does.",
+    answers: [
+      { label: "Desk job, little walking", value: "sedentary" },
+      { label: "Some walking or standing", value: "light" },
+      { label: "On my feet most of the day", value: "active" },
+      { label: "Physical or manual work", value: "physical" },
     ],
   },
   {
@@ -203,6 +228,18 @@ const interviewQuestions: InterviewQuestion[] = [
       { label: "Dumbbells and bands", value: "minimal" },
       { label: "Bodyweight only", value: "bodyweight" },
       { label: "Pull-up bar / calisthenics", value: "bars" },
+    ],
+  },
+  {
+    kind: "choice",
+    id: "bodyweightStrength",
+    kicker: "YOUR STARTING POINT",
+    title: "Can you do a full push-up and a pull-up?",
+    subtitle: "Be honest — this decides whether we start you on the full move or build you up to it.",
+    answers: [
+      { label: "Both, comfortably", value: "both" },
+      { label: "Push-ups yes, pull-ups no", value: "pushups" },
+      { label: "Neither yet", value: "neither" },
     ],
   },
   {
@@ -1883,7 +1920,13 @@ type WorkoutHistoryExercise = {
 // is exactly why the number is reported as "~".
 const BODYWEIGHT_LOAD_FRACTION: { match: RegExp; fraction: number }[] = [
   // Fully suspended -- all of your mass, nothing supported.
-  { match: /pull-?up|chin-?up|bar dip|muscle-?up/i, fraction: 1 },
+  // Regressions first: a band or a bench carries part of the load, so these
+  // must not inherit the full-bodyweight figure of the movement they stand in
+  // for. Order matters -- the broader rules below would otherwise match first.
+  { match: /assisted/i, fraction: 0.6 },
+  { match: /bench dip/i, fraction: 0.5 },
+  { match: /knee push-?up/i, fraction: 0.49 },
+  { match: /pull-?up|chin-?up|dip|muscle-?up/i, fraction: 1 },
   // Hanging, but only the legs travel.
   { match: /hanging leg raise|knee raise|leg raise/i, fraction: 0.2 },
   // Standing on one leg: nearly everything, minus the shank of the working leg.
@@ -4506,13 +4549,28 @@ function restingMetabolicRateKcal(profile: Record<string, string>): number {
 // it drives the activity multiplier. These sit in the usual sedentary-to-very-
 // active band; they deliberately stay conservative since the answer only
 // describes planned training, not overall daily movement.
+// Daily life first, training on top -- in that order, because that is the
+// order of magnitude. Deriving this from training frequency alone gave a
+// builder and an office worker who both train four times a week identical
+// calorie targets, when their jobs can separate them by several hundred
+// kilocalories a day.
+const DAILY_ACTIVITY_BASE: Record<string, number> = {
+  sedentary: 1.2,
+  light: 1.3,
+  active: 1.42,
+  physical: 1.55,
+};
+
 function activityMultiplier(profile: Record<string, string>): number {
+  // An unanswered activity question falls back to "light", which with three
+  // sessions a week reproduces the old 1.45 exactly -- existing users keep the
+  // target they already had until they answer.
+  const base = DAILY_ACTIVITY_BASE[profile.activity ?? ""] ?? DAILY_ACTIVITY_BASE.light!;
   const daysPerWeek = Number(profile.frequency);
-  if (!Number.isFinite(daysPerWeek)) return 1.45;
-  if (daysPerWeek <= 2) return 1.375;
-  if (daysPerWeek === 3) return 1.45;
-  if (daysPerWeek === 4) return 1.55;
-  return 1.65;
+  const trainingBump = Number.isFinite(daysPerWeek) ? Math.min(0.25, daysPerWeek * 0.05) : 0.15;
+  // Capped at the top of the standard range; nothing above this is a
+  // multiplier, it's a data-entry error.
+  return Math.min(1.9, base + trainingBump);
 }
 
 // Standard sports-nutrition range for active adults is roughly 1.6-2.2g of
@@ -4739,10 +4797,26 @@ const EXPERIENCE_SET_BONUS: Record<string, number> = {
 // experienced AND needs a gentler entry point, so the two stack rather than
 // one overriding the other (which is what the old single `reducedLoad`
 // boolean did, treating "beginner" and "over 45" as the same thing).
+// A third axis, and the reason it exists: experience asks what someone has
+// done, not what they can do today. Three years under the bar followed by
+// eight months off is experienced AND deconditioned -- they need a beginner's
+// starting weight but keep an experienced lifter's ability to add to it.
+//
+// So this discount lands on LOAD only. advanceSessionsForProfile deliberately
+// ignores it, which is what lets a returner climb back quickly instead of
+// being restarted from scratch.
+const RECENT_TRAINING_LOAD_FACTOR: Record<string, number> = {
+  consistent: 1,
+  patchy: 0.9,
+  returning: 0.75,
+};
+
 function experienceLoadFactor(profile: Record<string, string>): number {
   const ageYears = Number(profile.age);
   const base = EXPERIENCE_LOAD_FACTOR[profile.experience ?? ""] ?? 1;
-  return base * (Number.isFinite(ageYears) && ageYears >= 45 ? 0.85 : 1);
+  const ageFactor = Number.isFinite(ageYears) && ageYears >= 45 ? 0.85 : 1;
+  const recencyFactor = RECENT_TRAINING_LOAD_FACTOR[profile.recentTraining ?? ""] ?? 1;
+  return base * ageFactor * recencyFactor;
 }
 
 function advanceSessionsForProfile(profile: Record<string, string>): number {
@@ -4963,7 +5037,10 @@ function isBodyweightExerciseName(name: string): boolean {
     name.includes("High Knees") ||
     name.includes("Burpee") ||
     name.includes("Pull-Up") ||
-    name.includes("Bar Dip") ||
+    // "Dip" rather than "Bar Dip": the bench-dip regression is just as
+    // unloaded, and matching the narrower name left it treated as a weighted
+    // lift that would be handed a kilogram suggestion.
+    name.includes("Dip") ||
     name.includes("Knee Raise") ||
     name.includes("Hanging Leg Raise")
   );
@@ -5434,6 +5511,39 @@ function createWorkout(
       };
     }
   }
+  // Regressions for movements the user has told us they can't do yet.
+  //
+  // Prescribing 8-12 pull-ups to someone who cannot do one isn't a hard
+  // session, it's a wall -- they fail the first set and have no way to
+  // progress. The regressions keep the same pattern at a load they can
+  // actually complete, so double progression has something to work with.
+  //
+  // These rename and keep the existing demo media, the same trade the
+  // knee/shoulder swaps above make: a roster entry can't gain its own video
+  // without one being shot for it, and a named regression with an approximate
+  // demo beats an exercise the person cannot perform.
+  const canPullUp = profile.bodyweightStrength === "both";
+  const canPushUp = profile.bodyweightStrength !== "neither";
+  if (!canPullUp) {
+    for (const [index, exercise] of exercises.entries()) {
+      if (exercise.name === "Pull-Up") {
+        exercises[index] = { ...exercise, name: "Band-Assisted Pull-Up", target: "Back & biceps · Building up" };
+      } else if (exercise.name === "Bar Dip") {
+        exercises[index] = { ...exercise, name: "Bench Dip", target: "Chest & triceps · Building up" };
+      }
+    }
+  }
+  if (!canPushUp) {
+    const pushUpIndex = exercises.findIndex((exercise) => exercise.name === "Push-Up");
+    if (pushUpIndex >= 0) {
+      exercises[pushUpIndex] = {
+        ...exercises[pushUpIndex]!,
+        name: "Knee Push-Up",
+        target: "Chest & triceps · Building up",
+      };
+    }
+  }
+
   if (profile.limitations === "back") {
     // The catalog path filtered on back safety from the start, but this
     // fallback roster did nothing at all -- so someone reporting back
@@ -5651,6 +5761,12 @@ async function createWorkoutFromCatalog(
     equipment: equipmentMap[profile.equipment ?? ""] ?? "minimal",
     experience: (profile.experience as ProgramBuilderProfile["experience"]) ?? "beginner",
     limitations: limitationsMap[profile.limitations ?? ""] ?? "none",
+    bodyweightStrength:
+      profile.bodyweightStrength === "both" ||
+      profile.bodyweightStrength === "pushups" ||
+      profile.bodyweightStrength === "neither"
+        ? profile.bodyweightStrength
+        : undefined,
     sex: profile.sex === "male" ? "male" : "female",
   };
 
