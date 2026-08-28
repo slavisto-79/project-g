@@ -69,6 +69,10 @@ type ChoiceQuestion = {
   title: string;
   subtitle: string;
   answers: InterviewAnswer[];
+  // Several answers can be true at once -- plenty of people have both a bad
+  // knee and a bad shoulder, and making them pick one hides the other from
+  // every filter downstream. Stored comma-separated, like reminderDays.
+  multiSelect?: boolean;
   // When set, picking the answer whose value matches `whenValue` reveals a
   // free-text field, stored on the profile under `noteId`. A fixed list can't
   // anticipate every limitation someone might have.
@@ -247,7 +251,8 @@ const interviewQuestions: InterviewQuestion[] = [
     id: "limitations",
     kicker: "TRAIN SMARTER, NOT THROUGH PAIN",
     title: "Do you have any limitations?",
-    subtitle: "Your coach will adapt movements around your needs. This is not medical advice.",
+    subtitle: "Pick every one that applies. Your coach adapts movements around them. This is not medical advice.",
+    multiSelect: true,
     answers: [
       { label: "No current limitations", value: "none" },
       { label: "Shoulder sensitivity", value: "shoulder" },
@@ -262,6 +267,27 @@ const interviewQuestions: InterviewQuestion[] = [
     },
   },
 ];
+
+// A multi-select answer is stored as one comma-separated string, so the whole
+// profile stays a flat Record<string, string> and persists unchanged.
+function splitAnswerValues(value: string | undefined): string[] {
+  return (value ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+// "None" is the odd one out: it means the absence of the others, so it can't
+// sit alongside them. Picking it clears the rest, and picking anything else
+// clears it.
+const EXCLUSIVE_ANSWER_VALUES = new Set(["none"]);
+
+function toggleAnswerValue(current: string | undefined, value: string): string {
+  const selected = splitAnswerValues(current);
+  if (selected.includes(value)) return selected.filter((entry) => entry !== value).join(",");
+  if (EXCLUSIVE_ANSWER_VALUES.has(value)) return value;
+  return [...selected.filter((entry) => !EXCLUSIVE_ANSWER_VALUES.has(entry)), value].join(",");
+}
 
 // Answers that are fixed once onboarding is done, each for its own reason.
 //
@@ -787,12 +813,14 @@ function InterviewScreen({
   // "I'll discuss it with my coach" option: the user believes they've flagged
   // something and nothing acts on it. So the note is required once its answer
   // is picked.
+  const selectedValues = splitAnswerValues(selected);
   const activeNote =
-    question?.kind === "choice" && question.note && selected === question.note.whenValue
+    question?.kind === "choice" && question.note && selectedValues.includes(question.note.whenValue)
       ? question.note
       : null;
   const noteValue = activeNote ? (answers[activeNote.noteId] ?? "") : "";
-  const canContinue = Boolean(selected) && (!activeNote || noteValue.trim().length > 0);
+  const canContinue =
+    selectedValues.length > 0 && (!activeNote || noteValue.trim().length > 0);
   const progress = complete ? 1 : (step + 1) / interviewQuestions.length;
   const goalLabels: Record<string, string> = {
     muscle: "Build muscle",
@@ -1042,13 +1070,17 @@ function InterviewScreen({
             ) : (
             <View style={styles.answerList}>
               {question.answers.map((answer) => {
-                const isSelected = answer.value === selected;
+                const isSelected = selectedValues.includes(answer.value);
                 return (
                   <Pressable
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
                     key={answer.value}
-                    onPress={() => selectAnswer(answer.value)}
+                    onPress={() =>
+                      selectAnswer(
+                        question.multiSelect ? toggleAnswerValue(selected, answer.value) : answer.value,
+                      )
+                    }
                     style={({ pressed }) => [
                       styles.answerCard,
                       isSelected && styles.answerCardSelected,
@@ -1164,8 +1196,11 @@ function ProfileScreen({
     setEditingId(question.id);
   };
 
+  const draftValues = splitAnswerValues(draftValue);
   const editingNote =
-    editingQuestion?.kind === "choice" && editingQuestion.note && draftValue === editingQuestion.note.whenValue
+    editingQuestion?.kind === "choice" &&
+    editingQuestion.note &&
+    draftValues.includes(editingQuestion.note.whenValue)
       ? editingQuestion.note
       : null;
 
@@ -1199,7 +1234,10 @@ function ProfileScreen({
       const note = (profile[question.note.noteId] ?? "").trim();
       if (note) return note;
     }
-    return question.answers.find((answer) => answer.value === value)?.label ?? "Not set";
+    const selectedLabels = splitAnswerValues(value)
+      .map((entry) => question.answers.find((answer) => answer.value === entry)?.label)
+      .filter((label): label is string => Boolean(label));
+    return selectedLabels.length > 0 ? selectedLabels.join(", ") : "Not set";
   };
 
   if (editingQuestion) {
@@ -1240,13 +1278,19 @@ function ProfileScreen({
           ) : (
             <View style={styles.answerList}>
               {editingQuestion.answers.map((answer) => {
-                const isSelected = answer.value === draftValue;
+                const isSelected = draftValues.includes(answer.value);
                 return (
                   <Pressable
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
                     key={answer.value}
-                    onPress={() => setDraftValue(answer.value)}
+                    onPress={() =>
+                      setDraftValue(
+                        editingQuestion.multiSelect
+                          ? toggleAnswerValue(draftValue, answer.value)
+                          : answer.value,
+                      )
+                    }
                     style={({ pressed }) => [
                       styles.answerCard,
                       isSelected && styles.answerCardSelected,
@@ -5498,7 +5542,8 @@ function createWorkout(
     };
   });
 
-  if (profile.limitations === "knee") {
+  const limitations = splitAnswerValues(profile.limitations);
+  if (limitations.includes("knee")) {
     const squatIndex = exercises.findIndex((exercise) => exercise.name.includes("Squat"));
     if (squatIndex >= 0) {
       exercises[squatIndex] = {
@@ -5544,7 +5589,7 @@ function createWorkout(
     }
   }
 
-  if (profile.limitations === "back") {
+  if (limitations.includes("back")) {
     // The catalog path filtered on back safety from the start, but this
     // fallback roster did nothing at all -- so someone reporting back
     // sensitivity was still handed a Romanian deadlift, the exact loaded hip
@@ -5566,7 +5611,7 @@ function createWorkout(
       };
     }
   }
-  if (profile.limitations === "shoulder") {
+  if (limitations.includes("shoulder")) {
     const pressIndex = exercises.findIndex((exercise) => exercise.name.includes("Press"));
     if (pressIndex >= 0) {
       exercises[pressIndex] = {
@@ -5749,7 +5794,7 @@ async function createWorkoutFromCatalog(
     bodyweight: "bodyweight",
     bars: "bars",
   };
-  const limitationsMap: Record<string, ProgramBuilderProfile["limitations"]> = {
+  const limitationsMap: Record<string, ProgramBuilderProfile["limitations"][number]> = {
     knee: "knee",
     shoulder: "shoulder",
     back: "back",
@@ -5760,7 +5805,9 @@ async function createWorkoutFromCatalog(
   const builderProfile: ProgramBuilderProfile = {
     equipment: equipmentMap[profile.equipment ?? ""] ?? "minimal",
     experience: (profile.experience as ProgramBuilderProfile["experience"]) ?? "beginner",
-    limitations: limitationsMap[profile.limitations ?? ""] ?? "none",
+    limitations: splitAnswerValues(profile.limitations)
+      .map((entry) => limitationsMap[entry])
+      .filter((entry): entry is ProgramBuilderProfile["limitations"][number] => Boolean(entry)),
     bodyweightStrength:
       profile.bodyweightStrength === "both" ||
       profile.bodyweightStrength === "pushups" ||
@@ -5829,7 +5876,7 @@ async function applyLimitationVeto(
   onVerdictsChange: (next: LimitationVerdicts) => void,
 ): Promise<WorkoutExercise[]> {
   const note = (profile.limitationsNote ?? "").trim();
-  if (profile.limitations !== "other" || note.length === 0 || exercises.length === 0) {
+  if (!splitAnswerValues(profile.limitations).includes("other") || note.length === 0 || exercises.length === 0) {
     // Clear stale verdicts once the limitation is gone, so re-selecting
     // "other" later starts from a clean judgement rather than an old one.
     if (cached.note.length > 0) onVerdictsChange({ note: "", verdicts: {} });
