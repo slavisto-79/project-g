@@ -9,7 +9,12 @@ export type ProgramBuilderProfile = {
   // models knee/shoulder/back safety, so there is nothing here for free text
   // to filter on -- it is handled after the program is built, by a pass that
   // may only remove exercises.
-  limitations: "knee" | "shoulder" | "back" | "none" | "other";
+  // Every limitation the user reported, not just the first. "other" carries a
+  // free-text note instead of a flag: the catalog only models knee/shoulder/
+  // back safety, so there is nothing here for free text to filter on -- it is
+  // handled after the program is built, by a pass that may only remove
+  // exercises.
+  limitations: ("knee" | "shoulder" | "back" | "none" | "other")[];
   // What the user reported they can already do. Prescribing a pull-up to
   // someone who cannot do one is a wall, not a hard session.
   bodyweightStrength?: "both" | "pushups" | "neither";
@@ -180,10 +185,15 @@ function isWithinBodyweightStrength(
   return true;
 }
 
-function isInjurySafeForProfile(exercise: ExerciseTag, limitations: ProgramBuilderProfile["limitations"]): boolean {
-  if (limitations === "knee") return exercise.injurySafe.kneeSafe;
-  if (limitations === "shoulder") return exercise.injurySafe.shoulderSafe;
-  if (limitations === "back") return exercise.injurySafe.backSafe;
+// Every reported limitation has to clear, not just one. Someone with a bad
+// knee AND a bad shoulder needs an exercise that is safe for both.
+function isInjurySafeForProfile(
+  exercise: ExerciseTag,
+  limitations: ProgramBuilderProfile["limitations"],
+): boolean {
+  if (limitations.includes("knee") && !exercise.injurySafe.kneeSafe) return false;
+  if (limitations.includes("shoulder") && !exercise.injurySafe.shoulderSafe) return false;
+  if (limitations.includes("back") && !exercise.injurySafe.backSafe) return false;
   return true;
 }
 
