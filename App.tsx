@@ -2225,7 +2225,7 @@ function strengthStandingFor(
 // like a personal best.
 function weeklyVolumeTrend(
   weeks: { weekStartMs: number; volumeKg: number }[],
-): { percent: number; direction: "up" | "down" } | null {
+): { percent: number; direction: "up" | "down"; against: string } | null {
   if (weeks.length < 2) return null;
   const current = weeks[weeks.length - 1]!;
   if (current.volumeKg <= 0) return null;
@@ -2236,12 +2236,35 @@ function weeklyVolumeTrend(
   if (priorTrained.length < 2) return null;
 
   const average = priorTrained.reduce((sum, week) => sum + week.volumeKg, 0) / priorTrained.length;
-  if (average <= 0) return null;
+  return compareToAverage(current.volumeKg, average, "usual week");
+}
 
-  const change = Math.round(((current.volumeKg - average) / average) * 100);
+// The same comparison between sessions, for someone who hasn't been here long
+// enough to have weeks to compare. Two sessions is the earliest point at which
+// any honest self-comparison exists -- before that there is nothing to measure
+// against, and a number would have to be invented.
+function sessionVolumeTrend(
+  workoutHistory: WorkoutHistoryEntry[],
+  fallbackBodyWeightKg?: number,
+): { percent: number; direction: "up" | "down"; against: string } | null {
+  const volumes = workoutHistory.map((entry) => entryVolumeKg(entry, fallbackBodyWeightKg));
+  if (volumes.length < 2) return null;
+  const [latest, ...prior] = volumes;
+  if (!latest || latest <= 0) return null;
+  const average = prior.reduce((sum, value) => sum + value, 0) / prior.length;
+  return compareToAverage(latest, average, "usual session");
+}
+
+function compareToAverage(
+  current: number,
+  average: number,
+  against: string,
+): { percent: number; direction: "up" | "down"; against: string } | null {
+  if (average <= 0) return null;
+  const change = Math.round(((current - average) / average) * 100);
   // Inside a few percent it's noise, and calling it a trend would be dishonest.
   if (Math.abs(change) < 5) return null;
-  return { percent: Math.abs(change), direction: change > 0 ? "up" : "down" };
+  return { percent: Math.abs(change), direction: change > 0 ? "up" : "down", against };
 }
 
 // Something everyday to picture, because "12,600 kg" alone means nothing to
@@ -6750,19 +6773,34 @@ function ProgressScreen({
     }
   }
 
-  const strongestLifts = [...liftsByName.entries()]
+  const allLifts = [...liftsByName.entries()]
     .map(([name, lift]) => ({
       name,
       weightKg: snapToLoadableWeight(lift.weightKg, implementForExerciseName(name)),
       gainedKg: lift.gainedKg,
       standing: strengthStandingFor(name, lift.weightKg, lift.reps, bodyWeightKg, profile.sex),
     }))
-    .sort((a, b) => b.weightKg - a.weightKg)
-    .slice(0, 5);
+    .sort((a, b) => b.weightKg - a.weightKg);
+  const strongestLifts = allLifts.slice(0, 5);
+
+  // One figure across every lift that could be placed against a standard, so
+  // the headline card carries a comparison from the first session rather than
+  // waiting on weeks of history.
+  //
+  // Averaged across lifts rather than taken from the best one: a single strong
+  // movement shouldn't speak for someone's overall strength.
+  const ratedStandings = allLifts.flatMap((lift) => (lift.standing ? [lift.standing.percentile] : []));
+  const overallPercentile =
+    ratedStandings.length > 0
+      ? Math.round(ratedStandings.reduce((sum, value) => sum + value, 0) / ratedStandings.length)
+      : null;
 
   const streakWeeks = weeklyStreak(workoutHistory);
   const weeklyVolume = weeklyVolumeSeries(workoutHistory, 8, bodyWeightKg);
-  const volumeTrend = weeklyVolumeTrend(weeklyVolume);
+  // Weeks when there are weeks to compare; sessions before that, so the card
+  // carries a self-comparison from the second workout rather than the third week.
+  const volumeTrend =
+    weeklyVolumeTrend(weeklyVolume) ?? sessionVolumeTrend(workoutHistory, bodyWeightKg);
   const peakWeeklyVolume = Math.max(...weeklyVolume.map((week) => week.volumeKg), 1);
   const weeklyTarget = Math.max(1, Number(profile.frequency) || 3);
   const consistencyPercent = Math.min(100, Math.round((thisWeekCount / weeklyTarget) * 100));
@@ -6821,10 +6859,38 @@ function ProgressScreen({
               <Text style={styles.volumeCardUnit}> kg</Text>
             </Text>
             {comparison ? <Text style={styles.volumeCardCompare}>That’s {comparison}.</Text> : null}
-            {volumeTrend ? (
-              <Text style={styles.volumeCardTrend}>
-                {volumeTrend.direction === "up" ? "↑" : "↓"} {volumeTrend.percent}%{" "}
-                {volumeTrend.direction === "up" ? "above" : "below"} your usual week
+
+            {overallPercentile !== null || volumeTrend ? (
+              <View style={styles.volumeCardStats}>
+                {overallPercentile !== null ? (
+                  <View style={styles.volumeCardStat}>
+                    <Text style={styles.volumeCardStatValue}>{overallPercentile}%</Text>
+                    <Text style={styles.volumeCardStatLabel}>
+                      STRONGER THAN · {profile.sex === "male" ? "MEN" : "WOMEN"}
+                    </Text>
+                  </View>
+                ) : null}
+                {overallPercentile !== null && volumeTrend ? (
+                  <View style={styles.volumeCardStatDivider} />
+                ) : null}
+                {volumeTrend ? (
+                  <View style={styles.volumeCardStat}>
+                    <Text style={styles.volumeCardStatValue}>
+                      {volumeTrend.direction === "up" ? "↑" : "↓"}
+                      {volumeTrend.percent}%
+                    </Text>
+                    <Text style={styles.volumeCardStatLabel}>
+                      VS YOUR {volumeTrend.against.toUpperCase()}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+
+            {overallPercentile !== null ? (
+              <Text style={styles.volumeCardFootnote}>
+                Across your lifts, against published strength standards for your bodyweight and sex
+                — an estimate, not a ranking against other Project G users.
               </Text>
             ) : null}
           </View>
@@ -10115,7 +10181,19 @@ const styles = StyleSheet.create({
   volumeCardValue: { color: colors.text, fontSize: 34, fontWeight: "900", marginTop: 6 },
   volumeCardUnit: { color: colors.muted, fontSize: 16, fontWeight: "800" },
   volumeCardCompare: { color: colors.muted, fontSize: 11, fontWeight: "600", marginTop: 4 },
-  volumeCardTrend: { color: colors.lime, fontSize: 11, fontWeight: "800", marginTop: 6 },
+  volumeCardStats: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(200,255,50,0.18)",
+  },
+  volumeCardStat: { flex: 1, minWidth: 0 },
+  volumeCardStatDivider: { width: 1, alignSelf: "stretch", backgroundColor: "rgba(200,255,50,0.18)", marginHorizontal: 12 },
+  volumeCardStatValue: { color: colors.lime, fontSize: 20, fontWeight: "900" },
+  volumeCardStatLabel: { color: colors.muted, fontSize: 7, fontWeight: "900", letterSpacing: 0.8, marginTop: 3 },
+  volumeCardFootnote: { color: "#5A6058", fontSize: 8, fontWeight: "600", lineHeight: 12, marginTop: 10 },
 
   consistencyRow: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10 },
   consistencyValue: { color: colors.text, fontSize: 20, fontWeight: "900" },
