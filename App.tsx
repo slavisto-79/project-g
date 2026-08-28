@@ -2120,6 +2120,99 @@ function weeklyVolumeSeries(
     .map(([weekStartMs, volumeKg]) => ({ weekStartMs, volumeKg }));
 }
 
+// --- Strength standards ----------------------------------------------------
+// Where a lift sits against published strength standards, as an estimated
+// one-rep max divided by bodyweight.
+//
+// This is the honest version of "you lift more than X% of people": we hold no
+// other users' data, so a percentile would be invented. A named band against
+// commonly published standards is a real comparison and can be checked.
+//
+// THE RATIOS BELOW ARE APPROXIMATE and worth reviewing against a source you
+// trust before leaning on them. Bands are deliberately coarse so being a
+// little off shifts nobody by more than one level, and the UI labels the
+// result an estimate rather than a measurement. Two further caveats baked in:
+// our stored weights are working weights, not tested maxima, and for dumbbell
+// lifts they are the load in ONE hand, which is the convention these
+// standards are usually quoted in.
+type StrengthLevel = "Beginner" | "Novice" | "Intermediate" | "Advanced";
+
+type StrengthStandard = {
+  match: RegExp;
+  // Thresholds are estimated-1RM ÷ bodyweight, at which Novice, Intermediate
+  // and Advanced begin. Below the first is Beginner.
+  male: [number, number, number];
+  female: [number, number, number];
+};
+
+const STRENGTH_STANDARDS: StrengthStandard[] = [
+  { match: /bench press|chest press/i, male: [0.25, 0.4, 0.55], female: [0.15, 0.25, 0.35] },
+  { match: /shoulder press|overhead press/i, male: [0.18, 0.3, 0.42], female: [0.11, 0.19, 0.27] },
+  { match: /row/i, male: [0.25, 0.4, 0.55], female: [0.16, 0.27, 0.38] },
+  { match: /deadlift/i, male: [0.3, 0.5, 0.7], female: [0.22, 0.37, 0.52] },
+  { match: /squat/i, male: [0.35, 0.55, 0.75], female: [0.26, 0.42, 0.58] },
+  { match: /curl/i, male: [0.12, 0.2, 0.3], female: [0.07, 0.12, 0.18] },
+];
+
+// Epley. Any 1RM formula drifts at high rep counts, which is another reason
+// the bands are coarse rather than a precise number.
+function estimatedOneRepMaxKg(weightKg: number, reps: number): number {
+  if (!Number.isFinite(weightKg) || !Number.isFinite(reps) || reps <= 0) return weightKg;
+  return weightKg * (1 + reps / 30);
+}
+
+function strengthLevelFor(
+  exerciseName: string,
+  weightKg: number,
+  reps: number,
+  bodyWeightKg: number,
+  sex: string | undefined,
+): StrengthLevel | null {
+  const standard = STRENGTH_STANDARDS.find((entry) => entry.match.test(exerciseName));
+  if (!standard) return null;
+  if (!Number.isFinite(bodyWeightKg) || bodyWeightKg <= 0 || weightKg <= 0) return null;
+
+  const ratio = estimatedOneRepMaxKg(weightKg, reps) / bodyWeightKg;
+  // An unstated sex takes the female thresholds -- the lower bar, so an
+  // unknown never inflates someone's level.
+  const [novice, intermediate, advanced] = sex === "male" ? standard.male : standard.female;
+  if (ratio >= advanced) return "Advanced";
+  if (ratio >= intermediate) return "Intermediate";
+  if (ratio >= novice) return "Novice";
+  return "Beginner";
+}
+
+// This week's tonnage against the weeks they actually trained.
+//
+// Deliberately compared against the user's own past rather than other people:
+// cumulative volume mostly measures how long someone has been using the app,
+// so ranking one user's total against another's would say more about tenure
+// than training. Their own trend is a real signal and needs no one else's data.
+//
+// Weeks with no training are left out of the average. Counting them would
+// flatter every comparison -- a fortnight off would make an ordinary week look
+// like a personal best.
+function weeklyVolumeTrend(
+  weeks: { weekStartMs: number; volumeKg: number }[],
+): { percent: number; direction: "up" | "down" } | null {
+  if (weeks.length < 2) return null;
+  const current = weeks[weeks.length - 1]!;
+  if (current.volumeKg <= 0) return null;
+
+  const priorTrained = weeks.slice(0, -1).filter((week) => week.volumeKg > 0);
+  // One earlier week is a comparison, not an average -- not enough to call
+  // anything "usual".
+  if (priorTrained.length < 2) return null;
+
+  const average = priorTrained.reduce((sum, week) => sum + week.volumeKg, 0) / priorTrained.length;
+  if (average <= 0) return null;
+
+  const change = Math.round(((current.volumeKg - average) / average) * 100);
+  // Inside a few percent it's noise, and calling it a trend would be dishonest.
+  if (Math.abs(change) < 5) return null;
+  return { percent: Math.abs(change), direction: change > 0 ? "up" : "down" };
+}
+
 // Something everyday to picture, because "12,600 kg" alone means nothing to
 // most people. Picks the largest reference the total clears, so the count
 // stays small and legible rather than "180 washing machines".
@@ -6609,12 +6702,14 @@ function ProgressScreen({
       name,
       weightKg: snapToLoadableWeight(entry.weightKg, implementForExerciseName(name)),
       gainedKg: entry.totalAdvances,
+      level: strengthLevelFor(name, entry.weightKg, entry.repsLow, bodyWeightKg, profile.sex),
     }))
     .sort((a, b) => b.weightKg - a.weightKg)
     .slice(0, 5);
 
   const streakWeeks = weeklyStreak(workoutHistory);
   const weeklyVolume = weeklyVolumeSeries(workoutHistory, 8, bodyWeightKg);
+  const volumeTrend = weeklyVolumeTrend(weeklyVolume);
   const peakWeeklyVolume = Math.max(...weeklyVolume.map((week) => week.volumeKg), 1);
   const weeklyTarget = Math.max(1, Number(profile.frequency) || 3);
   const consistencyPercent = Math.min(100, Math.round((thisWeekCount / weeklyTarget) * 100));
@@ -6673,6 +6768,12 @@ function ProgressScreen({
               <Text style={styles.volumeCardUnit}> kg</Text>
             </Text>
             {comparison ? <Text style={styles.volumeCardCompare}>That’s {comparison}.</Text> : null}
+            {volumeTrend ? (
+              <Text style={styles.volumeCardTrend}>
+                {volumeTrend.direction === "up" ? "↑" : "↓"} {volumeTrend.percent}%{" "}
+                {volumeTrend.direction === "up" ? "above" : "below"} your usual week
+              </Text>
+            ) : null}
           </View>
         ) : null}
 
@@ -6764,17 +6865,28 @@ function ProgressScreen({
         <View style={styles.progressSection}>
           <Text style={styles.progressSectionTitle}>LIFTS YOU’VE BUILT UP</Text>
           {strongestLifts.length > 0 ? (
-            strongestLifts.map((lift) => (
-              <View key={lift.name} style={styles.liftRow}>
-                <Text style={styles.liftName} numberOfLines={1}>
-                  {lift.name}
-                </Text>
-                <View style={styles.liftRight}>
-                  <Text style={styles.liftWeight}>{lift.weightKg} kg</Text>
-                  <Text style={styles.liftGain}>+{lift.gainedKg} kg</Text>
+            <>
+              {strongestLifts.map((lift) => (
+                <View key={lift.name} style={styles.liftRow}>
+                  <View style={styles.liftCopy}>
+                    <Text style={styles.liftName} numberOfLines={1}>
+                      {lift.name}
+                    </Text>
+                    {lift.level ? <Text style={styles.liftLevel}>{lift.level}</Text> : null}
+                  </View>
+                  <View style={styles.liftRight}>
+                    <Text style={styles.liftWeight}>{lift.weightKg} kg</Text>
+                    <Text style={styles.liftGain}>+{lift.gainedKg} kg</Text>
+                  </View>
                 </View>
-              </View>
-            ))
+              ))}
+              {strongestLifts.some((lift) => lift.level) ? (
+                <Text style={styles.liftLevelNote}>
+                  Levels estimate your one-rep max from your working weight and compare it to your
+                  bodyweight. A guide, not a measurement.
+                </Text>
+              ) : null}
+            </>
           ) : (
             <Text style={styles.progressEmptyText}>
               Hit the top of your rep range on every set, a couple of sessions running, and the
@@ -9942,6 +10054,7 @@ const styles = StyleSheet.create({
   volumeCardValue: { color: colors.text, fontSize: 34, fontWeight: "900", marginTop: 6 },
   volumeCardUnit: { color: colors.muted, fontSize: 16, fontWeight: "800" },
   volumeCardCompare: { color: colors.muted, fontSize: 11, fontWeight: "600", marginTop: 4 },
+  volumeCardTrend: { color: colors.lime, fontSize: 11, fontWeight: "800", marginTop: 6 },
 
   consistencyRow: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10 },
   consistencyValue: { color: colors.text, fontSize: 20, fontWeight: "900" },
@@ -9969,7 +10082,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#1B1E1A",
   },
-  liftName: { color: colors.text, fontSize: 12, fontWeight: "600", flexShrink: 1 },
+  liftCopy: { flexShrink: 1, minWidth: 0 },
+  liftName: { color: colors.text, fontSize: 12, fontWeight: "600" },
+  liftLevel: { color: colors.muted, fontSize: 9, fontWeight: "700", letterSpacing: 0.4, marginTop: 2 },
+  liftLevelNote: { color: "#5A6058", fontSize: 9, fontWeight: "600", lineHeight: 13, marginTop: 10 },
   liftRight: { flexDirection: "row", alignItems: "baseline", gap: 8, flexShrink: 0 },
   liftWeight: { color: colors.text, fontSize: 13, fontWeight: "900" },
   liftGain: { color: colors.lime, fontSize: 10, fontWeight: "800" },
