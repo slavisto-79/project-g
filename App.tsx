@@ -6692,17 +6692,39 @@ function ProgressScreen({
     (sum, [, entry]) => sum + (entry.totalAdvances ?? 0),
     0,
   );
-  // Only lifts that have actually advanced. A record with no advances behind
-  // it just mirrors whatever the plan suggested that day (see hasEarnedWeight),
-  // so listing it would put a number here the person never earned -- and, for
-  // records written before starting weights were fixed, a wrong one.
-  const strongestLifts = progressEntries
-    .filter(([, entry]) => entry.weightKg > 0 && hasEarnedWeight(entry))
-    .map(([name, entry]) => ({
+  // Two sources, in order of how much they can be trusted.
+  //
+  // An advanced record is authoritative: the weight was earned and reflects
+  // real progression. A record with no advances behind it only mirrors
+  // whatever the plan suggested (see hasEarnedWeight), and for records written
+  // before starting weights were fixed that suggestion could be wrong -- which
+  // is why those aren't read here at all.
+  //
+  // Instead, un-advanced lifts fall back to what the most recent session
+  // actually prescribed. That is recorded per workout, so it is current by
+  // construction, and it means a lift appears here after the first completed
+  // session rather than waiting on an advance that takes weeks.
+  const liftsByName = new Map<string, { weightKg: number; reps: number; gainedKg: number }>();
+  for (const [name, entry] of progressEntries) {
+    if (entry.weightKg > 0 && hasEarnedWeight(entry)) {
+      liftsByName.set(name, { weightKg: entry.weightKg, reps: entry.repsLow, gainedKg: entry.totalAdvances });
+    }
+  }
+  // Newest first, so the first sighting of an exercise is its latest weight.
+  for (const entry of workoutHistory) {
+    for (const item of entry.exerciseBreakdown ?? []) {
+      const weightKg = item.weightKg ?? 0;
+      if (liftsByName.has(item.name) || weightKg <= 0) continue;
+      liftsByName.set(item.name, { weightKg, reps: item.reps, gainedKg: 0 });
+    }
+  }
+
+  const strongestLifts = [...liftsByName.entries()]
+    .map(([name, lift]) => ({
       name,
-      weightKg: snapToLoadableWeight(entry.weightKg, implementForExerciseName(name)),
-      gainedKg: entry.totalAdvances,
-      level: strengthLevelFor(name, entry.weightKg, entry.repsLow, bodyWeightKg, profile.sex),
+      weightKg: snapToLoadableWeight(lift.weightKg, implementForExerciseName(name)),
+      gainedKg: lift.gainedKg,
+      level: strengthLevelFor(name, lift.weightKg, lift.reps, bodyWeightKg, profile.sex),
     }))
     .sort((a, b) => b.weightKg - a.weightKg)
     .slice(0, 5);
@@ -6863,7 +6885,7 @@ function ProgressScreen({
         ) : null}
 
         <View style={styles.progressSection}>
-          <Text style={styles.progressSectionTitle}>LIFTS YOU’VE BUILT UP</Text>
+          <Text style={styles.progressSectionTitle}>YOUR LIFTS</Text>
           {strongestLifts.length > 0 ? (
             <>
               {strongestLifts.map((lift) => (
@@ -6876,7 +6898,9 @@ function ProgressScreen({
                   </View>
                   <View style={styles.liftRight}>
                     <Text style={styles.liftWeight}>{lift.weightKg} kg</Text>
-                    <Text style={styles.liftGain}>+{lift.gainedKg} kg</Text>
+                    {/* Only lifts that have actually advanced show a gain --
+                        a starting weight hasn't gone up by anything yet. */}
+                    {lift.gainedKg > 0 ? <Text style={styles.liftGain}>+{lift.gainedKg} kg</Text> : null}
                   </View>
                 </View>
               ))}
@@ -6889,8 +6913,8 @@ function ProgressScreen({
             </>
           ) : (
             <Text style={styles.progressEmptyText}>
-              Hit the top of your rep range on every set, a couple of sessions running, and the
-              weight you earned will show up here.
+              Finish your first workout and your working weights will show up here, with where each
+              one sits for your bodyweight.
             </Text>
           )}
         </View>
