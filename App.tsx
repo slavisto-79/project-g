@@ -157,6 +157,30 @@ const interviewQuestions: InterviewQuestion[] = [
     ],
   },
   {
+    kind: "picker",
+    id: "goalWeight",
+    kicker: "WHERE YOU’RE HEADED",
+    title: "What weight are you aiming for?",
+    subtitle: "Set it level with your current weight if you’d rather not chase a number.",
+    unit: "kg",
+    min: 40,
+    max: 200,
+    step: 1,
+    defaultValue: 75,
+  },
+  {
+    kind: "choice",
+    id: "dietPace",
+    kicker: "HOW FAST TO GET THERE",
+    title: "What pace suits you?",
+    subtitle: "Faster means a bigger daily gap. Slower is easier to hold on to.",
+    answers: [
+      { label: "Slow and comfortable", value: "slow" },
+      { label: "Steady", value: "steady" },
+      { label: "As fast as sensible", value: "fast" },
+    ],
+  },
+  {
     kind: "choice",
     id: "experience",
     kicker: "YOUR TRAINING BACKGROUND",
@@ -3366,6 +3390,7 @@ type SavedDietPlan = {
   budget: string;
   mealStyle: string;
   avoid: string;
+  allergies?: string;
   days: DietPlanResult[];
   generatedAt: string;
   isFallback: boolean;
@@ -3565,6 +3590,7 @@ function DietPlanScreen({
   const [budget, setBudget] = useState(savedPlan?.budget ?? "any");
   const [mealStyle, setMealStyle] = useState(savedPlan?.mealStyle ?? "cook");
   const [avoid, setAvoid] = useState(savedPlan?.avoid ?? "");
+  const [allergies, setAllergies] = useState(savedPlan?.allergies ?? "");
   const [stage, setStage] = useState<"form" | "loading" | "result">(hasSavedWeek ? "result" : "form");
   const [days, setDays] = useState<DietPlanResult[]>(hasSavedWeek ? savedPlan!.days : []);
   const [generatedAt, setGeneratedAt] = useState(savedPlan?.generatedAt ?? "");
@@ -3575,6 +3601,7 @@ function DietPlanScreen({
 
   const calorieTarget = dailyCalorieTargetKcal(profile);
   const proteinTarget = dailyProteinTargetGrams(profile);
+  const weeksToGoal = weeksToGoalWeight(profile);
   const daysSince = generatedAt ? daysSinceDate(generatedAt) : 0;
   const activeDayIndex = days.length ? daysSince % days.length : 0;
   const cycleComplete = days.length > 0 && daysSince >= days.length;
@@ -3602,6 +3629,7 @@ function DietPlanScreen({
           budget,
           mealStyle,
           avoid: avoid.trim().slice(0, 140),
+          allergies: allergies.trim().slice(0, 140),
           calorieTarget,
           proteinTarget,
           unitSystem,
@@ -3622,6 +3650,7 @@ function DietPlanScreen({
         budget,
         mealStyle,
         avoid,
+        allergies,
         days: data.days,
         generatedAt: nowIso,
         isFallback: false,
@@ -3642,6 +3671,7 @@ function DietPlanScreen({
         budget,
         mealStyle,
         avoid,
+        allergies,
         days: fallbackDietWeek,
         generatedAt: nowIso,
         isFallback: true,
@@ -3687,6 +3717,14 @@ function DietPlanScreen({
                 General food inspiration sized to ~{calorieTarget} kcal and {proteinTarget}g protein a day, not
                 medical or dietary advice.
               </Text>
+              {/* The pace answer is otherwise invisible -- this is where it
+                  turns into something the user can weigh up. */}
+              {weeksToGoal !== null ? (
+                <Text style={styles.dietPaceEstimate}>
+                  At this pace, about {weeksToGoal} week{weeksToGoal === 1 ? "" : "s"} to reach{" "}
+                  {profile.goalWeight} kg — an estimate, and bodies rarely move in a straight line.
+                </Text>
+              ) : null}
             </View>
 
             <Text style={styles.dietGroupLabel}>DIETARY STYLE</Text>
@@ -3783,6 +3821,25 @@ function DietPlanScreen({
               style={styles.dietAvoidInput}
               maxLength={140}
             />
+
+            {/* Asked apart from dislikes on purpose. Skipping a disliked food
+                makes a meal unappealing; skipping an allergen is a different
+                order of consequence, and the endpoint states it far more
+                forcefully than a preference. */}
+            <Text style={styles.dietGroupLabel}>ALLERGIES (OPTIONAL)</Text>
+            <TextInput
+              value={allergies}
+              onChangeText={setAllergies}
+              placeholder="e.g. peanuts, dairy"
+              placeholderTextColor="#5B6058"
+              style={styles.dietAvoidInput}
+              maxLength={140}
+            />
+            <Text style={styles.dietAllergyNote}>
+              Anything listed here is excluded outright, along with foods it’s commonly
+              cross-contaminated with. Always check labels yourself — this is a meal suggestion,
+              not a safety guarantee.
+            </Text>
 
             <Pressable
               accessibilityRole="button"
@@ -4643,14 +4700,51 @@ function dailyProteinTargetGrams(profile: Record<string, string>): number {
 // by diet mode. This is a general heuristic to size a sample meal plan, not
 // medical or dietary advice. Recomp sits at maintenance -- no surplus or
 // deficit -- relying on the higher protein target above to do the work instead.
+// How hard to push, when the user has said. A steady rate is roughly 0.5% of
+// bodyweight a week; steady/slow/fast scale around that. Without an answer the
+// shift stays exactly where it was before this existed.
+const DIET_PACE_SHIFT: Record<string, { cut: number; bulk: number }> = {
+  slow: { cut: 0.9, bulk: 1.06 },
+  steady: { cut: 0.82, bulk: 1.12 },
+  fast: { cut: 0.75, bulk: 1.18 },
+};
+
 function dailyCalorieTargetKcal(profile: Record<string, string>): number {
   const maintenance = restingMetabolicRateKcal(profile) * activityMultiplier(profile);
   const mode = inferDietMode(profile);
-  const factor = mode === "cut" ? 0.82 : mode === "bulk" ? 1.12 : 1;
+  const pace = DIET_PACE_SHIFT[profile.dietPace ?? ""] ?? DIET_PACE_SHIFT.steady!;
+  const factor = mode === "cut" ? pace.cut : mode === "bulk" ? pace.bulk : 1;
   // Floor at a conservative minimum so an aggressive cut on a small frame can
   // never render a dangerously low number as if it were a recommendation.
   const target = Math.max(1200, maintenance * factor);
   return Math.round(target / 10) * 10;
+}
+
+// Weeks to the stated goal weight at the current calorie shift, so the pace
+// choice has a visible consequence instead of being an abstract preference.
+// Null whenever the arithmetic can't say anything honest: no target set,
+// already there, or a target that the chosen direction moves away from.
+function weeksToGoalWeight(profile: Record<string, string>): number | null {
+  const currentKg = Number(profile.weight);
+  const goalKg = Number(profile.goalWeight);
+  if (!Number.isFinite(currentKg) || !Number.isFinite(goalKg) || goalKg <= 0) return null;
+
+  const differenceKg = goalKg - currentKg;
+  if (Math.abs(differenceKg) < 1) return null;
+
+  const mode = inferDietMode(profile);
+  if (mode === "recomp") return null;
+  // Losing weight on a surplus, or gaining on a deficit, has no answer.
+  if ((mode === "cut" && differenceKg > 0) || (mode === "bulk" && differenceKg < 0)) return null;
+
+  const maintenance = restingMetabolicRateKcal(profile) * activityMultiplier(profile);
+  const dailyGapKcal = Math.abs(maintenance - dailyCalorieTargetKcal(profile));
+  if (dailyGapKcal < 50) return null;
+
+  // ~7700 kcal per kilogram of body mass -- a textbook approximation, and
+  // treated as one: the figure is shown as "about".
+  const weeks = (Math.abs(differenceKg) * 7700) / (dailyGapKcal * 7);
+  return weeks >= 1 ? Math.round(weeks) : 1;
 }
 
 // A real gym does not stock every kilogram, so an arithmetically-derived
@@ -9301,6 +9395,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlignVertical: "top",
   },
+  dietPaceEstimate: { color: colors.lime, fontSize: 11, fontWeight: "700", lineHeight: 15, marginTop: 8 },
+  dietAllergyNote: { color: "#5A6058", fontSize: 9, fontWeight: "600", lineHeight: 13, marginTop: 8 },
   dietAvoidInput: {
     height: 44,
     borderRadius: 14,
