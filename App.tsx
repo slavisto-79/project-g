@@ -2161,25 +2161,56 @@ function estimatedOneRepMaxKg(weightKg: number, reps: number): number {
   return weightKg * (1 + reps / 30);
 }
 
-function strengthLevelFor(
+// Roughly what share of people each band sits above. Published standards are
+// themselves built from large samples of real lifts, so their bands carry a
+// population meaning -- this restates that, it does not measure our own users
+// (we hold no such data, and a percentile invented from nothing would be a
+// lie dressed as a statistic).
+//
+// Capped at 95: the tail beyond "advanced" is thin and a formula extrapolating
+// into it would start printing numbers it cannot support.
+const BAND_PERCENTILES = { beginner: 0, novice: 20, intermediate: 50, advanced: 80, ceiling: 95 };
+
+function strengthPercentile(ratio: number, thresholds: [number, number, number]): number {
+  const [novice, intermediate, advanced] = thresholds;
+  const { beginner, novice: nP, intermediate: iP, advanced: aP, ceiling } = BAND_PERCENTILES;
+  const between = (value: number, low: number, high: number, from: number, to: number) =>
+    Math.round(from + ((value - low) / (high - low)) * (to - from));
+
+  if (ratio <= 0) return 0;
+  if (ratio < novice) return between(ratio, 0, novice, beginner, nP);
+  if (ratio < intermediate) return between(ratio, novice, intermediate, nP, iP);
+  if (ratio < advanced) return between(ratio, intermediate, advanced, iP, aP);
+  return Math.min(ceiling, between(ratio, advanced, advanced * 2, aP, ceiling));
+}
+
+function strengthStandingFor(
   exerciseName: string,
   weightKg: number,
   reps: number,
   bodyWeightKg: number,
   sex: string | undefined,
-): StrengthLevel | null {
+): { level: StrengthLevel; percentile: number } | null {
   const standard = STRENGTH_STANDARDS.find((entry) => entry.match.test(exerciseName));
   if (!standard) return null;
   if (!Number.isFinite(bodyWeightKg) || bodyWeightKg <= 0 || weightKg <= 0) return null;
 
   const ratio = estimatedOneRepMaxKg(weightKg, reps) / bodyWeightKg;
   // An unstated sex takes the female thresholds -- the lower bar, so an
-  // unknown never inflates someone's level.
-  const [novice, intermediate, advanced] = sex === "male" ? standard.male : standard.female;
-  if (ratio >= advanced) return "Advanced";
-  if (ratio >= intermediate) return "Intermediate";
-  if (ratio >= novice) return "Novice";
-  return "Beginner";
+  // unknown never inflates someone's standing.
+  const thresholds = sex === "male" ? standard.male : standard.female;
+  const [novice, intermediate, advanced] = thresholds;
+
+  const level: StrengthLevel =
+    ratio >= advanced
+      ? "Advanced"
+      : ratio >= intermediate
+        ? "Intermediate"
+        : ratio >= novice
+          ? "Novice"
+          : "Beginner";
+
+  return { level, percentile: strengthPercentile(ratio, thresholds) };
 }
 
 // This week's tonnage against the weeks they actually trained.
@@ -6724,7 +6755,7 @@ function ProgressScreen({
       name,
       weightKg: snapToLoadableWeight(lift.weightKg, implementForExerciseName(name)),
       gainedKg: lift.gainedKg,
-      level: strengthLevelFor(name, lift.weightKg, lift.reps, bodyWeightKg, profile.sex),
+      standing: strengthStandingFor(name, lift.weightKg, lift.reps, bodyWeightKg, profile.sex),
     }))
     .sort((a, b) => b.weightKg - a.weightKg)
     .slice(0, 5);
@@ -6894,7 +6925,12 @@ function ProgressScreen({
                     <Text style={styles.liftName} numberOfLines={1}>
                       {lift.name}
                     </Text>
-                    {lift.level ? <Text style={styles.liftLevel}>{lift.level}</Text> : null}
+                    {lift.standing ? (
+                      <Text style={styles.liftLevel}>
+                        {lift.standing.level} · stronger than ~{lift.standing.percentile}% of{" "}
+                        {profile.sex === "male" ? "men" : "women"}
+                      </Text>
+                    ) : null}
                   </View>
                   <View style={styles.liftRight}>
                     <Text style={styles.liftWeight}>{lift.weightKg} kg</Text>
@@ -6904,10 +6940,11 @@ function ProgressScreen({
                   </View>
                 </View>
               ))}
-              {strongestLifts.some((lift) => lift.level) ? (
+              {strongestLifts.some((lift) => lift.standing) ? (
                 <Text style={styles.liftLevelNote}>
-                  Levels estimate your one-rep max from your working weight and compare it to your
-                  bodyweight. A guide, not a measurement.
+                  Estimated from your working weight against your bodyweight, using published
+                  strength standards for your sex — not a measurement, and not a comparison against
+                  other Project G users.
                 </Text>
               ) : null}
             </>
