@@ -159,7 +159,7 @@ const interviewQuestions: InterviewQuestion[] = [
       { label: "Lose body fat", value: "fat-loss" },
       { label: "Get stronger", value: "strength" },
       { label: "Improve fitness", value: "fitness" },
-      { label: "Feel healthier", value: "health" },
+      { label: "Become more athletic", value: "athletic" },
     ],
   },
   {
@@ -905,6 +905,9 @@ function InterviewScreen({
     "fat-loss": "Lose body fat",
     strength: "Get stronger",
     fitness: "Improve fitness",
+    athletic: "Become more athletic",
+    // Legacy: the goal this replaced. Kept so a profile saved before the
+    // change still shows a name rather than "Not set".
     health: "Feel healthier",
   };
   const equipmentLabels: Record<string, string> = {
@@ -5046,25 +5049,42 @@ function scaledStartingWeightLabel(
 // Classic strength/hypertrophy/endurance rep ranges, picked per training
 // goal instead of one number for everyone -- strength trains low-rep/heavy,
 // hypertrophy (muscle) trains moderate reps, fat-loss/fitness train
-// higher-rep for metabolic density. "health" gets a moderate general baseline.
+// higher-rep for metabolic density. Athletic work sits between strength and
+// hypertrophy: low enough to move fast against a meaningful load, high enough
+// to accumulate quality reps rather than grinding near-maximal singles.
 const GOAL_REP_TARGET: Record<string, number> = {
   strength: 5,
+  athletic: 6,
   muscle: 10,
   "fat-loss": 14,
   fitness: 12,
+  // Legacy goal, no longer offered. Left in so anyone who chose it keeps the
+  // programme they already had until they pick something else.
   health: 10,
 };
 
 // Rest between sets follows the same logic: strength needs full recovery to
 // keep the weight heavy, fat-loss/fitness keep rest short to stay in a
-// higher heart-rate, higher-density zone.
+// higher heart-rate, higher-density zone. Athletic training rests nearly as
+// long as strength: a fast rep done tired is just a slow rep, and the point
+// of the session is the speed.
 const GOAL_REST_SECONDS: Record<string, number> = {
   strength: 120,
+  athletic: 100,
   muscle: 75,
   "fat-loss": 40,
   fitness: 45,
   health: 60,
 };
+
+// What the plan pushes on next, phrased for the goal. Shared so the progress
+// screen and the end-of-session summary cannot drift apart.
+function nextFocusForGoal(goal: string | undefined): string {
+  if (goal === "strength") return "Progressive load";
+  if (goal === "athletic") return "Power and speed";
+  if (goal === "fat-loss") return "Training density";
+  return "Movement quality";
+}
 
 // --- Training background ---------------------------------------------------
 // The interview asks for experience across four levels, and all four have to
@@ -5279,6 +5299,9 @@ function todaysCheckIn(checkIn: DailyCheckIn | null): DailyCheckIn | null {
 // cut below does the work for them instead.
 const GOAL_READINESS_WEIGHT_SENSITIVITY: Record<string, number> = {
   strength: 0.18,
+  // Explosive work under-recovered is both unproductive and the most likely
+  // to hurt someone, so it backs off nearly as hard as strength does.
+  athletic: 0.15,
   muscle: 0.12,
   "fat-loss": 0.07,
   fitness: 0.07,
@@ -5290,6 +5313,9 @@ const GOAL_READINESS_WEIGHT_SENSITIVITY: Record<string, number> = {
 // day, while strength keeps its sets and gives up load instead.
 const GOAL_READINESS_VOLUME_SENSITIVITY: Record<string, number> = {
   strength: 0.5,
+  // Like strength, athletic training keeps its sets and gives up load: fewer
+  // quality reps teaches less than the same reps done lighter and faster.
+  athletic: 0.7,
   muscle: 1,
   "fat-loss": 1,
   fitness: 1,
@@ -6728,7 +6754,7 @@ function ActiveWorkoutScreen({
           <View style={[styles.completeAnalysisRow, styles.completeAnalysisLastRow]}>
             <Text style={styles.completeAnalysisLabel}>Next priority</Text>
             <Text style={styles.completeAnalysisValue}>
-              {profile.goal === "strength" ? "Progressive load" : profile.goal === "fat-loss" ? "Training density" : "Movement quality"}
+              {nextFocusForGoal(profile.goal)}
             </Text>
           </View>
         </View>
@@ -7159,12 +7185,7 @@ function ProgressScreen({
   exerciseProgress: Record<string, ExerciseProgress>;
   earnedBadges: EarnedBadges;
 }) {
-  const nextFocus =
-    profile.goal === "strength"
-      ? "Progressive load"
-      : profile.goal === "fat-loss"
-        ? "Training density"
-        : "Movement quality";
+  const nextFocus = nextFocusForGoal(profile.goal);
 
   const totalWorkouts = workoutHistory.length;
   const hasHistory = totalWorkouts > 0;
