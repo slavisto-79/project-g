@@ -1587,8 +1587,12 @@ type BottomNavKey = "dashboard" | "nutrition" | "progress" | "coach";
 // Enter-only on purpose: animating the outgoing screen out as well would mean
 // holding two screens mounted at once, and a tab change would feel slower than
 // it is. Nobody is waiting to watch the old screen leave.
-const SCREEN_TRANSITION_MS = 190;
-const SCREEN_TRANSITION_DRIFT = 10;
+// Slower than the first pass, which landed before the eye had followed it.
+// The drift grew with the duration: holding a small offset over a longer
+// window reads as sluggish rather than smooth, because there is time to
+// notice the movement but not much movement to notice.
+const SCREEN_TRANSITION_MS = 280;
+const SCREEN_TRANSITION_DRIFT = 14;
 
 function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -1660,8 +1664,10 @@ function NavIcon({ icon, isActive }: { icon: string; isActive: boolean }) {
     }
     const animation = Animated.spring(scale, {
       toValue: target,
-      friction: 6,
-      tension: 160,
+      // Softer and slower than the default pop, to sit with the screen
+      // transition rather than finishing well ahead of it.
+      friction: 7,
+      tension: 110,
       useNativeDriver: true,
     });
     animation.start();
