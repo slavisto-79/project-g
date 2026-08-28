@@ -17,6 +17,7 @@ type DietPlanRequest = {
   budget?: string;
   mealStyle?: string;
   avoid?: string;
+  allergies?: string;
   calorieTarget?: number;
   proteinTarget?: number;
   unitSystem?: "metric" | "imperial";
@@ -121,6 +122,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const mealStyle = mealStyleLabels[body.mealStyle ?? "cook"] ?? mealStyleLabels.cook;
   const mealStyleGuidanceText = mealStyleGuidance[body.mealStyle ?? "cook"] ?? mealStyleGuidance.cook;
   const avoid = typeof body.avoid === "string" ? body.avoid.slice(0, 140) : "";
+  const allergies = typeof body.allergies === "string" ? body.allergies.slice(0, 140) : "";
   const calorieTarget =
     typeof body.calorieTarget === "number" && Number.isFinite(body.calorieTarget)
       ? Math.max(1200, Math.min(4500, Math.round(body.calorieTarget)))
@@ -154,6 +156,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           budgetGuidanceText,
           mealStyleGuidanceText,
           avoid ? `Avoid these foods entirely: ${avoid}.` : "",
+          // Stated separately and more forcefully than a dislike, because it
+          // is a different kind of instruction: skipping a disliked food
+          // makes a meal unappealing, skipping an allergen keeps someone out
+          // of hospital.
+          allergies
+            ? `ALLERGY - CRITICAL: the user is allergic to ${allergies}. These ingredients, anything derived from them, and anything they are commonly cross-contaminated with must not appear in any meal, garnish, sauce or substitution. If a recipe would normally include one, choose a different recipe rather than omitting the ingredient.`
+            : "",
           `Size each day to approximately ${calorieTarget} kcal and ${proteinTarget}g of protein in total; distribute reasonably across that day's meals.`,
           "Use simple, realistic, common ingredients a home cook can find easily.",
           `Each meal's description must mention a realistic portion size using ${unitInstruction}.`,
@@ -163,7 +172,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ]
           .filter(Boolean)
           .join(" "),
-        input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nMEALS PER DAY: ${mealsPerDay}\nDIETARY STYLE: ${dietaryStyle}\nPREP TIME: ${prepTime}\nBUDGET: ${budget}\nMEAL STYLE: ${mealStyle}\nAVOID: ${avoid || "none"}\nCALORIE TARGET: ${calorieTarget} kcal\nPROTEIN TARGET: ${proteinTarget}g`,
+        input: `USER PROFILE:\n${JSON.stringify(profile)}\n\nMEALS PER DAY: ${mealsPerDay}\nDIETARY STYLE: ${dietaryStyle}\nPREP TIME: ${prepTime}\nBUDGET: ${budget}\nMEAL STYLE: ${mealStyle}\nAVOID: ${avoid || "none"}\nALLERGIES: ${allergies || "none"}\nCALORIE TARGET: ${calorieTarget} kcal\nPROTEIN TARGET: ${proteinTarget}g`,
         text: {
           format: {
             type: "json_schema",
