@@ -10,6 +10,9 @@ export type ProgramBuilderProfile = {
   // to filter on -- it is handled after the program is built, by a pass that
   // may only remove exercises.
   limitations: "knee" | "shoulder" | "back" | "none" | "other";
+  // What the user reported they can already do. Prescribing a pull-up to
+  // someone who cannot do one is a wall, not a hard session.
+  bodyweightStrength?: "both" | "pushups" | "neither";
   sex: "male" | "female";
 };
 
@@ -163,6 +166,20 @@ function isDifficultyAppropriate(
   return difficultyRank[exercise.difficulty] <= maxDifficultyRank[experience];
 }
 
+// Movements that need a strength the user has told us they do not have yet.
+// A soft preference like difficulty rather than a hard filter: an unsuitable
+// exercise still beats an empty slot, and the built-in roster substitutes a
+// named regression for these anyway.
+function isWithinBodyweightStrength(
+  exercise: ExerciseTag,
+  bodyweightStrength: ProgramBuilderProfile["bodyweightStrength"],
+): boolean {
+  if (!bodyweightStrength || bodyweightStrength === "both") return true;
+  if (/pull-?up|chin-?up|muscle-?up|dip/i.test(exercise.name)) return false;
+  if (bodyweightStrength === "neither" && /push-?up/i.test(exercise.name)) return false;
+  return true;
+}
+
 function isInjurySafeForProfile(exercise: ExerciseTag, limitations: ProgramBuilderProfile["limitations"]): boolean {
   if (limitations === "knee") return exercise.injurySafe.kneeSafe;
   if (limitations === "shoulder") return exercise.injurySafe.shoulderSafe;
@@ -244,7 +261,13 @@ export async function buildProgram(
     // program back to the built-in fallback roster. Injury-safety and media
     // availability stay hard requirements -- those aren't negotiable.
     const pick =
-      eligible.find((candidate) => isDifficultyAppropriate(candidate, profile.experience)) ?? eligible[0];
+      eligible.find(
+        (candidate) =>
+          isDifficultyAppropriate(candidate, profile.experience) &&
+          isWithinBodyweightStrength(candidate, profile.bodyweightStrength),
+      ) ??
+      eligible.find((candidate) => isWithinBodyweightStrength(candidate, profile.bodyweightStrength)) ??
+      eligible[0];
     if (pick) {
       program.push(pick);
       usedIds.add(pick.id);
