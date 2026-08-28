@@ -73,6 +73,11 @@ type ChoiceQuestion = {
   // knee and a bad shoulder, and making them pick one hides the other from
   // every filter downstream. Stored comma-separated, like reminderDays.
   multiSelect?: boolean;
+  // Rewrites the question's wording from answers already given. "What pace
+  // suits you?" is meaningless on its own -- pace of what? -- and the honest
+  // answer depends on whether the person is heading up or down, which they
+  // have already told us by this point.
+  resolveCopy?: (answers: Record<string, string>) => { kicker?: string; title?: string; subtitle?: string };
   // When set, picking the answer whose value matches `whenValue` reveals a
   // free-text field, stored on the profile under `noteId`. A fixed list can't
   // anticipate every limitation someone might have.
@@ -171,9 +176,40 @@ const interviewQuestions: InterviewQuestion[] = [
   {
     kind: "choice",
     id: "dietPace",
-    kicker: "HOW FAST TO GET THERE",
-    title: "What pace suits you?",
-    subtitle: "Faster means a bigger daily gap. Slower is easier to hold on to.",
+    kicker: "HOW FAST TO CHANGE WEIGHT",
+    title: "How fast do you want to lose or gain?",
+    subtitle:
+      "This sets how big a daily calorie gap we aim for. Faster moves the scale sooner but is harder to stick to.",
+    resolveCopy: (answers) => {
+      const currentKg = Number(answers.weight);
+      const goalKg = Number(answers.goalWeight);
+      const differenceKg =
+        Number.isFinite(currentKg) && Number.isFinite(goalKg) ? goalKg - currentKg : 0;
+      if (differenceKg <= -2) {
+        return {
+          kicker: "HOW FAST TO LOSE WEIGHT",
+          title: `How fast do you want to lose the ${Math.round(Math.abs(differenceKg))} kg?`,
+          subtitle:
+            "This sets how big a daily calorie deficit we aim for. Faster gets you there sooner but is harder to stick to.",
+        };
+      }
+      if (differenceKg >= 2) {
+        return {
+          kicker: "HOW FAST TO GAIN WEIGHT",
+          title: `How fast do you want to gain the ${Math.round(differenceKg)} kg?`,
+          subtitle:
+            "This sets how big a daily calorie surplus we aim for. Faster adds weight sooner, but more of it as fat.",
+        };
+      }
+      // Target and current weight match, so nothing here changes the plan --
+      // say so rather than asking as if it mattered.
+      return {
+        kicker: "HOW FAST TO CHANGE WEIGHT",
+        title: "Holding your weight steady",
+        subtitle:
+          "Your target matches your current weight, so we’ll aim for maintenance. Pick anything — it only takes effect if you change your target later.",
+      };
+    },
     answers: [
       { label: "Slow and comfortable", value: "slow" },
       { label: "Steady", value: "steady" },
@@ -291,6 +327,20 @@ const interviewQuestions: InterviewQuestion[] = [
     },
   },
 ];
+
+// Question wording after any answer-dependent rewrite. Falls straight
+// through for the questions that do not define one.
+function resolvedQuestionCopy(
+  question: InterviewQuestion,
+  answers: Record<string, string>,
+): { kicker: string; title: string; subtitle: string } {
+  const override = question.kind === "choice" ? question.resolveCopy?.(answers) : undefined;
+  return {
+    kicker: override?.kicker ?? question.kicker,
+    title: override?.title ?? question.title,
+    subtitle: override?.subtitle ?? question.subtitle,
+  };
+}
 
 // A multi-select answer is stored as one comma-separated string, so the whole
 // profile stays a flat Record<string, string> and persists unchanged.
@@ -838,6 +888,9 @@ function InterviewScreen({
   // something and nothing acts on it. So the note is required once its answer
   // is picked.
   const selectedValues = splitAnswerValues(selected);
+  const questionCopy = question
+    ? resolvedQuestionCopy(question, answers)
+    : { kicker: "", title: "", subtitle: "" };
   const activeNote =
     question?.kind === "choice" && question.note && selectedValues.includes(question.note.whenValue)
       ? question.note
@@ -1032,9 +1085,9 @@ function InterviewScreen({
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.previewStep}>{question.kicker}</Text>
-            <Text style={styles.previewTitle}>{question.title}</Text>
-            <Text style={styles.previewBody}>{question.subtitle}</Text>
+            <Text style={styles.previewStep}>{questionCopy.kicker}</Text>
+            <Text style={styles.previewTitle}>{questionCopy.title}</Text>
+            <Text style={styles.previewBody}>{questionCopy.subtitle}</Text>
             {question.id === "frequency" ? (
               <>
                 <View style={[styles.scheduleDaysRow, { marginTop: 24 }]}>
@@ -1221,6 +1274,9 @@ function ProfileScreen({
   };
 
   const draftValues = splitAnswerValues(draftValue);
+  const editingCopy = editingQuestion
+    ? resolvedQuestionCopy(editingQuestion, profile)
+    : { kicker: "", title: "", subtitle: "" };
   const editingNote =
     editingQuestion?.kind === "choice" &&
     editingQuestion.note &&
@@ -1285,9 +1341,9 @@ function ProfileScreen({
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.previewStep}>{editingQuestion.kicker}</Text>
-          <Text style={styles.previewTitle}>{editingQuestion.title}</Text>
-          <Text style={styles.previewBody}>{editingQuestion.subtitle}</Text>
+          <Text style={styles.previewStep}>{editingCopy.kicker}</Text>
+          <Text style={styles.previewTitle}>{editingCopy.title}</Text>
+          <Text style={styles.previewBody}>{editingCopy.subtitle}</Text>
           {editingQuestion.kind === "picker" ? (
             <View style={styles.wheelPickerWrap}>
               <NumberWheelPicker
@@ -4606,6 +4662,17 @@ function inferDietMode(profile: Record<string, string>): DietMode {
   if (profile.dietMode === "bulk" || profile.dietMode === "cut" || profile.dietMode === "recomp") {
     return profile.dietMode;
   }
+  // A stated goal weight outranks the training goal, because it is the more
+  // direct statement of intent. Someone training for general fitness who says
+  // they want to be 8kg lighter needs a deficit -- inferring "recomp" from the
+  // training goal alone left their target weight doing nothing at all.
+  const currentKg = Number(profile.weight);
+  const goalKg = Number(profile.goalWeight);
+  if (Number.isFinite(currentKg) && Number.isFinite(goalKg) && goalKg > 0) {
+    // Under a couple of kilos is inside normal daily fluctuation, not a goal.
+    if (Math.abs(goalKg - currentKg) >= 2) return goalKg < currentKg ? "cut" : "bulk";
+  }
+
   return profile.goal === "muscle" ? "bulk" : profile.goal === "fat-loss" ? "cut" : "recomp";
 }
 
