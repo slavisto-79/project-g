@@ -1,5 +1,6 @@
-import { createElement, useEffect, useMemo, useRef, useState } from "react";
+import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
+  AccessibilityInfo,
   Animated,
   Easing,
   Image,
@@ -1579,6 +1580,103 @@ function ProfileScreen({
 
 type BottomNavKey = "dashboard" | "nutrition" | "progress" | "coach";
 
+// Tabs used to swap instantly, which read as a jump cut rather than a change
+// of place. A short fade with a little upward drift is enough to make the new
+// screen feel like it arrived.
+//
+// Enter-only on purpose: animating the outgoing screen out as well would mean
+// holding two screens mounted at once, and a tab change would feel slower than
+// it is. Nobody is waiting to watch the old screen leave.
+const SCREEN_TRANSITION_MS = 190;
+const SCREEN_TRANSITION_DRIFT = 10;
+
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (!cancelled) setReduced(enabled);
+    });
+    const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduced);
+    return () => {
+      cancelled = true;
+      subscription.remove();
+    };
+  }, []);
+  return reduced;
+}
+
+function ScreenTransition({ screenKey, children }: { screenKey: string; children: ReactNode }) {
+  const reducedMotion = useReducedMotion();
+  const opacity = useRef(new Animated.Value(1)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (reducedMotion) {
+      // Land on the finished state rather than skipping the effect, so a
+      // mid-animation preference change can't strand a screen half-faded.
+      opacity.setValue(1);
+      translateY.setValue(0);
+      return;
+    }
+    opacity.setValue(0);
+    translateY.setValue(SCREEN_TRANSITION_DRIFT);
+    const animation = Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: SCREEN_TRANSITION_MS,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: SCREEN_TRANSITION_MS,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]);
+    animation.start();
+    return () => animation.stop();
+  }, [screenKey, reducedMotion, opacity, translateY]);
+
+  return (
+    <Animated.View style={[styles.screenTransition, { opacity, transform: [{ translateY }] }]}>
+      {children}
+    </Animated.View>
+  );
+}
+
+// A small lift as a tab becomes active, so the tap has a visible consequence
+// in the bar itself and not only in the screen above it. Spring rather than
+// timing: this is a response to a press, and a press should feel physical.
+function NavIcon({ icon, isActive }: { icon: string; isActive: boolean }) {
+  const reducedMotion = useReducedMotion();
+  const scale = useRef(new Animated.Value(isActive ? 1 : 0.92)).current;
+
+  useEffect(() => {
+    const target = isActive ? 1 : 0.92;
+    if (reducedMotion) {
+      scale.setValue(target);
+      return;
+    }
+    const animation = Animated.spring(scale, {
+      toValue: target,
+      friction: 6,
+      tension: 160,
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [isActive, reducedMotion, scale]);
+
+  return (
+    <Animated.View
+      style={[styles.navIconWrap, isActive && styles.navIconWrapActive, { transform: [{ scale }] }]}
+    >
+      <Text style={[styles.navIcon, !isActive && styles.navIconInactive]}>{icon}</Text>
+    </Animated.View>
+  );
+}
+
 function BottomNav({
   active,
   onHome,
@@ -1611,9 +1709,7 @@ function BottomNav({
             onPress={isActive ? undefined : item.onPress}
             style={styles.navItem}
           >
-            <View style={[styles.navIconWrap, isActive && styles.navIconWrapActive]}>
-              <Text style={[styles.navIcon, !isActive && styles.navIconInactive]}>{item.icon}</Text>
-            </View>
+            <NavIcon icon={item.icon} isActive={isActive} />
             <Text style={[styles.navLabel, isActive && styles.navActive]}>{item.label}</Text>
           </Pressable>
         );
@@ -8213,6 +8309,7 @@ export default function App() {
       {Platform.OS === "android" ? <StatusBar backgroundColor={colors.background} /> : null}
       <ExpoStatusBar style="light" />
       <View style={styles.mobileViewport}>
+        <ScreenTransition screenKey={screen}>
         {screen === "splash" && <SplashScreen onComplete={() => setScreen("welcome")} />}
         {screen === "welcome" && (
           <WelcomeScreen
@@ -8408,6 +8505,7 @@ export default function App() {
             onOpenCoach={() => setScreen("coach")}
           />
         )}
+        </ScreenTransition>
       </View>
 
       <Modal
@@ -8455,6 +8553,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  screenTransition: { flex: 1 },
   mobileViewport: {
     flex: 1,
     width: "100%",
