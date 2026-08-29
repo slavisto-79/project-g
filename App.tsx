@@ -37,6 +37,7 @@ import {
   suitsGoal,
   type EquipmentTier,
   type LibraryExercise,
+  type LibraryImplement,
 } from "./lib/exerciseLibrary";
 import { shippedMediaFor } from "./lib/exerciseMedia";
 import type { ExerciseTag, MovementPattern, PrimaryMuscle } from "./lib/exerciseCatalog";
@@ -6342,6 +6343,50 @@ function libraryWorkout(
 // name; everything else carries its written cue. Mixing the two is the point:
 // a demo where one exists beats text, and text beats a photo of a different
 // exercise.
+// Which implements a tier should actually reach for.
+//
+// Without this, picking was decided by declaration order: a full-gym lifter got
+// a bodyweight lunge because it happened to be written first in the library.
+// Answering "full gym" and being handed bodyweight work reads as the program
+// not listening.
+const IMPLEMENT_PREFERENCE: Record<EquipmentTier, Record<LibraryImplement, number>> = {
+  gym: { barbell: 20, dumbbell: 17, machine: 14, cable: 14, kettlebell: 12, other: 8, bodyweight: 6, band: 3 },
+  "home-gym": { dumbbell: 20, barbell: 18, kettlebell: 16, band: 10, bodyweight: 9, other: 8, machine: 4, cable: 4 },
+  minimal: { dumbbell: 20, kettlebell: 18, band: 14, bodyweight: 12, other: 8, barbell: 2, machine: 0, cable: 0 },
+  bars: { bodyweight: 20, band: 12, other: 8, dumbbell: 4, kettlebell: 4, barbell: 0, machine: 0, cable: 0 },
+  bodyweight: { bodyweight: 20, band: 8, other: 6, dumbbell: 0, kettlebell: 0, barbell: 0, machine: 0, cable: 0 },
+};
+
+// Assisted and negative variants are scaffolding towards a movement, not
+// lesser versions of it. Which way they should be filtered depends entirely on
+// whether the user can already do the thing.
+const REGRESSION_NAME = /assisted|negative|knee push-?up|incline push-?up|wall push-?up|box push-?up/i;
+
+const LIBRARY_DIFFICULTY_RANK = { novice: 0, beginner: 1, intermediate: 2, advanced: 3 };
+
+// Difficulty is a target, not a ceiling.
+//
+// The previous rule only capped how hard an exercise could be, so the easiest
+// qualifying movement won whenever it was declared first -- an intermediate
+// lifter was offered novice work. Distance from their level is now scored in
+// both directions, asymmetrically: too hard risks injuring someone, too easy
+// only wastes a slot, so overshooting is penalised harder than undershooting.
+function libraryPickScore(
+  exercise: LibraryExercise,
+  tier: EquipmentTier,
+  targetDifficulty: number,
+  goal: string | undefined,
+): number {
+  const rank = LIBRARY_DIFFICULTY_RANK[exercise.difficulty];
+  const distance = rank > targetDifficulty ? (rank - targetDifficulty) * 22 : (targetDifficulty - rank) * 9;
+  return (
+    60 -
+    distance +
+    (IMPLEMENT_PREFERENCE[tier][exercise.implement] ?? 0) +
+    (suitsGoal(exercise, goal) ? 15 : 0)
+  );
+}
+
 function buildProgramFromLibrary(
   profile: Record<string, string>,
   splitDay: SplitDay,
@@ -6355,10 +6400,9 @@ function buildProgramFromLibrary(
     ? (profile.equipment as EquipmentTier)
     : "minimal";
   const limitations = splitAnswerValues(profile.limitations);
-  const maxDifficulty = { beginner: 1, novice: 1, intermediate: 2, advanced: 3 }[
+  const targetDifficulty = { beginner: 1, novice: 1, intermediate: 2, advanced: 3 }[
     profile.experience ?? ""
   ] ?? 1;
-  const difficultyRank = { novice: 0, beginner: 1, intermediate: 2, advanced: 3 };
   const canPullUp = profile.bodyweightStrength === "both";
   const canPushUp = profile.bodyweightStrength !== "neither";
 
@@ -6368,8 +6412,16 @@ function buildProgramFromLibrary(
     if (limitations.includes("knee") && !exercise.injurySafe.kneeSafe) return false;
     if (limitations.includes("shoulder") && !exercise.injurySafe.shoulderSafe) return false;
     if (limitations.includes("back") && !exercise.injurySafe.backSafe) return false;
-    if (!canPullUp && /pull-?up|chin-?up|muscle-?up|\bdip\b/i.test(exercise.name)) return false;
-    if (!canPushUp && /push-?up/i.test(exercise.name)) return false;
+
+    // Someone who can't do a pull-up yet was previously given no pull work at
+    // all -- including the assisted and negative variants, which are precisely
+    // how a first pull-up gets built. Each family now splits on capability:
+    // those who can't get the scaffolding, those who can get the real thing.
+    const isRegression = REGRESSION_NAME.test(exercise.name);
+    const isPushUpFamily = /push-?up/i.test(exercise.name);
+    const isPullUpFamily = !isPushUpFamily && /pull-?up|chin-?up|muscle-?up|\bdip\b/i.test(exercise.name);
+    if (isPullUpFamily && canPullUp === isRegression) return false;
+    if (isPushUpFamily && canPushUp === isRegression) return false;
     return true;
   });
 
@@ -6379,18 +6431,40 @@ function buildProgramFromLibrary(
 
   for (const pattern of slots) {
     const forPattern = eligible.filter((exercise) => exercise.pattern === pattern && !used.has(exercise.name));
-    // Difficulty and goal fit are preferences, tried in order, so a thin
-    // pattern still yields something rather than nothing.
-    const pick =
-      forPattern.find(
-        (exercise) =>
-          difficultyRank[exercise.difficulty] <= maxDifficulty && suitsGoal(exercise, profile.goal),
-      ) ??
-      forPattern.find((exercise) => difficultyRank[exercise.difficulty] <= maxDifficulty) ??
-      forPattern[0];
+    // Score every candidate rather than taking the first that clears a bar:
+    // a thin pattern still yields its best available option instead of
+    // whichever movement happened to be written first. Sort is stable, so ties
+    // fall back to library order and the same profile always builds the same
+    // session.
+    const pick = forPattern
+      .map((exercise) => ({
+        exercise,
+        score: libraryPickScore(exercise, tier, targetDifficulty, profile.goal),
+      }))
+      .sort((a, b) => b.score - a.score)[0]?.exercise;
     if (pick) {
       chosen.push(pick);
       used.add(pick.name);
+    }
+  }
+
+  // A leg day for someone with a bad knee can't fill five knee-dominant slots,
+  // and a session that comes back short is dropped entirely for the old
+  // hardcoded roster -- so the users with the most reason to need a tailored
+  // programme were the ones least likely to get one. Unfilled slots are backed
+  // by whatever else the library can safely offer them, best-scoring first.
+  if (chosen.length < slots.length) {
+    const backfill = eligible
+      .filter((exercise) => !used.has(exercise.name))
+      .map((exercise) => ({
+        exercise,
+        score: libraryPickScore(exercise, tier, targetDifficulty, profile.goal),
+      }))
+      .sort((a, b) => b.score - a.score);
+    for (const { exercise } of backfill) {
+      if (chosen.length >= slots.length) break;
+      chosen.push(exercise);
+      used.add(exercise.name);
     }
   }
 
