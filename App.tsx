@@ -28,9 +28,17 @@ import {
   buildProgram,
   determineSplitDay,
   splitDaySlotCount,
+  splitDayPatterns,
   type ProgramBuilderProfile,
   type SplitDay,
 } from "./lib/programBuilder";
+import {
+  exercisesForTier,
+  suitsGoal,
+  type EquipmentTier,
+  type LibraryExercise,
+} from "./lib/exerciseLibrary";
+import { shippedMediaFor } from "./lib/exerciseMedia";
 import type { ExerciseTag, MovementPattern, PrimaryMuscle } from "./lib/exerciseCatalog";
 
 const colors = {
@@ -4566,8 +4574,13 @@ type WorkoutExercise = {
   repsPerSide?: "leg" | "side";
   tempo: string;
   phases: string[];
-  formFrames: [ImageSourcePropType, ImageSourcePropType];
-  poseGuide: PoseGuide;
+  // Absent for library exercises that have no demo footage shot yet. The
+  // screen falls back to the written cue rather than showing a photo of a
+  // different movement.
+  formFrames?: [ImageSourcePropType, ImageSourcePropType];
+  poseGuide?: PoseGuide;
+  // How to perform it, in words. Carries the exercise until footage exists.
+  cue?: string;
   video?: number | string;
   // Only present for exercises sourced from the live MuscleWiki catalog --
   // needed to look up "similar exercise" alternatives. Absent for the
@@ -6134,8 +6147,10 @@ async function createWorkoutFromCatalog(
     // Split templates range from 4 (push/pull) to 8 (full-body) slots -- judge
     // "did this work" against a floor, not a fixed count meant for full-body.
     if (tags.length < 4) {
-      console.error(`Catalog program only filled ${tags.length} slots for "${splitDay}" -- falling back to the built-in workout`);
-      return null;
+      console.error(
+        `Catalog program only filled ${tags.length} slots for "${splitDay}" -- building from the local library instead`,
+      );
+      return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier);
     }
     return {
       exercises: tags.map((tag) =>
@@ -6147,8 +6162,8 @@ async function createWorkoutFromCatalog(
       weightModifier,
     };
   } catch (error) {
-    console.error("Catalog workout build failed -- falling back to the built-in workout", error);
-    return null;
+    console.error("Catalog workout build failed -- building from the local library instead", error);
+    return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier);
   }
 }
 
@@ -6244,6 +6259,157 @@ function countVetoedExercises(
   return Math.max(0, before.length - after.length);
 }
 
+// Shown in place of a demo when an exercise has no footage yet.
+//
+// Deliberately not a stand-in photograph: borrowing another movement's image
+// would be worse than showing none, because a trainee copying what they see
+// would do the wrong exercise. Words they can follow beat a picture that lies.
+function libraryExerciseToWorkoutExercise(
+  exercise: LibraryExercise,
+  profile: Record<string, string>,
+  exerciseProgress: Record<string, ExerciseProgress>,
+  isDeload: boolean,
+  weightModifier: number,
+): WorkoutExercise {
+  const range = baseRepRangeForProfile(profile);
+  const saved = exerciseProgress[exercise.name]
+    ? normalizeExerciseProgress(exerciseProgress[exercise.name]!, range)
+    : null;
+  const implement = implementForExerciseName(exercise.name);
+  const isUnloaded = exercise.implement === "bodyweight" || exercise.implement === "band";
+  const media = shippedMediaFor(exercise.name, profile.sex);
+
+  const startingKg = exercise.startingKg ?? 0;
+  const weight = isUnloaded
+    ? "Bodyweight"
+    : saved && hasEarnedWeight(saved)
+      ? `${snapToLoadableWeight(saved.weightKg * (isDeload ? 0.85 : weightModifier), implement)} kg`
+      : scaledStartingWeightLabel(
+          startingKg * experienceLoadFactor(profile) * (isDeload ? 0.85 : weightModifier),
+          Number(profile.weight),
+          implement,
+        );
+
+  return {
+    name: exercise.name,
+    target: `${exercise.primaryMuscle.replace("-", " ")} · ${exercise.pattern}`,
+    weight,
+    reps: exercise.isHold
+      ? String(holdSecondsForProfile(profile))
+      : String(saved ? saved.repsLow : range.low),
+    repsHigh: exercise.isHold ? undefined : String(saved ? saved.repsHigh : range.high),
+    implement: isUnloaded ? undefined : implement,
+    weightPerHand: !isUnloaded && exercise.perHand === true,
+    repsPerSide: exercise.isHold || !exercise.unilateral ? undefined : (perSideUnitLabel(exercise.name, exercise.primaryMuscle) ?? undefined),
+    tempo: exercise.isHold ? "HOLD" : "3-1-1",
+    phases: exercise.isHold ? ["BRACE", "HOLD", "HOLD"] : ["LOWER", "BRACE", "LIFT"],
+    cue: exercise.cue,
+    ...(media ? { video: media.video, formFrames: media.formFrames } : {}),
+  };
+}
+
+// The library result shaped like a catalog result, so the caller doesn't need
+// to know which source answered. Returns null only if the library somehow
+// can't fill four slots, which sends the caller to the original hardcoded
+// roster as a last resort.
+function libraryWorkout(
+  profile: Record<string, string>,
+  splitDay: SplitDay,
+  splitLabel: string,
+  exerciseProgress: Record<string, ExerciseProgress>,
+  isDeload: boolean,
+  weightModifier: number,
+): {
+  exercises: WorkoutExercise[];
+  splitLabel: string;
+  splitDay: SplitDay;
+  isDeload: boolean;
+  weightModifier: number;
+} | null {
+  const exercises = buildProgramFromLibrary(profile, splitDay, exerciseProgress, isDeload, weightModifier);
+  if (exercises.length < 4) return null;
+  return { exercises, splitLabel, splitDay, isDeload, weightModifier };
+}
+
+// Builds a session from the local library, with no network involved.
+//
+// This is what runs when the catalog is unreachable, which -- while it is
+// rate-limited -- is most of the time. It replaces a set of hardcoded rosters
+// that offered six or seven movements per equipment tier and ignored goal,
+// difficulty and most limitations.
+//
+// Media is attached where the app already ships footage for that movement by
+// name; everything else carries its written cue. Mixing the two is the point:
+// a demo where one exists beats text, and text beats a photo of a different
+// exercise.
+function buildProgramFromLibrary(
+  profile: Record<string, string>,
+  splitDay: SplitDay,
+  exerciseProgress: Record<string, ExerciseProgress>,
+  isDeload: boolean,
+  weightModifier: number,
+): WorkoutExercise[] {
+  const tier = (["gym", "home-gym", "minimal", "bodyweight", "bars"] as EquipmentTier[]).includes(
+    profile.equipment as EquipmentTier,
+  )
+    ? (profile.equipment as EquipmentTier)
+    : "minimal";
+  const limitations = splitAnswerValues(profile.limitations);
+  const maxDifficulty = { beginner: 1, novice: 1, intermediate: 2, advanced: 3 }[
+    profile.experience ?? ""
+  ] ?? 1;
+  const difficultyRank = { novice: 0, beginner: 1, intermediate: 2, advanced: 3 };
+  const canPullUp = profile.bodyweightStrength === "both";
+  const canPushUp = profile.bodyweightStrength !== "neither";
+
+  const eligible = exercisesForTier(tier).filter((exercise) => {
+    // Injury safety is the one hard filter -- everything else can bend rather
+    // than leave a slot empty.
+    if (limitations.includes("knee") && !exercise.injurySafe.kneeSafe) return false;
+    if (limitations.includes("shoulder") && !exercise.injurySafe.shoulderSafe) return false;
+    if (limitations.includes("back") && !exercise.injurySafe.backSafe) return false;
+    if (!canPullUp && /pull-?up|chin-?up|muscle-?up|\bdip\b/i.test(exercise.name)) return false;
+    if (!canPushUp && /push-?up/i.test(exercise.name)) return false;
+    return true;
+  });
+
+  const slots = splitDayPatterns(splitDay);
+  const used = new Set<string>();
+  const chosen: LibraryExercise[] = [];
+
+  for (const pattern of slots) {
+    const forPattern = eligible.filter((exercise) => exercise.pattern === pattern && !used.has(exercise.name));
+    // Difficulty and goal fit are preferences, tried in order, so a thin
+    // pattern still yields something rather than nothing.
+    const pick =
+      forPattern.find(
+        (exercise) =>
+          difficultyRank[exercise.difficulty] <= maxDifficulty && suitsGoal(exercise, profile.goal),
+      ) ??
+      forPattern.find((exercise) => difficultyRank[exercise.difficulty] <= maxDifficulty) ??
+      forPattern[0];
+    if (pick) {
+      chosen.push(pick);
+      used.add(pick.name);
+    }
+  }
+
+  return chosen.map((exercise) =>
+    libraryExerciseToWorkoutExercise(exercise, profile, exerciseProgress, isDeload, weightModifier),
+  );
+}
+
+function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
+  return (
+    <View style={styles.cueCard}>
+      <Text style={styles.cueCardBadge}>NO DEMO YET</Text>
+      <Text style={styles.cueCardName}>{exercise.name}</Text>
+      <Text style={styles.cueCardTarget}>{exercise.target}</Text>
+      {exercise.cue ? <Text style={styles.cueCardText}>{exercise.cue}</Text> : null}
+    </View>
+  );
+}
+
 function ExerciseStill({ frame }: { frame: ImageSourcePropType }) {
   return (
     <View style={StyleSheet.absoluteFill}>
@@ -6319,23 +6485,29 @@ function ExerciseDemo({
 
   return (
     <View style={styles.demoStage}>
-      {exercise.video ? (
+      {exercise.video && exercise.formFrames ? (
         <RealExerciseVideo
           key={exercise.video}
           source={exercise.video}
           poster={exercise.formFrames[0]}
         />
-      ) : (
+      ) : exercise.formFrames ? (
         <ExerciseStill frame={exercise.formFrames[0]} />
-      )}
+      ) : (
+        <ExerciseCueCard exercise={exercise} />
+)}
       {nextExercise?.video ? (
         <PreloadExerciseVideo key={`preload-${nextExercise.video}`} source={nextExercise.video} />
       ) : null}
       <View style={styles.videoShade} />
-      <View style={styles.videoSourceBadge}>
-        <View style={styles.formDot} />
-        <Text style={styles.videoSourceText}>REAL FORM DEMO</Text>
-      </View>
+      {/* Only claim a real demo when one is actually playing. The cue card
+          already says "no demo yet", and the two together would contradict. */}
+      {exercise.formFrames ? (
+        <View style={styles.videoSourceBadge}>
+          <View style={styles.formDot} />
+          <Text style={styles.videoSourceText}>REAL FORM DEMO</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -7150,7 +7322,11 @@ function ActiveWorkoutScreen({
                   onPress={() => applySwap(option)}
                   style={({ pressed }) => [styles.swapOptionRow, pressed && { opacity: 0.8 }]}
                 >
-                  <Image source={option.formFrames[0]} style={styles.swapOptionThumb} resizeMode="cover" />
+                  {option.formFrames ? (
+                    <Image source={option.formFrames[0]} style={styles.swapOptionThumb} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.swapOptionThumb} />
+                  )}
                   <View style={styles.swapOptionCopy}>
                     <Text style={styles.swapOptionName}>{option.name}</Text>
                     <Text style={styles.swapOptionTarget}>{option.target}</Text>
@@ -9938,6 +10114,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#151815",
   },
   workoutElapsedText: { color: colors.text, fontSize: 9, fontWeight: "700" },
+  cueCard: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 28,
+    backgroundColor: "#0B0D0B",
+  },
+  cueCardBadge: { color: "#5A6058", fontSize: 8, fontWeight: "900", letterSpacing: 1.4, marginBottom: 14 },
+  cueCardName: { color: colors.text, fontSize: 22, fontWeight: "900", textAlign: "center" },
+  cueCardTarget: { color: colors.lime, fontSize: 10, fontWeight: "800", letterSpacing: 0.8, marginTop: 6, textTransform: "uppercase" },
+  cueCardText: { color: colors.muted, fontSize: 13, lineHeight: 19, textAlign: "center", marginTop: 14 },
   exerciseVisual: {
     alignItems: "center",
     justifyContent: "center",
