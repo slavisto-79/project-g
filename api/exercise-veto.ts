@@ -31,6 +31,20 @@ const MAX_NOTE_CHARS = 300;
 // more; this only guarantees a floor.
 const HIGH_RISK_RULES: { condition: RegExp; unless?: RegExp; avoid: RegExp; because: string }[] = [
   {
+    // Lower-limb injuries. The model handles these well most of the time and
+    // then does not: the same "sprained ankle two weeks ago" came back once
+    // clearing the whole session and twice removing five, and "broken foot in
+    // a walking boot" left jump squats, box jumps and sprints standing.
+    //
+    // Whether to jump on a fracture is not a judgement call, so it stops being
+    // one. Only impact is forced out -- squats, presses, the leg press and calf
+    // raises stay, because loading an injured limb without impact is exactly
+    // the graded question the model should be answering.
+    condition: /\b(ankle|foot|feet|heel|achilles|shin|calf|calves|knee|acl|mcl|meniscus|hamstring|quad|groin|hip|toe)\b[\s\S]{0,40}\b(injur\w*|sprain\w*|strain\w*|broke\w*|break|fractur\w*|torn|tear|tendon\w*|surgery|operat\w*|pain\w*|hurt\w*|sore|boot|cast|brace)\b|\b(sprain\w*|fractur\w*|broke\w*|torn|tear|tendon\w*)\b[\s\S]{0,40}\b(ankle|foot|feet|heel|achilles|shin|calf|calves|knee|acl|mcl|meniscus|hamstring|quad|groin|hip|toe)\b/i,
+    avoid: /jump|burpee|sprint|high knees|skater|bound|mountain climber|hop\b/i,
+    because: "impact on an injured lower limb",
+  },
+  {
     // Abdominal-wall conditions share one mechanism: spikes in intra-abdominal
     // pressure. Explosive, high-impact and direct trunk-flexion work drives
     // that hardest, whether or not the abdomen is "the body part being used".
