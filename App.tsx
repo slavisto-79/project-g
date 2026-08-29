@@ -2422,19 +2422,44 @@ type StrengthLevel = "Beginner" | "Novice" | "Intermediate" | "Advanced";
 
 type StrengthStandard = {
   match: RegExp;
+  // Names that match `match` but must not be rated by it.
+  exclude?: RegExp;
   // Thresholds are estimated-1RM ÷ bodyweight, at which Novice, Intermediate
   // and Advanced begin. Below the first is Beginner.
   male: [number, number, number];
   female: [number, number, number];
 };
 
+// First match wins, so the overhead family is listed before the bench family --
+// otherwise a "shoulder press" would be graded against bench thresholds.
+//
+// Only movements a published standard actually covers appear here. Flys,
+// pulldowns, raises and core work are deliberately absent: inventing a
+// threshold for them would put a number on the screen that means nothing.
 const STRENGTH_STANDARDS: StrengthStandard[] = [
-  { match: /bench press|chest press/i, male: [0.25, 0.4, 0.55], female: [0.15, 0.25, 0.35] },
-  { match: /shoulder press|overhead press/i, male: [0.18, 0.3, 0.42], female: [0.11, 0.19, 0.27] },
+  {
+    match: /shoulder press|overhead press|military press|arnold press|push press|push jerk|landmine press|seated dumbbell press/i,
+    male: [0.18, 0.3, 0.42],
+    female: [0.11, 0.19, 0.27],
+  },
+  {
+    match: /bench press|chest press|floor press|incline .*press|decline .*press/i,
+    male: [0.25, 0.4, 0.55],
+    female: [0.15, 0.25, 0.35],
+  },
   { match: /row/i, male: [0.25, 0.4, 0.55], female: [0.16, 0.27, 0.38] },
   { match: /deadlift/i, male: [0.3, 0.5, 0.7], female: [0.22, 0.37, 0.52] },
   { match: /squat/i, male: [0.35, 0.55, 0.75], female: [0.26, 0.42, 0.58] },
-  { match: /curl/i, male: [0.12, 0.2, 0.3], female: [0.07, 0.12, 0.18] },
+  {
+    // A leg curl is a hamstring machine, not a biceps curl. Graded against
+    // biceps thresholds it read as advanced on almost any load -- a 40kg leg
+    // curl at 70kg bodyweight cleared the 0.3 advanced ratio nearly twice
+    // over and pinned the percentile at its 95 ceiling.
+    match: /curl/i,
+    exclude: /leg curl|hamstring|nordic/i,
+    male: [0.12, 0.2, 0.3],
+    female: [0.07, 0.12, 0.18],
+  },
 ];
 
 // Epley. Any 1RM formula drifts at high rep counts, which is another reason
@@ -2474,11 +2499,20 @@ function strengthStandingFor(
   bodyWeightKg: number,
   sex: string | undefined,
 ): { level: StrengthLevel; percentile: number } | null {
-  const standard = STRENGTH_STANDARDS.find((entry) => entry.match.test(exerciseName));
+  const standard = STRENGTH_STANDARDS.find(
+    (entry) => entry.match.test(exerciseName) && !entry.exclude?.test(exerciseName),
+  );
   if (!standard) return null;
   if (!Number.isFinite(bodyWeightKg) || bodyWeightKg <= 0 || weightKg <= 0) return null;
 
-  const ratio = estimatedOneRepMaxKg(weightKg, reps) / bodyWeightKg;
+  // Dumbbell loads are stored per hand; published standards are quoted for the
+  // total moved. Comparing 20kg-per-hand against a 40kg-total threshold cost
+  // roughly a full band -- a dumbbell press that is genuinely intermediate read
+  // as novice.
+  const totalKg = isPerHandLoad(exerciseName, implementForExerciseName(exerciseName))
+    ? weightKg * 2
+    : weightKg;
+  const ratio = estimatedOneRepMaxKg(totalKg, reps) / bodyWeightKg;
   // An unstated sex takes the female thresholds -- the lower bar, so an
   // unknown never inflates someone's standing.
   const thresholds = sex === "male" ? standard.male : standard.female;
@@ -7740,17 +7774,15 @@ function ProgressScreen({
 
             {overallPercentile !== null || volumeTrend ? (
               <View style={styles.volumeCardStats}>
-                {overallPercentile !== null ? (
-                  <View style={styles.volumeCardStat}>
-                    <Text style={styles.volumeCardStatValue}>{overallPercentile}%</Text>
-                    <Text style={styles.volumeCardStatLabel}>
-                      STRONGER THAN · {profile.sex === "male" ? "MEN" : "WOMEN"}
-                    </Text>
-                  </View>
-                ) : null}
-                {overallPercentile !== null && volumeTrend ? (
-                  <View style={styles.volumeCardStatDivider} />
-                ) : null}
+                <View style={styles.volumeCardStat}>
+                  <Text style={styles.volumeCardStatValue}>
+                    {overallPercentile !== null ? `${overallPercentile}%` : "—"}
+                  </Text>
+                  <Text style={styles.volumeCardStatLabel}>
+                    STRONGER THAN · {profile.sex === "male" ? "MEN" : "WOMEN"}
+                  </Text>
+                </View>
+                {volumeTrend ? <View style={styles.volumeCardStatDivider} /> : null}
                 {volumeTrend ? (
                   <View style={styles.volumeCardStat}>
                     <Text style={styles.volumeCardStatValue}>
@@ -7765,12 +7797,11 @@ function ProgressScreen({
               </View>
             ) : null}
 
-            {overallPercentile !== null ? (
-              <Text style={styles.volumeCardFootnote}>
-                Across your lifts, against published strength standards for your bodyweight and sex
-                — an estimate, not a ranking against other Project G users.
-              </Text>
-            ) : null}
+            <Text style={styles.volumeCardFootnote}>
+              {overallPercentile !== null
+                ? "Across your lifts, against published strength standards for your bodyweight and sex — an estimate, not a ranking against other Project G users."
+                : "No lift yet that a published standard covers. Squats, deadlifts, rows, presses and curls all count — a session of flys, carries and core work has nothing to measure against."}
+            </Text>
           </View>
         ) : null}
 
