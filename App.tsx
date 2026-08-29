@@ -5472,6 +5472,16 @@ function isHoldExercise(exercise: {
   );
 }
 
+// Whether an exercise carries no external load.
+//
+// The rendered weight string is the honest source: the builder writes
+// "Bodyweight" for unloaded work and a number for everything else, so anything
+// that will not parse is unloaded whatever it is called. The name list stays as
+// a second opinion for legacy roster entries.
+function unloadedExerciseWeight(exercise: { name: string; weight: string }): boolean {
+  return !Number.isFinite(parseFloat(exercise.weight)) || isBodyweightExerciseName(exercise.name);
+}
+
 function isBodyweightExerciseName(name: string): boolean {
   return (
     name.includes("Push-Up") ||
@@ -7053,7 +7063,11 @@ function ActiveWorkoutScreen({
       calories: estimateSessionCalories(Number(profile.weight), elapsedSeconds),
       exerciseBreakdown: personalizedExercises.map((item) => ({
         name: item.name,
-        weightKg: isBodyweightExerciseName(item.name) ? null : parseFloat(item.weight),
+        // `weight` reads "Bodyweight" for unloaded work, which parseFloat turns
+        // into NaN. The name list alone missed everything the library added --
+        // a Russian twist and a V-up are unloaded and neither is in it -- and a
+        // NaN slipped past the downstream `<= 0` guard to be rendered as "1 kg".
+        weightKg: unloadedExerciseWeight(item) ? null : parseFloat(item.weight),
         reps: parseInt(item.reps, 10),
         sets: targetSetCount,
         weightPerHand: item.weightPerHand === true,
@@ -7699,7 +7713,9 @@ function ProgressScreen({
   for (const entry of workoutHistory) {
     for (const item of entry.exerciseBreakdown ?? []) {
       const weightKg = item.weightKg ?? 0;
-      if (liftsByName.has(item.name) || weightKg <= 0) continue;
+      // Finite check as well as the range: a NaN passes `<= 0` and would be
+      // snapped onto the bottom of a weight ladder and shown as "1 kg".
+      if (liftsByName.has(item.name) || !Number.isFinite(weightKg) || weightKg <= 0) continue;
       liftsByName.set(item.name, { weightKg, reps: item.reps, gainedKg: 0 });
     }
   }
@@ -7791,30 +7807,30 @@ function ProgressScreen({
             </Text>
             {comparison ? <Text style={styles.volumeCardCompare}>That’s {comparison}.</Text> : null}
 
-            {overallPercentile !== null || volumeTrend ? (
-              <View style={styles.volumeCardStats}>
-                <View style={styles.volumeCardStat}>
+            {/* Unconditional: the standing stat always shows, with a dash when
+                nothing can be rated, so this row can never be gated away. */}
+            <View style={styles.volumeCardStats}>
+              <View style={styles.volumeCardStat}>
                   <Text style={styles.volumeCardStatValue}>
                     {overallPercentile !== null ? `${overallPercentile}%` : "—"}
                   </Text>
+                <Text style={styles.volumeCardStatLabel}>
+                  STRONGER THAN · {profile.sex === "male" ? "MEN" : "WOMEN"}
+                </Text>
+              </View>
+              {volumeTrend ? <View style={styles.volumeCardStatDivider} /> : null}
+              {volumeTrend ? (
+                <View style={styles.volumeCardStat}>
+                  <Text style={styles.volumeCardStatValue}>
+                    {volumeTrend.direction === "up" ? "↑" : "↓"}
+                    {volumeTrend.percent}%
+                  </Text>
                   <Text style={styles.volumeCardStatLabel}>
-                    STRONGER THAN · {profile.sex === "male" ? "MEN" : "WOMEN"}
+                    VS YOUR {volumeTrend.against.toUpperCase()}
                   </Text>
                 </View>
-                {volumeTrend ? <View style={styles.volumeCardStatDivider} /> : null}
-                {volumeTrend ? (
-                  <View style={styles.volumeCardStat}>
-                    <Text style={styles.volumeCardStatValue}>
-                      {volumeTrend.direction === "up" ? "↑" : "↓"}
-                      {volumeTrend.percent}%
-                    </Text>
-                    <Text style={styles.volumeCardStatLabel}>
-                      VS YOUR {volumeTrend.against.toUpperCase()}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-            ) : null}
+              ) : null}
+            </View>
 
             <Text style={styles.volumeCardFootnote}>
               {overallPercentile !== null
@@ -7944,8 +7960,12 @@ function ProgressScreen({
             </>
           ) : (
             <Text style={styles.progressEmptyText}>
-              Finish your first workout and your working weights will show up here, with where each
-              one sits for your bodyweight.
+              {workoutHistory.length > 0
+                ? // Someone training unloaded has finished sessions and still has
+                  // no working weights, so the "finish your first workout" line
+                  // would be wrong for them after every single one.
+                  "Nothing loaded yet — your sessions so far have been bodyweight. Working weights show up here once you train with a load."
+                : "Finish your first workout and your working weights will show up here, with where each one sits for your bodyweight."}
             </Text>
           )}
         </View>
