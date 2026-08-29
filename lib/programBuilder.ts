@@ -178,18 +178,57 @@ function isDifficultyAppropriate(
   return difficultyRank[exercise.difficulty] <= maxDifficultyRank[experience];
 }
 
-// Movements that need a strength the user has told us they do not have yet.
-// A soft preference like difficulty rather than a hard filter: an unsuitable
-// exercise still beats an empty slot, and the built-in roster substitutes a
-// named regression for these anyway.
+// Assisted and negative variants are scaffolding towards a movement, not
+// lesser versions of it, so which way to filter them depends entirely on
+// whether the user can already do the thing.
+//
+// This replaces a rule that got it wrong in both directions. It dropped every
+// pull-up-family name for anyone who could not do one -- deleting the assisted
+// and negative variants too, which are the exact progressions that build a
+// first pull-up, so those users were given no pull work at all. And it
+// exempted anyone who could, so they were offered band-assisted work they had
+// no use for.
+//
+// The old rule also carried two literal backspace bytes where a word boundary
+// was meant, from a shell mangling \b on the way in. That made its "dip"
+// alternative match only names containing control characters -- which is to
+// say, nothing. Dips were never filtered at all.
+//
+// Exported and shared with the local-library picker in App.tsx: this rule
+// existed in both files, and two copies of a rule are two rules waiting to
+// disagree.
+// Separator and plural both float in catalog names in a way they never do in
+// the local library, where the names are ours: "Chin Up", "Chin-Up", "Chinup"
+// and "Tricep Dips" all have to land. The library says "Bar Dip" and means it.
+const REGRESSION_NAME = /assisted|negative|(?:knee|incline|wall|box) push[- ]?up/i;
+const PUSH_UP_FAMILY = /push[- ]?up/i;
+const PULL_UP_FAMILY = /pull[- ]?up|chin[- ]?up|muscle[- ]?up|\bdips?\b/i;
+
+export function suitsBodyweightCapability(
+  name: string,
+  bodyweightStrength: ProgramBuilderProfile["bodyweightStrength"],
+): boolean {
+  if (!bodyweightStrength) return true;
+  const isRegression = REGRESSION_NAME.test(name);
+  // Push-ups are tested first so a name matching both families always resolves
+  // the same way rather than by which regex happens to be tried first.
+  if (PUSH_UP_FAMILY.test(name)) {
+    return bodyweightStrength === "neither" ? isRegression : !isRegression;
+  }
+  if (PULL_UP_FAMILY.test(name)) {
+    return bodyweightStrength === "both" ? !isRegression : isRegression;
+  }
+  return true;
+}
+
+// Stays a soft preference here, unlike the hard filter the local library
+// applies: a catalog slot is filled from whatever a single keyword search
+// returned, so an unsuitable exercise still beats an empty slot.
 function isWithinBodyweightStrength(
   exercise: ExerciseTag,
   bodyweightStrength: ProgramBuilderProfile["bodyweightStrength"],
 ): boolean {
-  if (!bodyweightStrength || bodyweightStrength === "both") return true;
-  if (/pull-?up|chin-?up|muscle-?up|dip/i.test(exercise.name)) return false;
-  if (bodyweightStrength === "neither" && /push-?up/i.test(exercise.name)) return false;
-  return true;
+  return suitsBodyweightCapability(exercise.name, bodyweightStrength);
 }
 
 // Every reported limitation has to clear, not just one. Someone with a bad

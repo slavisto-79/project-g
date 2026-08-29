@@ -29,6 +29,7 @@ import {
   determineSplitDay,
   splitDaySlotCount,
   splitDayPatterns,
+  suitsBodyweightCapability,
   type ProgramBuilderProfile,
   type SplitDay,
 } from "./lib/programBuilder";
@@ -6357,11 +6358,6 @@ const IMPLEMENT_PREFERENCE: Record<EquipmentTier, Record<LibraryImplement, numbe
   bodyweight: { bodyweight: 20, band: 8, other: 6, dumbbell: 0, kettlebell: 0, barbell: 0, machine: 0, cable: 0 },
 };
 
-// Assisted and negative variants are scaffolding towards a movement, not
-// lesser versions of it. Which way they should be filtered depends entirely on
-// whether the user can already do the thing.
-const REGRESSION_NAME = /assisted|negative|knee push-?up|incline push-?up|wall push-?up|box push-?up/i;
-
 const LIBRARY_DIFFICULTY_RANK = { novice: 0, beginner: 1, intermediate: 2, advanced: 3 };
 
 // Difficulty is a target, not a ceiling.
@@ -6403,8 +6399,12 @@ function buildProgramFromLibrary(
   const targetDifficulty = { beginner: 1, novice: 1, intermediate: 2, advanced: 3 }[
     profile.experience ?? ""
   ] ?? 1;
-  const canPullUp = profile.bodyweightStrength === "both";
-  const canPushUp = profile.bodyweightStrength !== "neither";
+  const bodyweightStrength =
+    profile.bodyweightStrength === "both" ||
+    profile.bodyweightStrength === "pushups" ||
+    profile.bodyweightStrength === "neither"
+      ? profile.bodyweightStrength
+      : undefined;
 
   const eligible = exercisesForTier(tier).filter((exercise) => {
     // Injury safety is the one hard filter -- everything else can bend rather
@@ -6412,16 +6412,9 @@ function buildProgramFromLibrary(
     if (limitations.includes("knee") && !exercise.injurySafe.kneeSafe) return false;
     if (limitations.includes("shoulder") && !exercise.injurySafe.shoulderSafe) return false;
     if (limitations.includes("back") && !exercise.injurySafe.backSafe) return false;
-
-    // Someone who can't do a pull-up yet was previously given no pull work at
-    // all -- including the assisted and negative variants, which are precisely
-    // how a first pull-up gets built. Each family now splits on capability:
-    // those who can't get the scaffolding, those who can get the real thing.
-    const isRegression = REGRESSION_NAME.test(exercise.name);
-    const isPushUpFamily = /push-?up/i.test(exercise.name);
-    const isPullUpFamily = !isPushUpFamily && /pull-?up|chin-?up|muscle-?up|\bdip\b/i.test(exercise.name);
-    if (isPullUpFamily && canPullUp === isRegression) return false;
-    if (isPushUpFamily && canPushUp === isRegression) return false;
+    // Shared with the catalog path so the two sources agree about who should
+    // be shown a regression and who should be shown the real movement.
+    if (!suitsBodyweightCapability(exercise.name, bodyweightStrength)) return false;
     return true;
   });
 
