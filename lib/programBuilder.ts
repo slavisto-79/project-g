@@ -156,15 +156,62 @@ const GOAL_ACCESSORY_ORDER: Record<string, MovementPattern[]> = {
 
 const DEFAULT_ACCESSORY_ORDER: MovementPattern[] = ["push", "pull", "lunge", "carry", "rotation"];
 
-function accessoryPatterns(shape: DayShape, goal: string | undefined): MovementPattern[] {
+// How many of a day's accessory slots go to single-joint work.
+//
+// Isolation was previously unreachable: it shares the `push` and `pull`
+// patterns with the presses and rows, and a triceps pushdown never outranks a
+// bench press in a slot that will take either. Giving it its own slots is how
+// a session is actually written -- compounds first, isolation last -- rather
+// than a scoring workaround.
+//
+// Hypertrophy gets the most, since that is what isolation is for. Athletic
+// training gets none: single-joint work does not transfer to power.
+const GOAL_ISOLATION_SLOTS: Record<string, number> = {
+  muscle: 2,
+  strength: 1,
+  fitness: 1,
+  "fat-loss": 1,
+  athletic: 0,
+  health: 1,
+};
+
+export type SlotShape = { pattern: MovementPattern; isolation: boolean };
+
+function accessorySlots(shape: DayShape, goal: string | undefined): SlotShape[] {
   const order = GOAL_ACCESSORY_ORDER[goal ?? ""] ?? DEFAULT_ACCESSORY_ORDER;
   const allowed = order.filter((pattern) => shape.accessoryPool.includes(pattern));
+  const pool = allowed.length ? allowed : shape.accessoryPool;
   // Cycle rather than come up short: a repeated pattern lands on a different
   // exercise, since the picker excludes what it has already chosen.
-  const chosen: MovementPattern[] = [];
-  const pool = allowed.length ? allowed : shape.accessoryPool;
-  for (let i = 0; i < shape.accessoryCount; i++) chosen.push(pool[i % pool.length]!);
-  return chosen;
+  const patterns: MovementPattern[] = [];
+  for (let i = 0; i < shape.accessoryCount; i++) patterns.push(pool[i % pool.length]!);
+
+  // Always leave at least one compound accessory -- a day whose every
+  // accessory is single-joint is not a session, it is a finisher.
+  const isolationCount = Math.min(
+    GOAL_ISOLATION_SLOTS[goal ?? ""] ?? 1,
+    Math.max(0, shape.accessoryCount - 1),
+  );
+  // Isolation goes last, where it belongs in the running order.
+  //
+  // Any pattern with single-joint work in it can host an isolation slot --
+  // including squat and hinge, without which a leg day had nowhere to put a
+  // leg extension or a hamstring curl and they were unreachable. Carries and
+  // rotations are whole-body conditioning with no isolation to offer, so they
+  // keep their compound slots.
+  const isolationHosts: MovementPattern[] = ["push", "pull", "squat", "hinge", "lunge"];
+  const hostIndexes = patterns
+    .map((pattern, index) => ({ pattern, index }))
+    .filter(({ pattern }) => isolationHosts.includes(pattern))
+    .map(({ index }) => index);
+  const isIsolation = new Set(isolationCount > 0 ? hostIndexes.slice(-isolationCount) : []);
+
+  const compound = patterns.filter((_, index) => !isIsolation.has(index));
+  const isolation = patterns.filter((_, index) => isIsolation.has(index));
+  return [
+    ...compound.map((pattern) => ({ pattern, isolation: false })),
+    ...isolation.map((pattern) => ({ pattern, isolation: true })),
+  ];
 }
 
 const splitDayLabels: Record<SplitDay, string> = {
@@ -187,9 +234,17 @@ const splitDayLabels: Record<SplitDay, string> = {
 // API has been rate-limited throughout, so a guess could not be checked. The
 // local library needs no keywords, so it gets the goal shaping now; the
 // catalog templates follow when the endpoint is reachable again.
-export function splitDayPatterns(day: SplitDay, goal?: string): MovementPattern[] {
+export function splitDaySlots(day: SplitDay, goal?: string): SlotShape[] {
   const shape = dayShapes[day];
-  return [...shape.spine, ...accessoryPatterns(shape, goal), ...shape.tail];
+  return [
+    ...shape.spine.map((pattern) => ({ pattern, isolation: false })),
+    ...accessorySlots(shape, goal),
+    ...shape.tail.map((pattern) => ({ pattern, isolation: false })),
+  ];
+}
+
+export function splitDayPatterns(day: SplitDay, goal?: string): MovementPattern[] {
+  return splitDaySlots(day, goal).map((slot) => slot.pattern);
 }
 
 // How many of a day's leading slots are the compound spine. Exposed so the

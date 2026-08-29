@@ -28,7 +28,7 @@ import {
   buildProgram,
   determineSplitDay,
   splitDaySlotCount,
-  splitDayPatterns,
+  splitDaySlots,
   splitDaySpineLength,
   suitsBodyweightCapability,
   type ProgramBuilderProfile,
@@ -6389,7 +6389,7 @@ const IMPLEMENT_PREFERENCE: Record<EquipmentTier, Record<LibraryImplement, numbe
 const GOAL_IMPLEMENT_BIAS: Record<string, Partial<Record<LibraryImplement, number>>> = {
   strength: { barbell: 12, other: 2, machine: -4, cable: -2, band: -8, bodyweight: -4 },
   athletic: { other: 12, kettlebell: 10, bodyweight: 8, dumbbell: 2, cable: -4, machine: -10 },
-  muscle: { dumbbell: 8, cable: 8, machine: 6, barbell: 2, band: -4, other: -6 },
+  muscle: { dumbbell: 8, cable: 10, machine: 10, barbell: 2, band: -4, other: -6 },
   "fat-loss": { kettlebell: 12, other: 12, bodyweight: 8, dumbbell: 2, barbell: -6, machine: -6 },
   fitness: { dumbbell: 6, bodyweight: 6, kettlebell: 6, other: 6, barbell: -2 },
   health: { dumbbell: 6, bodyweight: 4, machine: 2 },
@@ -6409,7 +6409,11 @@ const GOAL_IMPLEMENT_BIAS: Record<string, Partial<Record<LibraryImplement, numbe
 // that is where staleness is actually felt.
 const GOAL_VARIETY: Record<string, { spine: number; accessory: number }> = {
   strength: { spine: 1, accessory: 3 },
-  muscle: { spine: 2, accessory: 3 },
+  // Hypertrophy rotates its main lifts where strength does not: varying the
+  // squat and press pattern is standard practice for growth, and it is what
+  // lets the machine compounds -- leg press, hack squat -- reach a spine slot
+  // at all.
+  muscle: { spine: 3, accessory: 6 },
   athletic: { spine: 2, accessory: 4 },
   "fat-loss": { spine: 3, accessory: 4 },
   fitness: { spine: 3, accessory: 4 },
@@ -6421,6 +6425,18 @@ const DEFAULT_VARIETY = { spine: 2, accessory: 3 };
 // Rotate only between genuinely comparable options. A worse exercise is not
 // variety, it is a worse exercise.
 const VARIETY_SCORE_BAND = 12;
+
+// On a compound lift a free weight beats a machine, and the tier preference
+// says so. On isolation that ranking inverts: a cable holds tension through the
+// whole range where a dumbbell gives it up at the top, which is the entire
+// point of isolating a muscle. Applied only in isolation slots.
+const ISOLATION_IMPLEMENT_BIAS: Partial<Record<LibraryImplement, number>> = {
+  cable: 14,
+  machine: 10,
+  band: 6,
+  bodyweight: -2,
+  barbell: -4,
+};
 
 const LIBRARY_DIFFICULTY_RANK = { novice: 0, beginner: 1, intermediate: 2, advanced: 3 };
 
@@ -6436,14 +6452,24 @@ function libraryPickScore(
   tier: EquipmentTier,
   targetDifficulty: number,
   goal: string | undefined,
+  isolationSlot: boolean = false,
 ): number {
   const rank = LIBRARY_DIFFICULTY_RANK[exercise.difficulty];
-  const distance = rank > targetDifficulty ? (rank - targetDifficulty) * 22 : (targetDifficulty - rank) * 9;
+  // Overshooting stays uncapped -- an exercise two levels too hard is twice the
+  // problem. Undershooting is capped, because past a point it stops meaning
+  // anything: "simple" and "unsuitable" are different, and a leg press is not
+  // a beginner's exercise, it is a simple one. Uncapped, every novice-graded
+  // machine sat 27 points down for an advanced lifter and could never place.
+  const distance =
+    rank > targetDifficulty
+      ? (rank - targetDifficulty) * 22
+      : Math.min(12, (targetDifficulty - rank) * 9);
   return (
     60 -
     distance +
     (IMPLEMENT_PREFERENCE[tier][exercise.implement] ?? 0) +
     (GOAL_IMPLEMENT_BIAS[goal ?? ""]?.[exercise.implement] ?? 0) +
+    (isolationSlot ? ISOLATION_IMPLEMENT_BIAS[exercise.implement] ?? 0 : 0) +
     // Only 34 of 153 exercises name a goal at all, so this separates the few
     // that do and nothing else. The bias above is what actually shapes a
     // session towards its goal.
@@ -6488,7 +6514,7 @@ function buildProgramFromLibrary(
     return true;
   });
 
-  const slots = splitDayPatterns(splitDay, profile.goal);
+  const slots = splitDaySlots(splitDay, profile.goal);
   const used = new Set<string>();
   const chosen: LibraryExercise[] = [];
 
@@ -6500,8 +6526,15 @@ function buildProgramFromLibrary(
   const frequency = Number(profile.frequency);
   const rotationBonus = Number.isFinite(frequency) && frequency <= 3 ? 1 : 0;
 
-  slots.forEach((pattern, slotIndex) => {
-    const forPattern = eligible.filter((exercise) => exercise.pattern === pattern && !used.has(exercise.name));
+  slots.forEach((slot, slotIndex) => {
+    const inPattern = eligible.filter(
+      (exercise) => exercise.pattern === slot.pattern && !used.has(exercise.name),
+    );
+    // An isolation slot takes single-joint work only; a compound slot prefers
+    // not to. Both fall back rather than leave the slot empty -- a tier with no
+    // isolation for this pattern still gets an exercise.
+    const wanted = inPattern.filter((exercise) => Boolean(exercise.isolation) === slot.isolation);
+    const forPattern = wanted.length ? wanted : inPattern;
     // Score every candidate rather than taking the first that clears a bar:
     // a thin pattern still yields its best available option instead of
     // whichever movement happened to be written first. Sort is stable, so ties
@@ -6509,7 +6542,7 @@ function buildProgramFromLibrary(
     const ranked = forPattern
       .map((exercise) => ({
         exercise,
-        score: libraryPickScore(exercise, tier, targetDifficulty, profile.goal),
+        score: libraryPickScore(exercise, tier, targetDifficulty, profile.goal, slot.isolation),
       }))
       .sort((a, b) => b.score - a.score);
 
