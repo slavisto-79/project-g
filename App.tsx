@@ -1,4 +1,4 @@
-import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createElement, Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo,
   Animated,
@@ -34,6 +34,7 @@ import {
   type ProgramBuilderProfile,
   type SplitDay,
 } from "./lib/programBuilder";
+import { exercisePoses, type ExercisePose, type PoseName, type PoseProp } from "./lib/poses";
 import {
   exercisesForTier,
   suitsGoal,
@@ -4635,7 +4636,7 @@ type WorkoutExercise = {
   // screen falls back to the written cue rather than showing a photo of a
   // different movement.
   formFrames?: [ImageSourcePropType, ImageSourcePropType];
-  poseGuide?: PoseGuide;
+  pose?: ExercisePose;
   // How to perform it, in words. Carries the exercise until footage exists.
   cue?: string;
   video?: number | string;
@@ -4649,104 +4650,6 @@ type WorkoutExercise = {
   };
 };
 
-type PoseSegment = [number, number, number, number];
-type PoseGuide = {
-  start: PoseSegment[];
-  finish: PoseSegment[];
-};
-
-const poseGuides: Record<string, PoseGuide> = {
-  squat: {
-    start: [
-      [0.5, 0.29, 0.5, 0.49],
-      [0.5, 0.36, 0.43, 0.42],
-      [0.43, 0.42, 0.47, 0.49],
-      [0.5, 0.36, 0.57, 0.42],
-      [0.57, 0.42, 0.53, 0.49],
-      [0.47, 0.49, 0.53, 0.49],
-      [0.5, 0.49, 0.42, 0.64],
-      [0.42, 0.64, 0.42, 0.86],
-      [0.5, 0.49, 0.58, 0.64],
-      [0.58, 0.64, 0.58, 0.86],
-    ],
-    finish: [
-      [0.5, 0.31, 0.5, 0.57],
-      [0.5, 0.43, 0.43, 0.48],
-      [0.43, 0.48, 0.48, 0.55],
-      [0.5, 0.43, 0.57, 0.48],
-      [0.57, 0.48, 0.52, 0.55],
-      [0.48, 0.55, 0.52, 0.55],
-      [0.5, 0.57, 0.42, 0.66],
-      [0.42, 0.66, 0.43, 0.83],
-      [0.5, 0.57, 0.59, 0.66],
-      [0.59, 0.66, 0.58, 0.83],
-    ],
-  },
-  bench: {
-    start: [
-      [0.36, 0.52, 0.5, 0.52],
-      [0.5, 0.52, 0.54, 0.6],
-      [0.54, 0.6, 0.57, 0.39],
-      [0.61, 0.52, 0.68, 0.63],
-      [0.68, 0.63, 0.75, 0.75],
-    ],
-    finish: [
-      [0.36, 0.52, 0.5, 0.52],
-      [0.5, 0.52, 0.53, 0.33],
-      [0.53, 0.33, 0.54, 0.16],
-      [0.61, 0.52, 0.68, 0.63],
-      [0.68, 0.63, 0.75, 0.75],
-    ],
-  },
-  row: {
-    start: [
-      [0.25, 0.36, 0.31, 0.57],
-      [0.31, 0.57, 0.46, 0.61],
-      [0.46, 0.61, 0.6, 0.64],
-      [0.6, 0.64, 0.69, 0.64],
-      [0.31, 0.43, 0.46, 0.43],
-    ],
-    finish: [
-      [0.25, 0.34, 0.3, 0.57],
-      [0.3, 0.57, 0.45, 0.61],
-      [0.45, 0.61, 0.58, 0.64],
-      [0.58, 0.64, 0.67, 0.64],
-      [0.3, 0.42, 0.36, 0.45],
-    ],
-  },
-  shoulder: {
-    start: [
-      [0.47, 0.33, 0.41, 0.39],
-      [0.41, 0.39, 0.4, 0.27],
-      [0.57, 0.33, 0.63, 0.39],
-      [0.63, 0.39, 0.62, 0.27],
-      [0.52, 0.33, 0.52, 0.64],
-    ],
-    finish: [
-      [0.47, 0.33, 0.45, 0.2],
-      [0.45, 0.2, 0.45, 0.07],
-      [0.57, 0.33, 0.58, 0.2],
-      [0.58, 0.2, 0.58, 0.07],
-      [0.52, 0.33, 0.52, 0.64],
-    ],
-  },
-  hinge: {
-    start: [
-      [0.55, 0.27, 0.54, 0.52],
-      [0.54, 0.52, 0.48, 0.68],
-      [0.48, 0.68, 0.48, 0.87],
-      [0.54, 0.52, 0.59, 0.68],
-      [0.59, 0.68, 0.59, 0.87],
-    ],
-    finish: [
-      [0.61, 0.29, 0.48, 0.43],
-      [0.48, 0.43, 0.45, 0.61],
-      [0.45, 0.61, 0.48, 0.82],
-      [0.45, 0.61, 0.55, 0.67],
-      [0.55, 0.67, 0.55, 0.82],
-    ],
-  },
-};
 
 const workoutExercises: WorkoutExercise[] = [
   {
@@ -4760,7 +4663,7 @@ const workoutExercises: WorkoutExercise[] = [
       require("./assets/exercises/goblet-squat/start.jpg"),
       require("./assets/exercises/goblet-squat/finish.jpg"),
     ],
-    poseGuide: poseGuides.squat!,
+    pose: exercisePoses.squat,
   },
   {
     name: "Dumbbell Press",
@@ -4773,7 +4676,7 @@ const workoutExercises: WorkoutExercise[] = [
       require("./assets/exercises/dumbbell-bench-press/start.jpg"),
       require("./assets/exercises/dumbbell-bench-press/finish.jpg"),
     ],
-    poseGuide: poseGuides.bench!,
+    pose: exercisePoses.bench,
   },
   {
     name: "Seated Row",
@@ -4786,7 +4689,7 @@ const workoutExercises: WorkoutExercise[] = [
       require("./assets/exercises/seated-cable-row/start.jpg"),
       require("./assets/exercises/seated-cable-row/finish.jpg"),
     ],
-    poseGuide: poseGuides.row!,
+    pose: exercisePoses.bentRow,
   },
 ];
 
@@ -5531,7 +5434,7 @@ function createWorkout(
         require("./assets/exercises/female-dumbbell-rdl/start.jpg"),
         require("./assets/exercises/female-dumbbell-rdl/finish.jpg"),
       ],
-      poseGuide: poseGuides.hinge!,
+      pose: exercisePoses.hinge,
     },
     {
       ...workoutExercises[1]!,
@@ -5580,7 +5483,7 @@ function createWorkout(
         require("./assets/exercises/female-dumbbell-row/start.jpg"),
         require("./assets/exercises/female-dumbbell-row/finish.jpg"),
       ],
-      poseGuide: poseGuides.row!,
+      pose: exercisePoses.bentRow,
     },
     {
       ...workoutExercises[2]!,
@@ -5592,7 +5495,7 @@ function createWorkout(
         require("./assets/exercises/female-glute-bridge/start.jpg"),
         require("./assets/exercises/female-glute-bridge/finish.jpg"),
       ],
-      poseGuide: poseGuides.hinge!,
+      pose: exercisePoses.hinge,
     },
     {
       ...workoutExercises[1]!,
@@ -5619,7 +5522,7 @@ function createWorkout(
         require("./assets/exercises/dumbbell-shoulder-press/start.jpg"),
         require("./assets/exercises/dumbbell-shoulder-press/finish.jpg"),
       ],
-      poseGuide: poseGuides.shoulder!,
+      pose: exercisePoses.overheadPress,
     },
     {
       ...workoutExercises[2]!,
@@ -5728,7 +5631,7 @@ function createWorkout(
         require("./assets/exercises/female-glute-bridge/start.jpg"),
         require("./assets/exercises/female-glute-bridge/finish.jpg"),
       ],
-      poseGuide: poseGuides.hinge!,
+      pose: exercisePoses.hinge,
     },
     {
       ...workoutExercises[1]!,
@@ -6018,7 +5921,7 @@ function createWorkout(
         weightPerHand: false,
         implement: undefined,
         phases: ["LOWER", "HOLD", "LIFT"],
-        poseGuide: poseGuides.hinge!,
+        pose: exercisePoses.hinge,
       };
     }
   }
@@ -6034,7 +5937,7 @@ function createWorkout(
           require("./assets/exercises/neutral-grip-dumbbell-press/start.jpg"),
           require("./assets/exercises/neutral-grip-dumbbell-press/finish.jpg"),
         ],
-        poseGuide: poseGuides.bench!,
+        pose: exercisePoses.bench,
       };
     }
   }
@@ -6136,7 +6039,7 @@ function catalogExerciseToWorkoutExercise(
     tempo: "3-1-1",
     phases: ["LOWER", "BRACE", "LIFT"],
     formFrames: [poster, poster],
-    poseGuide: poseGuides.squat!,
+    pose: exercisePoses.squat,
     video: media?.video,
     catalogMeta: {
       externalId: tag.source.externalId,
@@ -6426,7 +6329,16 @@ async function vetAndRefill(
 //
 // Everything absent from this list keeps its written cue until a pose is
 // authored for it.
-const POSE_FOR_EXERCISE: Record<string, keyof typeof poseGuides> = {
+// Which library movements each authored pose genuinely depicts.
+//
+// Listed by name rather than matched by pattern, because a pattern over-reaches
+// and a figure showing the wrong movement is worse than no figure: a regex on
+// "squat", "deadlift" and "row" would sweep up the Cossack squat (lateral), the
+// single-leg RDL (one leg in the air) and the chest-supported row (lying on a
+// bench), none of which look like the pose.
+//
+// Absent from this list means the written cue, until a pose is authored for it.
+const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Barbell Back Squat": "squat",
   "Barbell Front Squat": "squat",
   "Goblet Squat": "squat",
@@ -6445,6 +6357,8 @@ const POSE_FOR_EXERCISE: Record<string, keyof typeof poseGuides> = {
   "Stiff-Leg Deadlift": "hinge",
   "Rack Pull": "hinge",
   "Good Morning": "hinge",
+  "Bodyweight Good Morning": "hinge",
+  "Kettlebell Swing": "hinge",
 
   "Barbell Bench Press": "bench",
   "Dumbbell Bench Press": "bench",
@@ -6452,17 +6366,49 @@ const POSE_FOR_EXERCISE: Record<string, keyof typeof poseGuides> = {
   "Machine Chest Press": "bench",
   "Close-Grip Bench Press": "bench",
 
-  "Barbell Overhead Press": "shoulder",
-  "Push Press": "shoulder",
-  "Dumbbell Shoulder Press": "shoulder",
-  "Seated Dumbbell Press": "shoulder",
-  "Arnold Press": "shoulder",
-  "Machine Shoulder Press": "shoulder",
+  "Barbell Overhead Press": "overheadPress",
+  "Push Press": "overheadPress",
+  "Dumbbell Shoulder Press": "overheadPress",
+  "Seated Dumbbell Press": "overheadPress",
+  "Arnold Press": "overheadPress",
+  "Machine Shoulder Press": "overheadPress",
 
-  "Barbell Row": "row",
-  "Pendlay Row": "row",
-  "One-Arm Dumbbell Row": "row",
-  "T-Bar Row": "row",
+  "Barbell Row": "bentRow",
+  "Pendlay Row": "bentRow",
+  "One-Arm Dumbbell Row": "bentRow",
+  "T-Bar Row": "bentRow",
+
+  "Bodyweight Reverse Lunge": "lunge",
+  "Walking Lunge": "lunge",
+  "Dumbbell Lunge": "lunge",
+  "Barbell Walking Lunge": "lunge",
+  "Split Squat": "lunge",
+
+  "Push-Up": "pushUp",
+  "Diamond Push-Up": "pushUp",
+
+  "Pull-Up": "pullUp",
+  "Chin-Up": "pullUp",
+  "Negative Pull-Up": "pullUp",
+
+  "Barbell Curl": "curl",
+  "Dumbbell Biceps Curl": "curl",
+  "Hammer Curl": "curl",
+  "Cable Curl": "curl",
+  "Band Curl": "curl",
+
+  "Triceps Pushdown": "tricepsExtension",
+  "Overhead Triceps Extension": "tricepsExtension",
+
+  "Dumbbell Lateral Raise": "lateralRaise",
+  "Cable Lateral Raise": "lateralRaise",
+
+  "Bodyweight Calf Raise": "calfRaise",
+  "Dumbbell Calf Raise": "calfRaise",
+
+  "Plank": "plank",
+
+  "Farmer's Carry": "carry",
 };
 
 function libraryExerciseToWorkoutExercise(
@@ -6503,7 +6449,7 @@ function libraryExerciseToWorkoutExercise(
     weightPerHand: !isUnloaded && exercise.perHand === true,
     repsPerSide: exercise.isHold || !exercise.unilateral ? undefined : (perSideUnitLabel(exercise.name, exercise.primaryMuscle) ?? undefined),
     isHold: exercise.isHold,
-    poseGuide: POSE_FOR_EXERCISE[exercise.name] ? poseGuides[POSE_FOR_EXERCISE[exercise.name]!] : undefined,
+    pose: POSE_FOR_EXERCISE[exercise.name] ? exercisePoses[POSE_FOR_EXERCISE[exercise.name]!] : undefined,
     tempo: exercise.isHold ? "HOLD" : "3-1-1",
     phases: exercise.isHold ? ["BRACE", "HOLD", "HOLD"] : ["LOWER", "BRACE", "LIFT"],
     cue: exercise.cue,
@@ -6817,6 +6763,7 @@ const POSE_HALF_CYCLE_MS = 1300;
 // it keeps a squat from being stretched when the container is a different shape.
 const POSE_UNIT_WIDTH = 850;
 const POSE_UNIT_HEIGHT = 567;
+const POSE_ASPECT = POSE_UNIT_WIDTH / POSE_UNIT_HEIGHT;
 
 // Draws a PoseGuide as a stick figure and animates start -> finish -> start.
 //
@@ -6825,7 +6772,7 @@ const POSE_UNIT_HEIGHT = 567;
 // technique demo -- it cannot show bar path or grip -- but it answers "what is
 // this movement", which a paragraph of text does slowly and a photo of a
 // different exercise does wrongly.
-function PoseFigure({ guide }: { guide: PoseGuide }) {
+function PoseFigure({ pose }: { pose: ExercisePose }) {
   const progress = useRef(new Animated.Value(0)).current;
   const reduceMotion = useReducedMotion();
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -6859,84 +6806,139 @@ function PoseFigure({ guide }: { guide: PoseGuide }) {
 
   const { width, height } = size;
 
-  // The authored poses occupy a narrow band of the coordinate space -- the squat
-  // spans x 0.42..0.58 -- so drawn literally the figure is a sixth of the frame
-  // wide and unreadable. Fit the movement's whole range to the frame instead,
-  // scaling uniformly in pixel space so the authored proportions survive, and
-  // over both poses together so the figure does not jump between them.
+  // Fit the whole movement -- both poses, figure and equipment -- to the
+  // container. Poses are authored in a narrow band of the coordinate space, so
+  // drawn literally the figure is a fraction of the frame and unreadable, and
+  // fitting each pose separately would make it jump between them.
   const project = useMemo(() => {
-    // Poses were authored against a 850x567 frame, so the coordinates are read
-    // back into that space first. Fitting happens after, which keeps the
-    // figure's proportions right whatever shape the container turns out to be.
-    const all = [...guide.start, ...guide.finish];
-    let minX = 1, minY = 1, maxX = 0, maxY = 0;
-    for (const [x1, y1, x2, y2] of all) {
-      minX = Math.min(minX, x1, x2); maxX = Math.max(maxX, x1, x2);
-      minY = Math.min(minY, y1, y2); maxY = Math.max(maxY, y1, y2);
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    const see = (x: number, y: number) => {
+      minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+    };
+    for (const f of [pose.start, pose.finish]) {
+      for (const [x1, y1, x2, y2] of f.segments) { see(x1, y1); see(x2, y2); }
+      for (const prop of f.props) {
+        if (prop.kind === "bar") {
+          const a = (prop.angle * Math.PI) / 180;
+          const hx = (Math.sin(a) * prop.length) / 2 / POSE_ASPECT;
+          const hy = (-Math.cos(a) * prop.length) / 2;
+          see(prop.x - hx, prop.y - hy); see(prop.x + hx, prop.y + hy);
+        } else if (prop.kind === "bell") {
+          see(prop.x - prop.size / 2 / POSE_ASPECT, prop.y - prop.size / 2);
+          see(prop.x + prop.size / 2 / POSE_ASPECT, prop.y + prop.size / 2);
+        } else {
+          see(prop.x - prop.width / 2 / POSE_ASPECT, prop.y - prop.height / 2);
+          see(prop.x + prop.width / 2 / POSE_ASPECT, prop.y + prop.height / 2);
+        }
+      }
     }
     const unit = (x: number, y: number) => ({ x: x * POSE_UNIT_WIDTH, y: y * POSE_UNIT_HEIGHT });
     const topLeft = unit(minX, minY);
     const bottomRight = unit(maxX, maxY);
     const boxW = Math.max(bottomRight.x - topLeft.x, 1);
     const boxH = Math.max(bottomRight.y - topLeft.y, 1);
-    const pad = 0.08;
+    const pad = 0.06;
     const scale = Math.min((width * (1 - pad * 2)) / boxW, (height * (1 - pad * 2)) / boxH);
     const cx = (topLeft.x + bottomRight.x) / 2;
     const cy = (topLeft.y + bottomRight.y) / 2;
-    return (x: number, y: number) => {
+    const to = (x: number, y: number) => {
       const p = unit(x, y);
       return { x: width / 2 + (p.x - cx) * scale, y: height / 2 + (p.y - cy) * scale };
     };
-  }, [guide, width, height]);
+    // Lengths are authored against the frame height, so they scale with it.
+    return { to, lengthPx: (l: number) => l * POSE_UNIT_HEIGHT * scale };
+  }, [pose, width, height]);
+
+  // Position, length and angle for something drawn as a rotated bar, in both
+  // poses, ready to interpolate between.
+  const spanBetween = (
+    from: { x: number; y: number; angle: number; length: number },
+    to: { x: number; y: number; angle: number; length: number },
+  ) => {
+    const a = project.to(from.x, from.y);
+    const b = project.to(to.x, to.y);
+    let toAngle = to.angle;
+    while (toAngle - from.angle > 180) toAngle -= 360;
+    while (toAngle - from.angle < -180) toAngle += 360;
+    return {
+      from: { x: a.x, y: a.y, angle: from.angle, length: project.lengthPx(from.length) },
+      to: { x: b.x, y: b.y, angle: toAngle, length: project.lengthPx(to.length) },
+    };
+  };
 
   const bones = useMemo(() => {
     if (width === 0 || height === 0) return [];
-    const count = Math.min(guide.start.length, guide.finish.length);
+    const count = Math.min(pose.start.segments.length, pose.finish.segments.length);
     const out = [];
     for (let i = 0; i < count; i++) {
-      const [sx1, sy1, sx2, sy2] = guide.start[i]!;
-      const [fx1, fy1, fx2, fy2] = guide.finish[i]!;
-      const s1 = project(sx1!, sy1!), s2 = project(sx2!, sy2!);
-      const f1 = project(fx1!, fy1!), f2 = project(fx2!, fy2!);
-      const from = { x: s1.x, y: s1.y, dx: s2.x - s1.x, dy: s2.y - s1.y };
-      const to = { x: f1.x, y: f1.y, dx: f2.x - f1.x, dy: f2.y - f1.y };
-      const fromAngle = (Math.atan2(from.dy, from.dx) * 180) / Math.PI;
-      let toAngle = (Math.atan2(to.dy, to.dx) * 180) / Math.PI;
-      // Rotate the short way round, or a bone can swing through a half turn to
+      const [sx1, sy1, sx2, sy2] = pose.start.segments[i]!;
+      const [fx1, fy1, fx2, fy2] = pose.finish.segments[i]!;
+      const s1 = project.to(sx1, sy1), s2 = project.to(sx2, sy2);
+      const f1 = project.to(fx1, fy1), f2 = project.to(fx2, fy2);
+      const fromAngle = (Math.atan2(s2.y - s1.y, s2.x - s1.x) * 180) / Math.PI;
+      let toAngle = (Math.atan2(f2.y - f1.y, f2.x - f1.x) * 180) / Math.PI;
+      // Rotate the short way round, or a bone swings through a half turn to
       // reach a position a few degrees away.
       while (toAngle - fromAngle > 180) toAngle -= 360;
       while (toAngle - fromAngle < -180) toAngle += 360;
       out.push({
-        from,
-        to,
-        fromAngle,
-        toAngle,
-        fromLength: Math.hypot(from.dx, from.dy),
-        toLength: Math.hypot(to.dx, to.dy),
+        from: { x: s1.x, y: s1.y, angle: fromAngle, length: Math.hypot(s2.x - s1.x, s2.y - s1.y) },
+        to: { x: f1.x, y: f1.y, angle: toAngle, length: Math.hypot(f2.x - f1.x, f2.y - f1.y) },
       });
     }
     return out;
-  }, [guide, width, height, project]);
+  }, [pose, width, height, project]);
 
-  // A dot per joint rather than per bone end, so shared joints don't stack.
   const joints = useMemo(() => {
     if (width === 0 || height === 0) return [];
-    const seen = new Map<string, { from: [number, number]; to: [number, number] }>();
-    const count = Math.min(guide.start.length, guide.finish.length);
+    const seen = new Map<string, { from: { x: number; y: number }; to: { x: number; y: number } }>();
+    const count = Math.min(pose.start.segments.length, pose.finish.segments.length);
     for (let i = 0; i < count; i++) {
-      const s = guide.start[i]!;
-      const f = guide.finish[i]!;
+      const s = pose.start.segments[i]!;
+      const f = pose.finish.segments[i]!;
       for (const end of [0, 2] as const) {
         const key = `${s[end].toFixed(3)},${s[end + 1]!.toFixed(3)}`;
         if (!seen.has(key)) {
-          const a = project(s[end]!, s[end + 1]!);
-          const bPt = project(f[end]!, f[end + 1]!);
-          seen.set(key, { from: [a.x, a.y], to: [bPt.x, bPt.y] });
+          seen.set(key, { from: project.to(s[end]!, s[end + 1]!), to: project.to(f[end]!, f[end + 1]!) });
         }
       }
     }
     return [...seen.values()];
-  }, [guide, width, height, project]);
+  }, [pose, width, height, project]);
+
+  // Equipment, matched by position in the list. Poses are authored with the
+  // same props in the same order in both frames, so index correspondence holds.
+  const props = useMemo(() => {
+    if (width === 0 || height === 0) return [];
+    const count = Math.min(pose.start.props.length, pose.finish.props.length);
+    const out = [];
+    for (let i = 0; i < count; i++) {
+      const a = pose.start.props[i]!;
+      const b = pose.finish.props[i]!;
+      if (a.kind !== b.kind) continue;
+      if (a.kind === "bar" && b.kind === "bar") {
+        out.push({ kind: "bar" as const, plates: a.plates, ...spanBetween(a, b) });
+      } else if (a.kind === "bell" && b.kind === "bell") {
+        out.push({
+          kind: "bell" as const,
+          from: { ...project.to(a.x, a.y), size: project.lengthPx(a.size) },
+          to: { ...project.to(b.x, b.y), size: project.lengthPx(b.size) },
+        });
+      } else if (a.kind === "slab" && b.kind === "slab") {
+        out.push({
+          kind: "slab" as const,
+          from: { ...project.to(a.x, a.y), w: project.lengthPx(a.width), h: project.lengthPx(a.height) },
+          to: { ...project.to(b.x, b.y), w: project.lengthPx(b.width), h: project.lengthPx(b.height) },
+        });
+      }
+    }
+    return out;
+  }, [pose, width, height, project]);
+
+  const between = (from: number, to: number) => progress.interpolate({ inputRange: [0, 1], outputRange: [from, to] });
+  const betweenDeg = (from: number, to: number) =>
+    progress.interpolate({ inputRange: [0, 1], outputRange: [`${from}deg`, `${to}deg`] });
 
   return (
     <View style={styles.poseFrameHost}>
@@ -6947,42 +6949,99 @@ function PoseFigure({ guide }: { guide: PoseGuide }) {
           setSize((current) => (current.width === w && current.height === h ? current : { width: w, height: h }));
         }}
       >
-        <View style={styles.poseCanvas}>
-          {bones.map((bone, index) => (
-            <Animated.View
-              key={`bone-${index}`}
-              style={[
-                styles.poseLine,
-                {
-                  left: progress.interpolate({ inputRange: [0, 1], outputRange: [bone.from.x, bone.to.x] }),
-                  top: progress.interpolate({ inputRange: [0, 1], outputRange: [bone.from.y, bone.to.y] }),
-                  width: progress.interpolate({ inputRange: [0, 1], outputRange: [bone.fromLength, bone.toLength] }),
-                  transformOrigin: "left center",
-                  transform: [
-                    {
-                      rotate: progress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [`${bone.fromAngle}deg`, `${bone.toAngle}deg`],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            />
-          ))}
-          {joints.map((joint, index) => (
-            <Animated.View
-              key={`joint-${index}`}
-              style={[
-                styles.poseJoint,
-                {
-                  left: progress.interpolate({ inputRange: [0, 1], outputRange: [joint.from[0], joint.to[0]] }),
-                  top: progress.interpolate({ inputRange: [0, 1], outputRange: [joint.from[1], joint.to[1]] }),
-                },
-              ]}
-            />
-          ))}
-        </View>
+        {/* Equipment first, so the figure reads on top of it. */}
+        {props.map((prop, index) => {
+          if (prop.kind === "slab") {
+            return (
+              <Animated.View
+                key={`prop-${index}`}
+                style={[
+                  styles.poseSlab,
+                  {
+                    left: between(prop.from.x - prop.from.w / 2, prop.to.x - prop.to.w / 2),
+                    top: between(prop.from.y - prop.from.h / 2, prop.to.y - prop.to.h / 2),
+                    width: between(prop.from.w, prop.to.w),
+                    height: between(prop.from.h, prop.to.h),
+                  },
+                ]}
+              />
+            );
+          }
+          if (prop.kind === "bell") {
+            return (
+              <Animated.View
+                key={`prop-${index}`}
+                style={[
+                  styles.poseBell,
+                  {
+                    left: between(prop.from.x - prop.from.size / 2, prop.to.x - prop.to.size / 2),
+                    top: between(prop.from.y - prop.from.size / 2, prop.to.y - prop.to.size / 2),
+                    width: between(prop.from.size, prop.to.size),
+                    height: between(prop.from.size, prop.to.size),
+                    borderRadius: between(prop.from.size / 2, prop.to.size / 2),
+                  },
+                ]}
+              />
+            );
+          }
+          return (
+            <Fragment key={`prop-${index}`}>
+              <Animated.View
+                style={[
+                  styles.poseBar,
+                  {
+                    left: between(prop.from.x - prop.from.length / 2, prop.to.x - prop.to.length / 2),
+                    top: between(prop.from.y, prop.to.y),
+                    width: between(prop.from.length, prop.to.length),
+                    transform: [{ rotate: betweenDeg(prop.from.angle - 90, prop.to.angle - 90) }],
+                  },
+                ]}
+              />
+              {prop.plates
+                ? [-1, 1].map((side) => (
+                    <Animated.View
+                      key={`plate-${index}-${side}`}
+                      style={[
+                        styles.posePlate,
+                        {
+                          left: between(
+                            prop.from.x + (side * prop.from.length) / 2,
+                            prop.to.x + (side * prop.to.length) / 2,
+                          ),
+                          top: between(prop.from.y, prop.to.y),
+                        },
+                      ]}
+                    />
+                  ))
+                : null}
+            </Fragment>
+          );
+        })}
+
+        {bones.map((bone, index) => (
+          <Animated.View
+            key={`bone-${index}`}
+            style={[
+              styles.poseLine,
+              {
+                left: between(bone.from.x, bone.to.x),
+                top: between(bone.from.y, bone.to.y),
+                width: between(bone.from.length, bone.to.length),
+                transformOrigin: "left center",
+                transform: [{ rotate: betweenDeg(bone.from.angle, bone.to.angle) }],
+              },
+            ]}
+          />
+        ))}
+        {joints.map((joint, index) => (
+          <Animated.View
+            key={`joint-${index}`}
+            style={[
+              styles.poseJoint,
+              { left: between(joint.from.x, joint.to.x), top: between(joint.from.y, joint.to.y) },
+            ]}
+          />
+        ))}
       </View>
     </View>
   );
@@ -6991,9 +7050,9 @@ function PoseFigure({ guide }: { guide: PoseGuide }) {
 function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
   return (
     <View style={styles.cueCard}>
-      {exercise.poseGuide ? (
+      {exercise.pose ? (
         <View style={styles.cueCardFigure}>
-          <PoseFigure guide={exercise.poseGuide} />
+          <PoseFigure pose={exercise.pose} />
         </View>
       ) : (
         <Text style={styles.cueCardBadge}>NO DEMO YET</Text>
@@ -10828,6 +10887,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.9,
     shadowRadius: 4,
   },
+  // Equipment is drawn in a cooler grey than the figure so it reads as the
+  // thing being held rather than part of the body.
+  poseBar: {
+    position: "absolute",
+    height: 4,
+    marginTop: -2,
+    borderRadius: 2,
+    backgroundColor: "#9AA3A0",
+  },
+  posePlate: {
+    position: "absolute",
+    width: 12,
+    height: 12,
+    marginLeft: -6,
+    marginTop: -6,
+    borderRadius: 6,
+    backgroundColor: "#C6CFCB",
+  },
+  poseBell: { position: "absolute", backgroundColor: "#C6CFCB" },
+  // Light enough to read against the card, dark enough to stay behind the
+  // figure. #3A423E was invisible on #0B0D0B.
+  poseSlab: { position: "absolute", borderRadius: 3, backgroundColor: "#6E7A74" },
   poseJoint: {
     position: "absolute",
     width: 9,

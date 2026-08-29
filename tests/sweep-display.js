@@ -18,6 +18,7 @@ function mod(p) {
 }
 const lib = mod("lib/exerciseLibrary.ts");
 const pb = mod("lib/programBuilder.ts");
+const poses = mod("lib/poses.ts");
 
 const ROOTS = [
   "buildProgramFromLibrary", "exerciseVolumeKg", "strengthStandingFor",
@@ -32,6 +33,8 @@ const { api, pulled } = load("App.tsx", ROOTS, {
   splitDaySlots: pb.splitDaySlots,
   splitDaySpineLength: pb.splitDaySpineLength,
   suitsBodyweightCapability: pb.suitsBodyweightCapability,
+  // Pure data with no asset requires, so the real module is used.
+  exercisePoses: poses.exercisePoses,
   shippedMediaFor: () => null,
 });
 console.log(`harness built from ${pulled} declarations lifted out of App.tsx\n`);
