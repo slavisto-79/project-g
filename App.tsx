@@ -6827,9 +6827,13 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
         } else if (prop.kind === "bell") {
           see(prop.x - prop.size / 2 / POSE_ASPECT, prop.y - prop.size / 2);
           see(prop.x + prop.size / 2 / POSE_ASPECT, prop.y + prop.size / 2);
-        } else {
+        } else if (prop.kind === "slab") {
           see(prop.x - prop.width / 2 / POSE_ASPECT, prop.y - prop.height / 2);
           see(prop.x + prop.width / 2 / POSE_ASPECT, prop.y + prop.height / 2);
+        } else {
+          // The floor spans the frame, so only its height matters to the fit --
+          // letting its width into the box would shrink the figure to nothing.
+          see(0.5, prop.y);
         }
       }
     }
@@ -6925,6 +6929,12 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
           from: { ...project.to(a.x, a.y), size: project.lengthPx(a.size) },
           to: { ...project.to(b.x, b.y), size: project.lengthPx(b.size) },
         });
+      } else if (a.kind === "floor" && b.kind === "floor") {
+        out.push({
+          kind: "floor" as const,
+          from: project.to(0.5, a.y).y,
+          to: project.to(0.5, b.y).y,
+        });
       } else if (a.kind === "slab" && b.kind === "slab") {
         out.push({
           kind: "slab" as const,
@@ -6984,6 +6994,9 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
               />
             );
           }
+          // A bar, and with a fourth prop kind this has to say so rather than
+          // being the fallback.
+          if (prop.kind !== "bar") return null;
           return (
             <Fragment key={`prop-${index}`}>
               <Animated.View
@@ -10906,6 +10919,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#C6CFCB",
   },
   poseBell: { position: "absolute", backgroundColor: "#C6CFCB" },
+  // Dim: it is a reference for which way is down, not part of the movement.
+  poseFloor: { position: "absolute", left: 0, right: 0, height: 1, backgroundColor: "#39413D" },
   // Light enough to read against the card, dark enough to stay behind the
   // figure. #3A423E was invisible on #0B0D0B.
   poseSlab: { position: "absolute", borderRadius: 3, backgroundColor: "#6E7A74" },
