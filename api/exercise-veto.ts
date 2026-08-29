@@ -31,6 +31,27 @@ const MAX_NOTE_CHARS = 300;
 // more; this only guarantees a floor.
 const HIGH_RISK_RULES: { condition: RegExp; unless?: RegExp; avoid: RegExp; because: string }[] = [
   {
+    // Cardiac and post-surgical conditions, with the same coin-flip problem the
+    // lower-limb rule was added for, one category up in seriousness: "had heart
+    // surgery three months ago" removed nothing on two runs of three, and "high
+    // blood pressure, on medication" left a barbell deadlift, sprint intervals
+    // and burpees standing.
+    //
+    // Three mechanisms, all of which spike cardiac demand or blood pressure:
+    // impact conditioning, maximal barbell strain through a Valsalva, and
+    // sustained bracing (planks, wall sits and loaded carries are isometric
+    // work, whatever the muscle).
+    //
+    // Deliberately conservative, and the cost is real: it removes every
+    // deadlift and every plank. What it leaves is still a session -- 122 of the
+    // 159 library movements, with every pattern covered -- and graded questions
+    // like whether a kettlebell swing is too ballistic stay with the model.
+    condition: /\b(heart|cardiac|coronary|aortic|myocardial)\b[\s\S]{0,40}\b(surgery|operat\w*|attack|failure|condition|problem\w*|disease|event|bypass|valve|transplant)\b|\bbypass surgery|\bstent\b|\bpacemaker\b|\bangina\b|\bheart attack\b|\barrhythmia\b|\batrial fibrillation\b|\bafib\b|\bhigh blood pressure\b|\bhypertens\w*/i,
+    avoid:
+      /sprint|burpee|mountain climber|high knees|jump|battle rope|sled|skater|bound|deadlift|rack pull|good morning|clean|snatch|jerk|push press|carry|plank|wall sit|hollow hold|bear crawl/i,
+    because: "cardiac demand and blood-pressure spikes",
+  },
+  {
     // Lower-limb injuries. The model handles these well most of the time and
     // then does not: the same "sprained ankle two weeks ago" came back once
     // clearing the whole session and twice removing five, and "broken foot in
