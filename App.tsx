@@ -2724,6 +2724,22 @@ function getMesocycleWeek(workoutHistory: WorkoutHistoryEntry[]): { weekNumber: 
   return { weekNumber: weekInCycle, isDeload: weekInCycle === 4 };
 }
 
+// Which four-week training block the user is in, counting from their first
+// logged session. Unlike getMesocycleWeek's 1-4 position, this only ever
+// increases.
+//
+// Main lifts rotate on this rather than per session. Progression is tracked per
+// exercise name, so a squat that changes every session never advances; a squat
+// that changes every four weeks is a training block, which is how a programme
+// is meant to be written.
+function mesocycleBlockIndex(workoutHistory: WorkoutHistoryEntry[]): number {
+  const firstWorkout = workoutHistory[workoutHistory.length - 1];
+  if (!firstWorkout) return 0;
+  const firstMs = new Date(firstWorkout.date).getTime();
+  if (Number.isNaN(firstMs)) return 0;
+  return Math.max(0, Math.floor((Date.now() - firstMs) / (28 * 24 * 60 * 60 * 1000)));
+}
+
 // Most-recent-first, matching workoutHistory's own order -- feeds determineSplitDay's
 // least-recently-trained balancing.
 function recentSplitDaysFromHistory(workoutHistory: WorkoutHistoryEntry[]): SplitDay[] {
@@ -6148,6 +6164,7 @@ async function createWorkoutFromCatalog(
   // same history always rebuilds the same session. Randomness here would
   // reshuffle the exercises under a user mid-workout on any re-render.
   const sessionIndex = workoutHistory.filter((entry) => entry.splitDay === splitDay).length;
+  const blockIndex = mesocycleBlockIndex(workoutHistory);
 
   try {
     const tags = await buildProgram(builderProfile, splitDay);
@@ -6157,7 +6174,7 @@ async function createWorkoutFromCatalog(
       console.error(
         `Catalog program only filled ${tags.length} slots for "${splitDay}" -- building from the local library instead`,
       );
-      return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier, sessionIndex);
+      return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier, sessionIndex, blockIndex);
     }
     return {
       exercises: tags.map((tag) =>
@@ -6170,7 +6187,7 @@ async function createWorkoutFromCatalog(
     };
   } catch (error) {
     console.error("Catalog workout build failed -- building from the local library instead", error);
-    return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier, sessionIndex);
+    return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier, sessionIndex, blockIndex);
   }
 }
 
@@ -6327,6 +6344,7 @@ function libraryWorkout(
   isDeload: boolean,
   weightModifier: number,
   sessionIndex: number,
+  blockIndex: number,
 ): {
   exercises: WorkoutExercise[];
   splitLabel: string;
@@ -6341,6 +6359,7 @@ function libraryWorkout(
     isDeload,
     weightModifier,
     sessionIndex,
+    blockIndex,
   );
   if (exercises.length < 4) return null;
   return { exercises, splitLabel, splitDay, isDeload, weightModifier };
@@ -6407,17 +6426,23 @@ const GOAL_IMPLEMENT_BIAS: Record<string, Partial<Record<LibraryImplement, numbe
 // lift week after week, and a bench press that comes round every third session
 // progresses at a third of the rate. Accessory slots rotate freely, because
 // that is where staleness is actually felt.
+// Spine depth is generous where it is because the spine rotates per four-week
+// block, not per session -- a main lift is kept long enough to progress on it,
+// then the variant changes. Accessory depth is per session.
+//
+// Strength stays at one. A squat that never changes is not a limitation of the
+// programme, it is the programme; there is nothing to gain from varying the
+// lift you are trying to add weight to.
 const GOAL_VARIETY: Record<string, { spine: number; accessory: number }> = {
   strength: { spine: 1, accessory: 3 },
-  // Hypertrophy rotates its main lifts where strength does not: varying the
-  // squat and press pattern is standard practice for growth, and it is what
-  // lets the machine compounds -- leg press, hack squat -- reach a spine slot
-  // at all.
-  muscle: { spine: 3, accessory: 6 },
-  athletic: { spine: 2, accessory: 4 },
-  "fat-loss": { spine: 3, accessory: 4 },
-  fitness: { spine: 3, accessory: 4 },
-  health: { spine: 2, accessory: 3 },
+  // Hypertrophy rotates widest: varying the squat and press pattern between
+  // blocks is standard practice for growth, and it is what lets the machine
+  // compounds -- leg press, lat pulldown, hack squat -- reach a spine slot.
+  muscle: { spine: 8, accessory: 6 },
+  athletic: { spine: 4, accessory: 4 },
+  "fat-loss": { spine: 5, accessory: 4 },
+  fitness: { spine: 5, accessory: 4 },
+  health: { spine: 4, accessory: 3 },
 };
 
 const DEFAULT_VARIETY = { spine: 2, accessory: 3 };
@@ -6483,8 +6508,10 @@ function buildProgramFromLibrary(
   exerciseProgress: Record<string, ExerciseProgress>,
   isDeload: boolean,
   weightModifier: number,
-  // How many sessions of this split day are already logged. Drives rotation.
+  // How many sessions of this split day are already logged. Drives accessory rotation.
   sessionIndex: number = 0,
+  // Which four-week block the user is in. Drives main-lift rotation.
+  blockIndex: number = 0,
 ): WorkoutExercise[] {
   const tier = (["gym", "home-gym", "minimal", "bodyweight", "bars"] as EquipmentTier[]).includes(
     profile.equipment as EquipmentTier,
@@ -6546,23 +6573,25 @@ function buildProgramFromLibrary(
       }))
       .sort((a, b) => b.score - a.score);
 
-    // Rotate across sessions, but only among options close enough to the best
-    // that swapping between them costs nothing.
+    // Rotate, but only among options close enough to the best that swapping
+    // between them costs nothing.
     //
-    // The frequency bonus deliberately does not reach the spine: a strength
-    // trainee's main lifts stay fixed however often they train, because that
-    // is what there is to progress on.
+    // Spine and accessory rotate on different clocks. Accessories change every
+    // session -- that is where staleness is felt. Main lifts change per
+    // four-week block, so there is time to actually add weight to one before it
+    // is replaced. The frequency bonus reaches only the accessories.
     const best = ranked[0];
     const isSpine = slotIndex < spineLength;
     const depth = isSpine ? variety.spine : variety.accessory + rotationBonus;
+    const rotationIndex = isSpine ? blockIndex : sessionIndex;
     const choices = best
       ? ranked.filter((candidate) => candidate.score >= best.score - VARIETY_SCORE_BAND).slice(0, Math.max(1, depth))
       : [];
-    // Session index alone, with no slot offset: a first session should be the
+    // Index alone, with no slot offset: a first session should be the
     // best-scoring one available, not an arbitrary position in the cycle. Two
     // slots sharing a pattern still diverge, because the first pick is removed
     // from the pool before the second slot ranks it.
-    const pick = choices.length ? choices[sessionIndex % choices.length]!.exercise : undefined;
+    const pick = choices.length ? choices[rotationIndex % choices.length]!.exercise : undefined;
     if (pick) {
       chosen.push(pick);
       used.add(pick.name);
