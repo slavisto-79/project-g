@@ -92,6 +92,13 @@ const splitDayLabels: Record<SplitDay, string> = {
 
 // How many exercises a given split day's template actually has -- for UI copy
 // like "6 guided exercises" that needs to match reality before the fetch runs.
+// The movement patterns a given split day asks for, in order. Exposed so the
+// local library can fill the same slot shape the catalog builder does, rather
+// than inventing a second idea of what a session looks like.
+export function splitDayPatterns(day: SplitDay): MovementPattern[] {
+  return splitTemplates[day].map((slot) => slot.pattern);
+}
+
 export function splitDaySlotCount(day: SplitDay): number {
   return splitTemplates[day].length;
 }
