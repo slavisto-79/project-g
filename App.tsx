@@ -6416,6 +6416,55 @@ async function vetAndRefill(
 // Deliberately not a stand-in photograph: borrowing another movement's image
 // would be worse than showing none, because a trainee copying what they see
 // would do the wrong exercise. Words they can follow beat a picture that lies.
+// Which library movements the five authored poses genuinely depict.
+//
+// Listed by name rather than matched by pattern, because a pattern over-reaches
+// and a figure showing the wrong movement is worse than no figure: a Cossack
+// squat is lateral, a single-leg RDL stands on one leg, a chest-supported row
+// lies on a bench. Each of those would have been swept up by a regex on
+// "squat", "deadlift" and "row".
+//
+// Everything absent from this list keeps its written cue until a pose is
+// authored for it.
+const POSE_FOR_EXERCISE: Record<string, keyof typeof poseGuides> = {
+  "Barbell Back Squat": "squat",
+  "Barbell Front Squat": "squat",
+  "Goblet Squat": "squat",
+  "Heels-Elevated Goblet Squat": "squat",
+  "Dumbbell Front Squat": "squat",
+  "Box Squat": "squat",
+  "Bodyweight Squat": "squat",
+  "Hack Squat": "squat",
+  "Smith Machine Squat": "squat",
+
+  "Conventional Deadlift": "hinge",
+  "Sumo Deadlift": "hinge",
+  "Trap Bar Deadlift": "hinge",
+  "Romanian Deadlift": "hinge",
+  "Dumbbell Romanian Deadlift": "hinge",
+  "Stiff-Leg Deadlift": "hinge",
+  "Rack Pull": "hinge",
+  "Good Morning": "hinge",
+
+  "Barbell Bench Press": "bench",
+  "Dumbbell Bench Press": "bench",
+  "Dumbbell Floor Press": "bench",
+  "Machine Chest Press": "bench",
+  "Close-Grip Bench Press": "bench",
+
+  "Barbell Overhead Press": "shoulder",
+  "Push Press": "shoulder",
+  "Dumbbell Shoulder Press": "shoulder",
+  "Seated Dumbbell Press": "shoulder",
+  "Arnold Press": "shoulder",
+  "Machine Shoulder Press": "shoulder",
+
+  "Barbell Row": "row",
+  "Pendlay Row": "row",
+  "One-Arm Dumbbell Row": "row",
+  "T-Bar Row": "row",
+};
+
 function libraryExerciseToWorkoutExercise(
   exercise: LibraryExercise,
   profile: Record<string, string>,
@@ -6454,6 +6503,7 @@ function libraryExerciseToWorkoutExercise(
     weightPerHand: !isUnloaded && exercise.perHand === true,
     repsPerSide: exercise.isHold || !exercise.unilateral ? undefined : (perSideUnitLabel(exercise.name, exercise.primaryMuscle) ?? undefined),
     isHold: exercise.isHold,
+    poseGuide: POSE_FOR_EXERCISE[exercise.name] ? poseGuides[POSE_FOR_EXERCISE[exercise.name]!] : undefined,
     tempo: exercise.isHold ? "HOLD" : "3-1-1",
     phases: exercise.isHold ? ["BRACE", "HOLD", "HOLD"] : ["LOWER", "BRACE", "LIFT"],
     cue: exercise.cue,
@@ -6759,10 +6809,195 @@ function buildProgramFromLibrary(
   );
 }
 
+// Milliseconds for one direction of the loop. Slow enough to read the shape,
+// quick enough not to feel like the screen has stalled.
+const POSE_HALF_CYCLE_MS = 1300;
+
+// The frame the existing poses were drawn against. Only the ratio matters --
+// it keeps a squat from being stretched when the container is a different shape.
+const POSE_UNIT_WIDTH = 850;
+const POSE_UNIT_HEIGHT = 567;
+
+// Draws a PoseGuide as a stick figure and animates start -> finish -> start.
+//
+// The data model and the styles for this were already in the file; nothing
+// rendered them, so 159 exercises fell back to a written cue. A figure is not a
+// technique demo -- it cannot show bar path or grip -- but it answers "what is
+// this movement", which a paragraph of text does slowly and a photo of a
+// different exercise does wrongly.
+function PoseFigure({ guide }: { guide: PoseGuide }) {
+  const progress = useRef(new Animated.Value(0)).current;
+  const reduceMotion = useReducedMotion();
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (reduceMotion) {
+      // Land on the finish pose rather than skipping the figure: the end
+      // position is the more informative half of most movements.
+      progress.setValue(1);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(progress, {
+          toValue: 1,
+          duration: POSE_HALF_CYCLE_MS,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: false,
+        }),
+        Animated.timing(progress, {
+          toValue: 0,
+          duration: POSE_HALF_CYCLE_MS,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: false,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [progress, reduceMotion]);
+
+  const { width, height } = size;
+
+  // The authored poses occupy a narrow band of the coordinate space -- the squat
+  // spans x 0.42..0.58 -- so drawn literally the figure is a sixth of the frame
+  // wide and unreadable. Fit the movement's whole range to the frame instead,
+  // scaling uniformly in pixel space so the authored proportions survive, and
+  // over both poses together so the figure does not jump between them.
+  const project = useMemo(() => {
+    // Poses were authored against a 850x567 frame, so the coordinates are read
+    // back into that space first. Fitting happens after, which keeps the
+    // figure's proportions right whatever shape the container turns out to be.
+    const all = [...guide.start, ...guide.finish];
+    let minX = 1, minY = 1, maxX = 0, maxY = 0;
+    for (const [x1, y1, x2, y2] of all) {
+      minX = Math.min(minX, x1, x2); maxX = Math.max(maxX, x1, x2);
+      minY = Math.min(minY, y1, y2); maxY = Math.max(maxY, y1, y2);
+    }
+    const unit = (x: number, y: number) => ({ x: x * POSE_UNIT_WIDTH, y: y * POSE_UNIT_HEIGHT });
+    const topLeft = unit(minX, minY);
+    const bottomRight = unit(maxX, maxY);
+    const boxW = Math.max(bottomRight.x - topLeft.x, 1);
+    const boxH = Math.max(bottomRight.y - topLeft.y, 1);
+    const pad = 0.08;
+    const scale = Math.min((width * (1 - pad * 2)) / boxW, (height * (1 - pad * 2)) / boxH);
+    const cx = (topLeft.x + bottomRight.x) / 2;
+    const cy = (topLeft.y + bottomRight.y) / 2;
+    return (x: number, y: number) => {
+      const p = unit(x, y);
+      return { x: width / 2 + (p.x - cx) * scale, y: height / 2 + (p.y - cy) * scale };
+    };
+  }, [guide, width, height]);
+
+  const bones = useMemo(() => {
+    if (width === 0 || height === 0) return [];
+    const count = Math.min(guide.start.length, guide.finish.length);
+    const out = [];
+    for (let i = 0; i < count; i++) {
+      const [sx1, sy1, sx2, sy2] = guide.start[i]!;
+      const [fx1, fy1, fx2, fy2] = guide.finish[i]!;
+      const s1 = project(sx1!, sy1!), s2 = project(sx2!, sy2!);
+      const f1 = project(fx1!, fy1!), f2 = project(fx2!, fy2!);
+      const from = { x: s1.x, y: s1.y, dx: s2.x - s1.x, dy: s2.y - s1.y };
+      const to = { x: f1.x, y: f1.y, dx: f2.x - f1.x, dy: f2.y - f1.y };
+      const fromAngle = (Math.atan2(from.dy, from.dx) * 180) / Math.PI;
+      let toAngle = (Math.atan2(to.dy, to.dx) * 180) / Math.PI;
+      // Rotate the short way round, or a bone can swing through a half turn to
+      // reach a position a few degrees away.
+      while (toAngle - fromAngle > 180) toAngle -= 360;
+      while (toAngle - fromAngle < -180) toAngle += 360;
+      out.push({
+        from,
+        to,
+        fromAngle,
+        toAngle,
+        fromLength: Math.hypot(from.dx, from.dy),
+        toLength: Math.hypot(to.dx, to.dy),
+      });
+    }
+    return out;
+  }, [guide, width, height, project]);
+
+  // A dot per joint rather than per bone end, so shared joints don't stack.
+  const joints = useMemo(() => {
+    if (width === 0 || height === 0) return [];
+    const seen = new Map<string, { from: [number, number]; to: [number, number] }>();
+    const count = Math.min(guide.start.length, guide.finish.length);
+    for (let i = 0; i < count; i++) {
+      const s = guide.start[i]!;
+      const f = guide.finish[i]!;
+      for (const end of [0, 2] as const) {
+        const key = `${s[end].toFixed(3)},${s[end + 1]!.toFixed(3)}`;
+        if (!seen.has(key)) {
+          const a = project(s[end]!, s[end + 1]!);
+          const bPt = project(f[end]!, f[end + 1]!);
+          seen.set(key, { from: [a.x, a.y], to: [bPt.x, bPt.y] });
+        }
+      }
+    }
+    return [...seen.values()];
+  }, [guide, width, height, project]);
+
+  return (
+    <View style={styles.poseFrameHost}>
+      <View
+        style={styles.poseCanvas}
+        onLayout={(event) => {
+          const { width: w, height: h } = event.nativeEvent.layout;
+          setSize((current) => (current.width === w && current.height === h ? current : { width: w, height: h }));
+        }}
+      >
+        <View style={styles.poseCanvas}>
+          {bones.map((bone, index) => (
+            <Animated.View
+              key={`bone-${index}`}
+              style={[
+                styles.poseLine,
+                {
+                  left: progress.interpolate({ inputRange: [0, 1], outputRange: [bone.from.x, bone.to.x] }),
+                  top: progress.interpolate({ inputRange: [0, 1], outputRange: [bone.from.y, bone.to.y] }),
+                  width: progress.interpolate({ inputRange: [0, 1], outputRange: [bone.fromLength, bone.toLength] }),
+                  transformOrigin: "left center",
+                  transform: [
+                    {
+                      rotate: progress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [`${bone.fromAngle}deg`, `${bone.toAngle}deg`],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
+          ))}
+          {joints.map((joint, index) => (
+            <Animated.View
+              key={`joint-${index}`}
+              style={[
+                styles.poseJoint,
+                {
+                  left: progress.interpolate({ inputRange: [0, 1], outputRange: [joint.from[0], joint.to[0]] }),
+                  top: progress.interpolate({ inputRange: [0, 1], outputRange: [joint.from[1], joint.to[1]] }),
+                },
+              ]}
+            />
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
   return (
     <View style={styles.cueCard}>
-      <Text style={styles.cueCardBadge}>NO DEMO YET</Text>
+      {exercise.poseGuide ? (
+        <View style={styles.cueCardFigure}>
+          <PoseFigure guide={exercise.poseGuide} />
+        </View>
+      ) : (
+        <Text style={styles.cueCardBadge}>NO DEMO YET</Text>
+      )}
       <Text style={styles.cueCardName}>{exercise.name}</Text>
       <Text style={styles.cueCardTarget}>{exercise.target}</Text>
       {exercise.cue ? <Text style={styles.cueCardText}>{exercise.cue}</Text> : null}
@@ -10497,6 +10732,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#0B0D0B",
   },
   cueCardBadge: { color: "#5A6058", fontSize: 8, fontWeight: "900", letterSpacing: 1.4, marginBottom: 14 },
+  // Takes the space the badge would have had, plus enough height for the figure
+  // to be legible without pushing the name and cue off the card.
+  // Tall enough for the figure to read, short enough that the name, target and
+  // written cue all still fit on the card underneath it.
+  cueCardFigure: { width: "100%", flexShrink: 1, maxHeight: 200, minHeight: 120, aspectRatio: 1, marginBottom: 8 },
   cueCardName: { color: colors.text, fontSize: 22, fontWeight: "900", textAlign: "center" },
   cueCardTarget: { color: colors.lime, fontSize: 10, fontWeight: "800", letterSpacing: 0.8, marginTop: 6, textTransform: "uppercase" },
   cueCardText: { color: colors.muted, fontSize: 13, lineHeight: 19, textAlign: "center", marginTop: 14 },
