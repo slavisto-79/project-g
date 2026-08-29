@@ -6426,30 +6426,34 @@ const GOAL_IMPLEMENT_BIAS: Record<string, Partial<Record<LibraryImplement, numbe
 // lift week after week, and a bench press that comes round every third session
 // progresses at a third of the rate. Accessory slots rotate freely, because
 // that is where staleness is actually felt.
-// Spine depth is generous where it is because the spine rotates per four-week
-// block, not per session -- a main lift is kept long enough to progress on it,
-// then the variant changes. Accessory depth is per session.
-//
-// Strength stays at one. A squat that never changes is not a limitation of the
-// programme, it is the programme; there is nothing to gain from varying the
-// lift you are trying to add weight to.
-const GOAL_VARIETY: Record<string, { spine: number; accessory: number }> = {
-  strength: { spine: 1, accessory: 3 },
-  // Hypertrophy rotates widest: varying the squat and press pattern between
-  // blocks is standard practice for growth, and it is what lets the machine
-  // compounds -- leg press, lat pulldown, hack squat -- reach a spine slot.
-  muscle: { spine: 8, accessory: 6 },
-  athletic: { spine: 4, accessory: 4 },
-  "fat-loss": { spine: 5, accessory: 4 },
-  fitness: { spine: 5, accessory: 4 },
-  health: { spine: 4, accessory: 3 },
-};
-
-const DEFAULT_VARIETY = { spine: 2, accessory: 3 };
-
-// Rotate only between genuinely comparable options. A worse exercise is not
-// variety, it is a worse exercise.
+// How far below the best a candidate may score and still be rotated to. This
+// is the real quality control: a worse exercise is not variety, it is a worse
+// exercise.
 const VARIETY_SCORE_BAND = 12;
+
+// Someone training twice a week meets the same session far more often than
+// someone on a six-day split, where the split days themselves supply the
+// variety. Fewer days, slightly wider tolerance.
+const INFREQUENT_BAND_BONUS = 4;
+
+// Rotation depth, as a deliberate restriction rather than a default.
+//
+// The band above already guarantees every candidate in it is comparable to the
+// best, so there is no quality argument for also excluding options the band has
+// accepted -- that was leaving perfectly good exercises permanently unreachable
+// on a technicality of ordering. `null` means rotate through the whole band.
+//
+// Strength is the one goal that restricts: one main lift, kept for as long as
+// it is still progressing. That is not a limitation of the programme, it is the
+// programme. Accessories always rotate through the whole band.
+const GOAL_SPINE_DEPTH: Record<string, number | null> = {
+  strength: 1,
+  athletic: null,
+  muscle: null,
+  "fat-loss": null,
+  fitness: null,
+  health: null,
+};
 
 // On a compound lift a free weight beats a machine, and the tier preference
 // says so. On isolation that ranking inverts: a cable holds tension through the
@@ -6545,13 +6549,11 @@ function buildProgramFromLibrary(
   const used = new Set<string>();
   const chosen: LibraryExercise[] = [];
 
-  const variety = GOAL_VARIETY[profile.goal ?? ""] ?? DEFAULT_VARIETY;
+  const spineDepth = GOAL_SPINE_DEPTH[profile.goal ?? ""] ?? null;
   const spineLength = splitDaySpineLength(splitDay);
-  // Someone training twice a week meets the same session far more often than
-  // someone on a six-day split, where the split days themselves supply the
-  // variety. Fewer days, deeper rotation.
   const frequency = Number(profile.frequency);
-  const rotationBonus = Number.isFinite(frequency) && frequency <= 3 ? 1 : 0;
+  const scoreBand =
+    VARIETY_SCORE_BAND + (Number.isFinite(frequency) && frequency <= 3 ? INFREQUENT_BAND_BONUS : 0);
 
   slots.forEach((slot, slotIndex) => {
     const inPattern = eligible.filter(
@@ -6579,14 +6581,15 @@ function buildProgramFromLibrary(
     // Spine and accessory rotate on different clocks. Accessories change every
     // session -- that is where staleness is felt. Main lifts change per
     // four-week block, so there is time to actually add weight to one before it
-    // is replaced. The frequency bonus reaches only the accessories.
+    // is replaced.
     const best = ranked[0];
     const isSpine = slotIndex < spineLength;
-    const depth = isSpine ? variety.spine : variety.accessory + rotationBonus;
+    const depth = isSpine ? spineDepth : null;
     const rotationIndex = isSpine ? blockIndex : sessionIndex;
-    const choices = best
-      ? ranked.filter((candidate) => candidate.score >= best.score - VARIETY_SCORE_BAND).slice(0, Math.max(1, depth))
+    const inBand = best
+      ? ranked.filter((candidate) => candidate.score >= best.score - scoreBand)
       : [];
+    const choices = depth === null ? inBand : inBand.slice(0, Math.max(1, depth));
     // Index alone, with no slot offset: a first session should be the
     // best-scoring one available, not an arbitrary position in the cycle. Two
     // slots sharing a pattern still diverge, because the first pick is removed
