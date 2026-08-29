@@ -5227,6 +5227,18 @@ function goalRepRange(profile: Record<string, string>): { low: number; high: num
 // never jump down in one move, no matter how many advances have piled up.
 const ADVANCES_PER_GRADUATION_STEP = 2;
 
+// Seconds as m:ss.
+//
+// The rest timer used to render a hardcoded "0:" and pad the raw seconds, so
+// any rest of a minute or more read as nonsense -- "0:75" for hypertrophy,
+// "0:120" for strength. Only fat-loss and fitness were ever right, and only
+// because their rest happens to be under a minute; the +15 button broke those
+// too.
+function clockLabel(totalSeconds: number): string {
+  const safe = Math.max(0, Math.round(totalSeconds));
+  return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, "0")}`;
+}
+
 function restSecondsForProfile(profile: Record<string, string>, adjustment?: CoachScenario | null): number {
   const base = GOAL_REST_SECONDS[profile.goal ?? ""] ?? 60;
   return adjustment === "tired" ? base + 30 : base;
@@ -7023,7 +7035,7 @@ function ActiveWorkoutScreen({
   ).padStart(2, "0")}`;
   const plannedMinutes = adjustment === "time" ? 30 : Number(profile.duration ?? 45);
   const remainingSeconds = Math.max(0, plannedMinutes * 60 - elapsedSeconds);
-  const remainingLabel = `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, "0")}`;
+  const remainingLabel = clockLabel(remainingSeconds);
   const exerciseGuidance = exercise.name.includes("Squat")
     ? {
         setup: "Hold the dumbbell close to your chest. Set your feet just outside hip width.",
@@ -7304,7 +7316,7 @@ function ActiveWorkoutScreen({
               >
                 <Text style={styles.restAdjustButtonText}>−15</Text>
               </Pressable>
-              <Text style={styles.restValue}>0:{String(restSeconds).padStart(2, "0")}</Text>
+              <Text style={styles.restValue}>{clockLabel(restSeconds)}</Text>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Add 15 seconds"
