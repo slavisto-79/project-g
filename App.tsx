@@ -29,6 +29,7 @@ import {
   determineSplitDay,
   splitDaySlotCount,
   splitDayPatterns,
+  splitDaySpineLength,
   suitsBodyweightCapability,
   type ProgramBuilderProfile,
   type SplitDay,
@@ -6143,6 +6144,10 @@ async function createWorkoutFromCatalog(
   const weightModifier = isDeload
     ? 1
     : readinessWeightModifier(workoutHistory, coachAdjustment, checkIn, profile.goal);
+  // Rotation is driven by how many of this split day are already logged, so the
+  // same history always rebuilds the same session. Randomness here would
+  // reshuffle the exercises under a user mid-workout on any re-render.
+  const sessionIndex = workoutHistory.filter((entry) => entry.splitDay === splitDay).length;
 
   try {
     const tags = await buildProgram(builderProfile, splitDay);
@@ -6152,7 +6157,7 @@ async function createWorkoutFromCatalog(
       console.error(
         `Catalog program only filled ${tags.length} slots for "${splitDay}" -- building from the local library instead`,
       );
-      return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier);
+      return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier, sessionIndex);
     }
     return {
       exercises: tags.map((tag) =>
@@ -6165,7 +6170,7 @@ async function createWorkoutFromCatalog(
     };
   } catch (error) {
     console.error("Catalog workout build failed -- building from the local library instead", error);
-    return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier);
+    return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier, sessionIndex);
   }
 }
 
@@ -6321,6 +6326,7 @@ function libraryWorkout(
   exerciseProgress: Record<string, ExerciseProgress>,
   isDeload: boolean,
   weightModifier: number,
+  sessionIndex: number,
 ): {
   exercises: WorkoutExercise[];
   splitLabel: string;
@@ -6328,7 +6334,14 @@ function libraryWorkout(
   isDeload: boolean;
   weightModifier: number;
 } | null {
-  const exercises = buildProgramFromLibrary(profile, splitDay, exerciseProgress, isDeload, weightModifier);
+  const exercises = buildProgramFromLibrary(
+    profile,
+    splitDay,
+    exerciseProgress,
+    isDeload,
+    weightModifier,
+    sessionIndex,
+  );
   if (exercises.length < 4) return null;
   return { exercises, splitLabel, splitDay, isDeload, weightModifier };
 }
@@ -6376,6 +6389,33 @@ const GOAL_IMPLEMENT_BIAS: Record<string, Partial<Record<LibraryImplement, numbe
   health: { dumbbell: 6, bodyweight: 4, machine: 2 },
 };
 
+// How many comparable alternatives a slot cycles through across sessions.
+//
+// Scoring alone is deterministic, so the highest-scoring exercise won its slot
+// every single time: the same profile built the same session forever. Rotation
+// is driven by how many sessions of this split day are already logged, not by
+// randomness -- the same history must always rebuild the same session, or a
+// re-render mid-workout would reshuffle the exercises under the user.
+//
+// The spine barely moves for strength. Progressive overload needs the same
+// lift week after week, and a bench press that comes round every third session
+// progresses at a third of the rate. Accessory slots rotate freely, because
+// that is where staleness is actually felt.
+const GOAL_VARIETY: Record<string, { spine: number; accessory: number }> = {
+  strength: { spine: 1, accessory: 3 },
+  muscle: { spine: 2, accessory: 3 },
+  athletic: { spine: 2, accessory: 4 },
+  "fat-loss": { spine: 3, accessory: 4 },
+  fitness: { spine: 3, accessory: 4 },
+  health: { spine: 2, accessory: 3 },
+};
+
+const DEFAULT_VARIETY = { spine: 2, accessory: 3 };
+
+// Rotate only between genuinely comparable options. A worse exercise is not
+// variety, it is a worse exercise.
+const VARIETY_SCORE_BAND = 12;
+
 const LIBRARY_DIFFICULTY_RANK = { novice: 0, beginner: 1, intermediate: 2, advanced: 3 };
 
 // Difficulty is a target, not a ceiling.
@@ -6411,6 +6451,8 @@ function buildProgramFromLibrary(
   exerciseProgress: Record<string, ExerciseProgress>,
   isDeload: boolean,
   weightModifier: number,
+  // How many sessions of this split day are already logged. Drives rotation.
+  sessionIndex: number = 0,
 ): WorkoutExercise[] {
   const tier = (["gym", "home-gym", "minimal", "bodyweight", "bars"] as EquipmentTier[]).includes(
     profile.equipment as EquipmentTier,
@@ -6444,24 +6486,49 @@ function buildProgramFromLibrary(
   const used = new Set<string>();
   const chosen: LibraryExercise[] = [];
 
-  for (const pattern of slots) {
+  const variety = GOAL_VARIETY[profile.goal ?? ""] ?? DEFAULT_VARIETY;
+  const spineLength = splitDaySpineLength(splitDay);
+  // Someone training twice a week meets the same session far more often than
+  // someone on a six-day split, where the split days themselves supply the
+  // variety. Fewer days, deeper rotation.
+  const frequency = Number(profile.frequency);
+  const rotationBonus = Number.isFinite(frequency) && frequency <= 3 ? 1 : 0;
+
+  slots.forEach((pattern, slotIndex) => {
     const forPattern = eligible.filter((exercise) => exercise.pattern === pattern && !used.has(exercise.name));
     // Score every candidate rather than taking the first that clears a bar:
     // a thin pattern still yields its best available option instead of
     // whichever movement happened to be written first. Sort is stable, so ties
-    // fall back to library order and the same profile always builds the same
-    // session.
-    const pick = forPattern
+    // fall back to library order and the ranking is reproducible.
+    const ranked = forPattern
       .map((exercise) => ({
         exercise,
         score: libraryPickScore(exercise, tier, targetDifficulty, profile.goal),
       }))
-      .sort((a, b) => b.score - a.score)[0]?.exercise;
+      .sort((a, b) => b.score - a.score);
+
+    // Rotate across sessions, but only among options close enough to the best
+    // that swapping between them costs nothing.
+    //
+    // The frequency bonus deliberately does not reach the spine: a strength
+    // trainee's main lifts stay fixed however often they train, because that
+    // is what there is to progress on.
+    const best = ranked[0];
+    const isSpine = slotIndex < spineLength;
+    const depth = isSpine ? variety.spine : variety.accessory + rotationBonus;
+    const choices = best
+      ? ranked.filter((candidate) => candidate.score >= best.score - VARIETY_SCORE_BAND).slice(0, Math.max(1, depth))
+      : [];
+    // Session index alone, with no slot offset: a first session should be the
+    // best-scoring one available, not an arbitrary position in the cycle. Two
+    // slots sharing a pattern still diverge, because the first pick is removed
+    // from the pool before the second slot ranks it.
+    const pick = choices.length ? choices[sessionIndex % choices.length]!.exercise : undefined;
     if (pick) {
       chosen.push(pick);
       used.add(pick.name);
     }
-  }
+  });
 
   // A leg day for someone with a bad knee can't fill five knee-dominant slots,
   // and a session that comes back short is dropped entirely for the old

@@ -192,6 +192,13 @@ export function splitDayPatterns(day: SplitDay, goal?: string): MovementPattern[
   return [...shape.spine, ...accessoryPatterns(shape, goal), ...shape.tail];
 }
 
+// How many of a day's leading slots are the compound spine. Exposed so the
+// picker can rotate accessory slots harder than the main lifts: a bench press
+// that only comes round every third session progresses at a third of the rate.
+export function splitDaySpineLength(day: SplitDay): number {
+  return dayShapes[day].spine.length;
+}
+
 export function splitDaySlotCount(day: SplitDay): number {
   return splitTemplates[day].length;
 }
