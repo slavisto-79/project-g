@@ -4625,6 +4625,10 @@ type WorkoutExercise = {
   // single-leg work, "side" for single-arm work. Absent means both sides
   // together, the normal case.
   repsPerSide?: "leg" | "side";
+  // True when `reps` is a duration in seconds rather than a count. Carried
+  // explicitly because it cannot be inferred from the name: a front rack carry
+  // and a wall sit are both held, and neither says "plank".
+  isHold?: boolean;
   tempo: string;
   phases: string[];
   // Absent for library exercises that have no demo footage shot yet. The
@@ -5450,8 +5454,22 @@ function holdSecondsForProfile(profile: Record<string, string>): number {
   return profile.experience === "beginner" ? 20 : profile.experience === "advanced" ? 40 : 30;
 }
 
-function isHoldExercise(exercise: { name: string; catalogMeta?: { movementPattern?: string } }): boolean {
-  return exercise.catalogMeta?.movementPattern === "isometric" || exercise.name.includes("Plank");
+// Whether `reps` is a duration rather than a count.
+//
+// The name check alone was wrong for everything the local library added: a
+// front rack carry, a wall sit, a hollow hold and a sprint interval are all
+// timed, and none of them say "plank". They were prescribed in seconds and
+// labelled REPS, which read as thirty repetitions of a wall sit.
+function isHoldExercise(exercise: {
+  name: string;
+  isHold?: boolean;
+  catalogMeta?: { movementPattern?: string };
+}): boolean {
+  return (
+    exercise.isHold === true ||
+    exercise.catalogMeta?.movementPattern === "isometric" ||
+    exercise.name.includes("Plank")
+  );
 }
 
 function isBodyweightExerciseName(name: string): boolean {
@@ -6371,6 +6389,7 @@ function libraryExerciseToWorkoutExercise(
     implement: isUnloaded ? undefined : implement,
     weightPerHand: !isUnloaded && exercise.perHand === true,
     repsPerSide: exercise.isHold || !exercise.unilateral ? undefined : (perSideUnitLabel(exercise.name, exercise.primaryMuscle) ?? undefined),
+    isHold: exercise.isHold,
     tempo: exercise.isHold ? "HOLD" : "3-1-1",
     phases: exercise.isHold ? ["BRACE", "HOLD", "HOLD"] : ["LOWER", "BRACE", "LIFT"],
     cue: exercise.cue,
