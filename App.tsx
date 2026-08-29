@@ -6350,11 +6350,65 @@ async function applyLimitationVeto(
 // What the veto took out, for the workout screen to explain. Removing
 // exercises silently leaves someone staring at a two-exercise session with no
 // idea why, and no way to tell it apart from a bug.
-function countVetoedExercises(
-  before: WorkoutExercise[],
-  after: WorkoutExercise[],
-): number {
-  return Math.max(0, before.length - after.length);
+// Runs the limitation veto and then puts back what it took.
+//
+// The veto only ever shortened a session. A free-text hernia removed five of
+// eight and the user was handed a three-exercise workout -- every time, with
+// nothing filling the gaps. Refills come from the library, excluding both what
+// survived and what the veto already rejected, and only the new movements are
+// judged: verdicts are cached per name, so nothing is asked about twice.
+//
+// Two passes at most. A note strict enough to reject two sessions' worth of
+// movements has earned the short session and the prompt to talk to a coach.
+async function vetAndRefill(
+  built: WorkoutExercise[],
+  profile: Record<string, string>,
+  result: { splitDay?: SplitDay; isDeload?: boolean; weightModifier?: number } | null,
+  exerciseProgress: Record<string, ExerciseProgress>,
+  workoutHistory: WorkoutHistoryEntry[],
+  cachedVerdicts: LimitationVerdicts,
+  onVerdictsChange: (next: LimitationVerdicts) => void,
+): Promise<{ exercises: WorkoutExercise[]; rejectedCount: number }> {
+  let verdicts = cachedVerdicts;
+  const remember = (next: LimitationVerdicts) => {
+    verdicts = next;
+    onVerdictsChange(next);
+  };
+
+  let kept = await applyLimitationVeto(built, profile, verdicts, remember);
+  const rejected = new Set(built.filter((item) => !kept.includes(item)).map((item) => item.name));
+  // Only what the user would otherwise have been given counts as removed.
+  // Replacements the veto also rejected are the search working, not something
+  // taken away -- counting those said "13 exercises removed" on a session of 8.
+  const removedFromPlan = rejected.size;
+
+  const splitDay = result?.splitDay;
+  if (splitDay && kept.length < built.length) {
+    const sessionIndex = workoutHistory.filter((entry) => entry.splitDay === splitDay).length;
+    const blockIndex = mesocycleBlockIndex(workoutHistory);
+    for (let attempt = 0; attempt < 2 && kept.length < built.length; attempt++) {
+      const taken = new Set([...kept.map((item) => item.name), ...rejected]);
+      const replacements = buildProgramFromLibrary(
+        profile,
+        splitDay,
+        exerciseProgress,
+        result?.isDeload ?? false,
+        result?.weightModifier ?? 1,
+        sessionIndex,
+        blockIndex,
+        taken,
+      ).filter((item) => !taken.has(item.name));
+      if (replacements.length === 0) break;
+      const safe = await applyLimitationVeto(replacements, profile, verdicts, remember);
+      for (const item of replacements) if (!safe.includes(item)) rejected.add(item.name);
+      if (safe.length === 0) continue;
+      kept = [...kept, ...safe].slice(0, built.length);
+    }
+  }
+
+  // Not how much shorter the session got -- with refilling it usually is not
+  // shorter at all, and "0 removed" would hide that five movements were swapped.
+  return { exercises: kept, rejectedCount: removedFromPlan };
 }
 
 // Shown in place of a demo when an exercise has no footage yet.
@@ -6591,6 +6645,10 @@ function buildProgramFromLibrary(
   sessionIndex: number = 0,
   // Which four-week block the user is in. Drives main-lift rotation.
   blockIndex: number = 0,
+  // Names to treat as already taken. Used when the limitation veto has removed
+  // exercises and the session needs refilling with movements it hasn't already
+  // rejected.
+  exclude: ReadonlySet<string> = new Set(),
 ): WorkoutExercise[] {
   const tier = (["gym", "home-gym", "minimal", "bodyweight", "bars"] as EquipmentTier[]).includes(
     profile.equipment as EquipmentTier,
@@ -6621,7 +6679,7 @@ function buildProgramFromLibrary(
   });
 
   const slots = splitDaySlots(splitDay, profile.goal);
-  const used = new Set<string>();
+  const used = new Set<string>(exclude);
   const chosen: LibraryExercise[] = [];
 
   const spineDepth = GOAL_SPINE_DEPTH[profile.goal ?? ""] ?? null;
@@ -8479,14 +8537,19 @@ export default function App() {
     // Resolve which list is actually being used before the veto runs, so the
     // built-in fallback roster is reviewed too -- not just catalog sessions.
     const builtExercises = result?.exercises ?? createWorkout(profile, exerciseProgress);
-    const vettedExercises = await applyLimitationVeto(
+
+    const { exercises: vettedExercises, rejectedCount } = await vetAndRefill(
       builtExercises,
       profile,
+      result,
+      exerciseProgress,
+      workoutHistory,
       limitationVerdicts,
       setLimitationVerdicts,
     );
+
     setActiveWorkoutExercises(vettedExercises);
-    setActiveWorkoutVetoedCount(countVetoedExercises(builtExercises, vettedExercises));
+    setActiveWorkoutVetoedCount(rejectedCount);
     setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
     setActiveWorkoutSplitDay(result?.splitDay ?? null);
     setActiveWorkoutIsDeload(result?.isDeload ?? false);
@@ -8851,14 +8914,17 @@ export default function App() {
               // `answers`, not `profile` -- setProfile above hasn't landed yet,
               // and this is the first session, where the limitation matters most.
               const built = result?.exercises ?? createWorkout(answers, exerciseProgress);
-              const vetted = await applyLimitationVeto(
+              const vetted = await vetAndRefill(
                 built,
                 answers,
+                result,
+                exerciseProgress,
+                workoutHistory,
                 limitationVerdicts,
                 setLimitationVerdicts,
               );
-              setActiveWorkoutExercises(vetted);
-              setActiveWorkoutVetoedCount(countVetoedExercises(built, vetted));
+              setActiveWorkoutExercises(vetted.exercises);
+              setActiveWorkoutVetoedCount(vetted.rejectedCount);
               setActiveWorkoutSplitLabel(result?.splitLabel ?? null);
               setActiveWorkoutSplitDay(result?.splitDay ?? null);
               setActiveWorkoutIsDeload(result?.isDeload ?? false);
