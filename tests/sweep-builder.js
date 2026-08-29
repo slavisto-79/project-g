@@ -18,6 +18,7 @@ function mod(p) {
 }
 const lib = mod("lib/exerciseLibrary.ts");
 const pb = mod("lib/programBuilder.ts");
+const poses = mod("lib/poses.ts");
 
 // Symbols imported from lib/ are not declared in App.tsx, so they are supplied
 // from the real modules rather than stubbed.
@@ -32,6 +33,8 @@ const { api, pulled } = load("App.tsx", ["buildProgramFromLibrary"], {
   // exerciseMedia.ts require()s .mp4 and .jpg assets, which Node cannot load.
   // Stubbed to "no footage" -- this sweep checks weights, reps and labels, not
   // which exercises have a demo.
+  // Pure data with no asset requires, so the real module is used.
+  exercisePoses: poses.exercisePoses,
   shippedMediaFor: () => null,
 });
 console.log(`harness built from ${pulled} declarations lifted out of App.tsx`);
