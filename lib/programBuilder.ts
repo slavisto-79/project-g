@@ -81,6 +81,92 @@ const splitTemplates: Record<SplitDay, SlotDefinition[]> = {
   ],
 };
 
+// Which slots of a day are the compound spine, and which are up for grabs.
+//
+// Everyone squats, hinges, pushes and pulls -- that part of a session is not a
+// matter of goal. What a fat-loss day and a strength day should stop sharing
+// is everything after that, and previously they shared all of it: five goals
+// produced byte-identical exercise lists, differing only in reps and rest.
+//
+// `spine` and `tail` are fixed; the slots between them are filled from the
+// goal's preference order, narrowed to what makes sense on that day.
+type DayShape = {
+  spine: MovementPattern[];
+  accessoryCount: number;
+  accessoryPool: MovementPattern[];
+  tail: MovementPattern[];
+};
+
+const dayShapes: Record<SplitDay, DayShape> = {
+  "full-body": {
+    spine: ["squat", "hinge", "push", "pull"],
+    accessoryCount: 3,
+    accessoryPool: ["push", "pull", "lunge", "carry", "rotation"],
+    tail: ["isometric"],
+  },
+  upper: {
+    spine: ["push", "pull"],
+    accessoryCount: 3,
+    accessoryPool: ["push", "pull", "carry", "rotation"],
+    tail: ["isometric"],
+  },
+  lower: {
+    spine: ["squat", "hinge"],
+    accessoryCount: 2,
+    accessoryPool: ["lunge", "squat", "carry", "rotation"],
+    tail: ["isometric"],
+  },
+  push: {
+    spine: ["push"],
+    accessoryCount: 2,
+    accessoryPool: ["push", "carry", "rotation"],
+    tail: ["isometric"],
+  },
+  pull: {
+    spine: ["pull"],
+    accessoryCount: 3,
+    accessoryPool: ["pull", "hinge", "carry", "rotation"],
+    tail: [],
+  },
+  legs: {
+    spine: ["squat", "hinge"],
+    accessoryCount: 2,
+    accessoryPool: ["lunge", "squat", "carry", "rotation"],
+    tail: ["isometric"],
+  },
+};
+
+// What each goal reaches for once the compound work is done. Ordered: the
+// first entries that a given day allows are the ones it gets.
+//
+// Strength stacks more heavy compound work. Muscle adds volume on the muscle
+// being trained. Athletic and fat-loss are where the carries, sled pushes,
+// sprints and rotational work finally become reachable -- 14 exercises in the
+// library could never be selected before, because no slot ever asked for a
+// carry or a rotation.
+const GOAL_ACCESSORY_ORDER: Record<string, MovementPattern[]> = {
+  strength: ["push", "pull", "squat", "hinge", "carry", "lunge", "rotation"],
+  muscle: ["push", "pull", "lunge", "squat", "rotation", "carry", "hinge"],
+  athletic: ["rotation", "carry", "lunge", "push", "pull", "hinge", "squat"],
+  "fat-loss": ["carry", "rotation", "lunge", "push", "pull", "squat", "hinge"],
+  fitness: ["carry", "lunge", "rotation", "push", "pull", "squat", "hinge"],
+  // Legacy goal, kept so anyone still on it gets what they always got.
+  health: ["push", "pull", "lunge", "squat", "rotation", "carry", "hinge"],
+};
+
+const DEFAULT_ACCESSORY_ORDER: MovementPattern[] = ["push", "pull", "lunge", "carry", "rotation"];
+
+function accessoryPatterns(shape: DayShape, goal: string | undefined): MovementPattern[] {
+  const order = GOAL_ACCESSORY_ORDER[goal ?? ""] ?? DEFAULT_ACCESSORY_ORDER;
+  const allowed = order.filter((pattern) => shape.accessoryPool.includes(pattern));
+  // Cycle rather than come up short: a repeated pattern lands on a different
+  // exercise, since the picker excludes what it has already chosen.
+  const chosen: MovementPattern[] = [];
+  const pool = allowed.length ? allowed : shape.accessoryPool;
+  for (let i = 0; i < shape.accessoryCount; i++) chosen.push(pool[i % pool.length]!);
+  return chosen;
+}
+
 const splitDayLabels: Record<SplitDay, string> = {
   "full-body": "Full Body",
   upper: "Upper Body",
@@ -92,11 +178,18 @@ const splitDayLabels: Record<SplitDay, string> = {
 
 // How many exercises a given split day's template actually has -- for UI copy
 // like "6 guided exercises" that needs to match reality before the fetch runs.
-// The movement patterns a given split day asks for, in order. Exposed so the
-// local library can fill the same slot shape the catalog builder does, rather
-// than inventing a second idea of what a session looks like.
-export function splitDayPatterns(day: SplitDay): MovementPattern[] {
-  return splitTemplates[day].map((slot) => slot.pattern);
+// The movement patterns a given split day asks for, in order.
+//
+// Goal-aware, unlike `splitTemplates` above, which the catalog path still uses
+// unchanged. That is deliberate rather than an oversight: catalog slots need a
+// search keyword confirmed to return results against the live MuscleWiki
+// endpoint, and "carry" and "rotation" have no such confirmed keyword -- the
+// API has been rate-limited throughout, so a guess could not be checked. The
+// local library needs no keywords, so it gets the goal shaping now; the
+// catalog templates follow when the endpoint is reachable again.
+export function splitDayPatterns(day: SplitDay, goal?: string): MovementPattern[] {
+  const shape = dayShapes[day];
+  return [...shape.spine, ...accessoryPatterns(shape, goal), ...shape.tail];
 }
 
 export function splitDaySlotCount(day: SplitDay): number {
