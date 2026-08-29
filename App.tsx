@@ -6380,12 +6380,18 @@ const IMPLEMENT_PREFERENCE: Record<EquipmentTier, Record<LibraryImplement, numbe
 // moves, so they reach for kettlebells and bodyweight and away from fixed
 // machines. Hypertrophy prefers the dumbbell and cable work that lets a muscle
 // be loaded through its range.
+// `other` is not a leftover bucket here -- it is the conditioning and power
+// equipment: sled, battle ropes, medicine balls. It was the one implement the
+// table had no opinion about, which left every piece of it scoring the same
+// flat number for all five goals and stranded permanently just outside the
+// rotation band. Sleds and ropes belong in a fat-loss or athletic session far
+// more than in a hypertrophy one.
 const GOAL_IMPLEMENT_BIAS: Record<string, Partial<Record<LibraryImplement, number>>> = {
-  strength: { barbell: 12, machine: -4, cable: -2, band: -8, bodyweight: -4 },
-  athletic: { kettlebell: 10, bodyweight: 8, dumbbell: 2, cable: -4, machine: -10 },
-  muscle: { dumbbell: 8, cable: 8, machine: 6, barbell: 2, band: -4 },
-  "fat-loss": { kettlebell: 12, bodyweight: 8, dumbbell: 2, barbell: -6, machine: -6 },
-  fitness: { dumbbell: 6, bodyweight: 6, kettlebell: 6, barbell: -2 },
+  strength: { barbell: 12, other: 2, machine: -4, cable: -2, band: -8, bodyweight: -4 },
+  athletic: { other: 12, kettlebell: 10, bodyweight: 8, dumbbell: 2, cable: -4, machine: -10 },
+  muscle: { dumbbell: 8, cable: 8, machine: 6, barbell: 2, band: -4, other: -6 },
+  "fat-loss": { kettlebell: 12, other: 12, bodyweight: 8, dumbbell: 2, barbell: -6, machine: -6 },
+  fitness: { dumbbell: 6, bodyweight: 6, kettlebell: 6, other: 6, barbell: -2 },
   health: { dumbbell: 6, bodyweight: 4, machine: 2 },
 };
 
