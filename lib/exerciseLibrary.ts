@@ -138,7 +138,7 @@ export const exerciseLibrary: LibraryExercise[] = [
   { name: "Cable Chest Fly", pattern: "push", primaryMuscle: "chest", isolation: true, tiers: GYM_ONLY, implement: "cable", difficulty: "beginner", perHand: true, injurySafe: SHOULDER_HEAVY, startingKg: 10, cue: "Soft elbows held fixed, bring the hands together in front of the chest." },
   { name: "Dumbbell Fly", pattern: "push", primaryMuscle: "chest", isolation: true, tiers: DUMBBELL_TIERS, implement: "dumbbell", difficulty: "intermediate", perHand: true, injurySafe: SHOULDER_HEAVY, startingKg: 8, cue: "Wide arc with fixed elbows, stopping level with the torso." },
   { name: "Pec Deck", pattern: "push", primaryMuscle: "chest", isolation: true, tiers: GYM_ONLY, implement: "machine", difficulty: "novice", injurySafe: SHOULDER_HEAVY, startingKg: 20, cue: "Forearms on the pads, squeeze them together." },
-  { name: "Band Chest Press", pattern: "push", primaryMuscle: "chest", tiers: ["minimal"], implement: "band", difficulty: "novice", injurySafe: SAFE_ALL, cue: "Band anchored behind you, press forward and control the return." },
+  { name: "Band Chest Press", pattern: "push", primaryMuscle: "chest", tiers: ["minimal"], implement: "band", difficulty: "beginner", injurySafe: SAFE_ALL, cue: "Band anchored behind you, press forward and control the return." },
   { name: "Plyo Push-Up", pattern: "push", primaryMuscle: "chest", tiers: ALL_TIERS, implement: "bodyweight", difficulty: "advanced", goals: ["athletic"], injurySafe: SHOULDER_HEAVY, bodyweightFraction: 0.7, cue: "Push hard enough that the hands leave the floor, land soft." },
 
   // --- VERTICAL PUSH -------------------------------------------------------
@@ -154,7 +154,7 @@ export const exerciseLibrary: LibraryExercise[] = [
   { name: "Dumbbell Lateral Raise", pattern: "push", primaryMuscle: "shoulders", isolation: true, tiers: DUMBBELL_TIERS, implement: "dumbbell", difficulty: "novice", perHand: true, injurySafe: SHOULDER_HEAVY, startingKg: 5, cue: "Lead with the elbows out to the side, stop at shoulder height." },
   { name: "Cable Lateral Raise", pattern: "push", primaryMuscle: "shoulders", isolation: true, tiers: GYM_ONLY, implement: "cable", difficulty: "beginner", unilateral: true, injurySafe: SHOULDER_HEAVY, startingKg: 5, cue: "One arm at a time, constant tension through the whole range." },
   { name: "Dumbbell Front Raise", pattern: "push", primaryMuscle: "shoulders", isolation: true, tiers: DUMBBELL_TIERS, implement: "dumbbell", difficulty: "novice", perHand: true, injurySafe: SHOULDER_HEAVY, startingKg: 5, cue: "Raise to shoulder height in front, no swing." },
-  { name: "Band Overhead Press", pattern: "push", primaryMuscle: "shoulders", tiers: ["minimal"], implement: "band", difficulty: "novice", injurySafe: SHOULDER_HEAVY, cue: "Stand on the band, press overhead against increasing tension." },
+  { name: "Band Overhead Press", pattern: "push", primaryMuscle: "shoulders", tiers: ["minimal"], implement: "band", difficulty: "beginner", injurySafe: SHOULDER_HEAVY, cue: "Stand on the band, press overhead against increasing tension." },
 
   // --- VERTICAL PULL -------------------------------------------------------
   { name: "Pull-Up", pattern: "pull", primaryMuscle: "back", tiers: BAR_TIERS, implement: "bodyweight", difficulty: "advanced", injurySafe: SHOULDER_HEAVY, bodyweightFraction: 1, cue: "Overhand grip, pull the chest toward the bar, lower under control." },
