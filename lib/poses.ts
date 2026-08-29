@@ -16,7 +16,11 @@ export type PoseSegment = [number, number, number, number];
 export type PoseProp =
   | { kind: "bar"; x: number; y: number; angle: number; length: number; plates: boolean }
   | { kind: "bell"; x: number; y: number; size: number }
-  | { kind: "slab"; x: number; y: number; width: number; height: number };
+  | { kind: "slab"; x: number; y: number; width: number; height: number }
+  // A ground line. Side views are hard to read without one -- a bent-over
+  // figure and a lying one are the same jumble of sticks until you can see
+  // which way is down and where the body is relative to the floor.
+  | { kind: "floor"; y: number };
 
 export type PoseFrame = { segments: PoseSegment[]; props: PoseProp[] };
 export type ExercisePose = { start: PoseFrame; finish: PoseFrame };
@@ -101,12 +105,20 @@ function build(figure: Figure): { segments: PoseSegment[]; joints: Record<string
 type PropSpec =
   | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number }
   | { kind: "bell"; at: string; size?: number; each?: boolean }
-  | { kind: "slab"; at: string; width: number; height: number; dy?: number };
+  | { kind: "slab"; at: string; width: number; height: number; dy?: number }
+  // Placed under the lowest point of the figure, so it sits where the ground is.
+  | { kind: "floor" };
 
 function frame(figure: Figure, props: PropSpec[] = []): PoseFrame {
   const { segments, joints } = build(figure);
   const drawn: PoseProp[] = [];
+  // Where the figure meets the ground in this frame.
+  const lowest = segments.reduce((low, [, y1, , y2]) => Math.max(low, y1, y2), 0);
   for (const spec of props) {
+    if (spec.kind === "floor") {
+      drawn.push({ kind: "floor", y: lowest + 0.004 });
+      continue;
+    }
     if (spec.kind === "bell" && spec.each) {
       for (const key of Object.keys(joints)) {
         if (key.startsWith("hand")) drawn.push({ kind: "bell", x: joints[key]!.x, y: joints[key]!.y, size: spec.size ?? 0.055 });
@@ -169,42 +181,59 @@ export const exercisePoses = {
 
   hinge: {
     start: frame(
-      { hip: HIP_STAND, torso: 4, arms: [{ upper: 176, lower: 180 }], legs: [{ upper: 179, lower: 179 }], feet: 82 },
-      [{ kind: "bar", at: "grip", length: 0.3 }],
+      {
+        hip: HIP_STAND,
+        torso: 4,
+        // Two arms and two legs a few degrees apart. A side view of a single
+        // stick is ambiguous; the offset pair reads as a body with depth.
+        arms: [{ upper: 176, lower: 179 }, { upper: 183, lower: 186 }],
+        legs: [{ upper: 178, lower: 179 }, { upper: 184, lower: 185 }],
+        feet: 82,
+      },
+      [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.3 }],
     ),
     finish: frame(
-      { hip: { x: 0.52, y: 0.6 }, torso: 72, head: 58, arms: [{ upper: 176, lower: 180 }], legs: [{ upper: 170, lower: 174 }], feet: 82 },
-      [{ kind: "bar", at: "grip", length: 0.3 }],
+      {
+        hip: { x: 0.56, y: 0.55 },
+        torso: 108,
+        head: 96,
+        arms: [{ upper: 176, lower: 179 }, { upper: 183, lower: 186 }],
+        legs: [{ upper: 168, lower: 188 }, { upper: 174, lower: 194 }],
+        feet: 82,
+      },
+      [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.3 }],
     ),
   },
 
   bench: {
     start: frame(
       {
-        hip: { x: 0.46, y: 0.62 },
-        torso: 92,
-        head: 92,
-        arms: [{ upper: 8, lower: 2 }],
-        legs: [{ upper: 156, lower: 186 }],
+        hip: { x: 0.58, y: 0.56 },
+        torso: 272,
+        head: 272,
+        arms: [{ upper: 356, lower: 358 }, { upper: 4, lower: 2 }],
+        legs: [{ upper: 128, lower: 188 }, { upper: 134, lower: 194 }],
         feet: 92,
       },
       [
-        { kind: "slab", at: "hip", width: 0.34, height: 0.035, dy: 0.028 },
-        { kind: "bar", at: "grip", length: 0.3 },
+        { kind: "floor" },
+        { kind: "slab", at: "hip", width: 0.4, height: 0.03, dy: 0.03 },
+        { kind: "bar", at: "grip", length: 0.28 },
       ],
     ),
     finish: frame(
       {
-        hip: { x: 0.46, y: 0.62 },
-        torso: 92,
-        head: 92,
-        arms: [{ upper: 62, lower: -18 }],
-        legs: [{ upper: 156, lower: 186 }],
+        hip: { x: 0.58, y: 0.56 },
+        torso: 272,
+        head: 272,
+        arms: [{ upper: 212, lower: 12 }, { upper: 220, lower: 16 }],
+        legs: [{ upper: 128, lower: 188 }, { upper: 134, lower: 194 }],
         feet: 92,
       },
       [
-        { kind: "slab", at: "hip", width: 0.34, height: 0.035, dy: 0.028 },
-        { kind: "bar", at: "grip", length: 0.3 },
+        { kind: "floor" },
+        { kind: "slab", at: "hip", width: 0.4, height: 0.03, dy: 0.03 },
+        { kind: "bar", at: "grip", length: 0.28 },
       ],
     ),
   },
@@ -234,12 +263,27 @@ export const exercisePoses = {
 
   bentRow: {
     start: frame(
-      { hip: { x: 0.52, y: 0.6 }, torso: 68, head: 54, arms: [{ upper: 176, lower: 180 }], legs: [{ upper: 171, lower: 175 }], feet: 82 },
-      [{ kind: "bar", at: "grip", length: 0.3 }],
+      {
+        hip: { x: 0.56, y: 0.56 },
+        torso: 104,
+        head: 92,
+        arms: [{ upper: 176, lower: 179 }, { upper: 183, lower: 186 }],
+        legs: [{ upper: 168, lower: 186 }, { upper: 174, lower: 192 }],
+        feet: 82,
+      },
+      [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.3 }],
     ),
     finish: frame(
-      { hip: { x: 0.52, y: 0.6 }, torso: 68, head: 54, arms: [{ upper: 208, lower: 128 }], legs: [{ upper: 171, lower: 175 }], feet: 82 },
-      [{ kind: "bar", at: "grip", length: 0.3 }],
+      {
+        hip: { x: 0.56, y: 0.56 },
+        torso: 104,
+        head: 92,
+        // Elbow drives back and up, hand ends under the ribs.
+        arms: [{ upper: 214, lower: 132 }, { upper: 221, lower: 139 }],
+        legs: [{ upper: 168, lower: 186 }, { upper: 174, lower: 192 }],
+        feet: 82,
+      },
+      [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.3 }],
     ),
   },
 
@@ -256,12 +300,26 @@ export const exercisePoses = {
 
   pushUp: {
     start: frame(
-      { hip: { x: 0.5, y: 0.62 }, torso: 76, head: 62, arms: [{ upper: 172, lower: 178 }], legs: [{ upper: 108, lower: 96 }], feet: 40 },
-      [],
+      {
+        hip: { x: 0.52, y: 0.6 },
+        torso: 254,
+        head: 244,
+        arms: [{ upper: 178, lower: 179 }, { upper: 184, lower: 185 }],
+        legs: [{ upper: 86, lower: 88 }, { upper: 92, lower: 94 }],
+        feet: 130,
+      },
+      [{ kind: "floor" }],
     ),
     finish: frame(
-      { hip: { x: 0.5, y: 0.68 }, torso: 76, head: 62, arms: [{ upper: 214, lower: 132 }], legs: [{ upper: 106, lower: 94 }], feet: 40 },
-      [],
+      {
+        hip: { x: 0.52, y: 0.655 },
+        torso: 256,
+        head: 246,
+        arms: [{ upper: 214, lower: 128 }, { upper: 220, lower: 134 }],
+        legs: [{ upper: 88, lower: 90 }, { upper: 94, lower: 96 }],
+        feet: 130,
+      },
+      [{ kind: "floor" }],
     ),
   },
 
@@ -311,23 +369,50 @@ export const exercisePoses = {
 
   calfRaise: {
     start: frame(
-      { hip: { x: 0.5, y: 0.6 }, torso: 0, arms: [{ upper: 176, lower: 179 }], legs: [{ upper: 179, lower: 180 }], feet: 88 },
-      [],
+      {
+        hip: { x: 0.5, y: 0.6 },
+        torso: 0,
+        arms: [{ upper: 176, lower: 179 }, { upper: 183, lower: 186 }],
+        legs: [{ upper: 178, lower: 179 }, { upper: 184, lower: 185 }],
+        feet: 96,
+      },
+      [{ kind: "floor" }],
     ),
     finish: frame(
-      { hip: { x: 0.5, y: 0.54 }, torso: 0, arms: [{ upper: 176, lower: 179 }], legs: [{ upper: 179, lower: 180 }], feet: 128 },
-      [],
+      {
+        hip: { x: 0.5, y: 0.545 },
+        torso: 0,
+        arms: [{ upper: 176, lower: 179 }, { upper: 183, lower: 186 }],
+        legs: [{ upper: 178, lower: 179 }, { upper: 184, lower: 185 }],
+        feet: 140,
+      },
+      [{ kind: "floor" }],
     ),
   },
 
   plank: {
     start: frame(
-      { hip: { x: 0.5, y: 0.62 }, torso: 74, head: 62, arms: [{ upper: 186, lower: 128 }], legs: [{ upper: 106, lower: 96 }], feet: 40 },
-      [],
+      {
+        hip: { x: 0.52, y: 0.6 },
+        torso: 254,
+        head: 244,
+        // Forearms down: a plank is held on the elbows, not the hands.
+        arms: [{ upper: 190, lower: 268 }, { upper: 196, lower: 274 }],
+        legs: [{ upper: 86, lower: 88 }, { upper: 92, lower: 94 }],
+        feet: 130,
+      },
+      [{ kind: "floor" }],
     ),
     finish: frame(
-      { hip: { x: 0.5, y: 0.635 }, torso: 76, head: 63, arms: [{ upper: 186, lower: 128 }], legs: [{ upper: 106, lower: 96 }], feet: 40 },
-      [],
+      {
+        hip: { x: 0.52, y: 0.612 },
+        torso: 255,
+        head: 245,
+        arms: [{ upper: 190, lower: 268 }, { upper: 196, lower: 274 }],
+        legs: [{ upper: 86, lower: 88 }, { upper: 92, lower: 94 }],
+        feet: 130,
+      },
+      [{ kind: "floor" }],
     ),
   },
 
