@@ -6358,6 +6358,24 @@ const IMPLEMENT_PREFERENCE: Record<EquipmentTier, Record<LibraryImplement, numbe
   bodyweight: { bodyweight: 20, band: 8, other: 6, dumbbell: 0, kettlebell: 0, barbell: 0, machine: 0, cable: 0 },
 };
 
+// What each goal wants from a movement, layered on top of the equipment the
+// user actually has. The tier preference alone is goal-blind, so a gym member
+// got barbells whatever they had chosen -- five goals produced identical
+// sessions, differing only in reps and rest.
+//
+// Strength leans into the bar. Fat-loss and athletic training want load that
+// moves, so they reach for kettlebells and bodyweight and away from fixed
+// machines. Hypertrophy prefers the dumbbell and cable work that lets a muscle
+// be loaded through its range.
+const GOAL_IMPLEMENT_BIAS: Record<string, Partial<Record<LibraryImplement, number>>> = {
+  strength: { barbell: 12, machine: -4, cable: -2, band: -8, bodyweight: -4 },
+  athletic: { kettlebell: 10, bodyweight: 8, dumbbell: 2, cable: -4, machine: -10 },
+  muscle: { dumbbell: 8, cable: 8, machine: 6, barbell: 2, band: -4 },
+  "fat-loss": { kettlebell: 12, bodyweight: 8, dumbbell: 2, barbell: -6, machine: -6 },
+  fitness: { dumbbell: 6, bodyweight: 6, kettlebell: 6, barbell: -2 },
+  health: { dumbbell: 6, bodyweight: 4, machine: 2 },
+};
+
 const LIBRARY_DIFFICULTY_RANK = { novice: 0, beginner: 1, intermediate: 2, advanced: 3 };
 
 // Difficulty is a target, not a ceiling.
@@ -6379,6 +6397,10 @@ function libraryPickScore(
     60 -
     distance +
     (IMPLEMENT_PREFERENCE[tier][exercise.implement] ?? 0) +
+    (GOAL_IMPLEMENT_BIAS[goal ?? ""]?.[exercise.implement] ?? 0) +
+    // Only 34 of 153 exercises name a goal at all, so this separates the few
+    // that do and nothing else. The bias above is what actually shapes a
+    // session towards its goal.
     (suitsGoal(exercise, goal) ? 15 : 0)
   );
 }
@@ -6418,7 +6440,7 @@ function buildProgramFromLibrary(
     return true;
   });
 
-  const slots = splitDayPatterns(splitDay);
+  const slots = splitDayPatterns(splitDay, profile.goal);
   const used = new Set<string>();
   const chosen: LibraryExercise[] = [];
 
