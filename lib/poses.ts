@@ -288,7 +288,11 @@ function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
       return {
         kind: "bar" as const,
         center: point(prop.x, prop.y),
-        length: prop.plates ? 0.46 : Math.max(view === "front" ? prop.length : 0.34, 0.34),
+        // A real barbell is longer than the lifter is tall -- 2.2m of bar
+        // against 1.75m of person. Drawn shoulder-width it fuses with the
+        // body; at this length the plates sit well clear of the silhouette,
+        // which is most of what makes it read as a separate object.
+        length: prop.plates ? 1.04 : Math.max(view === "front" ? prop.length : 0.34, 0.34),
         plates: prop.plates,
       };
     }
