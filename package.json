@@ -13,7 +13,8 @@
     "sweep": "node tests/sweep-derived.js && node tests/sweep-builder.js && node tests/sweep-display.js",
     "sweep:derived": "node tests/sweep-derived.js",
     "sweep:builder": "node tests/sweep-builder.js",
-    "sweep:display": "node tests/sweep-display.js"
+    "sweep:display": "node tests/sweep-display.js",
+    "check:poses": "node tests/check-poses.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.5",
