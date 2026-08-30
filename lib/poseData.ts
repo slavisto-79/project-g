@@ -24,8 +24,8 @@ import {
 // at full stretch there is no room left for the hips to sit back at all.
 const GROUND = 0.938;
 const FLOOR = 0.930;
-const FEET: [Point, Point] = [{ x: 0.545, y: FLOOR }, { x: 0.525, y: FLOOR }];
-const FEET_FRONT: [Point, Point] = [{ x: 0.578, y: FLOOR }, { x: 0.422, y: FLOOR }];
+const FEET: [Point, Point] = [{ x: 0.535, y: FLOOR }, { x: 0.515, y: FLOOR }];
+const FEET_FRONT: [Point, Point] = [{ x: 0.565, y: FLOOR }, { x: 0.435, y: FLOOR }];
 
 // Knees break forwards in a side view, outwards face on.
 const FORWARD: [1 | -1, 1 | -1] = [-1, -1];
@@ -66,7 +66,7 @@ export const exercisePoses = {
   squat: pose(
     "side",
     // Hips travel back and down together; the trunk closes as they do.
-    ([[0.500, 0.520, 2], [0.478, 0.578, 16], [0.454, 0.636, 30], [0.434, 0.690, 42]] as const).map(([x, y, torso]) =>
+    ([[0.500, 0.494, 2], [0.478, 0.578, 16], [0.454, 0.636, 30], [0.434, 0.690, 42]] as const).map(([x, y, torso]) =>
       stand({ x, y }, torso, sideArms(230, 60)),
     ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
@@ -111,7 +111,7 @@ export const exercisePoses = {
   lateralLunge: pose(
     "front",
     [
-      standFront(0.520, 0, bothArms(150, 25)),
+      standFront(0.497, 0, bothArms(150, 25)),
       { ...standFront(0.560, 5, bothArms(150, 25), [{ x: 0.645, y: FLOOR }, { x: 0.400, y: FLOOR }]), pelvis: { x: 0.482, y: 0.560 } },
       (() => {
         const pelvis = { x: 0.455, y: 0.605 };
@@ -175,7 +175,7 @@ export const exercisePoses = {
   jump: pose(
     "side",
     [
-      stand({ x: 0.500, y: 0.520 }, 2, sideArms(178, 179)),
+      stand({ x: 0.500, y: 0.494 }, 2, sideArms(178, 179)),
       stand({ x: 0.452, y: 0.630 }, 30, sideArms(212, 200)),
       // Airborne: nothing is planted, so the angles are direct and the ground
       // is pinned where the take-off was.
@@ -200,7 +200,7 @@ export const exercisePoses = {
 
   hinge: pose(
     "side",
-    ([[0.500, 0.520, 4], [0.528, 0.528, 40], [0.552, 0.538, 72], [0.570, 0.550, 98]] as const).map(([x, y, torso]) =>
+    ([[0.500, 0.494, 4], [0.528, 0.528, 40], [0.552, 0.538, 72], [0.570, 0.550, 98]] as const).map(([x, y, torso]) =>
       stand({ x, y }, torso, HANG, torso > 30 ? torso - 16 : torso),
     ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
@@ -208,7 +208,7 @@ export const exercisePoses = {
 
   singleLegHinge: pose(
     "side",
-    ([[0.500, 0.520, 4, 196, 214], [0.532, 0.530, 50, 248, 254], [0.560, 0.542, 94, 284, 278]] as const).map(([x, y, torso, up, low]) => {
+    ([[0.500, 0.494, 4, 196, 214], [0.532, 0.530, 50, 248, 254], [0.560, 0.542, 94, 284, 278]] as const).map(([x, y, torso, up, low]) => {
       const pelvis = { x, y };
       return {
         pelvis,
@@ -250,7 +250,7 @@ export const exercisePoses = {
     // Floor, past the knee, the extension, the catch, and standing. Showing
     // only the first and last is what made the old version a deadlift.
     ([[0.570, 96], [0.548, 60], [0.516, 16], [0.500, 4], [0.500, 356]] as const).map(([x, torso], i) => {
-      const pelvis = { x, y: [0.552, 0.538, 0.518, 0.556, 0.520][i]! };
+      const pelvis = { x, y: [0.552, 0.538, 0.518, 0.556, 0.494][i]! };
       return {
         pelvis,
         torso,
@@ -366,7 +366,7 @@ export const exercisePoses = {
 
   fly: pose(
     "front",
-    [96, 60, 24].map((arm) => standFront(0.520, 0, bothArms(arm, arm - 4))),
+    [96, 60, 24].map((arm) => standFront(0.497, 0, bothArms(arm, arm - 4))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
     "neutral",
   ),
@@ -376,7 +376,7 @@ export const exercisePoses = {
   overheadPress: pose(
     "front",
     [0.300, 0.222, 0.146].map((barY) => {
-      const pelvis = { x: 0.5, y: 0.520 };
+      const pelvis = { x: 0.5, y: 0.497 };
       return {
         pelvis,
         torso: 0,
@@ -389,21 +389,21 @@ export const exercisePoses = {
 
   lateralRaise: pose(
     "front",
-    [170, 131, 93].map((arm) => standFront(0.520, 0, bothArms(arm, arm + 3))),
+    [170, 131, 93].map((arm) => standFront(0.497, 0, bothArms(arm, arm + 3))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
     "neutral",
   ),
 
   frontRaise: pose(
     "side",
-    [174, 133, 92].map((arm) => stand({ x: 0.5, y: 0.520 }, 356, sideArms(arm, arm + 2))),
+    [174, 133, 92].map((arm) => stand({ x: 0.5, y: 0.494 }, 356, sideArms(arm, arm + 2))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
     "neutral",
   ),
 
   tricepsExtension: pose(
     "front",
-    [100, 138, 174].map((forearm) => standFront(0.520, 0, bothArms(170, forearm))),
+    [100, 138, 174].map((forearm) => standFront(0.497, 0, bothArms(170, forearm))),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.16, plates: false }],
   ),
 
@@ -465,7 +465,7 @@ export const exercisePoses = {
   pulldown: pose(
     "front",
     [0.180, 0.244, 0.310].map((barY) => {
-      const pelvis = { x: 0.5, y: 0.560 };
+      const pelvis = { x: 0.5, y: 0.492 };
       return {
         pelvis,
         torso: 4,
@@ -520,7 +520,7 @@ export const exercisePoses = {
 
   curl: pose(
     "side",
-    [178, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.520 }, 356, sideArms(176, forearm))),
+    [178, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.494 }, 356, sideArms(176, forearm))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
     "underhand",
   ),

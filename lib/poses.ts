@@ -413,15 +413,25 @@ function reach(from: Point, to: Point, upperLen: number, lowerLen: number, bend:
   const dx = (to.x - from.x) * ASPECT;
   const dy = to.y - from.y;
   const span = Math.hypot(dx, dy);
+  const total = upperLen + lowerLen;
   // Loud, not clamped. A target further away than the limb is long is an
   // authoring mistake, and clamping it silently straightens the limb and
   // leaves whatever was meant to be held floating out of reach -- which is
   // exactly what a barbell did in the first draft of this rebuild.
-  if (span > (upperLen + lowerLen) * 0.999) {
+  if (span > total * 1.01) {
     throw new Error(
       `pose: cannot reach (${to.x.toFixed(3)}, ${to.y.toFixed(3)}) from ` +
-        `(${from.x.toFixed(3)}, ${from.y.toFixed(3)}) -- needs ${span.toFixed(3)}, limb is ${(upperLen + lowerLen).toFixed(3)}`,
+        `(${from.x.toFixed(3)}, ${from.y.toFixed(3)}) -- needs ${span.toFixed(3)}, limb is ${total.toFixed(3)}`,
     );
+  }
+  // A limb within one percent of full stretch draws straight. Two-link IK
+  // turns a small shortfall into a large fold -- at 99% reach the solved knee
+  // is still bent twelve degrees, and a standing figure looked crouched. A
+  // person at that distance locks the joint; so does the figure. The end lands
+  // within 0.005 of the target, under every tolerance the checks use.
+  if (span >= total * 0.99) {
+    const straight = ((Math.atan2(dx, -dy) * 180) / Math.PI);
+    return { upper: straight, lower: straight };
   }
   const dist = Math.max(span, 1e-6);
   const deg = (radians: number) => (radians * 180) / Math.PI;
