@@ -36,6 +36,7 @@ import {
 } from "./lib/programBuilder";
 import { type ExercisePose, type PoseProp } from "./lib/poses";
 import { exercisePoses, type PoseName } from "./lib/poseData";
+import { PoseViewer3D, type ViewerImplement } from "./lib/poseViewer3d";
 import {
   exercisesForTier,
   suitsGoal,
@@ -7167,13 +7168,75 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
   );
 }
 
+// The class owns the canvas and the frame loop; this wrapper only gives it a
+// place to live and tears it down. Web only -- native keeps the flat figure.
+function PoseFigure3DWeb({
+  pose,
+  implement,
+  interactive,
+}: {
+  pose: ExercisePose;
+  implement: ViewerImplement;
+  interactive: boolean;
+}) {
+  const hostRef = useRef<View>(null);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    // On web a View ref is the underlying DOM element.
+    const host = hostRef.current as unknown as HTMLElement | null;
+    if (!host) return;
+    const viewer = new PoseViewer3D(host, pose, implement, { interactive, reduceMotion });
+    return () => viewer.dispose();
+  }, [pose, implement, interactive, reduceMotion]);
+
+  return <View ref={hostRef} style={styles.pose3dHost} />;
+}
+
 function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
+  const [expanded, setExpanded] = useState(false);
   return (
     <View style={styles.cueCard}>
       {exercise.pose ? (
-        <View style={styles.cueCardFigure}>
-          <PoseFigure pose={exercise.pose} />
-        </View>
+        Platform.OS === "web" ? (
+          <>
+            <Pressable
+              style={styles.cueCardFigure}
+              onPress={() => setExpanded(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Expand the exercise demo"
+            >
+              <PoseFigure3DWeb pose={exercise.pose} implement={exercise.implement} interactive={false} />
+              <Text style={styles.poseExpandHint}>⛶ TAP TO ROTATE</Text>
+            </Pressable>
+            {/* Fullscreen: the same movement with the camera handed to the
+                user -- drag to rotate, scroll or pinch to zoom. */}
+            {/* animationType="none": the fade is JS-driven on web and starves
+                next to two WebGL canvases -- it sat at 11% opacity. */}
+            <Modal visible={expanded} transparent animationType="none" onRequestClose={() => setExpanded(false)}>
+              <View style={styles.poseModalBackdrop}>
+                <View style={styles.poseModalStage}>
+                  <PoseFigure3DWeb pose={exercise.pose} implement={exercise.implement} interactive />
+                </View>
+                <View style={styles.poseModalHeader} pointerEvents="box-none">
+                  {/* flex 1 so a long hint wraps instead of shoving the close
+                      button off the right edge of a narrow screen. */}
+                  <View style={styles.poseModalTitles}>
+                    <Text style={styles.poseModalName}>{exercise.name}</Text>
+                    <Text style={styles.poseModalHint}>DRAG TO ROTATE · PINCH OR SCROLL TO ZOOM</Text>
+                  </View>
+                  <Pressable style={styles.poseModalClose} onPress={() => setExpanded(false)} accessibilityRole="button">
+                    <Text style={styles.poseModalCloseText}>✕</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </Modal>
+          </>
+        ) : (
+          <View style={styles.cueCardFigure}>
+            <PoseFigure pose={exercise.pose} />
+          </View>
+        )
       ) : (
         <Text style={styles.cueCardBadge}>NO DEMO YET</Text>
       )}
@@ -10915,9 +10978,43 @@ const styles = StyleSheet.create({
   // to be legible without pushing the name and cue off the card.
   // Tall enough for the figure to read, short enough that the name, target and
   // written cue all still fit on the card underneath it.
-  // Raised from 120-200: at 120px the articulated figure was legible as a
-  // shape but not as a body, which defeats the point of drawing joints.
-  cueCardFigure: { width: "100%", flexShrink: 1, maxHeight: 260, minHeight: 190, aspectRatio: 1, marginBottom: 8 },
+  // Raised twice now: at 120px a figure is legible as a shape but not as a
+  // body, and the 3D mannequin earns more room than the flat one did.
+  cueCardFigure: { width: "100%", flexShrink: 1, maxHeight: 300, minHeight: 200, aspectRatio: 1, marginBottom: 8 },
+  pose3dHost: { ...StyleSheet.absoluteFillObject },
+  poseExpandHint: {
+    position: "absolute",
+    bottom: 6,
+    right: 8,
+    color: "#6E7A74",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 1,
+  },
+  poseModalBackdrop: { flex: 1, backgroundColor: "#0B0D0B" },
+  poseModalStage: { ...StyleSheet.absoluteFillObject },
+  poseModalHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    padding: 20,
+  },
+  poseModalTitles: { flex: 1, marginRight: 12 },
+  poseModalName: { color: "#F2F5F1", fontSize: 20, fontWeight: "800" },
+  poseModalHint: { color: "#6E7A74", fontSize: 11, fontWeight: "700", letterSpacing: 1, marginTop: 4 },
+  poseModalClose: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#1A1F1C",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  poseModalCloseText: { color: "#F2F5F1", fontSize: 18, fontWeight: "700" },
   cueCardName: { color: colors.text, fontSize: 22, fontWeight: "900", textAlign: "center" },
   cueCardTarget: { color: colors.lime, fontSize: 10, fontWeight: "800", letterSpacing: 0.8, marginTop: 6, textTransform: "uppercase" },
   cueCardText: { color: colors.muted, fontSize: 13, lineHeight: 19, textAlign: "center", marginTop: 14 },
@@ -11063,6 +11160,9 @@ const styles = StyleSheet.create({
   videoShade: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.18)",
+    // Decoration only. Without this the shade sits over the cue card and eats
+    // the tap that opens the 3D viewer.
+    pointerEvents: "none",
   },
   videoSourceBadge: {
     position: "absolute",
