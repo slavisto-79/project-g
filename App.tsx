@@ -7349,7 +7349,9 @@ function ExerciseDemo({
       {nextExercise?.video ? (
         <PreloadExerciseVideo key={`preload-${nextExercise.video}`} source={nextExercise.video} />
       ) : null}
-      <View style={styles.videoShade} />
+      {/* The shade keeps text legible over video; over the 3D figure it only
+          dims the mannequin. */}
+      {exercise.formFrames ? <View style={styles.videoShade} /> : null}
       {/* Only claim a real demo when one is actually playing. The cue card
           already says "no demo yet", and the two together would contradict. */}
       {exercise.formFrames ? (
@@ -7443,8 +7445,8 @@ function ActiveWorkoutScreen({
   const [sheetHeight, setSheetHeight] = useState(0);
   const [deloadBannerHeight, setDeloadBannerHeight] = useState(0);
   const exerciseVisualHeight = Math.min(
-    340,
-    Math.max(130, height - 58 - deloadBannerHeight - (sheetHeight || 460) - 18),
+    460,
+    Math.max(Math.min(300, Math.round(height * 0.42)), height - 58 - deloadBannerHeight - (sheetHeight || 460) - 18),
   );
   const workoutTitle = splitLabel
     ? splitLabel.toUpperCase()
