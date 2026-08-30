@@ -36,6 +36,9 @@ const DOWN: [1 | -1, 1 | -1] = [1, -1];
 // Arms are ropes in every pulling movement: they hang from the shoulder
 // wherever the trunk happens to be, and the bar follows the hands.
 const HANG = sideArms(178, 179);
+// Hinged movements hang the hands a few degrees forward of plumb: the bar
+// travels in FRONT of the shins, and the knees never cross its line.
+const HANG_AHEAD = sideArms(168, 171);
 const HANG_FRONT = bothArms(175, 178);
 
 // Standing on both feet, seen from the side.
@@ -202,7 +205,7 @@ export const exercisePoses = {
   hinge: pose(
     "side",
     ([[0.500, 0.494, 4], [0.528, 0.528, 40], [0.552, 0.538, 72], [0.570, 0.550, 98]] as const).map(([x, y, torso]) =>
-      stand({ x, y }, torso, HANG, torso > 30 ? torso - 16 : torso),
+      stand({ x, y }, torso, HANG_AHEAD, torso > 30 ? torso - 16 : torso),
     ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
   ),
@@ -215,7 +218,7 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso > 30 ? torso - 14 : torso,
-        arms: HANG,
+        arms: HANG_AHEAD,
         // Standing leg solved to the floor; the free leg swings back as the
         // counterweight, which is the balance the movement is built on.
         legs: [plantedLegs(pelvis, torso, "side", FEET, FORWARD)[0], { upper: up, lower: low, end: low - 90 }],
@@ -243,7 +246,7 @@ export const exercisePoses = {
     [
       { kind: "floor", y: 0.742 },
       { kind: "slab", at: "shoulder", width: 0.20, height: 0.035, dy: 0.038 },
-      { kind: "bar", at: "pelvis", length: 0.17 },
+      { kind: "bar", at: "pelvis", dy: -0.048, length: 0.17 },
     ],
   ),
 
@@ -257,7 +260,7 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso > 30 ? torso - 16 : torso,
-        arms: i >= 3 ? sideArms(150, 42) : HANG,
+        arms: i >= 3 ? sideArms(150, 42) : HANG_AHEAD,
         legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
       };
     }),
@@ -360,10 +363,11 @@ export const exercisePoses = {
         torso: 8,
         neck: 6,
         arms: reachingArms(pelvis, 8, "side", [{ x: 0.516, y: 0.572 }, { x: 0.500, y: 0.572 }], BACK),
-        legs: sideLegs(142, 100, 40),
+        legs: sideLegs(166, 252, 200),
       };
     }),
-    [{ kind: "bar", at: "grip", length: 0.14, plates: false }],
+    [{ kind: "bar", at: "grip", length: 0.14, plates: false, rails: true }],
+    "neutral",
   ),
 
   fly: pose(

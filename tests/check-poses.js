@@ -118,5 +118,34 @@ for (const [name, idx] of Object.entries(STANDING_FRAMES)) {
   }
 }
 
+// A bar must never pass through a leg -- in the gym the bar does not go
+// through you. The bar runs along X at one (y, z); a leg bone whose YZ
+// distance to that point is smaller than the two radii is being skewered.
+// The hip thrust is the one lift where the bar genuinely rests against the
+// thighs, so it gets a small allowance instead of an exemption.
+const LEG_RADII = { thigh: 0.032, shin: 0.026, foot: 0.02 };
+const BAR_RADIUS = 0.011;
+for (const [name, pose] of Object.entries(exercisePoses)) {
+  const slack = name === "hipThrust" ? 0.03 : 0.008;
+  pose.frames3d.forEach((frame, fi) => {
+    for (const prop of frame.props) {
+      if (prop.kind !== "bar" || prop.rails) continue;
+      for (const bone of frame.bones) {
+        const legR = LEG_RADII[bone.part];
+        if (!legR) continue;
+        // Closest approach in the YZ plane between the bar point and the bone.
+        const ay = bone.a[1] - prop.center[1], az = bone.a[2] - prop.center[2];
+        const by = bone.b[1] - prop.center[1], bz = bone.b[2] - prop.center[2];
+        const dy = by - ay, dz = bz - az;
+        const len2 = dy * dy + dz * dz;
+        const t = len2 > 0 ? Math.max(0, Math.min(1, -(ay * dy + az * dz) / len2)) : 0;
+        const dist = Math.hypot(ay + t * dy, az + t * dz);
+        const clash = legR + BAR_RADIUS - dist;
+        if (clash > slack) note(name + "[" + fi + "]: bar passes through a " + bone.part + " by " + clash.toFixed(3));
+      }
+    }
+  });
+}
+
 console.log(Object.keys(exercisePoses).length + " movements checked");
 console.log(problems.length ? problems.join("\n") : "no structural problems");

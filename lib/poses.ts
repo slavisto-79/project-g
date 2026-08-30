@@ -23,7 +23,7 @@ export type PoseSegment = { x1: number; y1: number; x2: number; y2: number; weig
 // Equipment drawn alongside the figure. A back squat and a goblet squat are the
 // same shape; what is being held is most of what tells them apart.
 export type PoseProp =
-  | { kind: "bar"; x: number; y: number; angle: number; length: number; plates: boolean }
+  | { kind: "bar"; x: number; y: number; angle: number; length: number; plates: boolean; rails?: boolean }
   | { kind: "bell"; x: number; y: number; size: number }
   | { kind: "slab"; x: number; y: number; width: number; height: number }
   // A ground line. Side views are hard to read without one -- a bent-over
@@ -56,7 +56,9 @@ export type PoseBone3D = {
 };
 
 export type PoseProp3D =
-  | { kind: "bar"; center: Vec3; length: number; plates: boolean }
+  // rails: dip bars run fore-aft on BOTH sides of the body; a single
+  // crossbar at hip height cannot exist without passing through it.
+  | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean }
   | { kind: "bell"; center: Vec3; size: number }
   | { kind: "slab"; center: Vec3; width: number; height: number }
   | { kind: "floor"; y: number };
@@ -257,9 +259,18 @@ function build3d(figure: Figure, view: View): { bones: PoseBone3D[]; head: { c: 
     // directly reproduces that. Side-view limbs differ only by their offset.
     const elbow = walk(shoulder[side]!, arm.upper, P.upperArm);
     const wrist = walk(elbow, arm.lower, P.forearm);
+    // Arms splay a little outward from the shoulder to the hand -- relaxed
+    // human arms do, and without it anything hanging from the hands (a
+    // dumbbell's inner head, a kettlebell's ball) sat exactly at shoulder
+    // width and passed straight through the thighs.
+    const out = side === 0 ? 1 : -1;
+    elbow[0] += out * 0.014;
+    wrist[0] += out * 0.028;
+    // Walked from the already-shifted wrist, so it carries the splay with it.
+    const handTip = walk(wrist, arm.end ?? arm.lower, P.hand);
     bones.push({ part: "upperArm", side, a: shoulder[side]!, b: elbow });
     bones.push({ part: "forearm", side, a: elbow, b: wrist });
-    bones.push({ part: "hand", side, a: wrist, b: walk(wrist, arm.end ?? arm.lower, P.hand) });
+    bones.push({ part: "hand", side, a: wrist, b: handTip });
     hands.push(wrist);
   });
 
@@ -298,6 +309,7 @@ function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
         // which is most of what makes it read as a separate object.
         length: prop.plates ? 1.04 : Math.max(view === "front" ? prop.length : 0.34, 0.34),
         plates: prop.plates,
+        ...(prop.rails ? { rails: true } : {}),
       };
     }
     if (prop.kind === "bell") return { kind: "bell" as const, center: point(prop.x, prop.y), size: prop.size };
@@ -306,7 +318,7 @@ function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
 }
 
 type PropSpec =
-  | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number }
+  | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean }
   | { kind: "bell"; at: string; size?: number; each?: boolean }
   | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number }
   // Placed under the lowest point of the figure, so it sits where the ground
@@ -338,6 +350,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
         angle: spec.angle ?? 90,
         length: spec.length ?? 0.34,
         plates: spec.plates ?? true,
+        ...(spec.rails ? { rails: true } : {}),
       });
     } else if (spec.kind === "bell") {
       drawn.push({ kind: "bell", x: anchor.x, y: anchor.y, size: spec.size ?? 0.055 });
