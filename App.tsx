@@ -6409,6 +6409,97 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Plank": "plank",
 
   "Farmer's Carry": "carry",
+  "Incline Barbell Bench Press": "inclinePress",
+  "Incline Dumbbell Press": "inclinePress",
+  "Neutral-Grip Dumbbell Press": "bench",
+  "Band Chest Press": "bench",
+  "Knee Push-Up": "kneePushUp",
+  "Incline Push-Up": "pushUp",
+  "Decline Push-Up": "pushUp",
+  "Archer Push-Up": "pushUp",
+  "Plyo Push-Up": "pushUp",
+  "Dumbbell Fly": "fly",
+  "Cable Chest Fly": "fly",
+  "Pec Deck": "fly",
+  "Bar Dip": "dip",
+  "Bench Dip": "dip",
+  "Skull Crusher": "skullCrusher",
+  "Band Overhead Press": "overheadPress",
+  "Push Jerk": "overheadPress",
+
+  "Lat Pulldown": "pulldown",
+  "Neutral-Grip Pulldown": "pulldown",
+  "Band-Assisted Pull-Up": "pullUp",
+  "Seated Cable Row": "seatedRow",
+  "Chest-Supported Row": "seatedRow",
+  "Band Row": "seatedRow",
+  "Inverted Row": "invertedRow",
+  "Towel Row": "invertedRow",
+  "Doorway Row": "invertedRow",
+  "Hanging Leg Raise": "hangingRaise",
+  "Hanging Knee Raise": "hangingRaise",
+  "Superman": "proneRaise",
+  "Prone Y-T-W Raise": "proneRaise",
+  "Reverse Snow Angel": "proneRaise",
+  "Incline Dumbbell Curl": "curl",
+  "Preacher Curl": "curl",
+  "Concentration Curl": "curl",
+
+  "Cable Pull-Through": "hinge",
+  "Back Extension": "hinge",
+  "Hip Hinge Wall Touch": "hinge",
+  "Single-Leg Romanian Deadlift": "singleLegHinge",
+  "Single-Leg Deadlift": "singleLegHinge",
+  "Barbell Hip Thrust": "hipThrust",
+  "Glute Bridge": "hipThrust",
+  "Single-Leg Glute Bridge": "hipThrust",
+  "Frog Pump": "hipThrust",
+  "Lying Leg Curl": "legCurl",
+  "Seated Leg Curl": "legCurl",
+  "Nordic Hamstring Curl": "legCurl",
+
+  "Bulgarian Split Squat": "splitSquat",
+  "Dumbbell Bulgarian Split Squat": "splitSquat",
+  "Step-Up": "splitSquat",
+  "Dumbbell Step-Up": "splitSquat",
+  "Lateral Lunge": "lateralLunge",
+  "Cossack Squat": "lateralLunge",
+  "Wall Sit": "wallSit",
+  "Single-Leg Calf Raise": "calfRaise",
+
+  "Box Jump": "jump",
+  "Broad Jump": "jump",
+  "Jump Squat": "jump",
+  "Tuck Jump": "jump",
+  "Depth Jump": "jump",
+  "Jumping Lunge": "jump",
+  "Skater Bound": "jump",
+  "Sprint Intervals": "run",
+  "High Knees": "run",
+
+  "Hollow Hold": "hollowHold",
+  "Dead Bug": "hollowHold",
+  "V-Up": "hollowHold",
+  "Side Plank": "sidePlank",
+  "Copenhagen Plank": "sidePlank",
+  "Cable Woodchopper": "woodchop",
+  "Medicine Ball Slam": "woodchop",
+  "Rotational Med Ball Throw": "woodchop",
+  "Pallof Press": "woodchop",
+
+  "Suitcase Carry": "carry",
+  "Front Rack Carry": "carry",
+  "Overhead Carry": "carry",
+  "Power Clean": "clean",
+  "Hang Clean": "clean",
+  "Kettlebell Clean": "clean",
+  "Kettlebell Snatch": "clean",
+  "Bird Dog": "quadruped",
+  "Bear Crawl": "quadruped",
+  "Mountain Climbers": "quadruped",
+  "Dumbbell Front Raise": "frontRaise",
+  "Triceps Kickback": "kickback",
+  "Leg Extension": "legExtension",
 };
 
 function libraryExerciseToWorkoutExercise(
@@ -6974,6 +7065,18 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
                     height: between(prop.from.h, prop.to.h),
                   },
                 ]}
+              />
+            );
+          }
+          if (prop.kind === "floor") {
+            // This branch was missing: #113 added floors to the pose data and
+            // a `poseFloor` style, and nothing ever drew them -- an unused
+            // style is not a type error, so the check that caught the other
+            // half of that edit had nothing to say about this one.
+            return (
+              <Animated.View
+                key={`prop-${index}`}
+                style={[styles.poseFloor, { top: between(prop.from, prop.to) }]}
               />
             );
           }
@@ -10920,7 +11023,9 @@ const styles = StyleSheet.create({
   },
   poseBell: { position: "absolute", backgroundColor: "#C6CFCB" },
   // Dim: it is a reference for which way is down, not part of the movement.
-  poseFloor: { position: "absolute", left: 0, right: 0, height: 1, backgroundColor: "#39413D" },
+  // Lighter than the #39413D it was authored at, which was chosen against a
+  // card it was never actually drawn on and is close to invisible there.
+  poseFloor: { position: "absolute", left: 0, right: 0, height: 1, backgroundColor: "#4A544E" },
   // Light enough to read against the card, dark enough to stay behind the
   // figure. #3A423E was invisible on #0B0D0B.
   poseSlab: { position: "absolute", borderRadius: 3, backgroundColor: "#6E7A74" },
