@@ -42,6 +42,11 @@ const RADII = {
 
 const PHASE_MS = 1100;
 
+// How far a hand-held weight rides outboard of the wrist. On the wrist
+// itself, a kettlebell's ball is wider than the gap to the thigh, and
+// carried bells clipped straight through the legs.
+const HELD_OUTBOARD = 0.045;
+
 type BoneMeshes = { cylinder: THREE.Mesh; capA: THREE.Mesh; capB: THREE.Mesh; radius: number };
 
 const UP = new THREE.Vector3(0, 1, 0);
@@ -77,6 +82,8 @@ export class PoseViewer3D {
   private held: THREE.Group[] = [];
   private centre = new THREE.Vector3();
   private orbitRadius = 1.6;
+  // Set by fit(): true when the scene is much wider than it is tall.
+  private lyingScene = false;
   private readonly interactive: boolean;
   private readonly reduceMotion: boolean;
 
@@ -326,18 +333,28 @@ export class PoseViewer3D {
           new THREE.BoxGeometry(0.26, prop.height, prop.width),
           new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.8 }),
         );
-        pad.position.copy(vec(prop.center));
         this.scene.add(pad);
-        // Legs down to the floor, when there is one to stand on.
+        // Grounding. A tall drop is a bench and stands on legs; a short one
+        // is a step or block drawn as a solid plinth -- four stubby legs
+        // under a low box read as debris, which is exactly what the
+        // split-squat block looked like in review. A tall slab is a wall and
+        // needs no grounding at all.
         const floor = first.props.find((p) => p.kind === "floor");
-        if (floor && floor.kind === "floor") {
+        if (floor && floor.kind === "floor" && prop.height < 0.3) {
           const drop = prop.center[1] - floor.y;
-          if (drop > 0.03) {
+          if (drop > 0.12) {
             for (const [sx, sz] of [[-1, -1], [-1, 1], [1, -1], [1, 1]] as const) {
               const leg = new THREE.Mesh(new THREE.BoxGeometry(0.02, drop, 0.02), this.iron);
               leg.position.set(prop.center[0] + sx * 0.07, floor.y + drop / 2, prop.center[2] + sz * (prop.width / 2 - 0.03));
               this.scene.add(leg);
             }
+          } else if (drop > 0.02) {
+            const plinth = new THREE.Mesh(
+              new THREE.BoxGeometry(0.24, drop, prop.width),
+              new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.85 }),
+            );
+            plinth.position.set(prop.center[0], floor.y + drop / 2, prop.center[2]);
+            this.scene.add(plinth);
           }
         }
         this.held.push(this.anchored(pad, i, "slab"));
@@ -384,7 +401,15 @@ export class PoseViewer3D {
   // Ties a prop mesh to its index so update() can move it each frame; "hands"
   // means one copy per hand, so a second mesh is cloned for the other side.
   private anchored(mesh: THREE.Group | THREE.Mesh, propIndex: number, kind: string, mode: "centre" | "hands" = "centre"): THREE.Group {
-    const group = mesh instanceof THREE.Group ? mesh : new THREE.Group().add(mesh);
+    let group: THREE.Group;
+    if (mesh instanceof THREE.Group) {
+      group = mesh;
+    } else {
+      // Adopting a mesh REMOVES it from the scene, so the wrapper must be
+      // added in its place or the mesh silently stops rendering.
+      group = new THREE.Group().add(mesh);
+      this.scene.add(group);
+    }
     group.userData = { propIndex, kind, mode };
     if (mode === "hands") {
       const twin = group.clone();
@@ -418,6 +443,7 @@ export class PoseViewer3D {
     }
     box.getCenter(this.centre);
     const size = box.getSize(new THREE.Vector3());
+    this.lyingScene = Math.max(size.x, size.z) > size.y * 1.45;
     const extent = Math.max(size.x, size.y, size.z);
     // Both axes must fit: the vertical field of view bounds the height, and
     // the horizontal one -- vertical times aspect -- bounds the width. On a
@@ -483,11 +509,13 @@ export class PoseViewer3D {
       if (mode === "hands" || mode === "twin") {
         const side = mode === "twin" ? 1 : 0;
         group.position.copy(lerp3(a.hands[side]!, b.hands[side]!, f));
+        group.position.x += side === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
       } else if (pa.kind === "bell" && pb.kind === "bell" && this.frames[0]!.props.filter((p) => p.kind === "bell").length >= 2) {
         // Two bells were authored per hand; keep each on its hand in 3D, where
         // the hands genuinely sit apart on the lateral axis.
-        const which = this.frames[0]!.props.filter((p, idx) => p.kind === "bell" && idx < propIndex).length;
-        group.position.copy(lerp3(a.hands[Math.min(which, 1) as 0 | 1], b.hands[Math.min(which, 1) as 0 | 1], f));
+        const which = Math.min(this.frames[0]!.props.filter((p, idx) => p.kind === "bell" && idx < propIndex).length, 1) as 0 | 1;
+        group.position.copy(lerp3(a.hands[which], b.hands[which], f));
+        group.position.x += which === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
       } else {
         group.position.copy(lerp3(pa.center, pb.center, f));
       }
@@ -496,9 +524,12 @@ export class PoseViewer3D {
     if (this.controls) {
       this.controls.update();
     } else if (!this.reduceMotion) {
-      // The card's slow orbit: a full turn every 18 seconds, so every angle
-      // comes round without the viewer doing anything.
-      const az = 0.9 + elapsed * 0.00035;
+      // The card's slow orbit: a full turn every 18 seconds for a standing
+      // figure. A lying figure is unreadable end-on, so wide scenes swing
+      // across the legible arc instead of circling through it.
+      const az = this.lyingScene
+        ? 0.9 + Math.sin(elapsed * 0.00045) * 1.1
+        : 0.9 + elapsed * 0.00035;
       this.camera.position.set(
         this.centre.x + this.orbitRadius * Math.sin(az),
         this.camera.position.y,

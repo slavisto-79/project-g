@@ -285,9 +285,13 @@ function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
   return props.map((prop) => {
     if (prop.kind === "floor") return { kind: "floor" as const, y: 1 - prop.y };
     if (prop.kind === "bar") {
+      const centre = point(prop.x, prop.y);
+      // In a front view the bar sits a hand's depth in front of the body --
+      // in the body plane it visibly passed through the neck and skull.
+      if (view === "front") centre[2] = 0.055;
       return {
         kind: "bar" as const,
-        center: point(prop.x, prop.y),
+        center: centre,
         // A real barbell is longer than the lifter is tall -- 2.2m of bar
         // against 1.75m of person. Drawn shoulder-width it fuses with the
         // body; at this length the plates sit well clear of the silhouette,
@@ -304,7 +308,7 @@ function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
 type PropSpec =
   | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number }
   | { kind: "bell"; at: string; size?: number; each?: boolean }
-  | { kind: "slab"; at: string; width: number; height: number; dy?: number }
+  | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number }
   // Placed under the lowest point of the figure, so it sits where the ground
   // is. Pin it with `y` when the body leaves the ground: otherwise the floor
   // rises with the jump, which reads as the world moving, not the athlete.
@@ -338,7 +342,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
     } else if (spec.kind === "bell") {
       drawn.push({ kind: "bell", x: anchor.x, y: anchor.y, size: spec.size ?? 0.055 });
     } else {
-      drawn.push({ kind: "slab", x: anchor.x, y: anchor.y + (spec.dy ?? 0), width: spec.width, height: spec.height });
+      drawn.push({ kind: "slab", x: anchor.x + (spec.dx ?? 0), y: anchor.y + (spec.dy ?? 0), width: spec.width, height: spec.height });
     }
   }
   return drawn;

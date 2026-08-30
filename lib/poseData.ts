@@ -133,7 +133,8 @@ export const exercisePoses = {
       { pelvis: { x: 0.44, y: 0.60 }, torso: 356, arms: sideArms(176, 178), legs: sideLegs(90, 178, 88) },
       { pelvis: { x: 0.44, y: 0.606 }, torso: 356, arms: sideArms(176, 178), legs: sideLegs(91, 179, 89) },
     ],
-    [{ kind: "floor" }],
+    // The wall is the exercise: without it the figure sat in mid-air.
+    [{ kind: "floor" }, { kind: "slab", at: "shoulder", dx: -0.075, dy: 0.1, width: 0.045, height: 0.62 }],
   ),
 
   legExtension: pose(
@@ -144,7 +145,7 @@ export const exercisePoses = {
       arms: sideArms(150, 172),
       legs: sideLegs(92, shin, shin - 90),
     })),
-    [{ kind: "slab", at: "pelvis", width: 0.22, height: 0.035, dy: 0.042 }],
+    [{ kind: "floor", y: 0.9 }, { kind: "slab", at: "pelvis", width: 0.22, height: 0.035, dy: 0.042 }],
   ),
 
   legCurl: pose(
@@ -152,8 +153,8 @@ export const exercisePoses = {
     [90, 50, 14].map((shin) => ({
       pelvis: { x: 0.47, y: 0.62 },
       torso: 266,
-      neck: 262,
-      arms: sideArms(262, 264),
+      neck: 318,
+      arms: sideArms(226, 300),
       legs: sideLegs(92, shin, shin + 40),
     })),
     [{ kind: "floor", y: 0.79 }, { kind: "slab", at: "pelvis", width: 0.40, height: 0.035, dy: 0.045 }],
@@ -231,7 +232,8 @@ export const exercisePoses = {
       return {
         pelvis,
         torso,
-        neck: torso,
+        // Chin tucked, face forward -- not trailing off the bench.
+        neck: torso + 54,
         arms: sideArms(122, 132),
         // Shoulders stay on the bench and the feet stay planted; only the hip
         // travels, which is what makes it a thrust and not a squat lying down.
@@ -587,7 +589,7 @@ export const exercisePoses = {
 // Hands and knees. The trunk rides low, because an arm is 0.29 long and it has
 // to reach the ground.
 function quadrupedFrame(): Figure {
-  return supported({ x: 0.560, y: 0.700 }, 288, { x: 0.408, y: 0.884 }, { x: 0.700, y: 0.884 }, 60);
+  return supported({ x: 0.560, y: 0.700 }, 288, { x: 0.408, y: 0.893 }, { x: 0.700, y: 0.893 }, 95);
 }
 
 // Supine on a flat bench, head to the left, feet planted on the floor. The bar
