@@ -90,5 +90,32 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   if (W / H > 3.4) note(`${name}: lying flat at ${(W / H).toFixed(1)}:1 wide`);
 }
 
+// A standing figure must stand with straight knees. Two-link IK turns a small
+// reach shortfall into a large fold -- the first 3D render stood in a
+// 40-degree crouch -- so the straight-leg band in reach() plus these frames
+// staying inside it is load-bearing, and this assertion keeps it that way.
+const STANDING_FRAMES = {
+  squat: 0, hinge: 0, singleLegHinge: 0, curl: 0, frontRaise: 0,
+  overheadPress: 0, pulldown: 0, lateralRaise: 0, fly: 0,
+  tricepsExtension: 0, jump: 0, lateralLunge: 0, clean: 4,
+};
+function kneeBend(frame, side) {
+  const bones = frame.bones.filter((b) => b.part === "thigh" || b.part === "shin");
+  const th = bones[side * 2], sh = bones[side * 2 + 1];
+  const v1 = [th.a[0] - th.b[0], th.a[1] - th.b[1], th.a[2] - th.b[2]];
+  const v2 = [sh.b[0] - sh.a[0], sh.b[1] - sh.a[1], sh.b[2] - sh.a[2]];
+  const dot = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+  const mag = Math.hypot(...v1) * Math.hypot(...v2);
+  return 180 - (Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180) / Math.PI;
+}
+for (const [name, idx] of Object.entries(STANDING_FRAMES)) {
+  const frame = exercisePoses[name].frames3d[idx];
+  const sides = name === "singleLegHinge" ? [0] : [0, 1];
+  for (const side of sides) {
+    const bendDeg = kneeBend(frame, side);
+    if (bendDeg > 4) note(name + "[" + idx + "]: standing knee bent " + bendDeg.toFixed(1) + " degrees");
+  }
+}
+
 console.log(Object.keys(exercisePoses).length + " movements checked");
 console.log(problems.length ? problems.join("\n") : "no structural problems");
