@@ -121,7 +121,7 @@ export class PoseViewer3D {
     rim.position.set(-2.0, 1.2, -1.6);
     this.scene.add(hemi, key, rim);
 
-    this.buildMannequin(pose);
+    this.buildMannequin(pose, implement);
     this.buildProps(pose, implement);
 
     this.resize = new ResizeObserver(() => this.applySize());
@@ -182,9 +182,16 @@ export class PoseViewer3D {
 
   private bodyMaterial = new THREE.MeshStandardMaterial({ color: BODY, roughness: 0.55, metalness: 0.05 });
 
-  private buildMannequin(pose: ExercisePose) {
+  private buildMannequin(pose: ExercisePose, implement: ViewerImplement) {
     const first = this.frames[0]!;
-    const gripping = first.props.some((p) => p.kind === "bar" || p.kind === "bell");
+    // Hands wrap what is actually drawn: fixed bars always, held loads only
+    // when the exercise carries an implement (a bodyweight lunge holds air,
+    // so its hands stay open).
+    const gripping = first.props.some(
+      (p) =>
+        (p.kind === "bar" && !p.plates) ||
+        ((p.kind === "bell" || (p.kind === "bar" && p.plates)) && implement !== undefined),
+    );
     for (const bone of first.bones) {
       const radius = RADII[bone.part];
       const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), this.bodyMaterial);
@@ -396,6 +403,7 @@ export class PoseViewer3D {
         continue;
       }
       if (prop.kind === "bar") {
+        if (prop.plates && implement === undefined) continue;
         let mesh: THREE.Group;
         if (implement === "kettlebell" && prop.plates) {
           // The named case: a kettlebell swing is authored on the hinge, and a
@@ -430,6 +438,7 @@ export class PoseViewer3D {
         this.held.push(this.anchored(mesh, i, "bar", perHand ? "hands" : "centre"));
         continue;
       }
+      if (prop.kind === "bell" && implement === undefined) continue;
       // A barbell through both hands, when a barbell exercise runs on a
       // movement authored with per-hand weights (Barbell Curl on the curl).
       if (implement === "barbell") {
