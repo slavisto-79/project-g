@@ -8,17 +8,27 @@ const fs = require("fs");
 const ts = require("typescript");
 const { load } = require("./extract.js");
 
+// lib/ modules are transpiled and evaluated in place rather than required, so
+// a relative import between two of them has to be resolved here. Loaded
+// modules are cached, so the pose model is built once.
+const loaded = new Map();
 function mod(p) {
+  if (loaded.has(p)) return loaded.get(p);
   const js = ts.transpileModule(fs.readFileSync(p, "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
   }).outputText;
   const m = { exports: {} };
-  new Function("exports", "module", "require", js)(m.exports, m, require);
+  loaded.set(p, m.exports);
+  const resolve = (name) => (name.startsWith("./") ? mod("lib/" + name.slice(2) + ".ts") : require(name));
+  new Function("exports", "module", "require", js)(m.exports, m, resolve);
+  loaded.set(p, m.exports);
   return m.exports;
 }
 const lib = mod("lib/exerciseLibrary.ts");
 const pb = mod("lib/programBuilder.ts");
-const poses = mod("lib/poses.ts");
+// The movements moved out of poses.ts when the model was rebuilt; this is the
+// module that now exports them.
+const poses = mod("lib/poseData.ts");
 
 const ROOTS = [
   "buildProgramFromLibrary", "exerciseVolumeKg", "strengthStandingFor",

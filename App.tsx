@@ -34,7 +34,8 @@ import {
   type ProgramBuilderProfile,
   type SplitDay,
 } from "./lib/programBuilder";
-import { exercisePoses, type ExercisePose, type PoseName, type PoseProp } from "./lib/poses";
+import { type ExercisePose, type PoseProp } from "./lib/poses";
+import { exercisePoses, type PoseName } from "./lib/poseData";
 import {
   exercisesForTier,
   suitsGoal,
@@ -6848,7 +6849,9 @@ function buildProgramFromLibrary(
 
 // Milliseconds for one direction of the loop. Slow enough to read the shape,
 // quick enough not to feel like the screen has stalled.
-const POSE_HALF_CYCLE_MS = 1300;
+// Per step between key positions, so a five-position clean is not crammed into
+// the time a two-position plank takes.
+const POSE_PHASE_MS = 900;
 
 // The frame the existing poses were drawn against. Only the ratio matters --
 // it keeps a squat from being stretched when the container is a different shape.
@@ -6867,48 +6870,47 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
   const progress = useRef(new Animated.Value(0)).current;
   const reduceMotion = useReducedMotion();
   const [size, setSize] = useState({ width: 0, height: 0 });
+  const frames = pose.frames;
+  const lastIndex = frames.length - 1;
 
   useEffect(() => {
     if (reduceMotion) {
-      // Land on the finish pose rather than skipping the figure: the end
-      // position is the more informative half of most movements.
+      // Land on the last key position rather than skipping the figure: the end
+      // of the movement is the more informative half of most exercises.
       progress.setValue(1);
       return;
     }
+    // One pass through the key positions and back is one repetition, so a
+    // movement with more of them takes proportionally longer rather than
+    // rushing through the extra detail.
+    const duration = POSE_PHASE_MS * lastIndex;
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(progress, {
-          toValue: 1,
-          duration: POSE_HALF_CYCLE_MS,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: false,
-        }),
-        Animated.timing(progress, {
-          toValue: 0,
-          duration: POSE_HALF_CYCLE_MS,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: false,
-        }),
+        Animated.timing(progress, { toValue: 1, duration, easing: Easing.inOut(Easing.quad), useNativeDriver: false }),
+        Animated.timing(progress, { toValue: 0, duration, easing: Easing.inOut(Easing.quad), useNativeDriver: false }),
       ]),
     );
     loop.start();
     return () => loop.stop();
-  }, [progress, reduceMotion]);
+  }, [progress, reduceMotion, lastIndex]);
 
   const { width, height } = size;
+  // Evenly spaced stops, one per key position, for every interpolation below.
+  const stops = useMemo(() => frames.map((_, i) => (lastIndex === 0 ? 0 : i / lastIndex)), [frames, lastIndex]);
 
-  // Fit the whole movement -- both poses, figure and equipment -- to the
-  // container. Poses are authored in a narrow band of the coordinate space, so
-  // drawn literally the figure is a fraction of the frame and unreadable, and
-  // fitting each pose separately would make it jump between them.
+  // Fit the whole movement -- every key position, figure and equipment -- to
+  // the container. Fitting each position separately would make the figure jump
+  // between them.
   const project = useMemo(() => {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     const see = (x: number, y: number) => {
       minX = Math.min(minX, x); maxX = Math.max(maxX, x);
       minY = Math.min(minY, y); maxY = Math.max(maxY, y);
     };
-    for (const f of [pose.start, pose.finish]) {
-      for (const [x1, y1, x2, y2] of f.segments) { see(x1, y1); see(x2, y2); }
+    for (const f of frames) {
+      for (const s of f.segments) { see(s.x1, s.y1); see(s.x2, s.y2); }
+      see(f.head.x - f.head.r / POSE_ASPECT, f.head.y - f.head.r);
+      see(f.head.x + f.head.r / POSE_ASPECT, f.head.y + f.head.r);
       for (const prop of f.props) {
         if (prop.kind === "bar") {
           const a = (prop.angle * Math.PI) / 180;
@@ -6933,7 +6935,7 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
     const bottomRight = unit(maxX, maxY);
     const boxW = Math.max(bottomRight.x - topLeft.x, 1);
     const boxH = Math.max(bottomRight.y - topLeft.y, 1);
-    const pad = 0.06;
+    const pad = 0.05;
     const scale = Math.min((width * (1 - pad * 2)) / boxW, (height * (1 - pad * 2)) / boxH);
     const cx = (topLeft.x + bottomRight.x) / 2;
     const cy = (topLeft.y + bottomRight.y) / 2;
@@ -6943,103 +6945,107 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
     };
     // Lengths are authored against the frame height, so they scale with it.
     return { to, lengthPx: (l: number) => l * POSE_UNIT_HEIGHT * scale };
-  }, [pose, width, height]);
+  }, [frames, width, height]);
 
-  // Position, length and angle for something drawn as a rotated bar, in both
-  // poses, ready to interpolate between.
-  const spanBetween = (
-    from: { x: number; y: number; angle: number; length: number },
-    to: { x: number; y: number; angle: number; length: number },
-  ) => {
-    const a = project.to(from.x, from.y);
-    const b = project.to(to.x, to.y);
-    let toAngle = to.angle;
-    while (toAngle - from.angle > 180) toAngle -= 360;
-    while (toAngle - from.angle < -180) toAngle += 360;
-    return {
-      from: { x: a.x, y: a.y, angle: from.angle, length: project.lengthPx(from.length) },
-      to: { x: b.x, y: b.y, angle: toAngle, length: project.lengthPx(to.length) },
-    };
+  // Angles have to be unwrapped along the whole sequence, not pairwise: a bone
+  // that turns past 180 degrees between two key positions would otherwise spin
+  // the long way round to get to the third.
+  const unwrap = (angles: number[]) => {
+    const out = [angles[0] ?? 0];
+    for (let i = 1; i < angles.length; i++) {
+      let next = angles[i]!;
+      const previous = out[i - 1]!;
+      while (next - previous > 180) next -= 360;
+      while (next - previous < -180) next += 360;
+      out.push(next);
+    }
+    return out;
   };
 
   const bones = useMemo(() => {
     if (width === 0 || height === 0) return [];
-    const count = Math.min(pose.start.segments.length, pose.finish.segments.length);
+    const count = Math.min(...frames.map((f) => f.segments.length));
     const out = [];
     for (let i = 0; i < count; i++) {
-      const [sx1, sy1, sx2, sy2] = pose.start.segments[i]!;
-      const [fx1, fy1, fx2, fy2] = pose.finish.segments[i]!;
-      const s1 = project.to(sx1, sy1), s2 = project.to(sx2, sy2);
-      const f1 = project.to(fx1, fy1), f2 = project.to(fx2, fy2);
-      const fromAngle = (Math.atan2(s2.y - s1.y, s2.x - s1.x) * 180) / Math.PI;
-      let toAngle = (Math.atan2(f2.y - f1.y, f2.x - f1.x) * 180) / Math.PI;
-      // Rotate the short way round, or a bone swings through a half turn to
-      // reach a position a few degrees away.
-      while (toAngle - fromAngle > 180) toAngle -= 360;
-      while (toAngle - fromAngle < -180) toAngle += 360;
+      const ends = frames.map((f) => {
+        const s = f.segments[i]!;
+        const a = project.to(s.x1, s.y1);
+        const b = project.to(s.x2, s.y2);
+        return { a, b, angle: (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI, length: Math.hypot(b.x - a.x, b.y - a.y) };
+      });
       out.push({
-        from: { x: s1.x, y: s1.y, angle: fromAngle, length: Math.hypot(s2.x - s1.x, s2.y - s1.y) },
-        to: { x: f1.x, y: f1.y, angle: toAngle, length: Math.hypot(f2.x - f1.x, f2.y - f1.y) },
+        weight: frames[0]!.segments[i]!.weight,
+        x: ends.map((e) => e.a.x),
+        y: ends.map((e) => e.a.y),
+        length: ends.map((e) => e.length),
+        angle: unwrap(ends.map((e) => e.angle)),
       });
     }
     return out;
-  }, [pose, width, height, project]);
+  }, [frames, width, height, project]);
 
-  const joints = useMemo(() => {
-    if (width === 0 || height === 0) return [];
-    const seen = new Map<string, { from: { x: number; y: number }; to: { x: number; y: number } }>();
-    const count = Math.min(pose.start.segments.length, pose.finish.segments.length);
-    for (let i = 0; i < count; i++) {
-      const s = pose.start.segments[i]!;
-      const f = pose.finish.segments[i]!;
-      for (const end of [0, 2] as const) {
-        const key = `${s[end].toFixed(3)},${s[end + 1]!.toFixed(3)}`;
-        if (!seen.has(key)) {
-          seen.set(key, { from: project.to(s[end]!, s[end + 1]!), to: project.to(f[end]!, f[end + 1]!) });
-        }
-      }
-    }
-    return [...seen.values()];
-  }, [pose, width, height, project]);
+  const head = useMemo(() => {
+    if (width === 0 || height === 0) return null;
+    const centres = frames.map((f) => project.to(f.head.x, f.head.y));
+    const radii = frames.map((f) => project.lengthPx(f.head.r));
+    return { x: centres.map((c) => c.x), y: centres.map((c) => c.y), r: radii };
+  }, [frames, width, height, project]);
 
-  // Equipment, matched by position in the list. Poses are authored with the
-  // same props in the same order in both frames, so index correspondence holds.
+  // Equipment, matched by position in the list. `pose()` guarantees every key
+  // position declares the same props in the same order.
   const props = useMemo(() => {
     if (width === 0 || height === 0) return [];
-    const count = Math.min(pose.start.props.length, pose.finish.props.length);
+    const count = Math.min(...frames.map((f) => f.props.length));
     const out = [];
     for (let i = 0; i < count; i++) {
-      const a = pose.start.props[i]!;
-      const b = pose.finish.props[i]!;
-      if (a.kind !== b.kind) continue;
-      if (a.kind === "bar" && b.kind === "bar") {
-        out.push({ kind: "bar" as const, plates: a.plates, ...spanBetween(a, b) });
-      } else if (a.kind === "bell" && b.kind === "bell") {
+      const all = frames.map((f) => f.props[i]!);
+      const kind = all[0]!.kind;
+      if (all.some((p) => p.kind !== kind)) continue;
+      if (kind === "floor") {
+        out.push({ kind: "floor" as const, y: all.map((p) => project.to(0.5, (p as { y: number }).y).y) });
+      } else if (kind === "bell") {
+        const bells = all as Extract<PoseProp, { kind: "bell" }>[];
+        const points = bells.map((p) => project.to(p.x, p.y));
         out.push({
           kind: "bell" as const,
-          from: { ...project.to(a.x, a.y), size: project.lengthPx(a.size) },
-          to: { ...project.to(b.x, b.y), size: project.lengthPx(b.size) },
+          x: points.map((p) => p.x),
+          y: points.map((p) => p.y),
+          size: bells.map((p) => project.lengthPx(p.size)),
         });
-      } else if (a.kind === "floor" && b.kind === "floor") {
-        out.push({
-          kind: "floor" as const,
-          from: project.to(0.5, a.y).y,
-          to: project.to(0.5, b.y).y,
-        });
-      } else if (a.kind === "slab" && b.kind === "slab") {
+      } else if (kind === "slab") {
+        const slabs = all as Extract<PoseProp, { kind: "slab" }>[];
+        const points = slabs.map((p) => project.to(p.x, p.y));
         out.push({
           kind: "slab" as const,
-          from: { ...project.to(a.x, a.y), w: project.lengthPx(a.width), h: project.lengthPx(a.height) },
-          to: { ...project.to(b.x, b.y), w: project.lengthPx(b.width), h: project.lengthPx(b.height) },
+          x: points.map((p) => p.x),
+          y: points.map((p) => p.y),
+          w: slabs.map((p) => project.lengthPx(p.width)),
+          h: slabs.map((p) => project.lengthPx(p.height)),
+        });
+      } else {
+        const bars = all as Extract<PoseProp, { kind: "bar" }>[];
+        const points = bars.map((p) => project.to(p.x, p.y));
+        out.push({
+          kind: "bar" as const,
+          plates: bars[0]!.plates,
+          x: points.map((p) => p.x),
+          y: points.map((p) => p.y),
+          length: bars.map((p) => project.lengthPx(p.length)),
+          angle: unwrap(bars.map((p) => p.angle - 90)),
         });
       }
     }
     return out;
-  }, [pose, width, height, project]);
+  }, [frames, width, height, project]);
 
-  const between = (from: number, to: number) => progress.interpolate({ inputRange: [0, 1], outputRange: [from, to] });
-  const betweenDeg = (from: number, to: number) =>
-    progress.interpolate({ inputRange: [0, 1], outputRange: [`${from}deg`, `${to}deg`] });
+  const track = (values: number[]) =>
+    values.length < 2 ? values[0] ?? 0 : progress.interpolate({ inputRange: stops, outputRange: values });
+  const trackDeg = (values: number[]) =>
+    values.length < 2
+      ? `${values[0] ?? 0}deg`
+      : progress.interpolate({ inputRange: stops, outputRange: values.map((v) => `${v}deg`) });
+  const offset = (values: number[], by: number[]) => track(values.map((v, i) => v - (by[i] ?? 0)));
+  const half = (values: number[]) => values.map((v) => v / 2);
 
   return (
     <View style={styles.poseFrameHost}>
@@ -7052,6 +7058,9 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
       >
         {/* Equipment first, so the figure reads on top of it. */}
         {props.map((prop, index) => {
+          if (prop.kind === "floor") {
+            return <Animated.View key={`prop-${index}`} style={[styles.poseFloor, { top: track(prop.y) }]} />;
+          }
           if (prop.kind === "slab") {
             return (
               <Animated.View
@@ -7059,24 +7068,12 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
                 style={[
                   styles.poseSlab,
                   {
-                    left: between(prop.from.x - prop.from.w / 2, prop.to.x - prop.to.w / 2),
-                    top: between(prop.from.y - prop.from.h / 2, prop.to.y - prop.to.h / 2),
-                    width: between(prop.from.w, prop.to.w),
-                    height: between(prop.from.h, prop.to.h),
+                    left: offset(prop.x, half(prop.w)),
+                    top: offset(prop.y, half(prop.h)),
+                    width: track(prop.w),
+                    height: track(prop.h),
                   },
                 ]}
-              />
-            );
-          }
-          if (prop.kind === "floor") {
-            // This branch was missing: #113 added floors to the pose data and
-            // a `poseFloor` style, and nothing ever drew them -- an unused
-            // style is not a type error, so the check that caught the other
-            // half of that edit had nothing to say about this one.
-            return (
-              <Animated.View
-                key={`prop-${index}`}
-                style={[styles.poseFloor, { top: between(prop.from, prop.to) }]}
               />
             );
           }
@@ -7087,29 +7084,26 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
                 style={[
                   styles.poseBell,
                   {
-                    left: between(prop.from.x - prop.from.size / 2, prop.to.x - prop.to.size / 2),
-                    top: between(prop.from.y - prop.from.size / 2, prop.to.y - prop.to.size / 2),
-                    width: between(prop.from.size, prop.to.size),
-                    height: between(prop.from.size, prop.to.size),
-                    borderRadius: between(prop.from.size / 2, prop.to.size / 2),
+                    left: offset(prop.x, half(prop.size)),
+                    top: offset(prop.y, half(prop.size)),
+                    width: track(prop.size),
+                    height: track(prop.size),
+                    borderRadius: track(half(prop.size)),
                   },
                 ]}
               />
             );
           }
-          // A bar, and with a fourth prop kind this has to say so rather than
-          // being the fallback.
-          if (prop.kind !== "bar") return null;
           return (
             <Fragment key={`prop-${index}`}>
               <Animated.View
                 style={[
                   styles.poseBar,
                   {
-                    left: between(prop.from.x - prop.from.length / 2, prop.to.x - prop.to.length / 2),
-                    top: between(prop.from.y, prop.to.y),
-                    width: between(prop.from.length, prop.to.length),
-                    transform: [{ rotate: betweenDeg(prop.from.angle - 90, prop.to.angle - 90) }],
+                    left: offset(prop.x, half(prop.length)),
+                    top: track(prop.y),
+                    width: track(prop.length),
+                    transform: [{ rotate: trackDeg(prop.angle) }],
                   },
                 ]}
               />
@@ -7119,13 +7113,7 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
                       key={`plate-${index}-${side}`}
                       style={[
                         styles.posePlate,
-                        {
-                          left: between(
-                            prop.from.x + (side * prop.from.length) / 2,
-                            prop.to.x + (side * prop.to.length) / 2,
-                          ),
-                          top: between(prop.from.y, prop.to.y),
-                        },
+                        { left: track(prop.x.map((x, i) => x + (side * prop.length[i]!) / 2)), top: track(prop.y) },
                       ]}
                     />
                   ))
@@ -7134,30 +7122,46 @@ function PoseFigure({ pose }: { pose: ExercisePose }) {
           );
         })}
 
-        {bones.map((bone, index) => (
+        {/* Far limbs, then the trunk, then the near limbs: without that order a
+            side view is a pile of identical sticks with no depth. */}
+        {(["far", "core", "near"] as const).map((weight) =>
+          bones
+            .map((bone, index) => ({ bone, index }))
+            .filter(({ bone }) => bone.weight === weight)
+            .map(({ bone, index }) => (
+              <Animated.View
+                key={`bone-${index}`}
+                style={[
+                  weight === "far" ? styles.poseLineFar : weight === "core" ? styles.poseLineCore : styles.poseLine,
+                  {
+                    left: track(bone.x),
+                    top: track(bone.y),
+                    width: track(bone.length),
+                    // A bone is placed by its start point, so it turns about
+                    // that end. StyleSheet.create drops this property, so it
+                    // has to be set here.
+                    transformOrigin: "left center",
+                    transform: [{ rotate: trackDeg(bone.angle) }],
+                  },
+                ]}
+              />
+            )),
+        )}
+
+        {head ? (
           <Animated.View
-            key={`bone-${index}`}
             style={[
-              styles.poseLine,
+              styles.poseHead,
               {
-                left: between(bone.from.x, bone.to.x),
-                top: between(bone.from.y, bone.to.y),
-                width: between(bone.from.length, bone.to.length),
-                transformOrigin: "left center",
-                transform: [{ rotate: betweenDeg(bone.from.angle, bone.to.angle) }],
+                left: offset(head.x, head.r),
+                top: offset(head.y, head.r),
+                width: track(head.r.map((r) => r * 2)),
+                height: track(head.r.map((r) => r * 2)),
+                borderRadius: track(head.r),
               },
             ]}
           />
-        ))}
-        {joints.map((joint, index) => (
-          <Animated.View
-            key={`joint-${index}`}
-            style={[
-              styles.poseJoint,
-              { left: between(joint.from.x, joint.to.x), top: between(joint.from.y, joint.to.y) },
-            ]}
-          />
-        ))}
+        ) : null}
       </View>
     </View>
   );
@@ -10911,7 +10915,9 @@ const styles = StyleSheet.create({
   // to be legible without pushing the name and cue off the card.
   // Tall enough for the figure to read, short enough that the name, target and
   // written cue all still fit on the card underneath it.
-  cueCardFigure: { width: "100%", flexShrink: 1, maxHeight: 200, minHeight: 120, aspectRatio: 1, marginBottom: 8 },
+  // Raised from 120-200: at 120px the articulated figure was legible as a
+  // shape but not as a body, which defeats the point of drawing joints.
+  cueCardFigure: { width: "100%", flexShrink: 1, maxHeight: 260, minHeight: 190, aspectRatio: 1, marginBottom: 8 },
   cueCardName: { color: colors.text, fontSize: 22, fontWeight: "900", textAlign: "center" },
   cueCardTarget: { color: colors.lime, fontSize: 10, fontWeight: "800", letterSpacing: 0.8, marginTop: 6, textTransform: "uppercase" },
   cueCardText: { color: colors.muted, fontSize: 13, lineHeight: 19, textAlign: "center", marginTop: 14 },
@@ -11029,16 +11035,30 @@ const styles = StyleSheet.create({
   // Light enough to read against the card, dark enough to stay behind the
   // figure. #3A423E was invisible on #0B0D0B.
   poseSlab: { position: "absolute", borderRadius: 3, backgroundColor: "#6E7A74" },
-  poseJoint: {
+  // The trunk is heavier than the limbs and the far side is dimmer, which is
+  // what gives a side view any depth at all.
+  poseLineCore: {
     position: "absolute",
-    width: 9,
-    height: 9,
-    marginLeft: -4.5,
-    marginTop: -4.5,
-    borderRadius: 4.5,
-    borderWidth: 2,
+    height: 5,
+    marginTop: -2.5,
+    borderRadius: 3,
+    backgroundColor: "#63FF77",
+    shadowColor: "#63FF77",
+    shadowOpacity: 0.9,
+    shadowRadius: 4,
+  },
+  poseLineFar: {
+    position: "absolute",
+    height: 3,
+    marginTop: -1.5,
+    borderRadius: 2,
+    backgroundColor: "#2F7A3C",
+  },
+  poseHead: {
+    position: "absolute",
+    borderWidth: 3,
     borderColor: "#63FF77",
-    backgroundColor: "#FF8A2B",
+    backgroundColor: "transparent",
   },
   videoShade: {
     ...StyleSheet.absoluteFillObject,

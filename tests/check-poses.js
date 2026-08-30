@@ -1,0 +1,94 @@
+// Structural checks on the movement data. Every rule here exists because it
+// caught something; they run before anything ships.
+const fs = require("fs");
+const ts = require("typescript");
+
+// The movement data is TypeScript, so it is transpiled and evaluated here the
+// same way the sweeps do it.
+const loaded = new Map();
+function mod(p) {
+  if (loaded.has(p)) return loaded.get(p);
+  const js = ts.transpileModule(fs.readFileSync(p, "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+  }).outputText;
+  const m = { exports: {} };
+  loaded.set(p, m.exports);
+  const resolve = (name) => (name.startsWith("./") ? mod("lib/" + name.slice(2) + ".ts") : require(name));
+  new Function("exports", "module", "require", js)(m.exports, m, resolve);
+  loaded.set(p, m.exports);
+  return m.exports;
+}
+const { exercisePoses } = mod("lib/poseData.ts");
+const ASPECT = 850 / 567;
+const P = { thigh: 0.225, shin: 0.215, upperArm: 0.152, forearm: 0.138, spine: 0.245 };
+
+const problems = [];
+const note = (m) => problems.push(m);
+
+for (const [name, pose] of Object.entries(exercisePoses)) {
+  const frames = pose.frames;
+  if (frames.length < 2) note(`${name}: only ${frames.length} key position`);
+
+  const shapes = new Set(frames.map((f) => f.segments.length + ":" + f.props.map((p) => p.kind).join(",")));
+  if (shapes.size !== 1) note(`${name}: key positions disagree on how many parts there are`);
+
+  frames.forEach((f, i) => {
+    const where = `${name}[${i}]`;
+    const nums = f.segments.flatMap((s) => [s.x1, s.y1, s.x2, s.y2]).concat([f.head.x, f.head.y, f.head.r]);
+    if (nums.some((n) => !Number.isFinite(n))) note(`${where}: non-finite coordinate`);
+
+    // Bone lengths must match the fixed proportions: a limb that grew or shrank
+    // means an angle was written where a solved position was meant.
+    const lens = f.segments.map((s) => Math.hypot((s.x2 - s.x1) * ASPECT, s.y2 - s.y1));
+    const spine = lens[0];
+    if (Math.abs(spine - P.spine) > 0.02 && f.segments.length > 6) {
+      // Front views draw a trunk box first, so segment 0 is the shoulder line.
+      const box = lens.slice(0, 4).some((l) => Math.abs(l - P.spine) < 0.02);
+      if (!box) note(`${where}: first bone is ${spine.toFixed(3)}, expected a trunk`);
+    }
+
+    const ys = f.segments.flatMap((s) => [s.y1, s.y2]);
+    const floor = f.props.find((p) => p.kind === "floor");
+    if (floor) {
+      const deepest = Math.max(...ys) - floor.y;
+      if (deepest > 0.014) note(`${where}: sinks ${deepest.toFixed(3)} through the floor`);
+      if (-deepest > 0.16) note(`${where}: floats ${(-deepest).toFixed(3)} above the floor`);
+    }
+  });
+
+  // A floor that slides between key positions reads as the world moving.
+  const floors = frames.map((f) => f.props.find((p) => p.kind === "floor")?.y).filter((y) => y !== undefined);
+  if (floors.length > 1 && Math.max(...floors) - Math.min(...floors) > 0.015 && name !== "calfRaise") {
+    note(`${name}: floor drifts ${(Math.max(...floors) - Math.min(...floors)).toFixed(3)}`);
+  }
+
+  // Two key positions that are the same are a still frame sold as motion.
+  for (let i = 1; i < frames.length; i++) {
+    const a = JSON.stringify(frames[i - 1].segments), b = JSON.stringify(frames[i].segments);
+    if (a === b) note(`${name}: key positions ${i - 1} and ${i} are identical`);
+  }
+
+  // How far the figure actually travels. A movement whose extremes barely
+  // differ is showing a partial range, which is the complaint that started
+  // this rebuild. Holds are allowed to be still.
+  const HOLDS = new Set(["plank", "sidePlank", "wallSit", "carry", "quadruped", "hollowHold"]);
+  const travel = Math.max(
+    ...frames[0].segments.map((s, i) => {
+      const t = frames[frames.length - 1].segments[i];
+      return Math.max(Math.hypot((t.x1 - s.x1) * ASPECT, t.y1 - s.y1), Math.hypot((t.x2 - s.x2) * ASPECT, t.y2 - s.y2));
+    }),
+  );
+  // A calf raise genuinely travels less than anything else here.
+  const floor = name === "calfRaise" ? 0.09 : 0.12;
+  if (!HOLDS.has(name) && travel < floor) note(`${name}: widest joint moves only ${travel.toFixed(3)} -- partial range`);
+
+  // Union proportions: a lying figure fitted into a square card is small, but
+  // one wider than about 3.4:1 becomes a smear.
+  const all = frames.flatMap((f) => f.segments);
+  const W = (Math.max(...all.map((s) => Math.max(s.x1, s.x2))) - Math.min(...all.map((s) => Math.min(s.x1, s.x2)))) * 850;
+  const H = (Math.max(...all.map((s) => Math.max(s.y1, s.y2))) - Math.min(...all.map((s) => Math.min(s.y1, s.y2)))) * 567;
+  if (W / H > 3.4) note(`${name}: lying flat at ${(W / H).toFixed(1)}:1 wide`);
+}
+
+console.log(Object.keys(exercisePoses).length + " movements checked");
+console.log(problems.length ? problems.join("\n") : "no structural problems");
