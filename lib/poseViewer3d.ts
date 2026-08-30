@@ -371,9 +371,12 @@ export class PoseViewer3D {
         continue;
       }
       if (prop.kind === "slab") {
+        // A tall slab is a wall; drawn solid it hides the figure for the part
+        // of the orbit where the camera passes behind it.
+        const wall = prop.height > 0.3;
         const pad = new THREE.Mesh(
           new THREE.BoxGeometry(0.26, prop.height, prop.width),
-          new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.8 }),
+          new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.8, transparent: wall, opacity: wall ? 0.45 : 1 }),
         );
         this.scene.add(pad);
         // Grounding. A tall drop is a bench and stands on legs; a short one
