@@ -406,6 +406,21 @@ export class PoseViewer3D {
           if (pose.grip === "neutral") mesh.rotation.y = Math.PI / 2;
         } else if (prop.plates) {
           mesh = this.barbell(prop.length);
+        } else if (prop.rails) {
+          // Parallel dip bars: one rail either side of the body, running
+          // fore-aft, instead of a crossbar through the hips.
+          mesh = new THREE.Group();
+          for (const side of [-1, 1]) {
+            const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.55, 12), this.graphite);
+            rail.rotation.x = Math.PI / 2;
+            rail.position.x = side * 0.1;
+            mesh.add(rail);
+            for (const end of [-1, 1]) {
+              const post = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.5, 10), this.iron);
+              post.position.set(side * 0.1, -0.25, end * 0.26);
+              mesh.add(post);
+            }
+          }
         } else {
           mesh = this.plainBar(prop.length);
         }
