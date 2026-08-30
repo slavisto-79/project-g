@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@babel/plugin-transform-class-static-block':
+        specifier: ^8.0.1
+        version: 8.0.1(@babel/core@7.29.7(supports-color@8.1.1))
       '@expo/metro-runtime':
         specifier: ~5.0.5
         version: 5.0.5(react-native@0.79.5(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.0.14)(react@19.0.0)(supports-color@8.1.1))
@@ -42,9 +45,6 @@ importers:
         specifier: ^0.185.1
         version: 0.185.1
     devDependencies:
-      '@babel/plugin-transform-class-static-block':
-        specifier: ^8.0.1
-        version: 8.0.1(@babel/core@7.29.7(supports-color@8.1.1))
       '@types/react':
         specifier: ~19.0.10
         version: 19.0.14
