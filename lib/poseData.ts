@@ -16,7 +16,7 @@
 // and solved with `reach`, never as angles.
 
 import {
-  pose, bothArms, sideArms, sideLegs, plantedLegs, reachingArms, grip,
+  pose, bothArms, sideArms, sideLegs, plantedLegs, reachingArms, grip, spineTop,
   type ExercisePose, type Figure, type Limb, type Point,
 } from "./poses";
 
@@ -32,6 +32,7 @@ const FORWARD: [1 | -1, 1 | -1] = [-1, -1];
 const OUT: [1 | -1, 1 | -1] = [-1, 1];
 const BACK: [1 | -1, 1 | -1] = [1, 1];
 const DOWN: [1 | -1, 1 | -1] = [1, -1];
+const DOWN_SIDE: [1 | -1, 1 | -1] = [1, 1];
 
 // Arms are ropes in every pulling movement: they hang from the shoulder
 // wherever the trunk happens to be, and the bar follows the hands.
@@ -40,6 +41,36 @@ const HANG = sideArms(178, 179);
 // travels in FRONT of the shins, and the knees never cross its line.
 const HANG_AHEAD = sideArms(168, 171);
 const HANG_FRONT = bothArms(175, 178);
+
+// One squat descent, shared by every carry variant of it.
+const SQUAT_FRAMES = [
+  [0.500, 0.494, 2], [0.478, 0.578, 16], [0.454, 0.636, 30], [0.434, 0.690, 42],
+] as const;
+
+// Hands gripping a bar that lies ACROSS THE TRAPS: the target is the nape --
+// just behind and below the top of the spine, in the trunk's own frame, so it
+// rides the back as the torso tilts.
+function napeArms(pelvis: Point, torso: number): [Limb, Limb] {
+  const top = spineTop(pelvis, torso);
+  const rad = (torso * Math.PI) / 180;
+  // Trunk axis and its forward perpendicular, in screen terms.
+  const nape = {
+    x: top.x - (0.02 * Math.cos(rad)) / (850 / 567) + (0.008 * Math.sin(rad)) / (850 / 567),
+    y: top.y - 0.02 * Math.sin(rad) - 0.008 * Math.cos(rad),
+  };
+  return reachingArms(pelvis, torso, "side", [nape, { x: nape.x - 0.01, y: nape.y + 0.012 }], FORWARD);
+}
+
+// Hands hugging a bell against the chest, elbows tucked down.
+function chestArms(pelvis: Point, torso: number): [Limb, Limb] {
+  const top = spineTop(pelvis, torso);
+  const rad = (torso * Math.PI) / 180;
+  const chest = {
+    x: top.x + (0.055 * Math.cos(rad)) / (850 / 567) + (0.05 * Math.sin(rad)) / (850 / 567),
+    y: top.y + 0.055 * Math.sin(rad) + 0.05 * Math.cos(rad),
+  };
+  return reachingArms(pelvis, torso, "side", [chest, { x: chest.x - 0.012, y: chest.y + 0.01 }], DOWN_SIDE);
+}
 
 // Standing on both feet, seen from the side.
 function stand(pelvis: Point, torso: number, arms: [Limb, Limb], neck?: number, feet = FEET): Figure {
@@ -68,11 +99,36 @@ export const exercisePoses = {
 
   squat: pose(
     "side",
-    // Hips travel back and down together; the trunk closes as they do.
-    ([[0.500, 0.494, 2], [0.478, 0.578, 16], [0.454, 0.636, 30], [0.434, 0.690, 42]] as const).map(([x, y, torso]) =>
-      stand({ x, y }, torso, sideArms(230, 60)),
+    SQUAT_FRAMES.map(([x, y, torso]) => stand({ x, y }, torso, napeArms({ x, y }, torso))),
+    // The bar is drawn at the grip, and the grip is ON the traps -- so the bar
+    // visibly rides the upper back, where a back squat actually carries it.
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+  ),
+
+  // A front squat racks the bar on the front delts with high elbows -- the
+  // clean's catch -- and the trunk stays far more upright than a back squat,
+  // which is the entire point of the front rack.
+  frontSquat: pose(
+    "side",
+    ([[0.500, 0.494, 2], [0.484, 0.578, 7], [0.466, 0.636, 12], [0.450, 0.690, 15]] as const).map(([x, y, torso]) =>
+      stand({ x, y }, torso, sideArms(150, 40)),
     ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+  ),
+
+  // A goblet squat hugs the bell against the chest with both hands.
+  gobletSquat: pose(
+    "side",
+    SQUAT_FRAMES.map(([x, y, torso]) => stand({ x, y }, torso, chestArms({ x, y }, torso))),
+    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.06 }],
+    "neutral",
+  ),
+
+  // Bodyweight: arms reach forward as the counterbalance.
+  bodyweightSquat: pose(
+    "side",
+    SQUAT_FRAMES.map(([x, y, torso]) => stand({ x, y }, torso, sideArms(96, 92))),
+    [{ kind: "floor" }],
   ),
 
   splitSquat: pose(
@@ -206,6 +262,14 @@ export const exercisePoses = {
     "side",
     ([[0.500, 0.494, 4], [0.528, 0.528, 40], [0.552, 0.538, 72], [0.570, 0.550, 98]] as const).map(([x, y, torso]) =>
       stand({ x, y }, torso, HANG_AHEAD, torso > 30 ? torso - 16 : torso),
+    ),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+  ),
+
+  goodMorning: pose(
+    "side",
+    ([[0.500, 0.494, 4], [0.528, 0.528, 40], [0.552, 0.538, 72]] as const).map(([x, y, torso]) =>
+      stand({ x, y }, torso, napeArms({ x, y }, torso), torso > 30 ? torso - 16 : torso),
     ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
   ),

@@ -96,7 +96,8 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
 // 40-degree crouch -- so the straight-leg band in reach() plus these frames
 // staying inside it is load-bearing, and this assertion keeps it that way.
 const STANDING_FRAMES = {
-  squat: 0, hinge: 0, singleLegHinge: 0, curl: 0, frontRaise: 0,
+  squat: 0, frontSquat: 0, gobletSquat: 0, bodyweightSquat: 0, goodMorning: 0,
+  hinge: 0, singleLegHinge: 0, curl: 0, frontRaise: 0,
   overheadPress: 0, pulldown: 0, lateralRaise: 0, fly: 0,
   tricepsExtension: 0, jump: 0, lateralLunge: 0, clean: 4,
 };

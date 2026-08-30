@@ -6346,12 +6346,12 @@ async function vetAndRefill(
 // Absent from this list means the written cue, until a pose is authored for it.
 const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Barbell Back Squat": "squat",
-  "Barbell Front Squat": "squat",
-  "Goblet Squat": "squat",
-  "Heels-Elevated Goblet Squat": "squat",
-  "Dumbbell Front Squat": "squat",
+  "Barbell Front Squat": "frontSquat",
+  "Goblet Squat": "gobletSquat",
+  "Heels-Elevated Goblet Squat": "gobletSquat",
+  "Dumbbell Front Squat": "gobletSquat",
   "Box Squat": "squat",
-  "Bodyweight Squat": "squat",
+  "Bodyweight Squat": "bodyweightSquat",
   "Hack Squat": "squat",
   "Smith Machine Squat": "squat",
 
@@ -6362,8 +6362,8 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Dumbbell Romanian Deadlift": "hinge",
   "Stiff-Leg Deadlift": "hinge",
   "Rack Pull": "hinge",
-  "Good Morning": "hinge",
-  "Bodyweight Good Morning": "hinge",
+  "Good Morning": "goodMorning",
+  "Bodyweight Good Morning": "goodMorning",
   "Kettlebell Swing": "hinge",
 
   "Barbell Bench Press": "bench",
