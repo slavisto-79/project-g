@@ -17,18 +17,17 @@
     "check:poses": "node tests/check-poses.js"
   },
   "dependencies": {
+    "@babel/plugin-transform-class-static-block": "^7.27.1",
     "@expo/metro-runtime": "~5.0.5",
     "@supabase/supabase-js": "^2.111.0",
     "@types/three": "^0.185.4",
     "expo": "~53.0.20",
     "expo-status-bar": "~2.2.3",
-    "expo-video": "~2.2.2",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.5",
     "react-native-web": "~0.20.0",
-    "three": "^0.185.1",
-    "@babel/plugin-transform-class-static-block": "^7.27.1"
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@types/react": "~19.0.10",

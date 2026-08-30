@@ -22,7 +22,6 @@ import {
   View,
 } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
-import { useVideoPlayer, VideoView } from "expo-video";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import {
   buildProgram,
@@ -44,7 +43,6 @@ import {
   type LibraryExercise,
   type LibraryImplement,
 } from "./lib/exerciseLibrary";
-import { shippedMediaFor } from "./lib/exerciseMedia";
 import type { ExerciseTag, MovementPattern, PrimaryMuscle } from "./lib/exerciseCatalog";
 
 const colors = {
@@ -4634,10 +4632,6 @@ type WorkoutExercise = {
   isHold?: boolean;
   tempo: string;
   phases: string[];
-  // Absent for library exercises that have no demo footage shot yet. The
-  // screen falls back to the written cue rather than showing a photo of a
-  // different movement.
-  formFrames?: [ImageSourcePropType, ImageSourcePropType];
   pose?: ExercisePose;
   // What the 3D demo should draw in the hands. The library implement, not the
   // loadable one: implementForExerciseName calls a medicine ball a "dumbbell"
@@ -4645,7 +4639,6 @@ type WorkoutExercise = {
   demoImplement?: ViewerImplement;
   // How to perform it, in words. Carries the exercise until footage exists.
   cue?: string;
-  video?: number | string;
   // Only present for exercises sourced from the live MuscleWiki catalog --
   // needed to look up "similar exercise" alternatives. Absent for the
   // built-in fallback roster, which has no such data to search by.
@@ -4665,10 +4658,6 @@ const workoutExercises: WorkoutExercise[] = [
     reps: "10",
     tempo: "3–1–1",
     phases: ["LOWER", "HOLD", "DRIVE"],
-    formFrames: [
-      require("./assets/exercises/goblet-squat/start.jpg"),
-      require("./assets/exercises/goblet-squat/finish.jpg"),
-    ],
     pose: exercisePoses.squat,
   },
   {
@@ -4678,10 +4667,6 @@ const workoutExercises: WorkoutExercise[] = [
     reps: "10",
     tempo: "2–1–1",
     phases: ["LOWER", "PAUSE", "PRESS"],
-    formFrames: [
-      require("./assets/exercises/dumbbell-bench-press/start.jpg"),
-      require("./assets/exercises/dumbbell-bench-press/finish.jpg"),
-    ],
     pose: exercisePoses.bench,
   },
   {
@@ -4691,10 +4676,6 @@ const workoutExercises: WorkoutExercise[] = [
     reps: "12",
     tempo: "2–1–2",
     phases: ["REACH", "PULL", "RETURN"],
-    formFrames: [
-      require("./assets/exercises/seated-cable-row/start.jpg"),
-      require("./assets/exercises/seated-cable-row/finish.jpg"),
-    ],
     pose: exercisePoses.bentRow,
   },
 ];
@@ -5423,23 +5404,13 @@ function createWorkout(
       ...workoutExercises[0]!,
       name: "Dumbbell Front Squat",
       weight: "14 kg",
-      video: require("./assets/exercise-videos/female-dumbbell-squat.mp4"),
-      formFrames: [
-        require("./assets/exercises/female-goblet-squat/start.jpg"),
-        require("./assets/exercises/female-goblet-squat/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[2]!,
       name: "Dumbbell Romanian Deadlift",
       target: "Glutes & hamstrings · Controlled",
       weight: "10 kg",
-      video: require("./assets/exercise-videos/female-dumbbell-deadlift.mp4"),
       phases: ["HINGE", "STRETCH", "DRIVE"],
-      formFrames: [
-        require("./assets/exercises/female-dumbbell-rdl/start.jpg"),
-        require("./assets/exercises/female-dumbbell-rdl/finish.jpg"),
-      ],
       pose: exercisePoses.hinge,
     },
     {
@@ -5447,60 +5418,35 @@ function createWorkout(
       name: "Dumbbell Shoulder Press",
       target: "Shoulders · Strength",
       weight: "6 kg",
-      video: require("./assets/exercise-videos/female-shoulder-press.mp4"),
       phases: ["LOWER", "BRACE", "PRESS"],
-      formFrames: [
-        require("./assets/exercises/female-dumbbell-bench-press/start.jpg"),
-        require("./assets/exercises/female-dumbbell-bench-press/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[0]!,
       name: "Dumbbell Reverse Lunge",
       target: "Legs & glutes · Unilateral",
       weight: "6 kg",
-      video: require("./assets/exercise-videos/female-dumbbell-lunge.mp4"),
       phases: ["STEP", "LOWER", "DRIVE"],
-      formFrames: [
-        require("./assets/exercises/female-reverse-lunge/start.jpg"),
-        require("./assets/exercises/female-reverse-lunge/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[2]!,
       name: "Dumbbell Biceps Curl",
       target: "Arms · Controlled",
       weight: "5 kg",
-      video: require("./assets/exercise-videos/female-bicep-curl.mp4"),
       phases: ["LOWER", "CURL", "SQUEEZE"],
-      formFrames: [
-        require("./assets/exercises/female-one-arm-row/start.jpg"),
-        require("./assets/exercises/female-one-arm-row/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[2]!,
       name: "Dumbbell Row",
       target: "Back · Controlled",
       weight: "8 kg",
-      video: require("./assets/exercise-videos/female-dumbbell-row.mp4"),
       phases: ["REACH", "PULL", "RETURN"],
-      formFrames: [
-        require("./assets/exercises/female-dumbbell-row/start.jpg"),
-        require("./assets/exercises/female-dumbbell-row/finish.jpg"),
-      ],
       pose: exercisePoses.bentRow,
     },
     {
       ...workoutExercises[2]!,
       name: "Glute Bridge",
       target: "Glutes · Isolation",
-      video: require("./assets/exercise-videos/female-glute-bridge.mp4"),
       phases: ["LOWER", "HOLD", "LIFT"],
-      formFrames: [
-        require("./assets/exercises/female-glute-bridge/start.jpg"),
-        require("./assets/exercises/female-glute-bridge/finish.jpg"),
-      ],
       pose: exercisePoses.hinge,
     },
     {
@@ -5508,12 +5454,7 @@ function createWorkout(
       name: "Plank",
       target: "Core · Isometric",
       tempo: "HOLD",
-      video: require("./assets/exercise-videos/female-plank.mp4"),
       phases: ["BRACE", "HOLD", "HOLD"],
-      formFrames: [
-        require("./assets/exercises/female-plank/start.jpg"),
-        require("./assets/exercises/female-plank/finish.jpg"),
-      ],
     },
   ];
   const maleExercises: WorkoutExercise[] = [
@@ -5522,30 +5463,22 @@ function createWorkout(
       name: "Dumbbell Shoulder Press",
       target: "Shoulders · Strength",
       weight: "10 kg",
-      video: require("./assets/exercise-videos/male-shoulder-press.mp4"),
       phases: ["LOWER", "BRACE", "PRESS"],
-      formFrames: [
-        require("./assets/exercises/dumbbell-shoulder-press/start.jpg"),
-        require("./assets/exercises/dumbbell-shoulder-press/finish.jpg"),
-      ],
       pose: exercisePoses.overheadPress,
     },
     {
       ...workoutExercises[2]!,
-      video: require("./assets/exercise-videos/male-seated-row.mp4"),
     },
     {
       ...workoutExercises[1]!,
       name: "Dumbbell Bench Press",
       target: "Chest · Strength",
       weight: "14 kg",
-      video: require("./assets/exercise-videos/male-dumbbell-bench-press.mp4"),
     },
     {
       ...workoutExercises[0]!,
       name: "Push-Up",
       target: "Chest & triceps · Bodyweight",
-      video: require("./assets/exercise-videos/male-push-up.mp4"),
       phases: ["LOWER", "HOLD", "PRESS"],
     },
     {
@@ -5553,7 +5486,6 @@ function createWorkout(
       name: "Dumbbell Biceps Curl",
       target: "Arms · Controlled",
       weight: "8 kg",
-      video: require("./assets/exercise-videos/male-bicep-curl.mp4"),
       phases: ["LOWER", "CURL", "SQUEEZE"],
     },
     {
@@ -5561,36 +5493,21 @@ function createWorkout(
       name: "Dumbbell Lunge",
       target: "Legs & glutes · Unilateral",
       weight: "10 kg",
-      video: require("./assets/exercise-videos/male-dumbbell-lunge.mp4"),
       phases: ["STEP", "LOWER", "DRIVE"],
-      formFrames: [
-        require("./assets/exercises/male-dumbbell-lunge/start.jpg"),
-        require("./assets/exercises/male-dumbbell-lunge/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[0]!,
       name: "Calf Raise",
       target: "Calves · Isolation",
       weight: "14 kg",
-      video: require("./assets/exercise-videos/male-calf-raise.mp4"),
       phases: ["LOWER", "HOLD", "RAISE"],
-      formFrames: [
-        require("./assets/exercises/male-calf-raise/start.jpg"),
-        require("./assets/exercises/male-calf-raise/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[1]!,
       name: "Plank",
       target: "Core · Isometric",
       tempo: "HOLD",
-      video: require("./assets/exercise-videos/male-plank.mp4"),
       phases: ["BRACE", "HOLD", "HOLD"],
-      formFrames: [
-        require("./assets/exercises/male-plank/start.jpg"),
-        require("./assets/exercises/male-plank/finish.jpg"),
-      ],
     },
   ];
   const femaleBodyweightExercises: WorkoutExercise[] = [
@@ -5598,45 +5515,25 @@ function createWorkout(
       ...workoutExercises[0]!,
       name: "Bodyweight Squat",
       target: "Lower body · Bodyweight",
-      video: require("./assets/exercise-videos/female-bodyweight-squat.mp4"),
       phases: ["LOWER", "HOLD", "DRIVE"],
-      formFrames: [
-        require("./assets/exercises/female-bodyweight-squat/start.jpg"),
-        require("./assets/exercises/female-bodyweight-squat/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[0]!,
       name: "Push-Up",
       target: "Chest & triceps · Bodyweight",
-      video: require("./assets/exercise-videos/female-push-up.mp4"),
       phases: ["LOWER", "HOLD", "PRESS"],
-      formFrames: [
-        require("./assets/exercises/female-bodyweight-pushup/start.jpg"),
-        require("./assets/exercises/female-bodyweight-pushup/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[0]!,
       name: "Bodyweight Reverse Lunge",
       target: "Legs & glutes · Unilateral",
-      video: require("./assets/exercise-videos/female-bodyweight-lunge.mp4"),
       phases: ["STEP", "LOWER", "DRIVE"],
-      formFrames: [
-        require("./assets/exercises/female-bodyweight-lunge/start.jpg"),
-        require("./assets/exercises/female-bodyweight-lunge/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[2]!,
       name: "Glute Bridge",
       target: "Glutes · Isolation",
-      video: require("./assets/exercise-videos/female-glute-bridge.mp4"),
       phases: ["LOWER", "HOLD", "LIFT"],
-      formFrames: [
-        require("./assets/exercises/female-glute-bridge/start.jpg"),
-        require("./assets/exercises/female-glute-bridge/finish.jpg"),
-      ],
       pose: exercisePoses.hinge,
     },
     {
@@ -5644,24 +5541,14 @@ function createWorkout(
       name: "Plank",
       target: "Core · Isometric",
       tempo: "HOLD",
-      video: require("./assets/exercise-videos/female-plank.mp4"),
       phases: ["BRACE", "HOLD", "HOLD"],
-      formFrames: [
-        require("./assets/exercises/female-plank/start.jpg"),
-        require("./assets/exercises/female-plank/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[1]!,
       name: "Mountain Climbers",
       target: "Core & cardio · Bodyweight",
       tempo: "FAST",
-      video: require("./assets/exercise-videos/female-mountain-climbers.mp4"),
       phases: ["BRACE", "DRIVE", "SWITCH"],
-      formFrames: [
-        require("./assets/exercises/female-mountain-climbers/start.jpg"),
-        require("./assets/exercises/female-mountain-climbers/finish.jpg"),
-      ],
     },
   ];
   const maleBodyweightExercises: WorkoutExercise[] = [
@@ -5669,66 +5556,40 @@ function createWorkout(
       ...workoutExercises[0]!,
       name: "Bodyweight Squat",
       target: "Lower body · Bodyweight",
-      video: require("./assets/exercise-videos/male-bodyweight-squat.mp4"),
       phases: ["LOWER", "HOLD", "DRIVE"],
-      formFrames: [
-        require("./assets/exercises/male-bodyweight-squat/start.jpg"),
-        require("./assets/exercises/male-bodyweight-squat/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[0]!,
       name: "Push-Up",
       target: "Chest & triceps · Bodyweight",
-      video: require("./assets/exercise-videos/male-push-up.mp4"),
       phases: ["LOWER", "HOLD", "PRESS"],
     },
     {
       ...workoutExercises[0]!,
       name: "Bodyweight Reverse Lunge",
       target: "Legs & glutes · Unilateral",
-      video: require("./assets/exercise-videos/male-bodyweight-lunge.mp4"),
       phases: ["STEP", "LOWER", "DRIVE"],
-      formFrames: [
-        require("./assets/exercises/male-bodyweight-lunge/start.jpg"),
-        require("./assets/exercises/male-bodyweight-lunge/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[1]!,
       name: "Burpee",
       target: "Full body · Cardio",
       tempo: "FAST",
-      video: require("./assets/exercise-videos/male-burpee.mp4"),
       phases: ["SQUAT", "PLANK", "JUMP"],
-      formFrames: [
-        require("./assets/exercises/male-burpee/start.jpg"),
-        require("./assets/exercises/male-burpee/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[1]!,
       name: "Plank",
       target: "Core · Isometric",
       tempo: "HOLD",
-      video: require("./assets/exercise-videos/male-plank.mp4"),
       phases: ["BRACE", "HOLD", "HOLD"],
-      formFrames: [
-        require("./assets/exercises/male-plank/start.jpg"),
-        require("./assets/exercises/male-plank/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[1]!,
       name: "High Knees",
       target: "Core & cardio · Bodyweight",
       tempo: "FAST",
-      video: require("./assets/exercise-videos/male-high-knees.mp4"),
       phases: ["DRIVE", "SWITCH", "DRIVE"],
-      formFrames: [
-        require("./assets/exercises/male-high-knees/start.jpg"),
-        require("./assets/exercises/male-high-knees/finish.jpg"),
-      ],
     },
     {
       // Belongs in a bodyweight programme on its own merit -- it was only ever
@@ -5741,12 +5602,7 @@ function createWorkout(
       ...workoutExercises[0]!,
       name: "Bodyweight Calf Raise",
       target: "Calves · Bodyweight",
-      video: require("./assets/exercise-videos/male-calf-raise.mp4"),
       phases: ["LOWER", "HOLD", "RAISE"],
-      formFrames: [
-        require("./assets/exercises/male-calf-raise/start.jpg"),
-        require("./assets/exercises/male-calf-raise/finish.jpg"),
-      ],
     },
   ];
   // Starter roster for the "Pull-up bar / calisthenics" equipment tier -- intentionally
@@ -5758,23 +5614,13 @@ function createWorkout(
       ...workoutExercises[1]!,
       name: "Bar Dip",
       target: "Chest & triceps · Bodyweight",
-      video: require("./assets/exercise-videos/female-bar-dip.mp4"),
       phases: ["BRACE", "LOWER", "PRESS"],
-      formFrames: [
-        require("./assets/exercises/female-bar-dip/start.jpg"),
-        require("./assets/exercises/female-bar-dip/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[1]!,
       name: "Knee Raise",
       target: "Core · Bodyweight",
-      video: require("./assets/exercise-videos/female-knee-raise.mp4"),
       phases: ["BRACE", "RAISE", "LOWER"],
-      formFrames: [
-        require("./assets/exercises/female-knee-raise/start.jpg"),
-        require("./assets/exercises/female-knee-raise/finish.jpg"),
-      ],
     },
   ];
   const maleBarsExercises: WorkoutExercise[] = [
@@ -5782,34 +5628,19 @@ function createWorkout(
       ...workoutExercises[0]!,
       name: "Pull-Up",
       target: "Back & biceps · Bodyweight",
-      video: require("./assets/exercise-videos/male-pull-up.mp4"),
       phases: ["HANG", "PULL", "LOWER"],
-      formFrames: [
-        require("./assets/exercises/male-pull-up/start.jpg"),
-        require("./assets/exercises/male-pull-up/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[1]!,
       name: "Bar Dip",
       target: "Chest & triceps · Bodyweight",
-      video: require("./assets/exercise-videos/male-bar-dip.mp4"),
       phases: ["BRACE", "LOWER", "PRESS"],
-      formFrames: [
-        require("./assets/exercises/male-bar-dip/start.jpg"),
-        require("./assets/exercises/male-bar-dip/finish.jpg"),
-      ],
     },
     {
       ...workoutExercises[1]!,
       name: "Hanging Leg Raise",
       target: "Core · Bodyweight",
-      video: require("./assets/exercise-videos/male-hanging-leg-raise.mp4"),
       phases: ["HANG", "RAISE", "LOWER"],
-      formFrames: [
-        require("./assets/exercises/male-hanging-leg-raise/start.jpg"),
-        require("./assets/exercises/male-hanging-leg-raise/finish.jpg"),
-      ],
     },
   ];
   const isBodyweightTier = profile.equipment === "bodyweight";
@@ -5939,10 +5770,6 @@ function createWorkout(
         name: "Neutral-Grip Dumbbell Press",
         target: "Upper body · Shoulder-aware",
         phases: ["LOWER", "PAUSE", "PRESS"],
-        formFrames: [
-          require("./assets/exercises/neutral-grip-dumbbell-press/start.jpg"),
-          require("./assets/exercises/neutral-grip-dumbbell-press/finish.jpg"),
-        ],
         pose: exercisePoses.bench,
       };
     }
@@ -6025,10 +5852,6 @@ function catalogExerciseToWorkoutExercise(
           bodyWeightKg,
           implement,
         );
-  const media = tag.media[profile.sex === "male" ? "male" : "female"];
-  const poster: ImageSourcePropType = media
-    ? { uri: media.poster }
-    : require("./assets/exercises/goblet-squat/start.jpg");
 
   return {
     name: tag.name,
@@ -6044,9 +5867,7 @@ function catalogExerciseToWorkoutExercise(
         : (perSideUnitLabel(tag.name, tag.primaryMuscle) ?? undefined),
     tempo: "3-1-1",
     phases: ["LOWER", "BRACE", "LIFT"],
-    formFrames: [poster, poster],
     pose: exercisePoses.squat,
-    video: media?.video,
     catalogMeta: {
       externalId: tag.source.externalId,
       movementPattern: tag.movementPattern,
@@ -6502,7 +6323,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Kettlebell Snatch": "clean",
   "Bird Dog": "quadruped",
   "Bear Crawl": "quadruped",
-  "Mountain Climbers": "quadruped",
+  "Mountain Climbers": "mountainClimber",
   "Dumbbell Front Raise": "frontRaise",
   "Triceps Kickback": "kickback",
   "Leg Extension": "legExtension",
@@ -6529,7 +6350,6 @@ function libraryExerciseToWorkoutExercise(
     : null;
   const implement = implementForExerciseName(exercise.name);
   const isUnloaded = exercise.implement === "bodyweight" || exercise.implement === "band";
-  const media = shippedMediaFor(exercise.name, profile.sex);
 
   const startingKg = exercise.startingKg ?? 0;
   const weight = isUnloaded
@@ -6559,7 +6379,6 @@ function libraryExerciseToWorkoutExercise(
     tempo: exercise.isHold ? "HOLD" : "3-1-1",
     phases: exercise.isHold ? ["BRACE", "HOLD", "HOLD"] : ["LOWER", "BRACE", "LIFT"],
     cue: exercise.cue,
-    ...(media ? { video: media.video, formFrames: media.formFrames } : {}),
   };
 }
 
@@ -7260,69 +7079,6 @@ function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
   );
 }
 
-function ExerciseStill({ frame }: { frame: ImageSourcePropType }) {
-  return (
-    <View style={StyleSheet.absoluteFill}>
-      <Image source={frame} style={styles.exerciseFrameBackdrop} resizeMode="cover" />
-      <View style={styles.exerciseFrameBackdropShade} />
-      <Image source={frame} style={styles.exerciseVideo} resizeMode="contain" />
-    </View>
-  );
-}
-
-function RealExerciseVideo({ source, poster }: { source: number | string; poster: ImageSourcePropType }) {
-  const player = useVideoPlayer(source, (videoPlayer) => {
-    videoPlayer.loop = true;
-    videoPlayer.muted = true;
-  });
-
-  useEffect(() => {
-    player.loop = true;
-    player.muted = true;
-    player.play();
-    const autoplayRetry = setTimeout(() => player.play(), 300);
-    return () => clearTimeout(autoplayRetry);
-  }, [player]);
-
-  return (
-    <>
-      <ExerciseStill frame={poster} />
-      <VideoView
-        player={player}
-        style={styles.realExerciseVideo}
-        contentFit="cover"
-        nativeControls={false}
-        allowsFullscreen={false}
-        allowsPictureInPicture={false}
-        playsInline
-        pointerEvents="none"
-      />
-    </>
-  );
-}
-
-function PreloadExerciseVideo({ source }: { source: number | string }) {
-  const player = useVideoPlayer(source, (videoPlayer) => {
-    videoPlayer.muted = true;
-  });
-
-  useEffect(() => {
-    player.pause();
-  }, [player]);
-
-  return (
-    <VideoView
-      player={player}
-      style={styles.preloadExerciseVideo}
-      nativeControls={false}
-      allowsFullscreen={false}
-      allowsPictureInPicture={false}
-      playsInline
-      pointerEvents="none"
-    />
-  );
-}
-
 function ExerciseDemo({
   exerciseIndex,
   exercises,
@@ -7331,35 +7087,10 @@ function ExerciseDemo({
   exercises: WorkoutExercise[];
 }) {
   const exercise = exercises[exerciseIndex] ?? exercises[0]!;
-  const nextExercise = exercises[exerciseIndex + 1];
 
   return (
     <View style={styles.demoStage}>
-      {exercise.video && exercise.formFrames ? (
-        <RealExerciseVideo
-          key={exercise.video}
-          source={exercise.video}
-          poster={exercise.formFrames[0]}
-        />
-      ) : exercise.formFrames ? (
-        <ExerciseStill frame={exercise.formFrames[0]} />
-      ) : (
-        <ExerciseCueCard exercise={exercise} />
-)}
-      {nextExercise?.video ? (
-        <PreloadExerciseVideo key={`preload-${nextExercise.video}`} source={nextExercise.video} />
-      ) : null}
-      {/* The shade keeps text legible over video; over the 3D figure it only
-          dims the mannequin. */}
-      {exercise.formFrames ? <View style={styles.videoShade} /> : null}
-      {/* Only claim a real demo when one is actually playing. The cue card
-          already says "no demo yet", and the two together would contradict. */}
-      {exercise.formFrames ? (
-        <View style={styles.videoSourceBadge}>
-          <View style={styles.formDot} />
-          <Text style={styles.videoSourceText}>REAL FORM DEMO</Text>
-        </View>
-      ) : null}
+      <ExerciseCueCard exercise={exercise} />
     </View>
   );
 }
@@ -8178,11 +7909,7 @@ function ActiveWorkoutScreen({
                   onPress={() => applySwap(option)}
                   style={({ pressed }) => [styles.swapOptionRow, pressed && { opacity: 0.8 }]}
                 >
-                  {option.formFrames ? (
-                    <Image source={option.formFrames[0]} style={styles.swapOptionThumb} resizeMode="cover" />
-                  ) : (
-                    <View style={styles.swapOptionThumb} />
-                  )}
+                  <View style={styles.swapOptionThumb} />
                   <View style={styles.swapOptionCopy}>
                     <Text style={styles.swapOptionName}>{option.name}</Text>
                     <Text style={styles.swapOptionTarget}>{option.target}</Text>
@@ -11067,27 +10794,6 @@ const styles = StyleSheet.create({
   },
   motionFigureText: { color: colors.text, fontSize: 31, fontWeight: "800" },
   demoStage: { width: "100%", height: "100%", alignItems: "center", justifyContent: "center" },
-  realExerciseVideo: {
-    ...StyleSheet.absoluteFillObject,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "transparent",
-  },
-  preloadExerciseVideo: {
-    position: "absolute",
-    width: 1,
-    height: 1,
-    opacity: 0,
-    right: 0,
-    bottom: 0,
-  },
-  exerciseVideo: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-  },
   exerciseFrameBackdrop: {
     position: "absolute",
     top: 0,
@@ -11172,25 +10878,6 @@ const styles = StyleSheet.create({
     borderColor: "#63FF77",
     backgroundColor: "transparent",
   },
-  videoShade: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.18)",
-    // Decoration only. Without this the shade sits over the cue card and eats
-    // the tap that opens the 3D viewer.
-    pointerEvents: "none",
-  },
-  videoSourceBadge: {
-    position: "absolute",
-    left: 14,
-    bottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 9,
-    borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.72)",
-  },
-  videoSourceText: { color: colors.text, fontSize: 6, fontWeight: "900", letterSpacing: 0.8 },
   demoFloor: {
     position: "absolute",
     left: 27,

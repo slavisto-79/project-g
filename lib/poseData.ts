@@ -331,6 +331,27 @@ export const exercisePoses = {
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
   ),
 
+  // A plank on locked arms with the knees driving alternately to the chest.
+  // Two key positions with the legs swapped; the ping-pong playback IS the
+  // alternation.
+  mountainClimber: pose(
+    "side",
+    [0, 1].map((phase) => {
+      const pelvis = { x: 0.485, y: 0.689 };
+      const torso = 292.3;
+      const planted = plantedLegs(pelvis, torso, "side", [{ x: 0.755, y: 0.855 }, { x: 0.739, y: 0.855 }], BACK, [130, 135]);
+      const tucked: Limb = { upper: 32, lower: 155, end: 100 };
+      return {
+        pelvis,
+        torso,
+        neck: torso - 4,
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], BACK),
+        legs: (phase === 0 ? [planted[0], tucked] : [tucked, planted[1]]) as [Limb, Limb],
+      };
+    }),
+    [{ kind: "floor" }],
+  ),
+
   quadruped: pose(
     "side",
     [
