@@ -21,8 +21,6 @@ import type { ExercisePose, PoseFrame3D, Vec3 } from "./poses";
 export type ViewerImplement = "dumbbell" | "kettlebell" | "barbell" | "machine" | "other" | undefined;
 
 const BODY = 0xd8d3cb;
-const STEEL = 0x9aa3a8;
-const IRON = 0x2b3134;
 const BENCH = 0x66736c;
 const FLOOR = 0x181c1a;
 const FLOOR_RING = 0x2c332f;
@@ -212,49 +210,65 @@ export class PoseViewer3D {
 
   // --- The equipment -------------------------------------------------------
 
-  private steel = new THREE.MeshStandardMaterial({ color: STEEL, roughness: 0.35, metalness: 0.8 });
-  private iron = new THREE.MeshStandardMaterial({ color: IRON, roughness: 0.6, metalness: 0.4 });
+  // Equipment must read as objects the body is holding, never as parts of the
+  // body: bright cold chrome and near-black rubber against a warm matte
+  // figure, and real proportions -- the first squat render had a bar the width
+  // of the shoulders in body-coloured grey, and it fused with the mannequin.
+  private chrome = new THREE.MeshStandardMaterial({ color: 0xc2c9ce, roughness: 0.25, metalness: 0.85 });
+  private iron = new THREE.MeshStandardMaterial({ color: 0x15181b, roughness: 0.45, metalness: 0.35 });
+  private ironRim = new THREE.MeshStandardMaterial({ color: 0x3b444a, roughness: 0.4, metalness: 0.5 });
+  private graphite = new THREE.MeshStandardMaterial({ color: 0x4c565c, roughness: 0.4, metalness: 0.7 });
+
+  private alongX(mesh: THREE.Mesh): THREE.Mesh {
+    mesh.rotation.z = Math.PI / 2;
+    return mesh;
+  }
 
   private barbell(length: number): THREE.Group {
     const group = new THREE.Group();
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, length, 12), this.steel);
-    shaft.rotation.z = Math.PI / 2;
-    group.add(shaft);
+    group.add(this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.0095, 0.0095, length, 12), this.chrome)));
     for (const side of [-1, 1]) {
-      const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.019, 0.019, 0.1, 12), this.steel);
-      sleeve.rotation.z = Math.PI / 2;
-      sleeve.position.x = side * (length / 2 - 0.05);
-      group.add(sleeve);
-      // A big plate and a smaller one behind it, which is how a loaded bar
-      // actually looks and reads instantly as "heavy".
-      const big = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.105, 0.022, 20), this.iron);
-      big.rotation.z = Math.PI / 2;
-      big.position.x = side * (length / 2 - 0.1);
-      const small = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.018, 18), this.iron);
-      small.rotation.z = Math.PI / 2;
-      small.position.x = side * (length / 2 - 0.125);
-      group.add(big, small);
+      // Sleeve, collar, then a big plate with a smaller one stacked outside --
+      // the loaded-bar silhouette everyone recognises.
+      const sleeve = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.16, 12), this.chrome));
+      sleeve.position.x = side * (length / 2 - 0.08);
+      const collar = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.016, 14), this.graphite));
+      collar.position.x = side * (length / 2 - 0.165);
+      const big = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.028, 26), this.iron));
+      big.position.x = side * (length / 2 - 0.14);
+      // A lighter rim ring so the plate reads as a plate with depth, not a
+      // black blob.
+      const rim = this.alongX(new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.006, 8, 26), this.ironRim));
+      rim.rotation.y = Math.PI / 2;
+      rim.rotation.z = 0;
+      rim.position.x = side * (length / 2 - 0.14);
+      const small = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.024, 22), this.iron));
+      small.position.x = side * (length / 2 - 0.11);
+      const hub = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.032, 14), this.ironRim));
+      hub.position.x = side * (length / 2 - 0.125);
+      group.add(sleeve, collar, big, rim, small, hub);
     }
     return group;
   }
 
   private plainBar(length: number): THREE.Group {
     const group = new THREE.Group();
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, length, 12), this.steel);
-    shaft.rotation.z = Math.PI / 2;
-    group.add(shaft);
+    group.add(this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, length, 12), this.graphite)));
+    for (const side of [-1, 1]) {
+      const cap = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.02, 12), this.chrome));
+      cap.position.x = side * (length / 2 - 0.01);
+      group.add(cap);
+    }
     return group;
   }
 
   private dumbbell(): THREE.Group {
     const group = new THREE.Group();
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.13, 10), this.steel);
-    handle.rotation.z = Math.PI / 2;
-    group.add(handle);
+    group.add(this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.15, 10), this.chrome)));
     for (const side of [-1, 1]) {
-      const head = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.045, 14), this.iron);
-      head.rotation.z = Math.PI / 2;
-      head.position.x = side * 0.065;
+      // Six-sided heads: the hex profile is what says "dumbbell" at a glance.
+      const head = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.05, 6), this.iron));
+      head.position.x = side * 0.072;
       group.add(head);
     }
     return group;
@@ -264,17 +278,21 @@ export class PoseViewer3D {
   // kettlebell actually hangs.
   private kettlebell(): THREE.Group {
     const group = new THREE.Group();
-    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.036, 0.009, 10, 18, Math.PI), this.steel);
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.011, 10, 18, Math.PI), this.graphite);
     group.add(handle);
-    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.055, 16, 12), this.iron);
-    ball.position.y = -0.062;
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.062, 18, 14), this.iron);
+    // Slightly squashed, with a flattened base implied by sitting low.
+    ball.scale.y = 0.92;
+    ball.position.y = -0.08;
     group.add(ball);
     return group;
   }
 
   private medicineBall(size: number): THREE.Group {
     const group = new THREE.Group();
-    group.add(new THREE.Mesh(new THREE.SphereGeometry(size * 0.85, 16, 12), this.iron));
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(Math.max(size * 0.65, 0.06), 18, 14), this.iron);
+    const seam = new THREE.Mesh(new THREE.TorusGeometry(Math.max(size * 0.65, 0.06), 0.004, 6, 24), this.ironRim);
+    group.add(ball, seam);
     return group;
   }
 
@@ -342,9 +360,22 @@ export class PoseViewer3D {
         this.held.push(this.anchored(mesh, i, "bar", implement === "dumbbell" && prop.plates ? "hands" : "centre"));
         continue;
       }
-      // A bell: a kettlebell or dumbbell in each gripping hand, or a medicine
-      // ball when both hands hold the one object in front of the body.
-      const mesh = implement === "kettlebell" ? this.kettlebell() : this.dumbbell();
+      // A bell. Two bells were authored per hand, so they are hand weights --
+      // kettlebells or dumbbells. ONE bell is a single object held in both
+      // hands: a ball for the slams and chops, a handle when it comes off a
+      // cable stack. "Medicine Ball Slam" carries no loadable implement at
+      // all, so this cannot lean on the implement alone.
+      const bellCount = first.props.filter((p) => p.kind === "bell").length;
+      const mesh =
+        implement === "kettlebell"
+          ? this.kettlebell()
+          : implement === "dumbbell"
+            ? this.dumbbell()
+            : bellCount === 1
+              ? implement === "machine"
+                ? this.plainBar(0.16)
+                : this.medicineBall(prop.size)
+              : this.dumbbell();
       this.scene.add(mesh);
       this.held.push(this.anchored(mesh, i, "bell"));
     }

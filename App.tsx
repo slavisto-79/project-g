@@ -4639,6 +4639,10 @@ type WorkoutExercise = {
   // different movement.
   formFrames?: [ImageSourcePropType, ImageSourcePropType];
   pose?: ExercisePose;
+  // What the 3D demo should draw in the hands. The library implement, not the
+  // loadable one: implementForExerciseName calls a medicine ball a "dumbbell"
+  // so its weight snaps sensibly, and the demo must not inherit that.
+  demoImplement?: ViewerImplement;
   // How to perform it, in words. Carries the exercise until footage exists.
   cue?: string;
   video?: number | string;
@@ -6504,6 +6508,14 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Leg Extension": "legExtension",
 };
 
+// The library implement, translated for the 3D demo. Cable counts as machine
+// (a stack with a handle), band and bodyweight draw nothing special.
+function viewerImplementFor(implement: LibraryImplement): ViewerImplement {
+  if (implement === "cable") return "machine";
+  if (implement === "band" || implement === "bodyweight") return undefined;
+  return implement;
+}
+
 function libraryExerciseToWorkoutExercise(
   exercise: LibraryExercise,
   profile: Record<string, string>,
@@ -6543,6 +6555,7 @@ function libraryExerciseToWorkoutExercise(
     repsPerSide: exercise.isHold || !exercise.unilateral ? undefined : (perSideUnitLabel(exercise.name, exercise.primaryMuscle) ?? undefined),
     isHold: exercise.isHold,
     pose: POSE_FOR_EXERCISE[exercise.name] ? exercisePoses[POSE_FOR_EXERCISE[exercise.name]!] : undefined,
+    demoImplement: viewerImplementFor(exercise.implement),
     tempo: exercise.isHold ? "HOLD" : "3-1-1",
     phases: exercise.isHold ? ["BRACE", "HOLD", "HOLD"] : ["LOWER", "BRACE", "LIFT"],
     cue: exercise.cue,
@@ -7206,7 +7219,7 @@ function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
               accessibilityRole="button"
               accessibilityLabel="Expand the exercise demo"
             >
-              <PoseFigure3DWeb pose={exercise.pose} implement={exercise.implement} interactive={false} />
+              <PoseFigure3DWeb pose={exercise.pose} implement={exercise.demoImplement ?? exercise.implement} interactive={false} />
               <Text style={styles.poseExpandHint}>⛶ TAP TO ROTATE</Text>
             </Pressable>
             {/* Fullscreen: the same movement with the camera handed to the
@@ -7216,7 +7229,7 @@ function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
             <Modal visible={expanded} transparent animationType="none" onRequestClose={() => setExpanded(false)}>
               <View style={styles.poseModalBackdrop}>
                 <View style={styles.poseModalStage}>
-                  <PoseFigure3DWeb pose={exercise.pose} implement={exercise.implement} interactive />
+                  <PoseFigure3DWeb pose={exercise.pose} implement={exercise.demoImplement ?? exercise.implement} interactive />
                 </View>
                 <View style={styles.poseModalHeader} pointerEvents="box-none">
                   {/* flex 1 so a long hint wraps instead of shoving the close
