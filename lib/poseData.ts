@@ -90,6 +90,7 @@ export const exercisePoses = {
       { kind: "slab", at: "ankle1", width: 0.17, height: 0.042, dy: 0.038 },
       { kind: "bell", at: "hand0", each: true },
     ],
+    "neutral",
   ),
 
   lunge: pose(
@@ -104,6 +105,7 @@ export const exercisePoses = {
       };
     }),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
+    "neutral",
   ),
 
   lateralLunge: pose(
@@ -219,6 +221,7 @@ export const exercisePoses = {
       };
     }),
     [{ kind: "floor" }, { kind: "bell", at: "hand0" }],
+    "neutral",
   ),
 
   hipThrust: pose(
@@ -365,6 +368,7 @@ export const exercisePoses = {
     "front",
     [96, 60, 24].map((arm) => standFront(0.520, 0, bothArms(arm, arm - 4))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
+    "neutral",
   ),
 
   // --- Vertical push -------------------------------------------------------
@@ -387,12 +391,14 @@ export const exercisePoses = {
     "front",
     [170, 131, 93].map((arm) => standFront(0.520, 0, bothArms(arm, arm + 3))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
+    "neutral",
   ),
 
   frontRaise: pose(
     "side",
     [174, 133, 92].map((arm) => stand({ x: 0.5, y: 0.520 }, 356, sideArms(arm, arm + 2))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
+    "neutral",
   ),
 
   tricepsExtension: pose(
@@ -414,6 +420,7 @@ export const exercisePoses = {
       };
     }),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
+    "neutral",
   ),
 
   // --- Pulling -------------------------------------------------------------
@@ -515,6 +522,7 @@ export const exercisePoses = {
     "side",
     [178, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.520 }, 356, sideArms(176, forearm))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
+    "underhand",
   ),
 
   proneRaise: pose(
@@ -570,6 +578,7 @@ export const exercisePoses = {
       { pelvis: { x: 0.5, y: 0.520 }, torso: 0, arms: HANG, legs: [{ upper: 190, lower: 184, end: 94 }, { upper: 168, lower: 174, end: 84 }] },
     ],
     [{ kind: "floor", y: 0.972 }, { kind: "bell", at: "hand0", each: true }],
+    "neutral",
   ),
 } satisfies Record<string, ExercisePose>;
 

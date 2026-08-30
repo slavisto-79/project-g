@@ -37,9 +37,45 @@ export type PoseFrame = {
   props: PoseProp[];
 };
 
+// --- The 3D form of the same data ------------------------------------------
+//
+// The same key positions, emitted as world coordinates so a 3D renderer can
+// show the movement from any angle. X is the figure's right, Y is up, Z is
+// forward (the direction a side view faces). Authored angles live in one
+// plane per view -- sagittal for "side", frontal for "front" -- and the
+// girdle gives the body its real width on the axis the author never drew.
+
+export type Vec3 = [number, number, number];
+
+export type PoseBone3D = {
+  part: "spine" | "neck" | "shoulders" | "hips" | "upperArm" | "forearm" | "hand" | "thigh" | "shin" | "foot";
+  // 0 is the figure's right, 1 the left; absent for the trunk.
+  side?: 0 | 1;
+  a: Vec3;
+  b: Vec3;
+};
+
+export type PoseProp3D =
+  | { kind: "bar"; center: Vec3; length: number; plates: boolean }
+  | { kind: "bell"; center: Vec3; size: number }
+  | { kind: "slab"; center: Vec3; width: number; height: number }
+  | { kind: "floor"; y: number };
+
+export type PoseFrame3D = {
+  bones: PoseBone3D[];
+  head: { c: Vec3; r: number };
+  // Wrist positions, so a renderer can wrap a fist around whatever is held.
+  hands: [Vec3, Vec3];
+  props: PoseProp3D[];
+};
+
+// How the hands hold the implement. Drawn as the thumb side of the fist, which
+// is what visually separates a curl grip from a row grip.
+export type GripStyle = "overhand" | "underhand" | "neutral";
+
 // Key positions in order, from the start of the rep to the end. The renderer
 // walks them and comes back, so authoring the down-phase gives the up-phase.
-export type ExercisePose = { frames: PoseFrame[] };
+export type ExercisePose = { frames: PoseFrame[]; frames3d: PoseFrame3D[]; grip: GripStyle };
 
 // The frame the renderer maps into. Only the ratio matters: horizontal lengths
 // are divided by it so a limb is the same length whichever way it points.
@@ -170,6 +206,97 @@ function build(figure: Figure, view: View): { segments: PoseSegment[]; head: { x
   return { segments, head: { ...headCentre, r: P.headRadius }, joints };
 }
 
+// Builds the same figure in world space. The authored angles live in one plane
+// -- sagittal for a side view, frontal for a front view -- and the third axis
+// comes from the girdle widths, which is exactly the information a flat
+// projection had to throw away.
+function build3d(figure: Figure, view: View): { bones: PoseBone3D[]; head: { c: Vec3; r: number }; hands: [Vec3, Vec3] } {
+  // Authored screen x compressed horizontal lengths by ASPECT so they matched
+  // the 2D frame; multiplying by ASPECT restores world proportions. Screen y
+  // grows downward; world Y grows up.
+  const planar = (p: Point): Vec3 =>
+    view === "side" ? [0, 1 - p.y, (p.x - 0.5) * ASPECT] : [(p.x - 0.5) * ASPECT, 1 - p.y, 0];
+  // Walking a limb by its authored angle, in the plane that view draws.
+  const walk = (from: Vec3, angleDeg: number, length: number): Vec3 => {
+    const a = (angleDeg * Math.PI) / 180;
+    return view === "side"
+      ? [from[0], from[1] + Math.cos(a) * length, from[2] + Math.sin(a) * length]
+      : [from[0] + Math.sin(a) * length, from[1] + Math.cos(a) * length, from[2]];
+  };
+  // The lateral axis: X in a side view. In a front view the girdle already
+  // spans X inside the drawing plane, so the offset only breaks z-fighting.
+  const lateral = (side: 0 | 1, half: number): Vec3 =>
+    view === "side" ? [side === 0 ? half : -half, 0, 0] : [0, 0, side === 0 ? 0.012 : -0.012];
+  const add = (p: Vec3, d: Vec3): Vec3 => [p[0] + d[0], p[1] + d[1], p[2] + d[2]];
+
+  const bones: PoseBone3D[] = [];
+  const pelvis = planar(figure.pelvis);
+  const shoulderMid = walk(pelvis, figure.torso, P.spine);
+  const neckTop = walk(shoulderMid, figure.neck ?? figure.torso, P.neck);
+  const headCentre = walk(neckTop, figure.neck ?? figure.torso, P.headRadius);
+
+  // In a front view the shoulders and hips are drawn inside the plane exactly
+  // as the 2D build places them; in a side view they span the lateral axis.
+  const girdle = (centre: Vec3, half: number, side: 0 | 1): Vec3 =>
+    view === "side"
+      ? add(centre, lateral(side, half))
+      : add(walk(centre, figure.torso + (side === 0 ? 90 : -90), half), lateral(side, 0));
+
+  const shoulder: [Vec3, Vec3] = [girdle(shoulderMid, P.shoulderHalf, 0), girdle(shoulderMid, P.shoulderHalf, 1)];
+  const hip: [Vec3, Vec3] = [girdle(pelvis, P.hipHalf, 0), girdle(pelvis, P.hipHalf, 1)];
+
+  bones.push({ part: "spine", a: pelvis, b: shoulderMid });
+  bones.push({ part: "neck", a: shoulderMid, b: neckTop });
+  bones.push({ part: "shoulders", a: shoulder[0], b: shoulder[1] });
+  bones.push({ part: "hips", a: hip[0], b: hip[1] });
+
+  const hands: Vec3[] = [];
+  figure.arms.forEach((arm, index) => {
+    const side = index as 0 | 1;
+    // Front-view angles are authored mirrored (side 1 negative); walking them
+    // directly reproduces that. Side-view limbs differ only by their offset.
+    const elbow = walk(shoulder[side]!, arm.upper, P.upperArm);
+    const wrist = walk(elbow, arm.lower, P.forearm);
+    bones.push({ part: "upperArm", side, a: shoulder[side]!, b: elbow });
+    bones.push({ part: "forearm", side, a: elbow, b: wrist });
+    bones.push({ part: "hand", side, a: wrist, b: walk(wrist, arm.end ?? arm.lower, P.hand) });
+    hands.push(wrist);
+  });
+
+  figure.legs.forEach((leg, index) => {
+    const side = index as 0 | 1;
+    const knee = walk(hip[side]!, leg.upper, P.thigh);
+    const ankle = walk(knee, leg.lower, P.shin);
+    const splay = view === "front" && side === 1 ? 90 : -90;
+    bones.push({ part: "thigh", side, a: hip[side]!, b: knee });
+    bones.push({ part: "shin", side, a: knee, b: ankle });
+    bones.push({ part: "foot", side, a: ankle, b: walk(ankle, leg.end ?? leg.lower + splay, P.foot) });
+  });
+
+  return { bones, head: { c: headCentre, r: P.headRadius }, hands: [hands[0]!, hands[1]!] };
+}
+
+// The 2D props are already resolved against the figure; the world form is a
+// mechanical conversion of each one, plus the bar getting its real length --
+// a side view foreshortens a barbell to a stub, and a 3D one must not.
+function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
+  const point = (x: number, y: number): Vec3 =>
+    view === "side" ? [0, 1 - y, (x - 0.5) * ASPECT] : [(x - 0.5) * ASPECT, 1 - y, 0];
+  return props.map((prop) => {
+    if (prop.kind === "floor") return { kind: "floor" as const, y: 1 - prop.y };
+    if (prop.kind === "bar") {
+      return {
+        kind: "bar" as const,
+        center: point(prop.x, prop.y),
+        length: prop.plates ? 0.46 : Math.max(view === "front" ? prop.length : 0.34, 0.34),
+        plates: prop.plates,
+      };
+    }
+    if (prop.kind === "bell") return { kind: "bell" as const, center: point(prop.x, prop.y), size: prop.size };
+    return { kind: "slab" as const, center: point(prop.x, prop.y), width: prop.width, height: prop.height };
+  });
+}
+
 type PropSpec =
   | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number }
   | { kind: "bell"; at: string; size?: number; each?: boolean }
@@ -216,7 +343,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
 // Builds a movement from its key positions. Props are declared once and
 // re-anchored in every frame, so equipment cannot drift out of the hands and
 // adding a key position does not mean restating the barbell.
-function pose(view: View, figures: Figure[], props: PropSpec[] = []): ExercisePose {
+function pose(view: View, figures: Figure[], props: PropSpec[] = [], grip: GripStyle = "overhand"): ExercisePose {
   if (figures.length < 2) throw new Error("a movement needs at least two key positions");
   const built = figures.map((figure) => build(figure, view));
   // An unpinned floor goes under the lowest point the body reaches in ANY key
@@ -235,7 +362,13 @@ function pose(view: View, figures: Figure[], props: PropSpec[] = []): ExercisePo
   // frame has to have the same ones in the same order.
   const shape = (f: PoseFrame) => f.segments.length + ":" + f.props.map((p) => p.kind).join(",");
   if (new Set(frames.map(shape)).size !== 1) throw new Error("key positions disagree on how many parts there are");
-  return { frames };
+  // The world form is derived from the same figures and the already-resolved
+  // props, so the two renderers can never disagree about the movement.
+  const frames3d = figures.map((figure, i) => ({
+    ...build3d(figure, view),
+    props: propsTo3d(frames[i]!.props, view),
+  }));
+  return { frames, frames3d, grip };
 }
 
 // --- Authoring helpers ---------------------------------------------------
