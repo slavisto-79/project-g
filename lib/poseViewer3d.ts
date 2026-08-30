@@ -84,6 +84,8 @@ export class PoseViewer3D {
   private orbitRadius = 1.6;
   // Set by fit(): true when the scene is much wider than it is tall.
   private lyingScene = false;
+  // Hands shift outboard with their held weights, so the grip stays closed.
+  private fistOutboard = false;
   private readonly interactive: boolean;
   private readonly reduceMotion: boolean;
 
@@ -182,37 +184,70 @@ export class PoseViewer3D {
 
   private buildMannequin(pose: ExercisePose) {
     const first = this.frames[0]!;
+    const gripping = first.props.some((p) => p.kind === "bar" || p.kind === "bell");
     for (const bone of first.bones) {
       const radius = RADII[bone.part];
       const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), this.bodyMaterial);
       const capA = new THREE.Mesh(new THREE.SphereGeometry(radius, 12, 10), this.bodyMaterial);
       const capB = new THREE.Mesh(new THREE.SphereGeometry(radius, 12, 10), this.bodyMaterial);
+      // The fingered hand replaces the hand bone when something is held;
+      // otherwise the straight hand segment pokes out under the fingers.
+      // Kept in the list so update() indexing stays aligned with the frames.
+      if (bone.part === "hand" && gripping) {
+        cylinder.visible = capA.visible = capB.visible = false;
+      }
       this.scene.add(cylinder, capA, capB);
       this.bones.push({ cylinder, capA, capB, radius });
     }
     this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.3, 18, 14), this.bodyMaterial);
     this.scene.add(this.head);
 
-    // A fist per hand. Around a bar it is a ring the bar threads through, with
-    // a thumb bump on the side the grip dictates -- which is what visually
-    // separates a curl grip from a row grip. Without a bar it is a closed fist.
-    const holdsBar = first.props.some((p) => p.kind === "bar");
+    // A hand per side. Holding something, it is four fingers and a thumb
+    // wrapped around the handle, oriented by the grip -- overhand curls the
+    // fingers over the top of the bar with the thumb underneath, underhand is
+    // the mirror, and a neutral grip turns the whole hand (and its dumbbell)
+    // ninety degrees into a hammer hold. Empty-handed it is a closed fist.
     for (let side = 0; side < 2; side++) {
-      const fist = new THREE.Group();
-      if (holdsBar) {
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.014, 10, 16), this.bodyMaterial);
-        // The bar runs along X, so the ring's plane must face it.
-        ring.rotation.y = Math.PI / 2;
-        fist.add(ring);
-        const thumb = new THREE.Mesh(new THREE.SphereGeometry(0.013, 8, 8), this.bodyMaterial);
-        thumb.position.set(0, pose.grip === "underhand" ? 0.028 : -0.028, 0.014);
-        fist.add(thumb);
-      } else {
-        fist.add(new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 8), this.bodyMaterial));
-      }
+      const fist = gripping ? this.grippingHand(pose.grip, side as 0 | 1) : new THREE.Group();
+      if (!gripping) fist.add(new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 8), this.bodyMaterial));
       this.scene.add(fist);
       this.fists.push(fist);
     }
+  }
+
+  // Four finger arcs side by side along the handle, a shorter thumb arc
+  // wrapping the other way, and a palm block at the heel. The arc GAP is what
+  // reads as grip direction: overhand leaves it at the lower rear (fingers
+  // come over the top), underhand flips it.
+  private grippingHand(grip: ExercisePose["grip"], side: 0 | 1): THREE.Group {
+    const hand = new THREE.Group();
+    // Fingers wrap in this local frame around Z; the group is then turned so
+    // Z lies along the handle (world X).
+    const wrap = new THREE.Group();
+    const flip = grip === "underhand" ? Math.PI : 0;
+    for (let k = 0; k < 4; k++) {
+      const finger = new THREE.Mesh(new THREE.TorusGeometry(0.02, 0.0062, 8, 14, 4.4), this.bodyMaterial);
+      // Arc gap at the lower rear for an overhand grip.
+      finger.rotation.z = 1.9 + flip;
+      finger.position.z = (k - 1.5) * 0.0128;
+      wrap.add(finger);
+    }
+    const thumb = new THREE.Mesh(new THREE.TorusGeometry(0.016, 0.0058, 8, 12, 2.9), this.bodyMaterial);
+    thumb.rotation.z = -1.4 + flip;
+    // The thumb sits on the inner side of each hand along the bar.
+    thumb.position.z = side === 0 ? -0.024 : 0.024;
+    wrap.add(thumb);
+    const palm = new THREE.Mesh(new THREE.SphereGeometry(0.017, 10, 8), this.bodyMaterial);
+    palm.scale.set(1.15, 1.15, 1.7);
+    // The heel of the hand fills the arc gap, opposite the knuckles.
+    const heel = 1.9 + flip + 4.4 / 2 + Math.PI;
+    palm.position.set(Math.cos(heel) * 0.02, Math.sin(heel) * 0.02, 0);
+    wrap.add(palm);
+    // Along the bar (world X) normally; a neutral grip holds a fore-aft
+    // handle, so the wrap stays around Z.
+    if (grip !== "neutral") wrap.rotation.y = Math.PI / 2;
+    hand.add(wrap);
+    return hand;
   }
 
   // --- The equipment -------------------------------------------------------
@@ -368,13 +403,27 @@ export class PoseViewer3D {
           mesh = this.kettlebell();
         } else if (implement === "dumbbell" && prop.plates) {
           mesh = this.dumbbell();
+          if (pose.grip === "neutral") mesh.rotation.y = Math.PI / 2;
         } else if (prop.plates) {
           mesh = this.barbell(prop.length);
         } else {
           mesh = this.plainBar(prop.length);
         }
         this.scene.add(mesh);
-        this.held.push(this.anchored(mesh, i, "bar", implement === "dumbbell" && prop.plates ? "hands" : "centre"));
+        const perHand = implement === "dumbbell" && prop.plates;
+        if (perHand) this.fistOutboard = true;
+        this.held.push(this.anchored(mesh, i, "bar", perHand ? "hands" : "centre"));
+        continue;
+      }
+      // A barbell through both hands, when a barbell exercise runs on a
+      // movement authored with per-hand weights (Barbell Curl on the curl).
+      if (implement === "barbell") {
+        if (!this.held.some((g) => (g.userData as { kind?: string }).kind === "gripbar")) {
+          const bar = this.barbell(0.9);
+          this.scene.add(bar);
+          bar.userData = { propIndex: i, kind: "gripbar", mode: "grip" };
+          this.held.push(bar);
+        }
         continue;
       }
       // A bell. Two bells were authored per hand, so they are hand weights --
@@ -393,7 +442,9 @@ export class PoseViewer3D {
                 ? this.plainBar(0.16)
                 : this.medicineBall(prop.size)
               : this.dumbbell();
+      if (pose.grip === "neutral" && implement !== "kettlebell") mesh.rotation.y = Math.PI / 2;
       this.scene.add(mesh);
+      this.fistOutboard = true;
       this.held.push(this.anchored(mesh, i, "bell"));
     }
   }
@@ -499,6 +550,7 @@ export class PoseViewer3D {
 
     for (let s = 0; s < 2; s++) {
       this.fists[s]!.position.copy(lerp3(a.hands[s as 0 | 1], b.hands[s as 0 | 1], f));
+      if (this.fistOutboard) this.fists[s]!.position.x += s === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
     }
 
     for (const group of this.held) {
@@ -506,6 +558,12 @@ export class PoseViewer3D {
       const pa = a.props[propIndex]!;
       const pb = b.props[propIndex]!;
       if (pa.kind === "floor" || pb.kind === "floor") continue;
+      if (mode === "grip") {
+        const h0 = lerp3(a.hands[0], b.hands[0], f);
+        const h1 = lerp3(a.hands[1], b.hands[1], f);
+        group.position.set((h0.x + h1.x) / 2, (h0.y + h1.y) / 2, (h0.z + h1.z) / 2);
+        continue;
+      }
       if (mode === "hands" || mode === "twin") {
         const side = mode === "twin" ? 1 : 0;
         group.position.copy(lerp3(a.hands[side]!, b.hands[side]!, f));
