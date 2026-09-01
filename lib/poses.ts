@@ -191,7 +191,9 @@ function build(figure: Figure, view: View): { segments: PoseSegment[]; head: { x
     // other way, or both feet point the same direction and the stance reads
     // as a person standing sideways.
     const splay = view === "front" && side === 1 ? 90 : -90;
-    limb(ankle, step(ankle, leg.end ?? leg.lower + splay, P.foot), side);
+    const footAngle = leg.end ?? leg.lower + splay;
+    // A real foot has a heel: the segment starts behind the ankle.
+    limb(step(ankle, footAngle, -0.38 * P.foot), step(ankle, footAngle, P.foot), side);
     ankles.push(ankle);
   });
 
@@ -279,9 +281,11 @@ function build3d(figure: Figure, view: View): { bones: PoseBone3D[]; head: { c: 
     const knee = walk(hip[side]!, leg.upper, P.thigh);
     const ankle = walk(knee, leg.lower, P.shin);
     const splay = view === "front" && side === 1 ? 90 : -90;
+    const footAngle = leg.end ?? leg.lower + splay;
     bones.push({ part: "thigh", side, a: hip[side]!, b: knee });
     bones.push({ part: "shin", side, a: knee, b: ankle });
-    bones.push({ part: "foot", side, a: ankle, b: walk(ankle, leg.end ?? leg.lower + splay, P.foot) });
+    // Heel behind the ankle, toes in front: the foot is its own part.
+    bones.push({ part: "foot", side, a: walk(ankle, footAngle, -0.38 * P.foot), b: walk(ankle, footAngle, P.foot) });
   });
 
   return { bones, head: { c: headCentre, r: P.headRadius }, hands: [hands[0]!, hands[1]!] };
@@ -469,9 +473,12 @@ function plantedLegs(
   bend: [1 | -1, 1 | -1],
   ends?: [number, number],
 ): [Limb, Limb] {
+  // Unless the pose says otherwise, a planted side-view foot lies flat on the
+  // ground -- a world angle, not a shin-relative one.
+  const flat: [number, number] | undefined = ends ?? (view === "side" ? [88, 92] : undefined);
   return [0, 1].map((side) => ({
     ...reach(hipAt(pelvis, torso, side as 0 | 1, view), feet[side]!, P.thigh, P.shin, bend[side]!),
-    ...(ends ? { end: ends[side] } : {}),
+    ...(flat ? { end: flat[side] } : {}),
   })) as [Limb, Limb];
 }
 

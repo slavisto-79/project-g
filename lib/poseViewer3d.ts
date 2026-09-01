@@ -47,7 +47,7 @@ const PHASE_MS = 1100;
 // carried bells clipped straight through the legs.
 const HELD_OUTBOARD = 0.045;
 
-type BoneMeshes = { cylinder: THREE.Mesh; capA: THREE.Mesh; capB: THREE.Mesh; radius: number };
+type BoneMeshes = { cylinder: THREE.Mesh; capA: THREE.Mesh; capB: THREE.Mesh; radius: number; part: string };
 
 const UP = new THREE.Vector3(0, 1, 0);
 
@@ -79,6 +79,9 @@ export class PoseViewer3D {
   private bones: BoneMeshes[] = [];
   private head!: THREE.Mesh;
   private fists: THREE.Group[] = [];
+  // Forearm bone indices per side, so the fists can roll with the wrist.
+  private forearmIndex: [number, number] = [-1, -1];
+  private fistFollowsForearm = false;
   private held: THREE.Group[] = [];
   private centre = new THREE.Vector3();
   private orbitRadius = 1.6;
@@ -184,6 +187,15 @@ export class PoseViewer3D {
 
   private buildMannequin(pose: ExercisePose, implement: ViewerImplement) {
     const first = this.frames[0]!;
+    this.forearmIndex = [
+      first.bones.findIndex((b) => b.part === "forearm" && b.side === 0),
+      first.bones.findIndex((b) => b.part === "forearm" && b.side === 1),
+    ] as [number, number];
+    // Overhand and underhand fists wrap the bar axis (X), so they roll with
+    // the forearm as it swings -- fingers stay opposite the forearm, the way
+    // a real wrist carries a bar through a curl or a press. A neutral grip
+    // wraps a fore-aft handle instead and keeps its fixed orientation.
+    this.fistFollowsForearm = pose.grip !== "neutral";
     // Hands wrap what is actually drawn: fixed bars always, held loads only
     // when the exercise carries an implement (a bodyweight lunge holds air,
     // so its hands stay open).
@@ -204,7 +216,7 @@ export class PoseViewer3D {
         cylinder.visible = capA.visible = capB.visible = false;
       }
       this.scene.add(cylinder, capA, capB);
-      this.bones.push({ cylinder, capA, capB, radius });
+      this.bones.push({ cylinder, capA, capB, radius, part: bone.part });
     }
     this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.3, 18, 14), this.bodyMaterial);
     this.scene.add(this.head);
@@ -568,7 +580,10 @@ export class PoseViewer3D {
       const dir = pb.clone().sub(pa);
       const len = Math.max(dir.length(), 1e-4);
       bone.cylinder.position.copy(pa).addScaledVector(dir, 0.5);
-      bone.cylinder.scale.set(1, len, 1);
+      // Feet are flat slabs and open hands are palm paddles, not round sticks.
+      if (bone.part === "foot") bone.cylinder.scale.set(1.25, len, 0.62);
+      else if (bone.part === "hand") bone.cylinder.scale.set(1.7, len, 0.5);
+      else bone.cylinder.scale.set(1, len, 1);
       bone.cylinder.quaternion.setFromUnitVectors(UP, dir.divideScalar(len));
       bone.capA.position.copy(pa);
       bone.capB.position.copy(pb);
@@ -578,6 +593,15 @@ export class PoseViewer3D {
     for (let s = 0; s < 2; s++) {
       this.fists[s]!.position.copy(lerp3(a.hands[s as 0 | 1], b.hands[s as 0 | 1], f));
       if (this.fistOutboard) this.fists[s]!.position.x += s === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
+      // Roll the fist to match the forearm. An arm hanging straight down is
+      // the authored zero, so a deadlift keeps today's look and a press ends
+      // half a turn on -- fingers over the top of the bar either way.
+      const fi = this.forearmIndex[s as 0 | 1];
+      if (this.fistFollowsForearm && fi >= 0) {
+        const fa = lerp3(a.bones[fi]!.a, b.bones[fi]!.a, f);
+        const fb = lerp3(a.bones[fi]!.b, b.bones[fi]!.b, f);
+        this.fists[s]!.rotation.x = Math.atan2(fb.z - fa.z, -(fb.y - fa.y));
+      }
     }
 
     for (const group of this.held) {
