@@ -121,6 +121,63 @@ for (const [name, idx] of Object.entries(STANDING_FRAMES)) {
   }
 }
 
+// Joints obey anatomy. Two rules on the 3D frames, both born from a review
+// where knees folded backward and elbows flipped their hinge mid-rep:
+//  1. A knee or elbow may not FLIP its fold side between ADJACENT key
+//     positions while strongly bent on both -- the interpolation would carry
+//     the joint through hyperextension. (A flip across a near-straight
+//     middle frame is a legitimate swing.)
+//  2. Where the foot is dorsiflexed-ish (shin-to-foot under 100 degrees, so
+//     the toes reliably mark the leg's front), the knee vertex must deviate
+//     from the hip-ankle line TOWARD the toe side -- knees break over the
+//     toes, never away from them. Plantarflexed feet make the toes swing
+//     behind the shin, so the rule stands down there instead of guessing.
+{
+  const V = (a, b) => [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+  const crossX = (u, v) => u[1] * v[2] - u[2] * v[1];
+  const angleDeg = (u, v) => {
+    const dot = u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+    const m = Math.hypot(...u) * Math.hypot(...v) || 1;
+    return (Math.acos(Math.max(-1, Math.min(1, dot / m))) * 180) / Math.PI;
+  };
+  for (const [name, pose] of Object.entries(exercisePoses)) {
+    for (const [upperPart, lowerPart, endPart, label] of [
+      ["thigh", "shin", "foot", "knee"],
+      ["upperArm", "forearm", "hand", "elbow"],
+    ]) {
+      for (const side of [0, 1]) {
+        let prev = null;
+        pose.frames3d.forEach((f, fi) => {
+          const up = f.bones.find((b) => b.part === upperPart && b.side === side);
+          const lo = f.bones.find((b) => b.part === lowerPart && b.side === side);
+          const en = f.bones.find((b) => b.part === endPart && b.side === side);
+          if (!up || !lo) return;
+          const T = V(up.a, up.b), S = V(lo.a, lo.b);
+          const bend = angleDeg(T, S);
+          const sign = Math.sign(crossX(T, S));
+          if (bend > 25) {
+            if (prev && prev.sign !== sign) {
+              note(`${name} ${label}${side}: fold side flips between frames ${prev.fi} and ${fi} (${prev.bend}deg vs ${bend.toFixed(0)}deg) -- the joint hinges the other way mid-rep`);
+            }
+            prev = { fi, sign, bend: bend.toFixed(0) };
+          } else if (bend < 12) {
+            prev = null; // a near-straight frame resets the hinge reference
+          }
+          if (label === "knee" && en && bend > 14) {
+            const F = V(en.a, en.b);
+            if (angleDeg(S, F) < 100 && Math.abs(crossX(S, F)) > 0.02) {
+              const HA = V(up.a, lo.b), HK = T;
+              if (Math.hypot(...HA) > 0.15 && Math.sign(crossX(HA, HK)) !== Math.sign(crossX(S, F))) {
+                note(`${name}[${fi}] knee${side}: bends ${bend.toFixed(0)}deg away from the toe side -- a backward knee`);
+              }
+            }
+          }
+        });
+      }
+    }
+  }
+}
+
 // A bar must never pass through a leg -- in the gym the bar does not go
 // through you. The bar runs along X at one (y, z); a leg bone whose YZ
 // distance to that point is smaller than the two radii is being skewered.

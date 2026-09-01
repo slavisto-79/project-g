@@ -58,7 +58,8 @@ function napeArms(pelvis: Point, torso: number): [Limb, Limb] {
     x: top.x - (0.02 * Math.cos(rad)) / (850 / 567) + (0.008 * Math.sin(rad)) / (850 / 567),
     y: top.y - 0.02 * Math.sin(rad) - 0.008 * Math.cos(rad),
   };
-  return reachingArms(pelvis, torso, "side", [nape, { x: nape.x - 0.01, y: nape.y + 0.012 }], FORWARD);
+  const near = reachingArms(pelvis, torso, "side", [nape, nape], FORWARD)[0]!;
+  return [near, echo(near)];
 }
 
 // Hands hugging a bell against the chest, elbows tucked down.
@@ -82,16 +83,27 @@ function standFront(pelvisY: number, torso: number, arms: [Limb, Limb], feet = F
   return { pelvis, torso, arms, legs: plantedLegs(pelvis, torso, "front", feet, OUT) };
 }
 
+// The far limb repeats the near solve a few degrees into the page. Solving
+// it against a screen-shifted target instead folded it against a joint that
+// sits a girdle-depth away -- push-up far legs bent 40 degrees BACKWARD.
+function echo(limb: Limb, end?: number): Limb {
+  return { upper: limb.upper + 4, lower: limb.lower + 4, ...(end !== undefined ? { end } : {}) };
+}
+
 // A body held off the ground on its hands and toes -- push-up, plank, and the
-// row done underneath a bar. Both ends are contact points, so both are solved.
+// row done underneath a bar. Both ends are contact points; the NEAR side is
+// solved and the far side echoes it.
 function supported(pelvis: Point, torso: number, hands: Point, feet: Point, toes = 130): Figure {
+  // Palms flat on the ground: the hand angle is a world constant, so the
+  // wrist visibly articulates as the arm changes angle above it.
+  const arm = reachingArms(pelvis, torso, "side", [hands, hands], BACK, [264, 264])[0]!;
   return {
     pelvis,
     torso,
     neck: torso - 4,
-    // Palms flat on the ground: the hand angle is a world constant, so the
-    // wrist visibly articulates as the arm changes angle above it.
-    arms: reachingArms(pelvis, torso, "side", [hands, { x: hands.x - 0.016, y: hands.y }], BACK, [264, 259]),
+    arms: [arm, echo(arm, 259)],
+    // Both feet are ON the floor, so both are solved -- with the knee told to
+    // sag toward the ground, which is the way a knee in a plank can fold.
     legs: plantedLegs(pelvis, torso, "side", [feet, { x: feet.x - 0.016, y: feet.y }], BACK, [toes, toes + 5]),
   };
 }
@@ -216,7 +228,7 @@ export const exercisePoses = {
       torso: 266,
       neck: 318,
       arms: sideArms(226, 300),
-      legs: sideLegs(92, shin, shin + 40),
+      legs: sideLegs(92, shin, shin + 85),
     })),
     [{ kind: "floor", y: 0.79 }, { kind: "slab", at: "pelvis", width: 0.40, height: 0.035, dy: 0.045 }],
   ),
@@ -225,7 +237,7 @@ export const exercisePoses = {
     "side",
     // A calf raise really does travel less than any other movement here; this
     // is the full range from a stretch under the step to full plantarflexion.
-    [[0.545, 62], [0.498, 112], [0.450, 156]].map(([y, toe]) => ({
+    [[0.545, 62], [0.498, 112], [0.450, 141]].map(([y, toe]) => ({
       pelvis: { x: 0.5, y: y! },
       torso: 0,
       arms: HANG,
@@ -242,7 +254,7 @@ export const exercisePoses = {
       // Airborne: nothing is planted, so the angles are direct and the ground
       // is pinned where the take-off was.
       { pelvis: { x: 0.49, y: 0.470 }, torso: 8, arms: sideArms(60, 40), legs: sideLegs(160, 172, 130) },
-      { pelvis: { x: 0.50, y: 0.370 }, torso: 2, arms: sideArms(22, 14), legs: sideLegs(176, 178, 150) },
+      { pelvis: { x: 0.50, y: 0.370 }, torso: 2, arms: sideArms(22, 14), legs: sideLegs(176, 178, 140) },
     ],
     [{ kind: "floor" }],
   ),
@@ -250,10 +262,11 @@ export const exercisePoses = {
   run: pose(
     "side",
     [
-      { pelvis: { x: 0.5, y: 0.520 }, torso: 8, arms: [{ upper: 142, lower: 52 }, { upper: 214, lower: 292 }], legs: [{ upper: 62, lower: 132, end: 40 }, { upper: 202, lower: 162, end: 88 }] },
-      { pelvis: { x: 0.5, y: 0.535 }, torso: 8, arms: [{ upper: 178, lower: 172 }, { upper: 182, lower: 188 }], legs: [{ upper: 132, lower: 148, end: 60 }, { upper: 232, lower: 196, end: 110 }] },
-      // Arms and legs trade sides, which is the stride.
-      { pelvis: { x: 0.5, y: 0.520 }, torso: 8, arms: [{ upper: 214, lower: 292 }, { upper: 142, lower: 52 }], legs: [{ upper: 202, lower: 162, end: 88 }, { upper: 62, lower: 132, end: 40 }] },
+      { pelvis: { x: 0.5, y: 0.520 }, torso: 8, arms: [{ upper: 142, lower: 52 }, { upper: 214, lower: 140 }], legs: [{ upper: 62, lower: 132, end: 40 }, { upper: 202, lower: 230, end: 150 }] },
+      { pelvis: { x: 0.5, y: 0.535 }, torso: 8, arms: [{ upper: 178, lower: 172 }, { upper: 182, lower: 188 }], legs: [{ upper: 132, lower: 148, end: 60 }, { upper: 232, lower: 285, end: 205 }] },
+      // Arms and legs trade sides, which is the stride -- but every knee and
+      // elbow keeps folding the same anatomical way through the swap.
+      { pelvis: { x: 0.5, y: 0.520 }, torso: 8, arms: [{ upper: 214, lower: 140 }, { upper: 142, lower: 52 }], legs: [{ upper: 202, lower: 230, end: 150 }, { upper: 62, lower: 132, end: 40 }] },
     ],
     [{ kind: "floor", y: 0.978 }],
   ),
@@ -342,13 +355,16 @@ export const exercisePoses = {
       const pelvis = { x: 0.485, y: 0.689 };
       const torso = 292.3;
       const planted = plantedLegs(pelvis, torso, "side", [{ x: 0.755, y: 0.855 }, { x: 0.739, y: 0.855 }], BACK, [130, 135]);
-      const tucked: Limb = { upper: 32, lower: 155, end: 100 };
+      // Knee driven UNDER the chest, shin hanging straight down -- and folding
+      // the same anatomical way as the planted leg, so the swap between the
+      // two never carries a joint through hyperextension.
+      const tucked: Limb = { upper: 330, lower: 185, end: 115 };
       return {
         pelvis,
         torso,
         neck: torso - 4,
         arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], BACK, [264, 259]),
-        legs: (phase === 0 ? [planted[0], tucked] : [tucked, planted[1]]) as [Limb, Limb],
+        legs: (phase === 0 ? [planted[0]!, tucked] : [tucked, planted[1]!]) as [Limb, Limb],
       };
     }),
     [{ kind: "floor" }],
@@ -426,7 +442,7 @@ export const exercisePoses = {
         arms: reachingArms(pelvis, torso, "side", [{ x: 0.410, y: 0.885 }, { x: 0.394, y: 0.885 }], BACK, [264, 259]),
         // The plank hinges at the planted knee: thigh on the body line, shin
         // lying flat on the floor behind it.
-        legs: [{ upper: thigh, lower: 92, end: 40 }, { upper: thigh + 5, lower: 97, end: 45 }],
+        legs: [{ upper: thigh, lower: 92, end: 100 }, { upper: thigh + 5, lower: 97, end: 105 }],
       };
     }),
     [{ kind: "floor" }],
@@ -437,8 +453,8 @@ export const exercisePoses = {
     [
       // Held on the forearms, so the elbow is the contact and the hand is flat
       // in front of it.
-      { ...supported({ x: 0.545, y: 0.600 }, 268, { x: 0.392, y: 0.855 }, { x: 0.755, y: 0.855 }), arms: [{ upper: 192, lower: 272, end: 272 }, { upper: 197, lower: 277, end: 277 }] },
-      { ...supported({ x: 0.545, y: 0.603 }, 267, { x: 0.392, y: 0.855 }, { x: 0.755, y: 0.855 }), arms: [{ upper: 193, lower: 272, end: 272 }, { upper: 198, lower: 277, end: 277 }] },
+      { ...supported({ x: 0.545, y: 0.600 }, 268, { x: 0.392, y: 0.855 }, { x: 0.775, y: 0.855 }), arms: [{ upper: 192, lower: 272, end: 272 }, { upper: 197, lower: 277, end: 277 }] },
+      { ...supported({ x: 0.545, y: 0.603 }, 267, { x: 0.392, y: 0.855 }, { x: 0.775, y: 0.855 }), arms: [{ upper: 193, lower: 272, end: 272 }, { upper: 198, lower: 277, end: 277 }] },
     ],
     [{ kind: "floor" }],
   ),
@@ -596,7 +612,7 @@ export const exercisePoses = {
         torso,
         neck: torso,
         arms: reachingArms(pelvis, torso, "side", [{ x: 0.335, y: 0.322 }, { x: 0.319, y: 0.360 }], BACK),
-        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.745, y: 0.815 }, { x: 0.729, y: 0.815 }], BACK, [40, 45]),
+        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.745, y: 0.815 }, { x: 0.729, y: 0.815 }], FORWARD, [40, 45]),
       };
     }),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17, plates: false }],
@@ -843,7 +859,7 @@ export const exercisePoses = {
         torso,
         neck: torso - 6,
         arms: reachingArms(pelvis, torso, "side", [{ x: wx, y: 0.868 }, { x: wx - 0.014, y: 0.868 }], FORWARD),
-        legs: [{ upper: thigh, lower: 90, end: 38 }, { upper: thigh + 4, lower: 94, end: 42 }] as [Limb, Limb],
+        legs: [{ upper: thigh, lower: 90, end: 98 }, { upper: thigh + 4, lower: 94, end: 102 }] as [Limb, Limb],
       };
     }),
     [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.045 }],
@@ -861,7 +877,7 @@ export const exercisePoses = {
         torso,
         neck: torso - 25,
         arms: sideArms(torso - 110, torso + 15),
-        legs: [{ upper: thigh, lower: 90, end: 38 }, { upper: thigh + 4, lower: 94, end: 42 }] as [Limb, Limb],
+        legs: [{ upper: thigh, lower: 90, end: 98 }, { upper: thigh + 4, lower: 94, end: 102 }] as [Limb, Limb],
       };
     }),
     [{ kind: "floor" }],
@@ -876,7 +892,7 @@ export const exercisePoses = {
       torso: 25,
       neck: 15,
       arms: sideArms(up, low),
-      legs: [{ upper: 305, lower: 235, end: 245 }, { upper: 310, lower: 240, end: 250 }] as [Limb, Limb],
+      legs: [{ upper: 305, lower: 235, end: 325 }, { upper: 310, lower: 240, end: 330 }] as [Limb, Limb],
     })),
     [{ kind: "floor", y: 0.745 }],
   ),
@@ -887,7 +903,7 @@ export const exercisePoses = {
     "side",
     [0, 1].map((phase) => {
       const tucked: Limb = { upper: 335, lower: 120, end: 80 };
-      const long: Limb = { upper: 72, lower: 70, end: 38 };
+      const long: Limb = { upper: 72, lower: 70, end: 30 };
       return {
         pelvis: { x: 0.5, y: 0.70 },
         torso: 282,
@@ -914,7 +930,7 @@ export const exercisePoses = {
           torso,
           neck: torso - 4,
           arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], BACK, [264, 259]),
-          legs: plantedLegs(pelvis, torso, "side", [{ x: 0.62, y: FLOOR }, { x: 0.604, y: FLOOR }], BACK),
+          legs: plantedLegs(pelvis, torso, "side", [{ x: 0.62, y: FLOOR }, { x: 0.604, y: FLOOR }], BACK, [272, 268]),
         };
       })(),
       supported({ x: 0.485, y: 0.689 }, 292.3, { x: 0.392, y: 0.855 }, { x: 0.755, y: 0.855 }),
