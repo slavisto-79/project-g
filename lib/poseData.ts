@@ -89,7 +89,9 @@ function supported(pelvis: Point, torso: number, hands: Point, feet: Point, toes
     pelvis,
     torso,
     neck: torso - 4,
-    arms: reachingArms(pelvis, torso, "side", [hands, { x: hands.x - 0.016, y: hands.y }], BACK),
+    // Palms flat on the ground: the hand angle is a world constant, so the
+    // wrist visibly articulates as the arm changes angle above it.
+    arms: reachingArms(pelvis, torso, "side", [hands, { x: hands.x - 0.016, y: hands.y }], BACK, [264, 259]),
     legs: plantedLegs(pelvis, torso, "side", [feet, { x: feet.x - 0.016, y: feet.y }], BACK, [toes, toes + 5]),
   };
 }
@@ -345,7 +347,7 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso - 4,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], BACK),
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], BACK, [264, 259]),
         legs: (phase === 0 ? [planted[0], tucked] : [tucked, planted[1]]) as [Limb, Limb],
       };
     }),
@@ -421,7 +423,7 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso - 4,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.410, y: 0.885 }, { x: 0.394, y: 0.885 }], BACK),
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.410, y: 0.885 }, { x: 0.394, y: 0.885 }], BACK, [264, 259]),
         // The plank hinges at the planted knee: thigh on the body line, shin
         // lying flat on the floor behind it.
         legs: [{ upper: thigh, lower: 92, end: 40 }, { upper: thigh + 5, lower: 97, end: 45 }],
