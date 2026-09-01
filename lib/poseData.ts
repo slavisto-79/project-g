@@ -675,6 +675,294 @@ export const exercisePoses = {
     [{ kind: "floor", y: 0.972 }, { kind: "bell", at: "hand0", each: true }],
     "neutral",
   ),
+
+  // --- The last seventeen: exercises that only had a written cue -----------
+
+  // One leg does the whole squat while the other holds straight out in front
+  // -- the held-out leg IS the pistol.
+  pistolSquat: pose(
+    "side",
+    ([[0.500, 0.494, 4, 150, 164, 60], [0.472, 0.590, 22, 112, 128, 30], [0.450, 0.700, 34, 90, 102, 8], [0.438, 0.775, 40, 86, 94, 2]] as const).map(([x, y, torso, up, low, end]) => {
+      const pelvis = { x, y };
+      return {
+        pelvis,
+        torso,
+        neck: torso > 20 ? torso - 12 : torso,
+        arms: sideArms(96, 92),
+        legs: [plantedLegs(pelvis, torso, "side", FEET, FORWARD)[0]!, { upper: up, lower: low, end }] as [Limb, Limb],
+      };
+    }),
+    [{ kind: "floor" }],
+  ),
+
+  // Reclined on the seat, pressing the platform away. The machine holds the
+  // body off the ground, so there is no floor line.
+  legPress: pose(
+    "side",
+    ([[0.648, 0.564], [0.700, 0.548], [0.746, 0.536]] as const).map(([fx, fy]) => {
+      const pelvis = { x: 0.46, y: 0.640 };
+      const torso = 322;
+      return {
+        pelvis,
+        torso,
+        neck: torso + 20,
+        arms: sideArms(196, 206),
+        legs: plantedLegs(pelvis, torso, "side", [{ x: fx, y: fy }, { x: fx - 0.014, y: fy + 0.012 }], FORWARD, [352, 357]),
+      };
+    }),
+    [
+      { kind: "slab", at: "pelvis", width: 0.20, height: 0.035, dy: 0.052 },
+      { kind: "slab", at: "ankle0", dx: 0.055, width: 0.045, height: 0.34 },
+    ],
+  ),
+
+  // One end of the bar is pinned to the floor ahead; the hands arc around it,
+  // so the drawn bar leans at the arc's mean angle and runs down to the pivot.
+  landminePress: pose(
+    "side",
+    ([[0.530, 0.350, 12], [0.616, 0.303, 8], [0.705, 0.284, 6]] as const).map(([hx, hy, torso]) => {
+      const pelvis = { x: 0.5, y: 0.494 };
+      return {
+        pelvis,
+        torso,
+        arms: reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: hx - 0.012, y: hy + 0.01 }], BACK),
+        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.548, y: FLOOR }, { x: 0.515, y: FLOOR }], FORWARD),
+      };
+    }),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", angle: 347, length: 0.30, plates: false }],
+    "neutral",
+  ),
+
+  // A push-up folded into a pike: hips stay the apex, the head travels to the
+  // floor between the hands. Pelvis positions solved so the legs stay long.
+  pikePushUp: pose(
+    "side",
+    ([[0.583, 0.501, 246], [0.564, 0.515, 234], [0.539, 0.538, 222]] as const).map(([x, y, torso]) =>
+      supported({ x, y }, torso, { x: 0.425, y: 0.872 }, { x: 0.715, y: 0.872 }, 118),
+    ),
+    [{ kind: "floor" }],
+  ),
+
+  // Inverted, legs split fore-aft for balance (and to fit the frame); the head
+  // grazes the floor at the bottom, which is full depth.
+  handstandPushUp: pose(
+    "side",
+    [0.3526, 0.429, 0.506].map((py) => {
+      const pelvis = { x: 0.516, y: py };
+      const torso = 184;
+      return {
+        pelvis,
+        torso,
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.50, y: 0.885 }, { x: 0.484, y: 0.885 }], BACK, [92, 97]),
+        legs: [{ upper: 310, lower: 305, end: 308 }, { upper: 46, lower: 50, end: 48 }] as [Limb, Limb],
+      };
+    }),
+    [{ kind: "floor" }],
+  ),
+
+  // Arms locked straight, sweeping the bar from overhead down to the thighs.
+  straightArmPulldown: pose(
+    "side",
+    [40, 98, 166].map((arm) => stand({ x: 0.5, y: 0.494 }, 18, sideArms(arm, arm + 2), 14, [{ x: 0.557, y: FLOOR }, { x: 0.515, y: FLOOR }])),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.16, plates: false }],
+  ),
+
+  // Pulled to the face with the elbows staying high.
+  facePull: pose(
+    "side",
+    ([[82, 84], [96, 50], [108, 4]] as const).map(([up, low]) => stand({ x: 0.5, y: 0.494 }, 6, sideArms(up, low), undefined, [{ x: 0.538, y: FLOOR }, { x: 0.515, y: FLOOR }])),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.10, plates: false }],
+  ),
+
+  // Hinged over, arms sweeping from a hang up and back with soft elbows.
+  reverseFly: pose(
+    "side",
+    ([[168, 170], [214, 208], [256, 246]] as const).map(([up, low]) => {
+      const pelvis = { x: 0.552, y: 0.548 };
+      return {
+        pelvis,
+        torso: 92,
+        neck: 78,
+        arms: [{ upper: up, lower: low }, { upper: up + 5, lower: low + 5 }] as [Limb, Limb],
+        legs: plantedLegs(pelvis, 92, "side", FEET, FORWARD),
+      };
+    }),
+    [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
+    "neutral",
+  ),
+
+  // Face on: the working leg steps behind and across the midline, which is
+  // what loads the outer hip.
+  curtsyLunge: pose(
+    "front",
+    [
+      standFront(0.497, 0, bothArms(150, 25)),
+      (() => {
+        const pelvis = { x: 0.512, y: 0.565 };
+        return { pelvis, torso: 6, arms: bothArms(150, 25), legs: plantedLegs(pelvis, 6, "front", [{ x: 0.565, y: FLOOR }, { x: 0.628, y: FLOOR }], OUT) };
+      })(),
+      (() => {
+        const pelvis = { x: 0.52, y: 0.632 };
+        return { pelvis, torso: 8, arms: bothArms(150, 25), legs: plantedLegs(pelvis, 8, "front", [{ x: 0.565, y: FLOOR }, { x: 0.652, y: FLOOR }], OUT) };
+      })(),
+    ],
+    [{ kind: "floor" }],
+  ),
+
+  // Knees stay bent at ninety, which is the whole point: only the ankle moves,
+  // and the ball of the foot stays put while the heel rises. The tiny travel
+  // is the honest range of the movement.
+  seatedCalfRaise: pose(
+    "side",
+    ([[0.567, 0.919, 95], [0.5715, 0.8946, 115], [0.581, 0.874, 135]] as const).map(([ax, ay, end]) => {
+      const pelvis = { x: 0.42, y: 0.70 };
+      return {
+        pelvis,
+        torso: 354,
+        arms: sideArms(128, 130),
+        legs: plantedLegs(pelvis, 354, "side", [{ x: ax, y: ay }, { x: ax - 0.012, y: ay + 0.008 }], FORWARD, [end, end + 4]),
+      };
+    }),
+    [
+      { kind: "floor" },
+      { kind: "slab", at: "pelvis", width: 0.15, height: 0.035, dy: 0.05 },
+      // The machine pad the hands rest on, riding over the knees.
+      { kind: "slab", at: "hand0", width: 0.12, height: 0.028, dy: 0.02 },
+    ],
+  ),
+
+  // Kneeling, the wheel rolls out ahead; the pelvis is derived from the fixed
+  // knee so the shins never leave the ground.
+  abWheelRollout: pose(
+    "side",
+    ([[150, 297, 0.287], [130, 288, 0.20], [118, 283, 0.145]] as const).map(([thigh, torso, wx]) => {
+      const knee = { x: 0.545, y: 0.905 };
+      const pelvis = { x: knee.x - (0.225 * Math.sin((thigh * Math.PI) / 180)) / (850 / 567), y: knee.y + 0.225 * Math.cos((thigh * Math.PI) / 180) };
+      return {
+        pelvis,
+        torso,
+        neck: torso - 6,
+        arms: reachingArms(pelvis, torso, "side", [{ x: wx, y: 0.868 }, { x: wx - 0.014, y: 0.868 }], FORWARD),
+        legs: [{ upper: thigh, lower: 90, end: 38 }, { upper: thigh + 4, lower: 94, end: 42 }] as [Limb, Limb],
+      };
+    }),
+    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.045 }],
+  ),
+
+  // Kneeling at the stack, ribs curling toward the hips; the hands ride at the
+  // temples the whole way down.
+  cableCrunch: pose(
+    "side",
+    ([[168, 335], [162, 300], [154, 272]] as const).map(([thigh, torso]) => {
+      const knee = { x: 0.50, y: 0.905 };
+      const pelvis = { x: knee.x - (0.225 * Math.sin((thigh * Math.PI) / 180)) / (850 / 567), y: knee.y + 0.225 * Math.cos((thigh * Math.PI) / 180) };
+      return {
+        pelvis,
+        torso,
+        neck: torso - 25,
+        arms: sideArms(torso - 110, torso + 15),
+        legs: [{ upper: thigh, lower: 90, end: 38 }, { upper: thigh + 4, lower: 94, end: 42 }] as [Limb, Limb],
+      };
+    }),
+    [{ kind: "floor" }],
+  ),
+
+  // Seated and leaned back, feet light: the hands sweep between chest height
+  // and the hip, which is the twist's rhythm seen side-on.
+  russianTwist: pose(
+    "side",
+    ([[275, 277], [225, 227]] as const).map(([up, low]) => ({
+      pelvis: { x: 0.5, y: 0.72 },
+      torso: 25,
+      neck: 15,
+      arms: sideArms(up, low),
+      legs: [{ upper: 305, lower: 235, end: 245 }, { upper: 310, lower: 240, end: 250 }] as [Limb, Limb],
+    })),
+    [{ kind: "floor", y: 0.745 }],
+  ),
+
+  // Lying crunch with the legs trading places -- one knee to the chest, the
+  // other held long off the floor. The swap IS the pedal.
+  bicycleCrunch: pose(
+    "side",
+    [0, 1].map((phase) => {
+      const tucked: Limb = { upper: 335, lower: 120, end: 80 };
+      const long: Limb = { upper: 72, lower: 70, end: 38 };
+      return {
+        pelvis: { x: 0.5, y: 0.70 },
+        torso: 282,
+        neck: 304,
+        arms: sideArms(322, 160),
+        legs: (phase === 0 ? [tucked, long] : [{ ...long, upper: 77, lower: 75 }, { ...tucked, upper: 340 }]) as [Limb, Limb],
+      };
+    }),
+    [{ kind: "floor", y: 0.792 }],
+  ),
+
+  // Jump, stand, crouch with the hands planted, plank -- played out and back,
+  // which is the full burpee cycle.
+  burpee: pose(
+    "side",
+    [
+      { pelvis: { x: 0.50, y: 0.38 }, torso: 2, arms: sideArms(20, 12), legs: sideLegs(174, 178, 150) },
+      stand({ x: 0.500, y: 0.494 }, 2, HANG),
+      (() => {
+        const pelvis = { x: 0.545, y: 0.70 };
+        const torso = 285;
+        return {
+          pelvis,
+          torso,
+          neck: torso - 4,
+          arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], BACK, [264, 259]),
+          legs: plantedLegs(pelvis, torso, "side", [{ x: 0.62, y: FLOOR }, { x: 0.604, y: FLOOR }], BACK),
+        };
+      })(),
+      supported({ x: 0.485, y: 0.689 }, 292.3, { x: 0.392, y: 0.855 }, { x: 0.755, y: 0.855 }),
+    ],
+    [{ kind: "floor", y: 0.936 }],
+  ),
+
+  // Quarter-squat stance, arms pumping alternately -- the ropes themselves
+  // cannot be drawn, but the wave rhythm can.
+  battleRopes: pose(
+    "side",
+    ([[112, 32, 152, 96], [152, 96, 116, 36]] as const).map(([nu, nl, fu, fl]) => {
+      const pelvis = { x: 0.49, y: 0.56 };
+      return {
+        pelvis,
+        torso: 18,
+        arms: [{ upper: nu, lower: nl }, { upper: fu, lower: fl }] as [Limb, Limb],
+        legs: plantedLegs(pelvis, 18, "side", [{ x: 0.56, y: FLOOR }, { x: 0.53, y: FLOOR }], FORWARD),
+      };
+    }),
+    [{ kind: "floor" }],
+  ),
+
+  // Low lean into the sled's posts, legs driving alternately -- one flat and
+  // planted, one trailing on the toes.
+  sledPush: pose(
+    "side",
+    [0, 1].map((phase) => {
+      const pelvis = { x: 0.46, y: phase ? 0.605 : 0.60 };
+      const torso = 55;
+      const feet: [Point, Point] = phase === 0
+        ? [{ x: 0.52, y: FLOOR }, { x: 0.398, y: 0.902 }]
+        : [{ x: 0.402, y: 0.902 }, { x: 0.516, y: FLOOR }];
+      const ends: [number, number] = phase === 0 ? [88, 132] : [132, 92];
+      return {
+        pelvis,
+        torso,
+        neck: 40,
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.68, y: 0.66 }, { x: 0.666, y: 0.672 }], BACK),
+        legs: plantedLegs(pelvis, torso, "side", feet, FORWARD, ends),
+      };
+    }),
+    [
+      { kind: "floor" },
+      { kind: "slab", at: "hand0", dx: 0.032, dy: 0.02, width: 0.035, height: 0.26 },
+      { kind: "slab", at: "hand0", dx: 0.075, dy: 0.245, width: 0.16, height: 0.05 },
+    ],
+  ),
 } satisfies Record<string, ExercisePose>;
 
 // --- Frame builders --------------------------------------------------------

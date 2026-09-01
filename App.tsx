@@ -6166,6 +6166,23 @@ async function vetAndRefill(
 //
 // Absent from this list means the written cue, until a pose is authored for it.
 const POSE_FOR_EXERCISE: Record<string, PoseName> = {
+  "Pistol Squat": "pistolSquat",
+  "Leg Press": "legPress",
+  "Landmine Press": "landminePress",
+  "Pike Push-Up": "pikePushUp",
+  "Handstand Push-Up": "handstandPushUp",
+  "Straight-Arm Pulldown": "straightArmPulldown",
+  "Face Pull": "facePull",
+  "Dumbbell Reverse Fly": "reverseFly",
+  "Curtsy Lunge": "curtsyLunge",
+  "Seated Calf Raise": "seatedCalfRaise",
+  "Ab Wheel Rollout": "abWheelRollout",
+  "Cable Crunch": "cableCrunch",
+  "Russian Twist": "russianTwist",
+  "Bicycle Crunch": "bicycleCrunch",
+  "Burpee": "burpee",
+  "Battle Ropes": "battleRopes",
+  "Sled Push": "sledPush",
   "Barbell Back Squat": "squat",
   "Barbell Front Squat": "frontSquat",
   "Goblet Squat": "gobletSquat",

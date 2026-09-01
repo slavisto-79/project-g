@@ -58,7 +58,9 @@ export type PoseBone3D = {
 export type PoseProp3D =
   // rails: dip bars run fore-aft on BOTH sides of the body; a single
   // crossbar at hip height cannot exist without passing through it.
-  | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean }
+  // dir: a leaning bar (landmine) -- unit direction in the sagittal plane,
+  // pointing from the floor-pinned end up toward the hands.
+  | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean; dir?: Vec3 }
   | { kind: "bell"; center: Vec3; size: number }
   | { kind: "slab"; center: Vec3; width: number; height: number }
   | { kind: "floor"; y: number };
@@ -314,6 +316,11 @@ function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
         length: prop.plates ? 1.04 : Math.max(view === "front" ? prop.length : 0.34, 0.34),
         plates: prop.plates,
         ...(prop.rails ? { rails: true } : {}),
+        // An authored lean survives into 3D as a direction; the bar is long
+        // enough to visibly run down to its floor pivot.
+        ...(view === "side" && prop.angle !== 90
+          ? { dir: [0, Math.cos((prop.angle * Math.PI) / 180), Math.sin((prop.angle * Math.PI) / 180)] as Vec3, length: 0.70 }
+          : {}),
       };
     }
     if (prop.kind === "bell") return { kind: "bell" as const, center: point(prop.x, prop.y), size: prop.size };

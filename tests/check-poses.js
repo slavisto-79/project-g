@@ -79,8 +79,9 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
       return Math.max(Math.hypot((t.x1 - s.x1) * ASPECT, t.y1 - s.y1), Math.hypot((t.x2 - s.x2) * ASPECT, t.y2 - s.y2));
     }),
   );
-  // A calf raise genuinely travels less than anything else here.
-  const floor = name === "calfRaise" ? 0.09 : 0.12;
+  // Calf raises genuinely travel less than anything else here; the seated
+  // one moves only the ankle, on purpose.
+  const floor = { calfRaise: 0.09, seatedCalfRaise: 0.04 }[name] ?? 0.12;
   if (!HOLDS.has(name) && travel < floor) note(`${name}: widest joint moves only ${travel.toFixed(3)} -- partial range`);
 
   // Union proportions: a lying figure fitted into a square card is small, but
@@ -100,6 +101,7 @@ const STANDING_FRAMES = {
   hinge: 0, singleLegHinge: 0, curl: 0, frontRaise: 0,
   overheadPress: 0, pulldown: 0, lateralRaise: 0, fly: 0,
   tricepsExtension: 0, jump: 0, lateralLunge: 0, clean: 4,
+  straightArmPulldown: 0, facePull: 0, landminePress: 0, burpee: 1,
 };
 function kneeBend(frame, side) {
   const bones = frame.bones.filter((b) => b.part === "thigh" || b.part === "shin");
@@ -130,7 +132,9 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   const slack = name === "hipThrust" ? 0.03 : 0.008;
   pose.frames3d.forEach((frame, fi) => {
     for (const prop of frame.props) {
-      if (prop.kind !== "bar" || prop.rails) continue;
+      // A leaning (dir) bar does not run along X, which is what this
+      // clearance model assumes -- it is checked by eye instead.
+      if (prop.kind !== "bar" || prop.rails || prop.dir) continue;
       for (const bone of frame.bones) {
         const legR = LEG_RADII[bone.part];
         if (!legR) continue;

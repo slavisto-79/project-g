@@ -447,6 +447,17 @@ export class PoseViewer3D {
         } else {
           mesh = this.plainBar(prop.length);
         }
+        if (prop.dir) {
+          // Landmine-style: the mesh is built along X. Aim it along dir and
+          // shift it inside a carrier so the HANDS hold an end -- the rest of
+          // the bar runs down toward its floor pivot.
+          const d = new THREE.Vector3(prop.dir[0], prop.dir[1], prop.dir[2]).normalize();
+          mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), d);
+          const carrier = new THREE.Group();
+          mesh.position.copy(d).multiplyScalar(-(prop.length / 2 - 0.05));
+          carrier.add(mesh);
+          mesh = carrier;
+        }
         this.scene.add(mesh);
         const perHand = implement === "dumbbell" && prop.plates;
         if (perHand) this.fistOutboard = true;
