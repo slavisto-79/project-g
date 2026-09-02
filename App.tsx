@@ -5814,6 +5814,90 @@ const IMPLEMENT_LOAD_FACTOR: Record<LoadableImplement, number> = {
 // unlike createWorkout) applies a modest explicit factor as well.
 const CATALOG_SEX_LOAD_FACTOR: Record<string, number> = { male: 1, female: 0.7 };
 
+// Which movement demos a CATALOG exercise. Catalog names are free-form
+// (MuscleWiki's), so this is tiered: an exact library-name match first, then
+// name keywords from most to least specific, then a movement-pattern family
+// only where the family demo cannot mislead -- and a written cue (undefined)
+// over a wrong animation everywhere else. Born of a production bug: this
+// path hardcoded the back squat for every exercise, and no local review ever
+// saw it because the catalog API only runs in production.
+function poseForCatalogExercise(tag: ExerciseTag): PoseName | undefined {
+  const mapped = POSE_FOR_EXERCISE[tag.name];
+  if (mapped) return mapped;
+  const n = tag.name.toLowerCase();
+  const bodyweight = tag.equipment.toLowerCase() === "bodyweight";
+  if (/pistol/.test(n)) return "pistolSquat";
+  if (/goblet/.test(n)) return "gobletSquat";
+  if (/front squat/.test(n)) return "frontSquat";
+  if (/split squat|bulgarian/.test(n)) return "splitSquat";
+  if (/wall sit/.test(n)) return "wallSit";
+  if (/jump squat|squat jump/.test(n)) return "jump";
+  if (/\bsquat\b/.test(n)) return bodyweight ? "bodyweightSquat" : "squat";
+  if (/good morning/.test(n)) return "goodMorning";
+  if (/single[- ]leg.*(deadlift|rdl)|one[- ]leg.*deadlift/.test(n)) return "singleLegHinge";
+  if (/deadlift|\brdl\b|romanian|rack pull/.test(n)) return "hinge";
+  if (/hip thrust|glute bridge/.test(n)) return "hipThrust";
+  if (/swing/.test(n)) return "hinge";
+  if (/clean|snatch/.test(n)) return "clean";
+  if (/curtsy/.test(n)) return "curtsyLunge";
+  if (/lateral lunge|side lunge|cossack/.test(n)) return "lateralLunge";
+  if (/lunge|step[- ]?up/.test(n)) return "lunge";
+  if (/leg press/.test(n)) return "legPress";
+  if (/leg extension/.test(n)) return "legExtension";
+  if (/leg curl/.test(n)) return "legCurl";
+  if (/calf/.test(n)) return /seated/.test(n) ? "seatedCalfRaise" : "calfRaise";
+  if (/pike push/.test(n)) return "pikePushUp";
+  if (/handstand/.test(n)) return "handstandPushUp";
+  if (/knee push/.test(n)) return "kneePushUp";
+  if (/push[- ]?up|pushup/.test(n)) return "pushUp";
+  if (/incline.*(press|bench)/.test(n)) return "inclinePress";
+  if (/bench|chest press|floor press/.test(n)) return "bench";
+  if (/landmine/.test(n)) return "landminePress";
+  if (/overhead press|shoulder press|military|push press|arnold/.test(n)) return "overheadPress";
+  if (/lateral raise|side raise/.test(n)) return "lateralRaise";
+  if (/front raise/.test(n)) return "frontRaise";
+  if (/reverse fly|rear delt/.test(n)) return "reverseFly";
+  if (/\bfly\b|flye|pec deck/.test(n)) return "fly";
+  if (/face pull/.test(n)) return "facePull";
+  if (/straight[- ]arm pulldown|pullover/.test(n)) return "straightArmPulldown";
+  if (/pulldown|lat pull/.test(n)) return "pulldown";
+  if (/pull[- ]?up|chin[- ]?up|pullup|chinup/.test(n)) return "pullUp";
+  if (/inverted row/.test(n)) return "invertedRow";
+  if (/seated.*row|cable row/.test(n)) return "seatedRow";
+  if (/\brow\b/.test(n)) return "bentRow";
+  if (/skull ?crusher|lying triceps/.test(n)) return "skullCrusher";
+  if (/kickback/.test(n)) return "kickback";
+  if (/pushdown|triceps extension|overhead extension/.test(n)) return "tricepsExtension";
+  if (/\bcurl\b/.test(n)) return "curl";
+  if (/\bdips?\b/.test(n)) return "dip";
+  if (/side plank/.test(n)) return "sidePlank";
+  if (/plank/.test(n)) return "plank";
+  if (/mountain climber/.test(n)) return "mountainClimber";
+  if (/burpee/.test(n)) return "burpee";
+  if (/bicycle/.test(n)) return "bicycleCrunch";
+  if (/cable crunch/.test(n)) return "cableCrunch";
+  if (/russian twist/.test(n)) return "russianTwist";
+  if (/woodchop|wood chop|chop/.test(n)) return "woodchop";
+  if (/ab wheel|rollout/.test(n)) return "abWheelRollout";
+  if (/hanging.*raise|knee raise|leg raise|toes to bar/.test(n)) return "hangingRaise";
+  if (/hollow|crunch|sit[- ]?up|v[- ]?up|dead ?bug/.test(n)) return "hollowHold";
+  if (/superman|back extension|hyperextension/.test(n)) return "proneRaise";
+  if (/carry|farmer|suitcase/.test(n)) return "carry";
+  if (/jump|bound|hop/.test(n)) return "jump";
+  if (/sprint|running|high knees|jog/.test(n)) return "run";
+  if (/sled/.test(n)) return "sledPush";
+  if (/battle rope/.test(n)) return "battleRopes";
+  // Family fallback, only where the family cannot teach the wrong technique.
+  switch (tag.movementPattern) {
+    case "squat": return bodyweight ? "bodyweightSquat" : "squat";
+    case "hinge": return "hinge";
+    case "lunge": return "lunge";
+    case "carry": return "carry";
+    case "isometric": return "plank";
+    default: return undefined;
+  }
+}
+
 function catalogExerciseToWorkoutExercise(
   tag: ExerciseTag,
   profile: Record<string, string>,
@@ -5865,9 +5949,10 @@ function catalogExerciseToWorkoutExercise(
       isHold || !tag.unilateral
         ? undefined
         : (perSideUnitLabel(tag.name, tag.primaryMuscle) ?? undefined),
-    tempo: "3-1-1",
-    phases: ["LOWER", "BRACE", "LIFT"],
-    pose: exercisePoses.squat,
+    tempo: isHold ? "HOLD" : "3-1-1",
+    phases: isHold ? ["BRACE", "HOLD", "HOLD"] : ["LOWER", "BRACE", "LIFT"],
+    pose: (() => { const p = poseForCatalogExercise(tag); return p ? exercisePoses[p] : undefined; })(),
+    demoImplement: isBodyweight ? undefined : implement,
     catalogMeta: {
       externalId: tag.source.externalId,
       movementPattern: tag.movementPattern,
