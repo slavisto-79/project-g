@@ -96,12 +96,11 @@ function echo(limb: Limb, end?: number): Limb {
 function supported(pelvis: Point, torso: number, hands: Point, feet: Point, toes = 130): Figure {
   // Palms flat on the ground: the hand angle is a world constant, so the
   // wrist visibly articulates as the arm changes angle above it.
-  const arm = reachingArms(pelvis, torso, "side", [hands, hands], BACK, [264, 264])[0]!;
   return {
     pelvis,
     torso,
     neck: torso - 4,
-    arms: [arm, echo(arm, 259)],
+    arms: reachingArms(pelvis, torso, "side", [hands, { x: hands.x - 0.016, y: hands.y }], BACK, [264, 259]),
     // Both feet are ON the floor, so both are solved -- with the knee told to
     // sag toward the ground, which is the way a knee in a plank can fold.
     legs: plantedLegs(pelvis, torso, "side", [feet, { x: feet.x - 0.016, y: feet.y }], BACK, [toes, toes + 5]),

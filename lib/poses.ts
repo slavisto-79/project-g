@@ -476,6 +476,26 @@ function reach(from: Point, to: Point, upperLen: number, lowerLen: number, bend:
 }
 
 // Both legs reaching planted feet. The commonest thing a movement needs to say.
+// A STANCE PAIR is the same contact point drawn twice, a girdle's depth
+// apart. Solving the far side against its own slightly-off joint makes its
+// span come out shorter, and two-link IK amplifies the shortfall -- the far
+// knee folded rubbery while the near one stayed straight, in every deadlift
+// and push-up. When two side-view targets are only the depth convention
+// apart, the far one slides along its own height until the spans match, so
+// both limbs solve to the same shape and the far foot stays on its floor.
+// Genuinely different targets (a lunge's front and back foot) pass through.
+function equalizedPair(a0: Point, a1: Point, targets: [Point, Point], view: View): [Point, Point] {
+  if (view !== "side") return targets;
+  const [t0, t1] = targets;
+  if (Math.abs(t0.x - t1.x) > 0.022 || Math.abs(t0.y - t1.y) > 0.015) return targets;
+  const dx0 = (t0.x - a0.x) * ASPECT;
+  const dy0 = t0.y - a0.y;
+  const span = Math.hypot(dx0, dy0);
+  const dy1 = t1.y - a1.y;
+  const dx1 = Math.sqrt(Math.max(span * span - dy1 * dy1, 0)) * Math.sign(dx0 || 1);
+  return [t0, { x: a1.x + dx1 / ASPECT, y: t1.y }];
+}
+
 function plantedLegs(
   pelvis: Point,
   torso: number,
@@ -487,8 +507,10 @@ function plantedLegs(
   // Unless the pose says otherwise, a planted side-view foot lies flat on the
   // ground -- a world angle, not a shin-relative one.
   const flat: [number, number] | undefined = ends ?? (view === "side" ? [88, 92] : undefined);
+  const hips = [0, 1].map((side) => hipAt(pelvis, torso, side as 0 | 1, view)) as [Point, Point];
+  const targets = equalizedPair(hips[0], hips[1], feet, view);
   return [0, 1].map((side) => ({
-    ...reach(hipAt(pelvis, torso, side as 0 | 1, view), feet[side]!, P.thigh, P.shin, bend[side]!),
+    ...reach(hips[side]!, targets[side]!, P.thigh, P.shin, bend[side]!),
     ...(flat ? { end: flat[side] } : {}),
   })) as [Limb, Limb];
 }
@@ -502,8 +524,10 @@ function reachingArms(
   bend: [1 | -1, 1 | -1],
   ends?: [number, number],
 ): [Limb, Limb] {
+  const shoulders = [0, 1].map((side) => shoulderAt(pelvis, torso, side as 0 | 1, view)) as [Point, Point];
+  const targets = equalizedPair(shoulders[0], shoulders[1], hands, view);
   return [0, 1].map((side) => ({
-    ...reach(shoulderAt(pelvis, torso, side as 0 | 1, view), hands[side]!, P.upperArm, P.forearm, bend[side]!),
+    ...reach(shoulders[side]!, targets[side]!, P.upperArm, P.forearm, bend[side]!),
     ...(ends ? { end: ends[side] } : {}),
   })) as [Limb, Limb];
 }

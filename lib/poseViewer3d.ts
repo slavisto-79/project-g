@@ -216,13 +216,25 @@ export class PoseViewer3D {
       const radius = RADII[bone.part];
       // The trunk is a rib cage, not a tube: wider at the chest than at the
       // waist (the bone runs pelvis -> shoulders, so the taper widens upward),
-      // and squashed front-to-back by update()'s elliptical scaling.
-      const trunk = bone.part === "spine";
-      const cylinder = trunk
-        ? new THREE.Mesh(new THREE.CylinderGeometry(0.058, 0.042, 1, 16, 1, true), this.bodyMaterial)
+      // and squashed front-to-back by update()'s elliptical scaling. Limbs
+      // taper the way muscle does -- thigh into knee, calf into ankle,
+      // shoulder into elbow into wrist, trapezius-thick neck base. TAPER maps
+      // part -> [radius at b, radius at a]: the geometry's TOP is +Y, which
+      // update() aims at the bone's b end.
+      const TAPER: Partial<Record<string, [number, number]>> = {
+        spine: [0.058, 0.042],
+        neck: [0.019, 0.028],
+        upperArm: [0.026, 0.035],
+        forearm: [0.02, 0.028],
+        thigh: [0.032, 0.048],
+        shin: [0.019, 0.034],
+      };
+      const taper = TAPER[bone.part];
+      const cylinder = taper
+        ? new THREE.Mesh(new THREE.CylinderGeometry(taper[0], taper[1], 1, 16, 1, true), this.bodyMaterial)
         : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), this.bodyMaterial);
-      const capA = new THREE.Mesh(new THREE.SphereGeometry(trunk ? 0.042 : radius, 12, 10), this.bodyMaterial);
-      const capB = new THREE.Mesh(new THREE.SphereGeometry(trunk ? 0.058 : radius, 12, 10), this.bodyMaterial);
+      const capA = new THREE.Mesh(new THREE.SphereGeometry(taper ? taper[1] : radius, 12, 10), this.bodyMaterial);
+      const capB = new THREE.Mesh(new THREE.SphereGeometry(taper ? taper[0] : radius, 12, 10), this.bodyMaterial);
       // The fingered hand replaces the hand bone when something is held;
       // otherwise the straight hand segment pokes out under the fingers.
       // Kept in the list so update() indexing stays aligned with the frames.
@@ -233,6 +245,8 @@ export class PoseViewer3D {
       this.bones.push({ cylinder, capA, capB, radius, part: bone.part });
     }
     this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.3, 18, 14), this.bodyMaterial);
+    // A skull is taller than it is wide; a perfect sphere reads as a robot.
+    this.head.scale.set(0.94, 1.08, 0.98);
     this.scene.add(this.head);
 
     // The face: two eyes, a nose, a mouth -- the whole reason a viewer can
