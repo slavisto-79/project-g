@@ -89,7 +89,9 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   const all = frames.flatMap((f) => f.segments);
   const W = (Math.max(...all.map((s) => Math.max(s.x1, s.x2))) - Math.min(...all.map((s) => Math.min(s.x1, s.x2)))) * 850;
   const H = (Math.max(...all.map((s) => Math.max(s.y1, s.y2))) - Math.min(...all.map((s) => Math.min(s.y1, s.y2)))) * 567;
-  if (W / H > 3.4) note(`${name}: lying flat at ${(W / H).toFixed(1)}:1 wide`);
+  // A forearm plank is genuinely longer and lower than anything else here.
+  const widthCap = name === "plank" ? 5.0 : 3.4;
+  if (W / H > widthCap) note(`${name}: lying flat at ${(W / H).toFixed(1)}:1 wide`);
 }
 
 // A standing figure must stand with straight knees. Two-link IK turns a small
@@ -155,6 +157,12 @@ for (const [name, idx] of Object.entries(STANDING_FRAMES)) {
           const T = V(up.a, up.b), S = V(lo.a, lo.b);
           const bend = angleDeg(T, S);
           const sign = Math.sign(crossX(T, S));
+          // Joint range: an elbow flexes to ~150 degrees, a knee to ~160;
+          // beyond that the limb is folded through itself.
+          const rangeCap = label === "elbow" ? 152 : 163;
+          if (bend > rangeCap) {
+            note(`${name}[${fi}] ${label}${side}: folded to ${bend.toFixed(0)}deg -- past the human range`);
+          }
           if (bend > 25) {
             if (prev && prev.sign !== sign) {
               note(`${name} ${label}${side}: fold side flips between frames ${prev.fi} and ${fi} (${prev.bend}deg vs ${bend.toFixed(0)}deg) -- the joint hinges the other way mid-rep`);

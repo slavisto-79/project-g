@@ -55,8 +55,8 @@ function napeArms(pelvis: Point, torso: number): [Limb, Limb] {
   const rad = (torso * Math.PI) / 180;
   // Trunk axis and its forward perpendicular, in screen terms.
   const nape = {
-    x: top.x - (0.02 * Math.cos(rad)) / (850 / 567) + (0.008 * Math.sin(rad)) / (850 / 567),
-    y: top.y - 0.02 * Math.sin(rad) - 0.008 * Math.cos(rad),
+    x: top.x - (0.035 * Math.cos(rad)) / (850 / 567) + (0.072 * Math.sin(rad)) / (850 / 567),
+    y: top.y - 0.035 * Math.sin(rad) - 0.072 * Math.cos(rad),
   };
   const near = reachingArms(pelvis, torso, "side", [nape, nape], FORWARD)[0]!;
   return [near, echo(near)];
@@ -67,8 +67,8 @@ function chestArms(pelvis: Point, torso: number): [Limb, Limb] {
   const top = spineTop(pelvis, torso);
   const rad = (torso * Math.PI) / 180;
   const chest = {
-    x: top.x + (0.055 * Math.cos(rad)) / (850 / 567) + (0.05 * Math.sin(rad)) / (850 / 567),
-    y: top.y + 0.055 * Math.sin(rad) + 0.05 * Math.cos(rad),
+    x: top.x + (0.075 * Math.cos(rad)) / (850 / 567) + (0.062 * Math.sin(rad)) / (850 / 567),
+    y: top.y + 0.075 * Math.sin(rad) + 0.062 * Math.cos(rad),
   };
   return reachingArms(pelvis, torso, "side", [chest, { x: chest.x - 0.012, y: chest.y + 0.01 }], DOWN_SIDE);
 }
@@ -460,10 +460,10 @@ export const exercisePoses = {
   plank: pose(
     "side",
     [
-      // Held on the forearms, so the elbow is the contact and the hand is flat
-      // in front of it.
-      { ...supported({ x: 0.545, y: 0.600 }, 268, { x: 0.392, y: 0.855 }, { x: 0.775, y: 0.855 }), arms: [{ upper: 192, lower: 272, end: 272 }, { upper: 197, lower: 277, end: 277 }] },
-      { ...supported({ x: 0.545, y: 0.603 }, 267, { x: 0.392, y: 0.855 }, { x: 0.775, y: 0.855 }), arms: [{ upper: 193, lower: 272, end: 272 }, { upper: 198, lower: 277, end: 277 }] },
+      // Held on the forearms: the forearm lies ON the floor, the upper arm
+      // stands on the elbow, and the neck lifts the gaze forward.
+      { ...supported({ x: 0.565, y: 0.745 }, 272, { x: 0.392, y: 0.855 }, { x: 0.86, y: 0.87 }), neck: 300, arms: [{ upper: 185, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
+      { ...supported({ x: 0.565, y: 0.748 }, 271, { x: 0.392, y: 0.855 }, { x: 0.86, y: 0.87 }), neck: 300, arms: [{ upper: 186, lower: 272, end: 272 }, { upper: 191, lower: 277, end: 277 }] },
     ],
     [{ kind: "floor" }],
     "overhand",
@@ -497,12 +497,12 @@ export const exercisePoses = {
 
   overheadPress: pose(
     "front",
-    [0.262, 0.115, -0.036].map((barY) => {
+    [0.30, 0.115, -0.030].map((barY) => {
       const pelvis = { x: 0.5, y: 0.497 };
       return {
         pelvis,
         torso: 0,
-        arms: reachingArms(pelvis, 0, "front", grip({ x: 0.5, y: barY }, 0.105, "front"), DOWN),
+        arms: reachingArms(pelvis, 0, "front", grip({ x: 0.5, y: barY }, 0.12, "front"), DOWN),
         legs: plantedLegs(pelvis, 0, "front", FEET_FRONT, OUT),
       };
     }),
@@ -929,7 +929,7 @@ export const exercisePoses = {
         pelvis: { x: 0.5, y: 0.70 },
         torso: 282,
         neck: 304,
-        arms: sideArms(322, 160),
+        arms: sideArms(330, 185),
         legs: (phase === 0 ? [tucked, long] : [{ ...long, upper: 68, lower: 66 }, { ...tucked, upper: 340 }]) as [Limb, Limb],
       };
     }),
