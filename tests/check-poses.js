@@ -183,7 +183,7 @@ for (const [name, idx] of Object.entries(STANDING_FRAMES)) {
 // distance to that point is smaller than the two radii is being skewered.
 // The hip thrust is the one lift where the bar genuinely rests against the
 // thighs, so it gets a small allowance instead of an exemption.
-const LEG_RADII = { thigh: 0.032, shin: 0.026, foot: 0.02 };
+const LEG_RADII = { thigh: 0.041, shin: 0.031, foot: 0.02 };
 const BAR_RADIUS = 0.011;
 for (const [name, pose] of Object.entries(exercisePoses)) {
   const slack = name === "hipThrust" ? 0.03 : 0.008;

@@ -27,16 +27,19 @@ const FLOOR_RING = 0x2c332f;
 
 // Radii per part. The trunk is the thickest thing on the body and the hands
 // the thinnest, which is most of what makes the silhouette read as a person.
+// Proportions of a trained man, not a pipe robot: the trunk is drawn as a
+// tapered ellipse elsewhere; these give the delts, the neck, and the legs
+// their mass. The shoulders' end caps ARE the deltoids.
 const RADII = {
   spine: 0.05,
-  neck: 0.018,
-  shoulders: 0.032,
-  hips: 0.038,
-  upperArm: 0.026,
-  forearm: 0.022,
+  neck: 0.023,
+  shoulders: 0.045,
+  hips: 0.041,
+  upperArm: 0.031,
+  forearm: 0.026,
   hand: 0.015,
-  thigh: 0.032,
-  shin: 0.026,
+  thigh: 0.041,
+  shin: 0.031,
   foot: 0.02,
 } as const;
 
@@ -211,9 +214,15 @@ export class PoseViewer3D {
     );
     for (const bone of first.bones) {
       const radius = RADII[bone.part];
-      const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), this.bodyMaterial);
-      const capA = new THREE.Mesh(new THREE.SphereGeometry(radius, 12, 10), this.bodyMaterial);
-      const capB = new THREE.Mesh(new THREE.SphereGeometry(radius, 12, 10), this.bodyMaterial);
+      // The trunk is a rib cage, not a tube: wider at the chest than at the
+      // waist (the bone runs pelvis -> shoulders, so the taper widens upward),
+      // and squashed front-to-back by update()'s elliptical scaling.
+      const trunk = bone.part === "spine";
+      const cylinder = trunk
+        ? new THREE.Mesh(new THREE.CylinderGeometry(0.058, 0.042, 1, 16, 1, true), this.bodyMaterial)
+        : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), this.bodyMaterial);
+      const capA = new THREE.Mesh(new THREE.SphereGeometry(trunk ? 0.042 : radius, 12, 10), this.bodyMaterial);
+      const capB = new THREE.Mesh(new THREE.SphereGeometry(trunk ? 0.058 : radius, 12, 10), this.bodyMaterial);
       // The fingered hand replaces the hand bone when something is held;
       // otherwise the straight hand segment pokes out under the fingers.
       // Kept in the list so update() indexing stays aligned with the frames.
@@ -251,7 +260,7 @@ export class PoseViewer3D {
     // A chest plate bulging to the ventral side of the upper spine, so the
     // trunk itself shows its front even when the head is out of frame.
     this.chest = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), this.bodyMaterial);
-    this.chest.scale.set(0.058, 0.05, 0.028);
+    this.chest.scale.set(0.088, 0.056, 0.024);
     this.scene.add(this.chest);
 
     // A hand per side. Holding something, it is four fingers and a thumb
@@ -624,10 +633,15 @@ export class PoseViewer3D {
       const dir = pb.clone().sub(pa);
       const len = Math.max(dir.length(), 1e-4);
       bone.cylinder.position.copy(pa).addScaledVector(dir, 0.5);
-      // Feet are flat slabs and open hands are palm paddles, not round sticks.
+      // Feet are flat slabs and open hands are palm paddles, not round
+      // sticks; the trunk is an ellipse -- broad across, shallower deep.
       if (bone.part === "foot") bone.cylinder.scale.set(1.25, len, 0.62);
       else if (bone.part === "hand") bone.cylinder.scale.set(1.7, len, 0.5);
-      else bone.cylinder.scale.set(1, len, 1);
+      else if (bone.part === "spine") {
+        bone.cylinder.scale.set(1.45, len, 0.9);
+        bone.capA.scale.set(1.45, 1, 0.9);
+        bone.capB.scale.set(1.45, 1, 0.9);
+      } else bone.cylinder.scale.set(1, len, 1);
       bone.cylinder.quaternion.setFromUnitVectors(UP, dir.divideScalar(len));
       bone.capA.position.copy(pa);
       bone.capB.position.copy(pb);
@@ -650,7 +664,7 @@ export class PoseViewer3D {
       const cz = ventral.clone().sub(spineDir.clone().multiplyScalar(ventral.dot(spineDir))).normalize();
       const cx = new THREE.Vector3().crossVectors(spineDir, cz).normalize();
       this.chest.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(cx, spineDir, cz));
-      this.chest.position.copy(sB).addScaledVector(spineDir, -0.06).addScaledVector(cz, 0.03);
+      this.chest.position.copy(sB).addScaledVector(spineDir, -0.045).addScaledVector(cz, 0.024);
     }
 
     for (let s = 0; s < 2; s++) {

@@ -309,7 +309,7 @@ function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
       const centre = point(prop.x, prop.y);
       // In a front view the bar sits a hand's depth in front of the body --
       // in the body plane it visibly passed through the neck and skull.
-      if (view === "front") centre[2] = 0.055;
+      if (view === "front") centre[2] = 0.065;
       return {
         kind: "bar" as const,
         center: centre,
