@@ -231,6 +231,8 @@ export const exercisePoses = {
       legs: sideLegs(92, shin, shin + 85),
     })),
     [{ kind: "floor", y: 0.79 }, { kind: "slab", at: "pelvis", width: 0.40, height: 0.035, dy: 0.045 }],
+    "overhand",
+    -1,
   ),
 
   calfRaise: pose(
@@ -368,6 +370,8 @@ export const exercisePoses = {
       };
     }),
     [{ kind: "floor" }],
+    "overhand",
+    -1,
   ),
 
   quadruped: pose(
@@ -382,6 +386,8 @@ export const exercisePoses = {
       },
     ],
     [{ kind: "floor" }],
+    "overhand",
+    -1,
   ),
 
   // --- Horizontal push -----------------------------------------------------
@@ -429,6 +435,8 @@ export const exercisePoses = {
       supported({ x, y }, torso, { x: 0.392, y: 0.855 }, { x: 0.755, y: 0.855 }),
     ),
     [{ kind: "floor" }],
+    "overhand",
+    -1,
   ),
 
   kneePushUp: pose(
@@ -446,6 +454,8 @@ export const exercisePoses = {
       };
     }),
     [{ kind: "floor" }],
+    "overhand",
+    -1,
   ),
 
   plank: pose(
@@ -457,6 +467,8 @@ export const exercisePoses = {
       { ...supported({ x: 0.545, y: 0.603 }, 267, { x: 0.392, y: 0.855 }, { x: 0.775, y: 0.855 }), arms: [{ upper: 193, lower: 272, end: 272 }, { upper: 198, lower: 277, end: 277 }] },
     ],
     [{ kind: "floor" }],
+    "overhand",
+    -1,
   ),
 
   dip: pose(
@@ -645,6 +657,8 @@ export const exercisePoses = {
       { pelvis: { x: 0.5, y: 0.676 }, torso: 292, neck: 282, arms: sideArms(312, 318), legs: sideLegs(68, 60, 12) },
     ],
     [{ kind: "floor", y: 0.786 }],
+    "overhand",
+    -1,
   ),
 
   // --- Trunk ---------------------------------------------------------------
@@ -757,6 +771,8 @@ export const exercisePoses = {
       supported({ x, y }, torso, { x: 0.425, y: 0.872 }, { x: 0.715, y: 0.872 }, 118),
     ),
     [{ kind: "floor" }],
+    "overhand",
+    -1,
   ),
 
   // Inverted, legs split fore-aft for balance (and to fit the frame); the head
@@ -774,6 +790,8 @@ export const exercisePoses = {
       };
     }),
     [{ kind: "floor" }],
+    "overhand",
+    -1,
   ),
 
   // Arms locked straight, sweeping the bar from overhead down to the thighs.
@@ -863,6 +881,8 @@ export const exercisePoses = {
       };
     }),
     [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.045 }],
+    "overhand",
+    -1,
   ),
 
   // Kneeling at the stack, ribs curling toward the hips; the hands ride at the
@@ -895,6 +915,8 @@ export const exercisePoses = {
       legs: [{ upper: 305, lower: 235, end: 325 }, { upper: 310, lower: 240, end: 330 }] as [Limb, Limb],
     })),
     [{ kind: "floor", y: 0.745 }],
+    "overhand",
+    -1,
   ),
 
   // Lying crunch with the legs trading places -- one knee to the chest, the
@@ -920,8 +942,8 @@ export const exercisePoses = {
   burpee: pose(
     "side",
     [
-      { pelvis: { x: 0.50, y: 0.38 }, torso: 2, arms: sideArms(20, 12), legs: sideLegs(174, 178, 150) },
-      stand({ x: 0.500, y: 0.494 }, 2, HANG),
+      { pelvis: { x: 0.50, y: 0.38 }, torso: 358, arms: sideArms(340, 348), legs: sideLegs(186, 182, 216) },
+      { pelvis: { x: 0.500, y: 0.494 }, torso: 358, arms: HANG, legs: plantedLegs({ x: 0.500, y: 0.494 }, 358, "side", FEET, FORWARD, [272, 268]) },
       (() => {
         const pelvis = { x: 0.545, y: 0.70 };
         const torso = 285;
@@ -936,6 +958,8 @@ export const exercisePoses = {
       supported({ x: 0.485, y: 0.689 }, 292.3, { x: 0.392, y: 0.855 }, { x: 0.755, y: 0.855 }),
     ],
     [{ kind: "floor", y: 0.936 }],
+    "overhand",
+    -1,
   ),
 
   // Quarter-squat stance, arms pumping alternately -- the ropes themselves

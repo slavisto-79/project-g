@@ -79,7 +79,11 @@ export type GripStyle = "overhand" | "underhand" | "neutral";
 
 // Key positions in order, from the start of the rep to the end. The renderer
 // walks them and comes back, so authoring the down-phase gives the up-phase.
-export type ExercisePose = { frames: PoseFrame[]; frames3d: PoseFrame3D[]; grip: GripStyle };
+// `facing` says which side of the spine the belly is on (+1 for a standing
+// figure that faces +x, -1 for the mirror) -- rotating the spine a quarter
+// turn that way gives the ventral direction in ANY posture, which is what
+// orients the face and the chest.
+export type ExercisePose = { frames: PoseFrame[]; frames3d: PoseFrame3D[]; grip: GripStyle; facing: 1 | -1 };
 
 // The frame the renderer maps into. Only the ratio matters: horizontal lengths
 // are divided by it so a limb is the same length whichever way it points.
@@ -375,7 +379,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
 // Builds a movement from its key positions. Props are declared once and
 // re-anchored in every frame, so equipment cannot drift out of the hands and
 // adding a key position does not mean restating the barbell.
-function pose(view: View, figures: Figure[], props: PropSpec[] = [], grip: GripStyle = "overhand"): ExercisePose {
+function pose(view: View, figures: Figure[], props: PropSpec[] = [], grip: GripStyle = "overhand", facing: 1 | -1 = 1): ExercisePose {
   if (figures.length < 2) throw new Error("a movement needs at least two key positions");
   const built = figures.map((figure) => build(figure, view));
   // An unpinned floor goes under the lowest point the body reaches in ANY key
@@ -400,7 +404,7 @@ function pose(view: View, figures: Figure[], props: PropSpec[] = [], grip: GripS
     ...build3d(figure, view),
     props: propsTo3d(frames[i]!.props, view),
   }));
-  return { frames, frames3d, grip };
+  return { frames, frames3d, grip, facing };
 }
 
 // --- Authoring helpers ---------------------------------------------------

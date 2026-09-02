@@ -79,6 +79,11 @@ export class PoseViewer3D {
   private bones: BoneMeshes[] = [];
   private head!: THREE.Mesh;
   private fists: THREE.Group[] = [];
+  private face = new THREE.Group();
+  private chest!: THREE.Mesh;
+  private spineIndex = -1;
+  private neckIndex = -1;
+  private facing: 1 | -1 = 1;
   // Forearm bone indices per side, so the fists can roll with the wrist.
   private forearmIndex: [number, number] = [-1, -1];
   private fistFollowsForearm = false;
@@ -220,6 +225,34 @@ export class PoseViewer3D {
     }
     this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.3, 18, 14), this.bodyMaterial);
     this.scene.add(this.head);
+
+    // The face: two eyes, a nose, a mouth -- the whole reason a viewer can
+    // tell at a glance which way the figure is turned. Local +Z is out of
+    // the face; update() orients the group from the neck and the movement's
+    // facing bit every frame.
+    this.spineIndex = first.bones.findIndex((b) => b.part === "spine");
+    this.neckIndex = first.bones.findIndex((b) => b.part === "neck");
+    this.facing = pose.facing ?? 1;
+    const R = first.head.r * 1.3;
+    for (const side of [-1, 1]) {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(R * 0.14, 10, 8), this.iron);
+      eye.position.set(side * R * 0.34, R * 0.18, R * 0.82);
+      this.face.add(eye);
+    }
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(R * 0.17, 10, 8), this.bodyMaterial);
+    nose.scale.set(0.8, 1.1, 1.0);
+    nose.position.set(0, -R * 0.08, R * 0.97);
+    this.face.add(nose);
+    const mouth = new THREE.Mesh(new THREE.BoxGeometry(R * 0.44, R * 0.08, R * 0.10), this.graphite);
+    mouth.position.set(0, -R * 0.45, R * 0.80);
+    this.face.add(mouth);
+    this.scene.add(this.face);
+
+    // A chest plate bulging to the ventral side of the upper spine, so the
+    // trunk itself shows its front even when the head is out of frame.
+    this.chest = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), this.bodyMaterial);
+    this.chest.scale.set(0.058, 0.05, 0.028);
+    this.scene.add(this.chest);
 
     // A hand per side. Holding something, it is four fingers and a thumb
     // wrapped around the handle, oriented by the grip -- overhand curls the
@@ -600,6 +633,25 @@ export class PoseViewer3D {
       bone.capB.position.copy(pb);
     }
     this.head.position.copy(lerp3(a.head.c, b.head.c, f));
+    if (this.spineIndex >= 0 && this.neckIndex >= 0) {
+      const sA = lerp3(a.bones[this.spineIndex]!.a, b.bones[this.spineIndex]!.a, f);
+      const sB = lerp3(a.bones[this.spineIndex]!.b, b.bones[this.spineIndex]!.b, f);
+      const spineDir = sB.clone().sub(sA).normalize();
+      const nA = lerp3(a.bones[this.neckIndex]!.a, b.bones[this.neckIndex]!.a, f);
+      const nB = lerp3(a.bones[this.neckIndex]!.b, b.bones[this.neckIndex]!.b, f);
+      const up = nB.clone().sub(nA).normalize();
+      // The belly side: the spine turned a quarter turn about X, the way the
+      // movement's facing bit says.
+      const ventral = new THREE.Vector3(0, -this.facing * spineDir.z, this.facing * spineDir.y);
+      const fz = ventral.clone().sub(up.clone().multiplyScalar(ventral.dot(up))).normalize();
+      const fx = new THREE.Vector3().crossVectors(up, fz).normalize();
+      this.face.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(fx, up, fz));
+      this.face.position.copy(this.head.position);
+      const cz = ventral.clone().sub(spineDir.clone().multiplyScalar(ventral.dot(spineDir))).normalize();
+      const cx = new THREE.Vector3().crossVectors(spineDir, cz).normalize();
+      this.chest.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(cx, spineDir, cz));
+      this.chest.position.copy(sB).addScaledVector(spineDir, -0.06).addScaledVector(cz, 0.03);
+    }
 
     for (let s = 0; s < 2; s++) {
       this.fists[s]!.position.copy(lerp3(a.hands[s as 0 | 1], b.hands[s as 0 | 1], f));
