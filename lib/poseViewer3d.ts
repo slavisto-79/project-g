@@ -83,7 +83,6 @@ export class PoseViewer3D {
   private head!: THREE.Mesh;
   private fists: THREE.Group[] = [];
   private face = new THREE.Group();
-  private chest!: THREE.Mesh;
   private spineIndex = -1;
   private neckIndex = -1;
   private facing: 1 | -1 = 1;
@@ -245,8 +244,6 @@ export class PoseViewer3D {
       this.bones.push({ cylinder, capA, capB, radius, part: bone.part });
     }
     this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.3, 18, 14), this.bodyMaterial);
-    // A skull is taller than it is wide; a perfect sphere reads as a robot.
-    this.head.scale.set(0.94, 1.08, 0.98);
     this.scene.add(this.head);
 
     // The face: two eyes, a nose, a mouth -- the whole reason a viewer can
@@ -270,12 +267,6 @@ export class PoseViewer3D {
     mouth.position.set(0, -R * 0.45, R * 0.80);
     this.face.add(mouth);
     this.scene.add(this.face);
-
-    // A chest plate bulging to the ventral side of the upper spine, so the
-    // trunk itself shows its front even when the head is out of frame.
-    this.chest = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), this.bodyMaterial);
-    this.chest.scale.set(0.088, 0.056, 0.024);
-    this.scene.add(this.chest);
 
     // A hand per side. Holding something, it is four fingers and a thumb
     // wrapped around the handle, oriented by the grip -- overhand curls the
@@ -675,10 +666,6 @@ export class PoseViewer3D {
       const fx = new THREE.Vector3().crossVectors(up, fz).normalize();
       this.face.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(fx, up, fz));
       this.face.position.copy(this.head.position);
-      const cz = ventral.clone().sub(spineDir.clone().multiplyScalar(ventral.dot(spineDir))).normalize();
-      const cx = new THREE.Vector3().crossVectors(spineDir, cz).normalize();
-      this.chest.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(cx, spineDir, cz));
-      this.chest.position.copy(sB).addScaledVector(spineDir, -0.045).addScaledVector(cz, 0.024);
     }
 
     for (let s = 0; s < 2; s++) {
