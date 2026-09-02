@@ -393,7 +393,7 @@ export const exercisePoses = {
 
   bench: pose(
     "side",
-    ([[0.397, 0.285], [0.450, 0.375], [0.505, 0.465]] as const).map(([barX, barY]) => bench(barX, barY)),
+    ([[0.397, 0.304], [0.450, 0.385], [0.505, 0.465]] as const).map(([barX, barY]) => bench(barX, barY)),
     [
       { kind: "floor" },
       { kind: "slab", at: "pelvis", width: 0.40, height: 0.035, dy: 0.045 },
@@ -403,7 +403,7 @@ export const exercisePoses = {
 
   inclinePress: pose(
     "side",
-    ([[0.460, 0.192], [0.495, 0.250], [0.525, 0.300]] as const).map(([barX, barY]) => incline(barX, barY)),
+    ([[0.460, 0.212], [0.495, 0.262], [0.525, 0.305]] as const).map(([barX, barY]) => incline(barX, barY)),
     [
       { kind: "floor" },
       { kind: "slab", at: "pelvis", width: 0.22, height: 0.035, dy: 0.045 },
@@ -414,7 +414,7 @@ export const exercisePoses = {
   skullCrusher: pose(
     "side",
     [354, 318, 282].map((forearm) => ({
-      ...bench(0.397, 0.285),
+      ...bench(0.397, 0.304),
       arms: [{ upper: 354, lower: forearm }, { upper: 359, lower: forearm + 5 }] as [Limb, Limb],
     })),
     [
@@ -622,7 +622,7 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.335, y: 0.322 }, { x: 0.319, y: 0.360 }], BACK),
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.335, y: 0.341 }, { x: 0.319, y: 0.341 }], BACK),
         legs: plantedLegs(pelvis, torso, "side", [{ x: 0.745, y: 0.815 }, { x: 0.729, y: 0.815 }], FORWARD, [40, 45]),
       };
     }),
@@ -924,13 +924,13 @@ export const exercisePoses = {
     "side",
     [0, 1].map((phase) => {
       const tucked: Limb = { upper: 335, lower: 120, end: 80 };
-      const long: Limb = { upper: 72, lower: 70, end: 30 };
+      const long: Limb = { upper: 63, lower: 61, end: 22 };
       return {
         pelvis: { x: 0.5, y: 0.70 },
         torso: 282,
         neck: 304,
         arms: sideArms(322, 160),
-        legs: (phase === 0 ? [tucked, long] : [{ ...long, upper: 77, lower: 75 }, { ...tucked, upper: 340 }]) as [Limb, Limb],
+        legs: (phase === 0 ? [tucked, long] : [{ ...long, upper: 68, lower: 66 }, { ...tucked, upper: 340 }]) as [Limb, Limb],
       };
     }),
     [{ kind: "floor", y: 0.792 }],
@@ -1023,7 +1023,7 @@ function bench(barX: number, barY: number): Figure {
     neck: torso,
     // The far shoulder sits a shade lower in a side view, so the far hand
     // gets its own target or the lockout frame is out of its reach.
-    arms: reachingArms(pelvis, torso, "side", [{ x: barX, y: barY }, { x: barX - 0.016, y: barY + 0.034 }], BACK),
+    arms: reachingArms(pelvis, torso, "side", [{ x: barX, y: barY }, { x: barX - 0.016, y: barY }], BACK),
     legs: plantedLegs(pelvis, torso, "side", [{ x: 0.688, y: FLOOR }, { x: 0.672, y: FLOOR }], FORWARD),
   };
 }
@@ -1037,7 +1037,7 @@ function incline(barX: number, barY: number): Figure {
     torso,
     neck: torso,
     // Same far-shoulder allowance as the flat bench.
-    arms: reachingArms(pelvis, torso, "side", [{ x: barX, y: barY }, { x: barX - 0.016, y: barY + 0.03 }], BACK),
+    arms: reachingArms(pelvis, torso, "side", [{ x: barX, y: barY }, { x: barX - 0.016, y: barY }], BACK),
     legs: plantedLegs(pelvis, torso, "side", [{ x: 0.712, y: FLOOR }, { x: 0.696, y: FLOOR }], FORWARD),
   };
 }

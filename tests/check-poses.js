@@ -209,6 +209,29 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   });
 }
 
+// Stance knees move in sync: when both ankles stand together (same height,
+// near-equal depth), both legs must hold the same angles -- one straight leg
+// beside a folded one is how the squat's far knee drifted out of sync.
+const GAITS = new Set(["carry", "run"]); // walking strides are asymmetric on purpose
+for (const [name, pose] of Object.entries(exercisePoses)) {
+  if (GAITS.has(name)) continue;
+  pose.frames3d.forEach((frame, fi) => {
+    const th = [0, 1].map((s) => frame.bones.find((b) => b.part === "thigh" && b.side === s));
+    const sh = [0, 1].map((s) => frame.bones.find((b) => b.part === "shin" && b.side === s));
+    if (!th[0] || !th[1] || !sh[0] || !sh[1]) return;
+    const ankles = sh.map((b) => b.b);
+    if (Math.abs(ankles[0][1] - ankles[1][1]) > 0.02) return; // different heights: not a stance
+    if (Math.abs(ankles[0][2] - ankles[1][2]) > 0.15) return; // staggered: a lunge, a stride
+    const ang = (b) => (Math.atan2(b.b[2] - b.a[2], b.b[1] - b.a[1]) * 180) / Math.PI;
+    const diff = (x, y) => { const d = Math.abs(x - y) % 360; return Math.min(d, 360 - d); };
+    const dTh = diff(ang(th[0]), ang(th[1]));
+    const dSh = diff(ang(sh[0]), ang(sh[1]));
+    if (dTh > 5.5 || dSh > 5.5) {
+      note(`${name}[${fi}]: stance knees out of sync (thigh ${dTh.toFixed(1)}deg apart, shin ${dSh.toFixed(1)}deg)`);
+    }
+  });
+}
+
 // The CATALOG path picks its movement by name. It once hardcoded the back
 // squat for every catalog exercise, and no local run ever saw it because the
 // catalog API only exists in production -- so the selector is checked here,

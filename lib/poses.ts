@@ -147,17 +147,19 @@ function build(figure: Figure, view: View): { segments: PoseSegment[]; head: { x
   const headCentre = step(neckTop, figure.neck ?? figure.torso, P.headRadius);
 
   // Face on, the girdle and pelvis are drawn at their real width and the trunk
-  // reads as a torso. Side on, they are edge-on: the two sides sit a hair apart
-  // for depth and the trunk is a single spine line.
-  const spread = view === "front" ? { shoulder: P.shoulderHalf, hip: P.hipHalf } : { shoulder: SIDE_DEPTH, hip: SIDE_DEPTH };
-  const shoulder: [Point, Point] = [
-    step(shoulderMid, figure.torso + 90, spread.shoulder),
-    step(shoulderMid, figure.torso - 90, spread.shoulder),
-  ];
-  const hip: [Point, Point] = [
-    step(pelvis, figure.torso + 90, spread.hip),
-    step(pelvis, figure.torso - 90, spread.hip),
-  ];
+  // reads as a torso. Side on, they are edge-on: the two sides sit a hair
+  // apart for depth -- HORIZONTALLY, never rotated with the trunk. A rotated
+  // offset put the far hip lower whenever the torso leaned, the far leg then
+  // solved against a different chord and its knee drifted out of sync with
+  // the near one. The depth is visual fakery; gravity is not.
+  const shoulder: [Point, Point] =
+    view === "front"
+      ? [step(shoulderMid, figure.torso + 90, P.shoulderHalf), step(shoulderMid, figure.torso - 90, P.shoulderHalf)]
+      : [{ x: shoulderMid.x + SIDE_DEPTH / ASPECT, y: shoulderMid.y }, { x: shoulderMid.x - SIDE_DEPTH / ASPECT, y: shoulderMid.y }];
+  const hip: [Point, Point] =
+    view === "front"
+      ? [step(pelvis, figure.torso + 90, P.hipHalf), step(pelvis, figure.torso - 90, P.hipHalf)]
+      : [{ x: pelvis.x + SIDE_DEPTH / ASPECT, y: pelvis.y }, { x: pelvis.x - SIDE_DEPTH / ASPECT, y: pelvis.y }];
 
   if (view === "front") {
     // Four sides of a trapezoid: shoulders, ribs, hips. This is most of what
@@ -429,11 +431,15 @@ function sideLegs(upper: number, lower: number, end?: number): [Limb, Limb] {
 // Where a limb hangs from, given the trunk. Authoring needs these because a
 // planted foot is planted relative to the world, not to the hip that moves.
 function hipAt(pelvis: Point, torso: number, side: 0 | 1, view: View): Point {
-  return step(pelvis, torso + (side === 0 ? 90 : -90), view === "front" ? P.hipHalf : SIDE_DEPTH);
+  if (view === "front") return step(pelvis, torso + (side === 0 ? 90 : -90), P.hipHalf);
+  // Side-view depth is horizontal (see build): both hips at one height, so a
+  // stance pair solves both legs to the same angles.
+  return { x: pelvis.x + (side === 0 ? 1 : -1) * (SIDE_DEPTH / ASPECT), y: pelvis.y };
 }
 function shoulderAt(pelvis: Point, torso: number, side: 0 | 1, view: View): Point {
   const mid = step(pelvis, torso, P.spine);
-  return step(mid, torso + (side === 0 ? 90 : -90), view === "front" ? P.shoulderHalf : SIDE_DEPTH);
+  if (view === "front") return step(mid, torso + (side === 0 ? 90 : -90), P.shoulderHalf);
+  return { x: mid.x + (side === 0 ? 1 : -1) * (SIDE_DEPTH / ASPECT), y: mid.y };
 }
 
 // Two-link inverse kinematics: the joint angles that put the end of a limb on a
