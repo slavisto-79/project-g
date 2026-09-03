@@ -7150,7 +7150,13 @@ function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
               accessibilityLabel="Expand the exercise demo"
             >
               <PoseFigure3DWeb pose={exercise.pose} implement={exercise.demoImplement ?? exercise.implement} interactive={false} />
-              <Text style={styles.poseExpandHint}>⛶ TAP TO ROTATE</Text>
+              {/* The rotate affordance is a real chip, not a whisper in the
+                  corner -- people should see the feature the moment the
+                  first exercise appears. */}
+              <View style={styles.poseExpandHint} pointerEvents="none">
+                <Text style={styles.poseExpandHintIcon}>⟳</Text>
+                <Text style={styles.poseExpandHintText}>TAP TO ROTATE</Text>
+              </View>
             </Pressable>
             {/* Fullscreen: the same movement with the camera handed to the
                 user -- drag to rotate, scroll or pinch to zoom. */}
@@ -10850,13 +10856,20 @@ const styles = StyleSheet.create({
   pose3dHost: { ...StyleSheet.absoluteFillObject },
   poseExpandHint: {
     position: "absolute",
-    bottom: 6,
-    right: 8,
-    color: "#6E7A74",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 1,
+    bottom: 10,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(10, 13, 9, 0.78)",
+    borderWidth: 1,
+    borderColor: "rgba(200, 255, 50, 0.45)",
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
   },
+  poseExpandHintIcon: { color: colors.lime, fontSize: 13, fontWeight: "800", lineHeight: 14 },
+  poseExpandHintText: { color: colors.text, fontSize: 10, fontWeight: "800", letterSpacing: 1.6 },
   poseModalBackdrop: { flex: 1, backgroundColor: "#0B0D0B" },
   poseModalStage: { ...StyleSheet.absoluteFillObject },
   poseModalHeader: {
