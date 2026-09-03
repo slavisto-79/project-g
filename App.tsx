@@ -5877,6 +5877,7 @@ function poseForCatalogExercise(tag: ExerciseTag): PoseName | undefined {
   if (/\bcurl\b/.test(n)) return "curl";
   if (/\bdips?\b/.test(n)) return "dip";
   if (/side plank/.test(n)) return "sidePlank";
+  if (/iytw/.test(n)) return "plankIYTW";
   if (/plank/.test(n)) return "plank";
   if (/mountain climber/.test(n)) return "mountainClimber";
   if (/burpee/.test(n)) return "burpee";
