@@ -5866,12 +5866,14 @@ function poseForCatalogExercise(tag: ExerciseTag): PoseName | undefined {
   if (/straight[- ]arm pulldown|pullover/.test(n)) return "straightArmPulldown";
   if (/pulldown|lat pull/.test(n)) return "pulldown";
   if (/pull[- ]?up|chin[- ]?up|pullup|chinup/.test(n)) return "pullUp";
+  if (/one[- ]?arm.*row|single[- ]arm.*row/.test(n)) return "oneArmRow";
   if (/inverted row/.test(n)) return "invertedRow";
   if (/seated.*row|cable row/.test(n)) return "seatedRow";
   if (/\brow\b/.test(n)) return "bentRow";
   if (/skull ?crusher|lying triceps/.test(n)) return "skullCrusher";
   if (/kickback/.test(n)) return "kickback";
   if (/pushdown|triceps extension|overhead extension/.test(n)) return "tricepsExtension";
+  if (/incline.*curl/.test(n)) return "inclineCurl";
   if (/\bcurl\b/.test(n)) return "curl";
   if (/\bdips?\b/.test(n)) return "dip";
   if (/side plank/.test(n)) return "sidePlank";
@@ -6308,7 +6310,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
 
   "Barbell Row": "bentRow",
   "Pendlay Row": "bentRow",
-  "One-Arm Dumbbell Row": "bentRow",
+  "One-Arm Dumbbell Row": "oneArmRow",
   "T-Bar Row": "bentRow",
 
   "Bodyweight Reverse Lunge": "lunge",
@@ -6374,7 +6376,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Superman": "proneRaise",
   "Prone Y-T-W Raise": "proneRaise",
   "Reverse Snow Angel": "proneRaise",
-  "Incline Dumbbell Curl": "curl",
+  "Incline Dumbbell Curl": "inclineCurl",
   "Preacher Curl": "curl",
   "Concentration Curl": "curl",
 
