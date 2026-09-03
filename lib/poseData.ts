@@ -1002,6 +1002,53 @@ export const exercisePoses = {
       { kind: "slab", at: "hand0", dx: 0.075, dy: 0.245, width: 0.16, height: 0.05 },
     ],
   ),
+
+  // One hand braced on a bench, the other rowing a single dumbbell from a
+  // dead hang to the lower ribs -- the brace is what makes it one-arm.
+  oneArmRow: pose(
+    "side",
+    ([[0.735, 0.855], [0.720, 0.780], [0.700, 0.700]] as const).map(([hx, hy]) => {
+      const pelvis = { x: 0.55, y: 0.548 };
+      const torso = 96;
+      return {
+        pelvis,
+        torso,
+        neck: 80,
+        // Near arm rows; far arm braces on the bench, nearly straight.
+        arms: reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: 0.75, y: 0.855 }], BACK),
+        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.46, y: FLOOR }, { x: 0.66, y: FLOOR }], FORWARD),
+      };
+    }),
+    [
+      { kind: "floor" },
+      { kind: "slab", at: "hand1", width: 0.16, height: 0.035, dy: 0.03 },
+      { kind: "bell", at: "hand0", size: 0.055 },
+    ],
+    "neutral",
+  ),
+
+  // Lying back on an incline: the upper arms hang plumb BEHIND the torso and
+  // stay there -- only the forearms curl, which is the whole point.
+  inclineCurl: pose(
+    "side",
+    [179, 130, 78].map((forearm) => {
+      const pelvis = { x: 0.585, y: 0.64 };
+      const torso = 306;
+      return {
+        pelvis,
+        torso,
+        neck: 316,
+        arms: sideArms(178, forearm),
+        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.712, y: FLOOR }, { x: 0.696, y: FLOOR }], FORWARD),
+      };
+    }),
+    [
+      { kind: "floor" },
+      { kind: "slab", at: "pelvis", width: 0.22, height: 0.035, dy: 0.045 },
+      { kind: "bell", at: "hand0", each: true },
+    ],
+    "underhand",
+  ),
 } satisfies Record<string, ExercisePose>;
 
 // --- Frame builders --------------------------------------------------------
