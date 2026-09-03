@@ -83,6 +83,7 @@ export class PoseViewer3D {
   private head!: THREE.Mesh;
   private fists: THREE.Group[] = [];
   private face = new THREE.Group();
+  private floorDisc: THREE.Group | null = null;
   private spineIndex = -1;
   private neckIndex = -1;
   private facing: 1 | -1 = 1;
@@ -418,19 +419,26 @@ export class PoseViewer3D {
     for (let i = 0; i < first.props.length; i++) {
       const prop = first.props[i]!;
       if (prop.kind === "floor") {
+        // The podium is unit-sized and grouped; fit() scales it to span the
+        // camera view, so the circle is always WHOLE on screen instead of a
+        // clipped band with black wings.
         const disc = new THREE.Mesh(
-          new THREE.CircleGeometry(0.95, 40),
+          new THREE.CircleGeometry(1, 48),
           new THREE.MeshStandardMaterial({ color: FLOOR, roughness: 0.95 }),
         );
         disc.rotation.x = -Math.PI / 2;
-        disc.position.y = prop.y;
         const ring = new THREE.Mesh(
-          new THREE.RingGeometry(0.93, 0.95, 40),
+          new THREE.RingGeometry(0.98, 1, 48),
           new THREE.MeshBasicMaterial({ color: FLOOR_RING, side: THREE.DoubleSide }),
         );
         ring.rotation.x = -Math.PI / 2;
-        ring.position.y = prop.y + 0.001;
-        this.scene.add(disc, ring);
+        ring.position.y = 0.001;
+        const floorGroup = new THREE.Group();
+        floorGroup.add(disc, ring);
+        floorGroup.position.y = prop.y;
+        floorGroup.scale.set(0.55, 1, 0.55);
+        this.floorDisc = floorGroup;
+        this.scene.add(floorGroup);
         continue;
       }
       if (prop.kind === "slab") {
@@ -609,6 +617,11 @@ export class PoseViewer3D {
     // A slim margin: the box already carries the head radius and the bar
     // tips, and a third of padding made every figure read small in the card.
     this.orbitRadius = Math.max(fitV, fitH, extent / 2 / tanV / 2) * 1.16;
+    if (this.floorDisc) {
+      const halfW = this.orbitRadius * tanV * Math.max(this.camera.aspect, 0.5);
+      const s = Math.min(Math.max(halfW * 0.82, 0.5), 1.9);
+      this.floorDisc.scale.set(s, 1, s);
+    }
     this.camera.position.set(
       this.centre.x + this.orbitRadius * Math.sin(0.9),
       this.centre.y + extent * 0.1,
