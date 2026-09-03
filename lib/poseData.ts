@@ -472,6 +472,27 @@ export const exercisePoses = {
     -1,
   ),
 
+  // A forearm plank with the near arm cycling through the W-Y-I raises (the
+  // reverse sweep plays on the way back). The T points out of the sagittal
+  // plane, so the demo shows the three shapes that read from the side. The
+  // whole figure sits further right than the plain plank so the fully
+  // extended arm stays on the canvas.
+  plankIYTW: pose(
+    "side",
+    [
+      { ...supported({ x: 0.64, y: 0.745 }, 272, { x: 0.467, y: 0.855 }, { x: 0.935, y: 0.87 }), neck: 300, arms: [{ upper: 185, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
+      // W: elbow drawn back toward the ribs, forearm hovering ahead.
+      { ...supported({ x: 0.64, y: 0.745 }, 272, { x: 0.467, y: 0.855 }, { x: 0.935, y: 0.87 }), neck: 300, arms: [{ upper: 120, lower: 250, end: 250 }, { upper: 190, lower: 277, end: 277 }] },
+      // Y: raised past the ear.
+      { ...supported({ x: 0.64, y: 0.747 }, 272, { x: 0.467, y: 0.855 }, { x: 0.935, y: 0.87 }), neck: 300, arms: [{ upper: 288, lower: 288, end: 288 }, { upper: 190, lower: 277, end: 277 }] },
+      // I: the arm reaches forward in line with the body.
+      { ...supported({ x: 0.64, y: 0.745 }, 272, { x: 0.467, y: 0.855 }, { x: 0.935, y: 0.87 }), neck: 300, arms: [{ upper: 272, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
+    ],
+    [{ kind: "floor" }],
+    "overhand",
+    -1,
+  ),
+
   dip: pose(
     "side",
     [0.526, 0.605, 0.685].map((y) => {
