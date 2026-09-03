@@ -606,7 +606,9 @@ export class PoseViewer3D {
     const tanV = Math.tan((this.camera.fov * Math.PI) / 360);
     const fitV = size.y / 2 / tanV;
     const fitH = Math.max(size.x, size.z) / 2 / (tanV * Math.max(this.camera.aspect, 0.1));
-    this.orbitRadius = Math.max(fitV, fitH, extent / 2 / tanV / 2) * 1.32;
+    // A slim margin: the box already carries the head radius and the bar
+    // tips, and a third of padding made every figure read small in the card.
+    this.orbitRadius = Math.max(fitV, fitH, extent / 2 / tanV / 2) * 1.16;
     this.camera.position.set(
       this.centre.x + this.orbitRadius * Math.sin(0.9),
       this.centre.y + extent * 0.1,
