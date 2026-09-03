@@ -778,7 +778,7 @@ export const exercisePoses = {
   // grazes the floor at the bottom, which is full depth.
   handstandPushUp: pose(
     "side",
-    [0.3526, 0.429, 0.506].map((py) => {
+    [0.351, 0.4115, 0.472].map((py) => {
       const pelvis = { x: 0.516, y: py };
       const torso = 184;
       return {
