@@ -10830,7 +10830,9 @@ const styles = StyleSheet.create({
   // written cue all still fit on the card underneath it.
   // Raised twice now: at 120px a figure is legible as a shape but not as a
   // body, and the 3D mannequin earns more room than the flat one did.
-  cueCardFigure: { width: "100%", flexShrink: 1, maxHeight: 300, minHeight: 200, aspectRatio: 1, marginBottom: 8 },
+  // The demo fills the whole stage width -- boxing it into a centered square
+  // wasted half the screen on anything wider than a phone.
+  cueCardFigure: { alignSelf: "stretch", flex: 1, minHeight: 220, marginBottom: 8 },
   pose3dHost: { ...StyleSheet.absoluteFillObject },
   poseExpandHint: {
     position: "absolute",
@@ -10881,14 +10883,17 @@ const styles = StyleSheet.create({
     borderRadius: 105,
     backgroundColor: "rgba(200,255,50,0.055)",
   },
+  // Sits ON the demo canvas (zIndex above it), small and translucent -- a
+  // corner label, not a column of its own.
   exerciseNumber: {
     position: "absolute",
-    left: 18,
-    top: 11,
-    color: "#191D18",
-    fontSize: 72,
-    lineHeight: 78,
+    left: 14,
+    top: 8,
+    color: "rgba(224, 255, 130, 0.30)",
+    fontSize: 36,
+    lineHeight: 40,
     fontWeight: "900",
+    zIndex: 2,
   },
   motionFigure: {
     width: 82,
