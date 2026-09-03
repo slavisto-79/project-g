@@ -10917,7 +10917,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#11150F",
   },
   motionFigureText: { color: colors.text, fontSize: 31, fontWeight: "800" },
-  demoStage: { width: "100%", height: "100%", alignItems: "center", justifyContent: "center" },
+  // alignItems "stretch", not "center": centering sized the cue card -- and
+  // the demo canvas inside it -- to the WIDTH OF THE TEXT under the figure,
+  // so a short catalog name like "Barbell Squat" produced a 145px-wide stage
+  // while a long local cue produced a wide one.
+  demoStage: { width: "100%", height: "100%", alignItems: "stretch", justifyContent: "center" },
   exerciseFrameBackdrop: {
     position: "absolute",
     top: 0,
