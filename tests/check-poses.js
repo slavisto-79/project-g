@@ -91,7 +91,7 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   const H = (Math.max(...all.map((s) => Math.max(s.y1, s.y2))) - Math.min(...all.map((s) => Math.min(s.y1, s.y2)))) * 567;
   // A forearm plank is genuinely longer and lower than anything else here,
   // and the IYTW variant reaches an arm past its head on top of that.
-  const widthCap = name === "plankIYTW" ? 6.5 : name === "plank" ? 5.0 : 3.4;
+  const widthCap = name === "plankIYTW" ? 6.5 : name === "plankSaw" ? 5.5 : name === "plank" ? 5.0 : 3.4;
   if (W / H > widthCap) note(`${name}: lying flat at ${(W / H).toFixed(1)}:1 wide`);
 }
 
@@ -275,6 +275,8 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
       ["Barbell Z Press", "Barbell", "push", "overheadPress"],
       ["Plank IYTW", "Bodyweight", "isometric", "plankIYTW"],
       ["Side Lunges", "Bodyweight", "lunge", "lateralLunge"],
+      ["Plank Saw", "Bodyweight", "isometric", "plankSaw"],
+      ["Ring Curl", "Rings", "pull", "ringCurl"],
     ];
     for (const [name, equipment, movementPattern, want] of expect) {
       const got = pick({ name, equipment, movementPattern });

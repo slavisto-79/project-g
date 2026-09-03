@@ -5873,11 +5873,13 @@ function poseForCatalogExercise(tag: ExerciseTag): PoseName | undefined {
   if (/skull ?crusher|lying triceps/.test(n)) return "skullCrusher";
   if (/kickback/.test(n)) return "kickback";
   if (/pushdown|triceps extension|overhead extension/.test(n)) return "tricepsExtension";
+  if (/ring.*curl|suspension.*curl|trx.*curl/.test(n)) return "ringCurl";
   if (/incline.*curl/.test(n)) return "inclineCurl";
   if (/\bcurl\b/.test(n)) return "curl";
   if (/\bdips?\b/.test(n)) return "dip";
   if (/side plank/.test(n)) return "sidePlank";
   if (/iytw/.test(n)) return "plankIYTW";
+  if (/plank saw|body saw/.test(n)) return "plankSaw";
   if (/plank/.test(n)) return "plank";
   if (/mountain climber/.test(n)) return "mountainClimber";
   if (/burpee/.test(n)) return "burpee";

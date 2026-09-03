@@ -472,6 +472,23 @@ export const exercisePoses = {
     -1,
   ),
 
+  // A forearm plank rocking forward and back over the planted elbows -- the
+  // "saw". The forearms stay put (lower arm flat on the floor throughout);
+  // the shoulders travel past them and back, and the ankles hinge over the
+  // pinned toes. Only the upper-arm angle changes, so the elbow contact
+  // never slides.
+  plankSaw: pose(
+    "side",
+    [
+      { ...supported({ x: 0.607, y: 0.752 }, 272, { x: 0.392, y: 0.855 }, { x: 0.885, y: 0.872 }, 118), neck: 300, arms: [{ upper: 163, lower: 272, end: 272 }, { upper: 168, lower: 277, end: 277 }] },
+      { ...supported({ x: 0.565, y: 0.745 }, 272, { x: 0.392, y: 0.855 }, { x: 0.86, y: 0.87 }), neck: 300, arms: [{ upper: 185, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
+      { ...supported({ x: 0.523, y: 0.752 }, 272, { x: 0.392, y: 0.855 }, { x: 0.82, y: 0.868 }, 150), neck: 300, arms: [{ upper: 207, lower: 272, end: 272 }, { upper: 212, lower: 277, end: 277 }] },
+    ],
+    [{ kind: "floor" }],
+    "overhand",
+    -1,
+  ),
+
   // A forearm plank with the near arm cycling through the W-Y-I raises (the
   // reverse sweep plays on the way back). The T points out of the sagittal
   // plane, so the demo shows the three shapes that read from the side. The
@@ -667,6 +684,30 @@ export const exercisePoses = {
     "side",
     [178, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.494 }, 356, sideArms(176, forearm))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
+    "underhand",
+  ),
+
+  // A bodyweight curl on suspension rings: the body hangs straight as a
+  // plank, heels planted, hands fixed on the rings -- and the ONLY hinge is
+  // the elbow, which is what pulls the whole body from the lean-back up to
+  // vertical. The lean angle drives the pelvis (heel + a straight leg), the
+  // torso continues the same line, and the rings never move.
+  ringCurl: pose(
+    "side",
+    ([[38, 322], [26, 334], [16, 344]] as const).map(([lean, torso]) => {
+      const rad = (lean * Math.PI) / 180;
+      const pelvis = { x: 0.6 - (0.44 * Math.sin(rad)) / (850 / 567), y: 0.93 - 0.44 * Math.cos(rad) };
+      return {
+        pelvis,
+        torso,
+        neck: torso + 8,
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.522, y: 0.335 }, { x: 0.506, y: 0.335 }], DOWN_SIDE),
+        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.6, y: FLOOR }, { x: 0.584, y: FLOOR }], FORWARD),
+      };
+    }),
+    // Just the handle: a strap slab reads as a fat post from the front-on
+    // orbit angles, and the fixed floating handle already says "suspension".
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.1, plates: false }],
     "underhand",
   ),
 
