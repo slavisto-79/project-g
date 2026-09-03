@@ -253,9 +253,11 @@ export const exercisePoses = {
       stand({ x: 0.500, y: 0.494 }, 2, sideArms(178, 179)),
       stand({ x: 0.452, y: 0.630 }, 30, sideArms(212, 200)),
       // Airborne: nothing is planted, so the angles are direct and the ground
-      // is pinned where the take-off was.
-      { pelvis: { x: 0.49, y: 0.470 }, torso: 8, arms: sideArms(60, 40), legs: sideLegs(160, 172, 130) },
-      { pelvis: { x: 0.50, y: 0.370 }, torso: 2, arms: sideArms(22, 14), legs: sideLegs(176, 178, 140) },
+      // is pinned where the take-off was. A modest hop with the arms in a V,
+      // not overhead -- fully raised arms at the flight apex stretched the
+      // camera frame ~30% taller and shrank the figure in the card.
+      { pelvis: { x: 0.49, y: 0.500 }, torso: 8, arms: sideArms(72, 52), legs: sideLegs(160, 172, 130) },
+      { pelvis: { x: 0.50, y: 0.435 }, torso: 2, arms: sideArms(55, 35), legs: sideLegs(176, 178, 140) },
     ],
     [{ kind: "floor" }],
   ),
@@ -941,7 +943,9 @@ export const exercisePoses = {
   burpee: pose(
     "side",
     [
-      { pelvis: { x: 0.50, y: 0.38 }, torso: 358, arms: sideArms(340, 348), legs: sideLegs(186, 182, 216) },
+      // Same low-hop rule as `jump`: arms in a V, not overhead, so the flight
+      // apex doesn't stretch the camera frame and shrink the figure.
+      { pelvis: { x: 0.50, y: 0.445 }, torso: 358, arms: sideArms(305, 325), legs: sideLegs(186, 182, 216) },
       { pelvis: { x: 0.500, y: 0.494 }, torso: 358, arms: HANG, legs: plantedLegs({ x: 0.500, y: 0.494 }, 358, "side", FEET, FORWARD, [272, 268]) },
       (() => {
         const pelvis = { x: 0.545, y: 0.70 };
