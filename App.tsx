@@ -7709,7 +7709,18 @@ function ActiveWorkoutScreen({
         showsVerticalScrollIndicator={false}
       >
       <View style={[styles.exerciseVisual, { height: exerciseVisualHeight }]}>
-        <View style={styles.exerciseGlow} />
+        {/* The glow wraps the WHOLE figure: sized to the stage, not a fixed
+            210px puck the body pokes out of. */}
+        <View
+          style={[
+            styles.exerciseGlow,
+            {
+              width: Math.round(exerciseVisualHeight * 0.94),
+              height: Math.round(exerciseVisualHeight * 0.94),
+              borderRadius: Math.round(exerciseVisualHeight * 0.47),
+            },
+          ]}
+        />
         <Text style={styles.exerciseNumber}>0{exerciseIndex + 1}</Text>
         <ExerciseDemo key={exerciseIndex} exerciseIndex={exerciseIndex} exercises={personalizedExercises} />
         <View style={styles.formBadge}>
