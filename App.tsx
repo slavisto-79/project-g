@@ -10854,10 +10854,13 @@ const styles = StyleSheet.create({
   // wasted half the screen on anything wider than a phone.
   cueCardFigure: { alignSelf: "stretch", flex: 1, minHeight: 220, marginBottom: 8 },
   pose3dHost: { ...StyleSheet.absoluteFillObject },
+  // Top-right corner: visible immediately, balances the "01" top-left, and
+  // never covers the figure -- centered under it, it sat over the feet and
+  // the lying movements.
   poseExpandHint: {
     position: "absolute",
-    bottom: 10,
-    alignSelf: "center",
+    top: 10,
+    right: 12,
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
