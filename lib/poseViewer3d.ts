@@ -227,13 +227,17 @@ export class PoseViewer3D {
         forearm: [0.02, 0.028],
         thigh: [0.032, 0.048],
         shin: [0.019, 0.034],
+        // The girdle's bar is slim so the neck shows above it; its end caps
+        // are the deltoids and get their own size below.
+        shoulders: [0.03, 0.03],
       };
       const taper = TAPER[bone.part];
       const cylinder = taper
         ? new THREE.Mesh(new THREE.CylinderGeometry(taper[0], taper[1], 1, 16, 1, true), this.bodyMaterial)
         : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), this.bodyMaterial);
-      const capA = new THREE.Mesh(new THREE.SphereGeometry(taper ? taper[1] : radius, 12, 10), this.bodyMaterial);
-      const capB = new THREE.Mesh(new THREE.SphereGeometry(taper ? taper[0] : radius, 12, 10), this.bodyMaterial);
+      const delt = bone.part === "shoulders" ? 0.046 : undefined;
+      const capA = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[1] : radius), 12, 10), this.bodyMaterial);
+      const capB = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[0] : radius), 12, 10), this.bodyMaterial);
       // The fingered hand replaces the hand bone when something is held;
       // otherwise the straight hand segment pokes out under the fingers.
       // Kept in the list so update() indexing stays aligned with the frames.
@@ -243,7 +247,7 @@ export class PoseViewer3D {
       this.scene.add(cylinder, capA, capB);
       this.bones.push({ cylinder, capA, capB, radius, part: bone.part });
     }
-    this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.3, 18, 14), this.bodyMaterial);
+    this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.18, 18, 14), this.bodyMaterial);
     this.scene.add(this.head);
 
     // The face: two eyes, a nose, a mouth -- the whole reason a viewer can
@@ -635,6 +639,8 @@ export class PoseViewer3D {
       const bone = this.bones[n]!;
       const pa = lerp3(a.bones[n]!.a, b.bones[n]!.a, f);
       const pb = lerp3(a.bones[n]!.b, b.bones[n]!.b, f);
+      // The neck column continues up under the raised head (see below).
+      if (bone.part === "neck") pb.addScaledVector(pb.clone().sub(pa).normalize(), 0.05);
       const dir = pb.clone().sub(pa);
       const len = Math.max(dir.length(), 1e-4);
       bone.cylinder.position.copy(pa).addScaledVector(dir, 0.5);
@@ -659,6 +665,7 @@ export class PoseViewer3D {
       const nA = lerp3(a.bones[this.neckIndex]!.a, b.bones[this.neckIndex]!.a, f);
       const nB = lerp3(a.bones[this.neckIndex]!.b, b.bones[this.neckIndex]!.b, f);
       const up = nB.clone().sub(nA).normalize();
+      this.head.position.addScaledVector(up, 0.03);
       // The belly side: the spine turned a quarter turn about X, the way the
       // movement's facing bit says.
       const ventral = new THREE.Vector3(0, -this.facing * spineDir.z, this.facing * spineDir.y);
