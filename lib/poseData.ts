@@ -100,7 +100,10 @@ function supported(pelvis: Point, torso: number, hands: Point, feet: Point, toes
     pelvis,
     torso,
     neck: torso - 4,
-    arms: reachingArms(pelvis, torso, "side", [hands, { x: hands.x - 0.016, y: hands.y }], BACK, [264, 259]),
+    // FORWARD, not BACK: a bending push-up elbow travels toward the FEET,
+    // the upper arm sweeping back along the ribs -- folded the other way the
+    // elbow jutted forward under the face.
+    arms: reachingArms(pelvis, torso, "side", [hands, { x: hands.x - 0.016, y: hands.y }], FORWARD, [264, 259]),
     // Both feet are ON the floor, so both are solved -- with the knee told to
     // sag toward the ground, which is the way a knee in a plank can fold.
     legs: plantedLegs(pelvis, torso, "side", [feet, { x: feet.x - 0.016, y: feet.y }], BACK, [toes, toes + 5]),
@@ -448,7 +451,7 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso - 4,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.410, y: 0.885 }, { x: 0.394, y: 0.885 }], BACK, [264, 259]),
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.410, y: 0.885 }, { x: 0.394, y: 0.885 }], FORWARD, [264, 259]),
         // The plank hinges at the planted knee: thigh on the body line, shin
         // lying flat on the floor behind it.
         legs: [{ upper: thigh, lower: 92, end: 100 }, { upper: thigh + 5, lower: 97, end: 105 }],
@@ -1016,7 +1019,7 @@ export const exercisePoses = {
           pelvis,
           torso,
           neck: torso - 4,
-          arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], BACK, [264, 259]),
+          arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], FORWARD, [264, 259]),
           legs: plantedLegs(pelvis, torso, "side", [{ x: 0.62, y: FLOOR }, { x: 0.604, y: FLOOR }], BACK, [272, 268]),
         };
       })(),
