@@ -124,6 +124,27 @@ for (const [name, idx] of Object.entries(STANDING_FRAMES)) {
   }
 }
 
+// Rigid-body holds and presses keep straight legs the same way standing
+// frames keep straight knees. The trap that makes this rule necessary: legs
+// solve from the HIP, which carries the fake-depth offset -- horizontal, so
+// harmless under a standing figure but ALONG the body of a lying one, where
+// it silently shortened the span and bent the push-up's knees 34 degrees.
+// Entries are [frame, side] pairs; null means every frame, both sides.
+const RIGID_LEGS = {
+  pushUp: null, pikePushUp: null, plank: null, plankSaw: null,
+  plankIYTW: null, sidePlank: null, handstandPushUp: null, ringCurl: null,
+  burpee: [[3, 0], [3, 1]],
+  mountainClimber: [[0, 0], [1, 1]],
+};
+for (const [name, entries] of Object.entries(RIGID_LEGS)) {
+  const frames = exercisePoses[name].frames3d;
+  const pairs = entries ?? frames.flatMap((_, i) => [[i, 0], [i, 1]]);
+  for (const [idx, side] of pairs) {
+    const bendDeg = kneeBend(frames[idx], side);
+    if (bendDeg > 8) note(name + "[" + idx + "]: rigid leg bent " + bendDeg.toFixed(1) + " degrees");
+  }
+}
+
 // Joints obey anatomy. Two rules on the 3D frames, both born from a review
 // where knees folded backward and elbows flipped their hinge mid-rep:
 //  1. A knee or elbow may not FLIP its fold side between ADJACENT key

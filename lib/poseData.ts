@@ -360,7 +360,7 @@ export const exercisePoses = {
     [0, 1].map((phase) => {
       const pelvis = { x: 0.485, y: 0.689 };
       const torso = 292.3;
-      const planted = plantedLegs(pelvis, torso, "side", [{ x: 0.755, y: 0.855 }, { x: 0.739, y: 0.855 }], BACK, [130, 135]);
+      const planted = plantedLegs(pelvis, torso, "side", [{ x: 0.767, y: 0.855 }, { x: 0.751, y: 0.855 }], BACK, [130, 135]);
       // Knee driven UNDER the chest, shin hanging straight down -- and folding
       // the same anatomical way as the planted leg, so the swap between the
       // two never carries a joint through hyperextension.
@@ -369,7 +369,7 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso - 4,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], BACK, [264, 259]),
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], FORWARD, [264, 259]),
         legs: (phase === 0 ? [planted[0]!, tucked] : [tucked, planted[1]!]) as [Limb, Limb],
       };
     }),
@@ -436,7 +436,7 @@ export const exercisePoses = {
     // piked the hips the whole way through. Solved: lockout 24 degrees above
     // the floor, chest grazing it at 11.
     ([[0.485, 0.689, 292.3], [0.475, 0.728, 286.8], [0.467, 0.78, 279.8]] as const).map(([x, y, torso]) =>
-      supported({ x, y }, torso, { x: 0.392, y: 0.855 }, { x: 0.755, y: 0.855 }),
+      supported({ x, y }, torso, { x: 0.392, y: 0.855 }, { x: 0.767, y: 0.855 }),
     ),
     [{ kind: "floor" }],
     "overhand",
@@ -483,7 +483,7 @@ export const exercisePoses = {
   plankSaw: pose(
     "side",
     [
-      { ...supported({ x: 0.607, y: 0.752 }, 272, { x: 0.392, y: 0.855 }, { x: 0.885, y: 0.872 }, 118), neck: 300, arms: [{ upper: 163, lower: 272, end: 272 }, { upper: 168, lower: 277, end: 277 }] },
+      { ...supported({ x: 0.607, y: 0.752 }, 272, { x: 0.392, y: 0.855 }, { x: 0.9, y: 0.872 }, 118), neck: 300, arms: [{ upper: 163, lower: 272, end: 272 }, { upper: 168, lower: 277, end: 277 }] },
       { ...supported({ x: 0.565, y: 0.745 }, 272, { x: 0.392, y: 0.855 }, { x: 0.86, y: 0.87 }), neck: 300, arms: [{ upper: 185, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
       { ...supported({ x: 0.523, y: 0.752 }, 272, { x: 0.392, y: 0.855 }, { x: 0.82, y: 0.868 }, 150), neck: 300, arms: [{ upper: 207, lower: 272, end: 272 }, { upper: 212, lower: 277, end: 277 }] },
     ],
@@ -697,14 +697,17 @@ export const exercisePoses = {
   // torso continues the same line, and the rings never move.
   ringCurl: pose(
     "side",
-    ([[38, 322], [26, 334], [16, 344]] as const).map(([lean, torso]) => {
+    // The third number is the heel-to-pelvis distance that makes the LEG
+    // solve straight: legs reach from the hip, which sits a depth-offset
+    // toward the feet, so the raw 0.44 leg length left the knees 25 bent.
+    ([[38, 322, 0.4486], [26, 334, 0.4454], [16, 344, 0.4424]] as const).map(([lean, torso, dist]) => {
       const rad = (lean * Math.PI) / 180;
-      const pelvis = { x: 0.6 - (0.44 * Math.sin(rad)) / (850 / 567), y: 0.93 - 0.44 * Math.cos(rad) };
+      const pelvis = { x: 0.6 - (dist * Math.sin(rad)) / (850 / 567), y: 0.93 - dist * Math.cos(rad) };
       return {
         pelvis,
         torso,
         neck: torso + 8,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.522, y: 0.335 }, { x: 0.506, y: 0.335 }], DOWN_SIDE),
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.518, y: 0.335 }, { x: 0.502, y: 0.335 }], DOWN_SIDE),
         legs: plantedLegs(pelvis, torso, "side", [{ x: 0.6, y: FLOOR }, { x: 0.584, y: FLOOR }], FORWARD),
       };
     }),
@@ -833,8 +836,8 @@ export const exercisePoses = {
   // floor between the hands. Pelvis positions solved so the legs stay long.
   pikePushUp: pose(
     "side",
-    ([[0.583, 0.501, 246], [0.564, 0.515, 234], [0.539, 0.538, 222]] as const).map(([x, y, torso]) =>
-      supported({ x, y }, torso, { x: 0.425, y: 0.872 }, { x: 0.715, y: 0.872 }, 118),
+    ([[0.578, 0.501, 246], [0.564, 0.515, 234], [0.544, 0.538, 222]] as const).map(([x, y, torso]) =>
+      supported({ x, y }, torso, { x: 0.425, y: 0.872 }, { x: 0.745, y: 0.872 }, 118),
     ),
     [{ kind: "floor" }],
     "overhand",
@@ -1023,7 +1026,7 @@ export const exercisePoses = {
           legs: plantedLegs(pelvis, torso, "side", [{ x: 0.62, y: FLOOR }, { x: 0.604, y: FLOOR }], BACK, [272, 268]),
         };
       })(),
-      supported({ x: 0.485, y: 0.689 }, 292.3, { x: 0.392, y: 0.855 }, { x: 0.755, y: 0.855 }),
+      supported({ x: 0.485, y: 0.689 }, 292.3, { x: 0.392, y: 0.855 }, { x: 0.767, y: 0.855 }),
     ],
     [{ kind: "floor", y: 0.936 }],
     "overhand",
