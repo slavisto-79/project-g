@@ -614,9 +614,12 @@ export class PoseViewer3D {
     const tanV = Math.tan((this.camera.fov * Math.PI) / 360);
     const fitV = size.y / 2 / tanV;
     const fitH = Math.max(size.x, size.z) / 2 / (tanV * Math.max(this.camera.aspect, 0.1));
-    // A slim margin: the box already carries the head radius and the bar
-    // tips, and a third of padding made every figure read small in the card.
-    this.orbitRadius = Math.max(fitV, fitH, extent / 2 / tanV / 2) * 1.16;
+    // Margins are per-axis: height is the scarce dimension in the card (the
+    // stage is wider than the figure on every real viewport), so the vertical
+    // margin is slim -- the box already carries the head radius. The wider
+    // horizontal margin stays, because orbiting bar tips swing toward the
+    // camera and are the first thing to clip at the side edges.
+    this.orbitRadius = Math.max(fitV * 1.06, fitH * 1.16, (extent / 2 / tanV / 2) * 1.16);
     if (this.floorDisc) {
       const halfW = this.orbitRadius * tanV * Math.max(this.camera.aspect, 0.5);
       const s = Math.min(Math.max(halfW * 0.82, 0.5), 1.9);
