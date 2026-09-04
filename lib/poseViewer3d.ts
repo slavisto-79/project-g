@@ -118,6 +118,10 @@ export class PoseViewer3D {
   // Trunk ellipse multipliers from the avatar's build, applied in update().
   private trunkW = 1;
   private trunkD = 1;
+  // Female build only: a cropped sports top over a bare-skin trunk, and a
+  // gentle bust under it. Both ride the spine bone in update().
+  private cropTop: THREE.Mesh | null = null;
+  private bust: THREE.Mesh | null = null;
 
   constructor(
     host: HTMLElement,
@@ -224,14 +228,21 @@ export class PoseViewer3D {
   private shirt = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.55, metalness: 0.05 });
   private shorts = new THREE.MeshStandardMaterial({ color: 0x1f2421, roughness: 0.7, metalness: 0.05 });
   private lime = new THREE.MeshStandardMaterial({ color: 0xc8ff32, roughness: 0.5, metalness: 0.05 });
+  // The female sports top: a dusty berry, distinct from the male's light
+  // shirt at a glance and still bright enough against the dark card.
+  private topFemale = new THREE.MeshStandardMaterial({ color: 0xb85c7a, roughness: 0.6, metalness: 0.03 });
 
   // What each bone wears: the cylinder and its two end caps (a = the bone's
-  // start, b = its end -- for a forearm, b is the wrist).
+  // start, b = its end -- for a forearm, b is the wrist). On the female build
+  // the trunk itself is skin (the cropped top is a separate mesh over its
+  // upper part), the girdle carries the top's straps and the delts are bare.
   private kit(part: string): { body: THREE.MeshStandardMaterial; a: THREE.MeshStandardMaterial; b: THREE.MeshStandardMaterial } {
+    const female = this.avatar.sex === "female";
     switch (part) {
       case "spine":
+        return female ? { body: this.skin, a: this.skin, b: this.topFemale } : { body: this.shirt, a: this.shirt, b: this.shirt };
       case "shoulders":
-        return { body: this.shirt, a: this.shirt, b: this.shirt };
+        return female ? { body: this.topFemale, a: this.skin, b: this.skin } : { body: this.shirt, a: this.shirt, b: this.shirt };
       case "hips":
       case "thigh":
         return { body: this.shorts, a: this.shorts, b: this.shorts };
@@ -299,53 +310,61 @@ export class PoseViewer3D {
     const t = this.avatar.bulk - 1;
     const female = this.avatar.sex === "female";
     const muscle = this.avatar.muscle;
+    // Training progress reads differently by sex. A man's muscle goes to the
+    // shoulders, arms, chest and neck. A woman's goes to tone: a narrower
+    // waist, firmer hips and glutes, a touch of arm definition -- never
+    // bigger delts or a thicker neck (the user: "стегнато и добре изглеждащо
+    // момиче, не бодибилдърка").
+    const tone = female ? Math.max(0, Math.min(1, (muscle - 1) / 0.3)) : 0;
     // Depth grows less than width: bench pads sit a fixed BODY_HALF below the
     // spine line, and a deeper trunk would sink into them (at the heaviest
     // build it is 1.2cm into a 5.5cm pad, which reads as padding giving way).
-    this.trunkW = (1 + 0.45 * t) * (female ? 0.94 : 1);
+    this.trunkW = (1 + 0.45 * t) * (female ? 0.92 : 1);
     this.trunkD = (1 + (t > 0 ? 0.55 : 0.4) * t) * (female ? 0.96 : 1);
     const buildScale = (part: string): number => {
       switch (part) {
         case "thigh":
         case "shin":
-          return (1 + 0.7 * t) * (female ? 1.05 : 1);
+          return (1 + 0.7 * t) * (female ? 1.05 + 0.03 * tone : 1);
         case "upperArm":
         case "forearm":
-          return (1 + 0.45 * t) * Math.sqrt(muscle);
+          return (1 + 0.45 * t) * (female ? 0.94 + 0.06 * tone : Math.sqrt(muscle));
         case "neck":
-          return Math.pow(muscle, 0.4) * (1 + 0.3 * Math.max(t, 0)) * (female ? 0.9 : 1);
+          return (1 + 0.3 * Math.max(t, 0)) * (female ? 0.86 : Math.pow(muscle, 0.4));
         case "hips":
-          return (1 + 0.4 * Math.max(t, 0)) * (female ? 1.22 : 1);
+          return (1 + 0.4 * Math.max(t, 0)) * (female ? 1.24 + 0.08 * tone : 1);
         default:
           return 1;
       }
     };
     // The trunk's own taper: a heavy build carries it at the waist (the
     // bottom of the spine bone, taper[1]), a lean one keeps a V from the
-    // chest; the chest (taper[0]) grows with weight and with muscle.
-    const waist = 1 + (t > 0 ? 1.1 : 0.5) * t;
-    const chest = (1 + 0.25 * t) * Math.pow(muscle, 0.3);
+    // chest; the chest (taper[0]) grows with weight and, for a man, with
+    // muscle. The female waist starts narrower against her wider hips (the
+    // hourglass) and tightens further as she trains.
+    const waist = (1 + (t > 0 ? 1.1 : 0.5) * t) * (female ? 0.86 - 0.08 * tone : 1);
+    const chest = (1 + 0.25 * t) * (female ? 1 : Math.pow(muscle, 0.3));
+    // The trunk is a rib cage, not a tube: wider at the chest than at the
+    // waist (the bone runs pelvis -> shoulders, so the taper widens upward),
+    // and squashed front-to-back by update()'s elliptical scaling. Limbs
+    // taper the way muscle does -- thigh into knee, calf into ankle,
+    // shoulder into elbow into wrist, trapezius-thick neck base. TAPER maps
+    // part -> [radius at b, radius at a]: the geometry's TOP is +Y, which
+    // update() aims at the bone's b end.
+    const TAPER: Partial<Record<string, [number, number]>> = {
+      spine: [0.058, 0.042],
+      neck: [0.019, 0.028],
+      upperArm: [0.026, 0.035],
+      forearm: [0.02, 0.028],
+      thigh: [0.032, 0.048],
+      shin: [0.019, 0.034],
+      // The girdle's bar is slim so the neck shows above it; its end caps
+      // are the deltoids and get their own size below.
+      shoulders: [0.03, 0.03],
+    };
     for (const bone of first.bones) {
       const build = buildScale(bone.part);
       const radius = RADII[bone.part] * build;
-      // The trunk is a rib cage, not a tube: wider at the chest than at the
-      // waist (the bone runs pelvis -> shoulders, so the taper widens upward),
-      // and squashed front-to-back by update()'s elliptical scaling. Limbs
-      // taper the way muscle does -- thigh into knee, calf into ankle,
-      // shoulder into elbow into wrist, trapezius-thick neck base. TAPER maps
-      // part -> [radius at b, radius at a]: the geometry's TOP is +Y, which
-      // update() aims at the bone's b end.
-      const TAPER: Partial<Record<string, [number, number]>> = {
-        spine: [0.058, 0.042],
-        neck: [0.019, 0.028],
-        upperArm: [0.026, 0.035],
-        forearm: [0.02, 0.028],
-        thigh: [0.032, 0.048],
-        shin: [0.019, 0.034],
-        // The girdle's bar is slim so the neck shows above it; its end caps
-        // are the deltoids and get their own size below.
-        shoulders: [0.03, 0.03],
-      };
       const raw = TAPER[bone.part];
       const taper: [number, number] | undefined = raw
         ? bone.part === "spine"
@@ -356,7 +375,7 @@ export class PoseViewer3D {
       const cylinder = taper
         ? new THREE.Mesh(new THREE.CylinderGeometry(taper[0], taper[1], 1, 16, 1, true), wear.body)
         : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), wear.body);
-      const delt = bone.part === "shoulders" ? 0.046 * Math.pow(muscle, 0.8) * (female ? 0.88 : 1) : undefined;
+      const delt = bone.part === "shoulders" ? (female ? 0.046 * 0.86 : 0.046 * Math.pow(muscle, 0.8)) : undefined;
       const capA = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[1] : radius), 12, 10), wear.a);
       const capB = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[0] : radius), 12, 10), wear.b);
       // The fingered hand replaces the hand bone when something is held;
@@ -374,6 +393,19 @@ export class PoseViewer3D {
     }
     this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.18, 18, 14), this.skin);
     this.scene.add(this.head);
+
+    if (female) {
+      // The cropped top covers the upper 62% of the trunk, sized a hair over
+      // the trunk's own taper so it sits on the skin rather than in it; the
+      // waist shows below it. update() places both along the spine bone.
+      const spineTaper = TAPER.spine!;
+      const chestR = spineTaper[0] * chest * 1.05;
+      const waistR = spineTaper[1] * waist;
+      const hemR = (waistR + (spineTaper[0] * chest - waistR) * 0.38) * 1.05;
+      this.cropTop = new THREE.Mesh(new THREE.CylinderGeometry(chestR, hemR, 1, 16, 1, true), this.topFemale);
+      this.bust = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), this.topFemale);
+      this.scene.add(this.cropTop, this.bust);
+    }
 
     for (const side of [0, 1] as const) {
       this.footIndex[side] = first.bones.findIndex((b) => b.part === "foot" && b.side === side);
@@ -408,13 +440,24 @@ export class PoseViewer3D {
     this.face.add(mouth);
     // The head, all in the face's frame so it turns with the figure.
     if (female) {
-      // Hair pulled back: a fuller cap down to the ears and a bun at the back.
+      // Hair pulled back into a ponytail: a fuller cap down to the ears, a
+      // gathered base at the back with a lime tie, and a tapered tail that
+      // hangs down and a little back.
       const hairCap = new THREE.Mesh(new THREE.SphereGeometry(R * 0.95, 18, 12, 0, Math.PI * 2, 0, 1.75), this.hair);
       hairCap.rotation.x = -0.3;
       this.face.add(hairCap);
-      const bun = new THREE.Mesh(new THREE.SphereGeometry(R * 0.36, 12, 10), this.hair);
-      bun.position.set(0, R * 0.15, -R * 0.92);
-      this.face.add(bun);
+      const gather = new THREE.Mesh(new THREE.SphereGeometry(R * 0.3, 12, 10), this.hair);
+      gather.position.set(0, R * 0.2, -R * 0.88);
+      this.face.add(gather);
+      const tilt = 0.3;
+      const tail = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.2, R * 0.1, R * 1.5, 10), this.hair);
+      tail.rotation.x = tilt;
+      tail.position.set(0, R * 0.2 - R * 0.75 * Math.cos(tilt), -R * 0.88 - R * 0.75 * Math.sin(tilt));
+      this.face.add(tail);
+      const tie = new THREE.Mesh(new THREE.TorusGeometry(R * 0.2, R * 0.045, 8, 16), this.lime);
+      tie.rotation.x = -Math.PI / 2 + tilt;
+      tie.position.set(0, R * 0.2 - R * 0.06, -R * 0.88 - R * 0.02);
+      this.face.add(tie);
     } else {
       // Buzz cut: a tight cap hugging the top and back of the skull.
       const hairCap = new THREE.Mesh(new THREE.SphereGeometry(R * 0.925, 18, 10, 0, Math.PI * 2, 0, 1.15), this.hair);
@@ -1070,6 +1113,11 @@ export class PoseViewer3D {
       bone.cylinder.quaternion.setFromUnitVectors(UP, dir.divideScalar(len));
       bone.capA.position.copy(pa);
       bone.capB.position.copy(pb);
+      if (bone.part === "spine" && this.cropTop) {
+        this.cropTop.position.copy(pa).addScaledVector(dir, len * 0.69);
+        this.cropTop.scale.set(1.45 * this.trunkW, len * 0.62, 0.9 * this.trunkD);
+        this.cropTop.quaternion.copy(bone.cylinder.quaternion);
+      }
     }
     this.head.position.copy(lerp3(a.head.c, b.head.c, f));
     // Sneakers: heel-to-toe along the foot bone; "up" is the shin's direction
@@ -1108,6 +1156,14 @@ export class PoseViewer3D {
       const fx = new THREE.Vector3().crossVectors(up, fz).normalize();
       this.face.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(fx, up, fz));
       this.face.position.copy(this.head.position);
+      if (this.bust) {
+        // A gentle bust: a flattened ellipsoid high on the trunk, pushed a
+        // little out of its front face, in the top's colour.
+        const spineLen = sB.clone().sub(sA).length();
+        this.bust.position.copy(sA).addScaledVector(spineDir, spineLen * 0.78).addScaledVector(ventral, 0.02);
+        this.bust.scale.set(0.058 * 1.45 * this.trunkW * 0.92, 0.03, 0.05 * this.trunkD);
+        this.bust.quaternion.copy(this.bones[this.spineIndex]!.cylinder.quaternion);
+      }
     }
 
     for (let s = 0; s < 2; s++) {
