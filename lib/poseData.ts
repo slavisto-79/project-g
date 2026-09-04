@@ -1051,15 +1051,16 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso - 25,
-        // The rope is held at the forehead, 10cm IN FRONT of the face and
+        // The rope is held at the forehead, 14cm IN FRONT of the face and
         // riding with the trunk as it curls -- with the hands on the skull
-        // the cable had to pass through the head to reach them.
+        // the cable had to pass through the head to reach them, and at 10cm
+        // the deepest curl pressed the rope into the beard.
         arms: (() => {
           const top = spineTop(pelvis, torso);
           const rad = (torso * Math.PI) / 180;
           const rope = {
-            x: top.x - (0.1 * Math.cos(rad)) / (850 / 567) + (0.13 * Math.sin(rad)) / (850 / 567),
-            y: top.y - 0.1 * Math.sin(rad) - 0.13 * Math.cos(rad),
+            x: top.x - (0.14 * Math.cos(rad)) / (850 / 567) + (0.13 * Math.sin(rad)) / (850 / 567),
+            y: top.y - 0.14 * Math.sin(rad) - 0.13 * Math.cos(rad),
           };
           return reachingArms(pelvis, torso, "side", [rope, rope], FORWARD);
         })(),
@@ -1067,7 +1068,9 @@ export const exercisePoses = {
       };
     }),
     // The rope handle at the head, and the cable up to a high pulley in front.
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.08, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.18, y: 0.0 } }],
+    // The pulley stands well forward (x 0.04): any closer and the cable's run
+    // down to the rope passes through the face at the bottom of the crunch.
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.08, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.04, y: 0.0 } }],
   ),
 
   // Seated and leaned back, feet light: the hands sweep between chest height
