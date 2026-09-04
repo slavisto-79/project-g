@@ -582,6 +582,73 @@ export const exercisePoses = {
     "neutral",
   ),
 
+  // --- Cable variants ------------------------------------------------------
+  // The same shapes as their free-weight cousins, but the load comes from a
+  // station: a low pulley in front for the curl, a high pulley either side
+  // for the crossover fly, low pulleys either side for the lateral raise,
+  // and a low pulley BEHIND the lifter for the pull-through.
+
+  cableCurl: pose(
+    "side",
+    [178, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.494 }, 356, sideArms(176, forearm))),
+    [
+      { kind: "floor" },
+      // A short straight handle (a bell draws as one on a machine); a full
+      // bar would run through the thighs in the side view.
+      { kind: "bell", at: "grip", size: 0.06 },
+      { kind: "cable", at: "grip", anchor: { x: 0.92, y: 0.9 } },
+    ],
+    "underhand",
+  ),
+
+  cableFly: pose(
+    "front",
+    [96, 60, 24].map((arm) => standFront(0.497, 0, bothArms(arm, arm - 25))),
+    [
+      { kind: "floor" },
+      { kind: "cable", at: "hand0", anchor: { x: 0.95, y: 0.05 } },
+      { kind: "cable", at: "hand1", anchor: { x: 0.05, y: 0.05 } },
+    ],
+    "neutral",
+  ),
+
+  cableLateralRaise: pose(
+    "front",
+    [170, 131, 93].map((arm) => standFront(0.497, 0, bothArms(arm, arm + 14))),
+    [
+      { kind: "floor" },
+      { kind: "cable", at: "hand0", anchor: { x: 0.95, y: 0.92 } },
+      { kind: "cable", at: "hand1", anchor: { x: 0.05, y: 0.92 } },
+    ],
+    "neutral",
+  ),
+
+  // A hinge with the rope held between the legs, the cable running back to a
+  // low pulley behind: the hands hang toward the pulley, not toward the floor.
+  cablePullThrough: pose(
+    "side",
+    ([[0.500, 0.494, 4, 0.46, 0.52], [0.528, 0.528, 40, 0.56, 0.59], [0.552, 0.538, 72, 0.62, 0.70], [0.570, 0.550, 98, 0.65, 0.82]] as const).map(
+      ([x, y, torso, hx, hy]) => {
+        const pelvis = { x, y };
+        return {
+          pelvis,
+          torso,
+          neck: torso > 30 ? torso - 16 : torso,
+          arms: reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: hx - 0.016, y: hy }], BACK),
+          legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
+        };
+      },
+    ),
+    [
+      { kind: "floor" },
+      // The rope handle sits BETWEEN the thighs; a bar prop would trip the
+      // bar-through-leg rule that cannot see the gap between the legs.
+      { kind: "bell", at: "grip", size: 0.06 },
+      { kind: "cable", at: "grip", anchor: { x: 0.06, y: 0.93 } },
+    ],
+    "neutral",
+  ),
+
   tricepsExtension: pose(
     "front",
     [100, 138, 174].map((forearm) => standFront(0.497, 0, bothArms(170, forearm))),

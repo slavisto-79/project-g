@@ -105,6 +105,7 @@ const STANDING_FRAMES = {
   overheadPress: 0, pulldown: 0, lateralRaise: 0, fly: 0,
   tricepsExtension: 0, jump: 0, lateralLunge: 0, clean: 4,
   straightArmPulldown: 0, facePull: 0, landminePress: 0, burpee: 1,
+  cableCurl: 0, cableFly: 0, cableLateralRaise: 0, cablePullThrough: 0,
 };
 function kneeBend(frame, side) {
   const bones = frame.bones.filter((b) => b.part === "thigh" || b.part === "shin");
@@ -298,6 +299,11 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
       ["Side Lunges", "Bodyweight", "lunge", "lateralLunge"],
       ["Plank Saw", "Bodyweight", "isometric", "plankSaw"],
       ["Ring Curl", "Rings", "pull", "ringCurl"],
+      ["Cable Curl", "Cable", "pull", "cableCurl"],
+      ["Cable Chest Fly", "Cable", "push", "cableFly"],
+      ["Cable Crossover", "Cable", "push", "cableFly"],
+      ["Cable Lateral Raise", "Cable", "push", "cableLateralRaise"],
+      ["Cable Pull-Through", "Cable", "hinge", "cablePullThrough"],
     ];
     for (const [name, equipment, movementPattern, want] of expect) {
       const got = pick({ name, equipment, movementPattern });
