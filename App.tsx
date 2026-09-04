@@ -47,14 +47,61 @@ import {
 } from "./lib/exerciseLibrary";
 import type { ExerciseTag, MovementPattern, PrimaryMuscle } from "./lib/exerciseCatalog";
 
+// Two accents on the same near-black ground: the electric lime the app
+// launched with, and a hot pink for women. The pink sits at a similar
+// brightness so every ink-on-accent button and accent-on-ink label keeps its
+// contrast. Only the accent family changes -- the neutrals are shared.
+// `deep`..`done` are the handful of hand-mixed tints the lime UI used for
+// filled states, bubbles and edges, remixed in pink.
+const ACCENTS = {
+  male: {
+    hex: "#C8FF32",
+    rgb: "200, 255, 50",
+    deep: "#8EAE35",
+    deeper: "#557117",
+    tint: "#25330F",
+    tintDim: "#121A08",
+    bubble: "#315E1D",
+    edge: "#354719",
+    done: "#91B927",
+  },
+  female: {
+    hex: "#FF5FA8",
+    rgb: "255, 95, 168",
+    deep: "#C9457F",
+    deeper: "#7C2A52",
+    tint: "#3A1226",
+    tintDim: "#1F0A15",
+    bubble: "#5E1D3E",
+    edge: "#4A1A32",
+    done: "#D94E90",
+  },
+} as const;
+type ThemeSex = keyof typeof ACCENTS;
+let themeSex: ThemeSex = "male";
+
+// `lime` is the accent slot (the name predates the pink theme); it is
+// reassigned by applyTheme(). Everything reads it at render time.
 const colors = {
   background: "#050505",
   surface: "#111311",
   text: "#F4F7F2",
   muted: "#A7ADA5",
-  lime: "#C8FF32",
+  lime: ACCENTS.male.hex as string,
   ink: "#0A0B09",
 };
+const accent = (alpha: number) => `rgba(${ACCENTS[themeSex].rgb}, ${alpha})`;
+const accentTone = (tone: Exclude<keyof (typeof ACCENTS)["male"], "hex" | "rgb">) => ACCENTS[themeSex][tone];
+
+// Switches the accent family and rebuilds the stylesheet. Returns whether
+// anything changed, so the caller can force a re-render only when needed.
+function applyTheme(sex: ThemeSex): boolean {
+  if (sex === themeSex) return false;
+  themeSex = sex;
+  colors.lime = ACCENTS[sex].hex;
+  styles = buildStyles();
+  return true;
+}
 
 type Screen =
   | "splash"
@@ -8855,6 +8902,13 @@ export default function App() {
     Platform.OS === "web" && window.location.pathname === "/reset-password" ? "resetPassword" : "splash",
   );
   const [profile, setProfile] = useState<Record<string, string>>({});
+  // The accent follows the sex chosen in onboarding: pink for women, lime
+  // otherwise. applyTheme() rebuilds the module stylesheet; the tick forces
+  // the tree to re-render with it.
+  const [, setThemeTick] = useState(0);
+  useEffect(() => {
+    if (applyTheme(profile.sex === "female" ? "female" : "male")) setThemeTick((t) => t + 1);
+  }, [profile.sex]);
   const [coachAdjustment, setCoachAdjustment] = useState<CoachScenario | null>(null);
   const [coachMessages, setCoachMessages] = useState<CoachMessage[]>([]);
   const [hasLoadedTestState, setHasLoadedTestState] = useState(false);
@@ -9503,7 +9557,10 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({
+// Built by a function so applyTheme() can rebuild it for the other accent;
+// `styles` itself is reassigned, and every component reads it at render.
+const buildStyles = () =>
+  StyleSheet.create({
   app: {
     flex: 1,
     alignItems: "center",
@@ -9539,13 +9596,13 @@ const styles = StyleSheet.create({
     width: 260,
     height: 260,
     borderRadius: 130,
-    backgroundColor: "rgba(200,255,50,0.055)",
+    backgroundColor: accent(0.055),
   },
   mark: {
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1.5,
-    borderColor: "rgba(200,255,50,0.72)",
+    borderColor: accent(0.72),
     backgroundColor: colors.surface,
   },
   markLetter: {
@@ -9767,8 +9824,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 17,
   },
   answerCardSelected: {
-    borderColor: "rgba(200,255,50,0.72)",
-    backgroundColor: "rgba(200,255,50,0.08)",
+    borderColor: accent(0.72),
+    backgroundColor: accent(0.08),
   },
   answerCardPressed: { opacity: 0.8 },
   answerRadio: {
@@ -9801,8 +9858,8 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: "rgba(200,255,50,0.35)",
-    backgroundColor: "rgba(200,255,50,0.06)",
+    borderColor: accent(0.35),
+    backgroundColor: accent(0.06),
   },
   wheelPickerRow: { height: WHEEL_ITEM_HEIGHT, alignItems: "center", justifyContent: "center" },
   wheelPickerText: {
@@ -9879,7 +9936,7 @@ const styles = StyleSheet.create({
     height: 112,
     borderRadius: 56,
     borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.18)",
+    borderColor: accent(0.18),
   },
   generatingTitle: {
     color: colors.text,
@@ -9912,7 +9969,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
-    backgroundColor: "rgba(200,255,50,0.13)",
+    backgroundColor: accent(0.13),
   },
   analysisCheckText: { color: colors.lime, fontSize: 12, fontWeight: "900" },
   analysisText: { color: colors.text, fontSize: 13, fontWeight: "600", flex: 1 },
@@ -9930,7 +9987,7 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.28)",
+    borderColor: accent(0.28),
     backgroundColor: "#11150E",
   },
   planHeroTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
@@ -10243,7 +10300,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  navIconWrapActive: { backgroundColor: "rgba(200,255,50,0.16)" },
+  navIconWrapActive: { backgroundColor: accent(0.16) },
   navIcon: { fontSize: 18, lineHeight: 22 },
   navIconInactive: { opacity: 0.4 },
   navLabel: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 0.6, marginTop: 4 },
@@ -10390,8 +10447,8 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#557117",
-    backgroundColor: "#121A08",
+    borderColor: accentTone("deeper"),
+    backgroundColor: accentTone("tintDim"),
   },
   nutritionTotalLabel: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 1.4 },
   nutritionCalories: { color: colors.text, fontSize: 30, fontWeight: "900", marginTop: 5 },
@@ -10422,13 +10479,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.lime,
   },
-  nutritionSaveButtonDone: { backgroundColor: "#8EAE35" },
+  nutritionSaveButtonDone: { backgroundColor: accentTone("deep") },
   nutritionSaveButtonText: { color: colors.ink, fontSize: 10, fontWeight: "900", letterSpacing: 1.3 },
   proteinGapCard: {
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.3)",
-    backgroundColor: "rgba(200,255,50,0.07)",
+    borderColor: accent(0.3),
+    backgroundColor: accent(0.07),
     padding: 13,
     marginBottom: 12,
     gap: 9,
@@ -10506,7 +10563,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  checkInDotSelected: { borderColor: colors.lime, backgroundColor: "rgba(200,255,50,0.14)" },
+  checkInDotSelected: { borderColor: colors.lime, backgroundColor: accent(0.14) },
   checkInDotText: { color: "#8A907F", fontSize: 11, fontWeight: "700" },
   checkInDotTextSelected: { color: colors.lime, fontWeight: "900" },
   checkInScaleLegend: { flexDirection: "row", justifyContent: "space-between", marginTop: 7 },
@@ -10523,7 +10580,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  dietChipSelected: { borderColor: colors.lime, backgroundColor: "rgba(200,255,50,0.12)" },
+  dietChipSelected: { borderColor: colors.lime, backgroundColor: accent(0.12) },
   dietChipText: { color: "#CFD3CC", fontSize: 12, fontWeight: "700" },
   dietChipTextSelected: { color: colors.lime },
   limitationNoteInput: {
@@ -10586,7 +10643,7 @@ const styles = StyleSheet.create({
   },
   dietDayLabel: { color: colors.lime, fontSize: 11, fontWeight: "900", letterSpacing: 1.2 },
   dietTodayBadge: {
-    backgroundColor: "rgba(200,255,50,0.16)",
+    backgroundColor: accent(0.16),
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -10614,8 +10671,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.3)",
-    backgroundColor: "rgba(200,255,50,0.07)",
+    borderColor: accent(0.3),
+    backgroundColor: accent(0.07),
     padding: 11,
     marginBottom: 12,
     gap: 10,
@@ -10639,7 +10696,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(200,255,50,0.15)",
+    backgroundColor: accent(0.15),
   },
   libraryEntryArrowText: { color: colors.lime, fontSize: 16, fontWeight: "900" },
   recipeDetailContent: { paddingBottom: 40 },
@@ -10711,7 +10768,7 @@ const styles = StyleSheet.create({
     width: 360,
     height: 360,
     borderRadius: 180,
-    backgroundColor: "rgba(200,255,50,0.08)",
+    backgroundColor: accent(0.08),
   },
   completeMark: {
     width: 60,
@@ -10746,7 +10803,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-around",
     borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.28)",
+    borderColor: accent(0.28),
     borderRadius: 22,
     backgroundColor: "#0E110D",
     paddingVertical: 15,
@@ -10834,7 +10891,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 10,
     alignItems: "center",
-    backgroundColor: "rgba(200,255,50,0.1)",
+    backgroundColor: accent(0.1),
   },
   deloadBannerText: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
   // Amber rather than lime: this is an explanation for something missing, not
@@ -10913,7 +10970,7 @@ const styles = StyleSheet.create({
     gap: 6,
     backgroundColor: "rgba(10, 13, 9, 0.78)",
     borderWidth: 1,
-    borderColor: "rgba(200, 255, 50, 0.45)",
+    borderColor: accent(0.45),
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 7,
@@ -10958,7 +11015,7 @@ const styles = StyleSheet.create({
     width: 210,
     height: 210,
     borderRadius: 105,
-    backgroundColor: "rgba(200,255,50,0.055)",
+    backgroundColor: accent(0.055),
   },
   // Sits ON the demo canvas (zIndex above it), small and translucent -- a
   // corner label, not a column of its own.
@@ -10979,7 +11036,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.55)",
+    borderColor: accent(0.55),
     backgroundColor: "#11150F",
   },
   motionFigureText: { color: colors.text, fontSize: 31, fontWeight: "800" },
@@ -11078,7 +11135,7 @@ const styles = StyleSheet.create({
     right: 27,
     bottom: 15,
     height: 1,
-    backgroundColor: "rgba(200,255,50,0.2)",
+    backgroundColor: accent(0.2),
   },
   demoPerson: { width: 78, height: 112, alignItems: "center", marginTop: -8 },
   demoHead: {
@@ -11247,8 +11304,8 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.3)",
-    backgroundColor: "rgba(200,255,50,0.08)",
+    borderColor: accent(0.3),
+    backgroundColor: accent(0.08),
   },
   mismatchWarningText: { color: colors.text, fontSize: 13, lineHeight: 19, marginBottom: 14 },
   mismatchBackText: {
@@ -11285,8 +11342,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.24)",
-    backgroundColor: "rgba(200,255,50,0.065)",
+    borderColor: accent(0.24),
+    backgroundColor: accent(0.065),
   },
   restLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.1 },
   restHint: { color: colors.muted, fontSize: 8, marginTop: 2 },
@@ -11300,7 +11357,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.3)",
+    borderColor: accent(0.3),
   },
   restAdjustButtonText: { color: colors.lime, fontSize: 10, fontWeight: "800" },
   restSkipButton: {
@@ -11369,7 +11426,7 @@ const styles = StyleSheet.create({
     borderColor: "#242824",
     backgroundColor: "#0E100E",
   },
-  setRowDone: { borderColor: "rgba(200,255,50,0.2)", backgroundColor: "rgba(200,255,50,0.055)" },
+  setRowDone: { borderColor: accent(0.2), backgroundColor: accent(0.055) },
   setIndex: { width: 42, color: colors.muted, fontSize: 12, fontWeight: "700" },
   setValue: { color: colors.text, fontSize: 13, fontWeight: "700" },
   setTextDone: { color: "#858B82" },
@@ -11481,7 +11538,7 @@ const styles = StyleSheet.create({
   userBubble: {
     alignSelf: "flex-end",
     maxWidth: "82%",
-    backgroundColor: "#315E1D",
+    backgroundColor: accentTone("bubble"),
     borderRadius: 16,
     borderBottomRightRadius: 4,
     padding: 13,
@@ -11493,7 +11550,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#101310",
     borderRadius: 19,
     borderWidth: 1,
-    borderColor: "#354719",
+    borderColor: accentTone("edge"),
     padding: 15,
     marginBottom: 10,
   },
@@ -11501,7 +11558,7 @@ const styles = StyleSheet.create({
   coachAdjustmentLabel: { color: colors.text, fontSize: 9, fontWeight: "900", letterSpacing: 1.1 },
   coachAdjustmentBadge: {
     color: colors.lime,
-    backgroundColor: "#25330F",
+    backgroundColor: accentTone("tint"),
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 5,
@@ -11520,7 +11577,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 6,
   },
-  coachApplyButtonDone: { backgroundColor: "#91B927" },
+  coachApplyButtonDone: { backgroundColor: accentTone("done") },
   coachApplyButtonText: { color: colors.ink, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
   coachStartButton: {
     height: 43,
@@ -11613,8 +11670,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.28)",
-    backgroundColor: "rgba(200,255,50,0.07)",
+    borderColor: accent(0.28),
+    backgroundColor: accent(0.07),
   },
   progressScoreValue: { color: colors.text, fontSize: 30, fontWeight: "900", letterSpacing: -1.2 },
   progressScoreLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1.3, marginTop: 2 },
@@ -11661,8 +11718,8 @@ const styles = StyleSheet.create({
     marginTop: 18,
     padding: 18,
     borderWidth: 1,
-    borderColor: "rgba(200,255,50,0.35)",
-    backgroundColor: "rgba(200,255,50,0.07)",
+    borderColor: accent(0.35),
+    backgroundColor: accent(0.07),
   },
   volumeCardLabel: { color: colors.lime, fontSize: 8, fontWeight: "900", letterSpacing: 1.4 },
   volumeCardValue: { color: colors.text, fontSize: 34, fontWeight: "900", marginTop: 6 },
@@ -11674,10 +11731,10 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "rgba(200,255,50,0.18)",
+    borderTopColor: accent(0.18),
   },
   volumeCardStat: { flex: 1, minWidth: 0 },
-  volumeCardStatDivider: { width: 1, alignSelf: "stretch", backgroundColor: "rgba(200,255,50,0.18)", marginHorizontal: 12 },
+  volumeCardStatDivider: { width: 1, alignSelf: "stretch", backgroundColor: accent(0.18), marginHorizontal: 12 },
   volumeCardStatValue: { color: colors.lime, fontSize: 20, fontWeight: "900" },
   volumeCardStatLabel: { color: colors.muted, fontSize: 7, fontWeight: "900", letterSpacing: 0.8, marginTop: 3 },
   volumeCardFootnote: { color: "#5A6058", fontSize: 8, fontWeight: "600", lineHeight: 12, marginTop: 10 },
@@ -11733,7 +11790,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0C0E0C",
     opacity: 0.45,
   },
-  badgeChipEarned: { opacity: 1, borderColor: "rgba(200,255,50,0.4)", backgroundColor: "rgba(200,255,50,0.06)" },
+  badgeChipEarned: { opacity: 1, borderColor: accent(0.4), backgroundColor: accent(0.06) },
   badgeIcon: { fontSize: 20 },
   // Locked icons read as silhouettes rather than full-colour emoji, so an
   // earned grid is obvious at a glance instead of needing to be read.
@@ -11811,4 +11868,5 @@ const styles = StyleSheet.create({
   progressCoachCopy: { flex: 1, marginLeft: 12 },
   progressCoachLabel: { color: colors.lime, fontSize: 7, fontWeight: "900", letterSpacing: 1 },
   progressCoachText: { color: "#C4CAC1", fontSize: 10, lineHeight: 15, marginTop: 5 },
-});
+  });
+let styles = buildStyles();
