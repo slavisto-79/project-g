@@ -8,7 +8,9 @@ export type AvatarBuild = {
   // 1 = the reference athlete (BMI 22.5); below is leaner, above heavier.
   // Drives trunk width, belly depth and limb thickness.
   bulk: number;
-  // 1 = the reference; above adds shoulder, arm and neck mass.
+  // 1 = the reference; above is more trained. On a male build that means
+  // shoulder, arm, chest and neck mass; on a female build it means tone --
+  // a tighter waist and firmer hips, not bulk (the viewer decides how).
   muscle: number;
 };
 
@@ -33,6 +35,5 @@ export function avatarFromProfile(profile: Record<string, string> | null | undef
   if (profile.bodyweightStrength === "both") muscle += 0.06;
   else if (profile.bodyweightStrength === "neither") muscle -= 0.04;
   if (profile.goal === "muscle" || profile.goal === "strength") muscle += 0.03;
-  if (sex === "female") muscle -= 0.08;
   return { sex, bulk, muscle: clamp(muscle, 0.82, 1.3) };
 }
