@@ -1,6 +1,7 @@
 import { createElement, Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo,
+  ActivityIndicator,
   Animated,
   Easing,
   Image,
@@ -7128,16 +7129,41 @@ function PoseFigure3DWeb({
 }) {
   const hostRef = useRef<View>(null);
   const reduceMotion = useReducedMotion();
+  // The first WebGL scene of a session can take a few seconds to draw; until
+  // the viewer reports its first real frame the stage shows a placeholder
+  // instead of an empty black card.
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     // On web a View ref is the underlying DOM element.
     const host = hostRef.current as unknown as HTMLElement | null;
     if (!host) return;
-    const viewer = new PoseViewer3D(host, pose, implement, { interactive, reduceMotion });
-    return () => viewer.dispose();
+    let live = true;
+    setReady(false);
+    const viewer = new PoseViewer3D(host, pose, implement, {
+      interactive,
+      reduceMotion,
+      onReady: () => {
+        if (live) setReady(true);
+      },
+    });
+    return () => {
+      live = false;
+      viewer.dispose();
+    };
   }, [pose, implement, interactive, reduceMotion]);
 
-  return <View ref={hostRef} style={styles.pose3dHost} />;
+  return (
+    <>
+      <View ref={hostRef} style={styles.pose3dHost} />
+      {!ready ? (
+        <View style={styles.pose3dPlaceholder} pointerEvents="none">
+          <ActivityIndicator size="large" color={colors.lime} />
+          <Text style={styles.pose3dPlaceholderText}>LOADING 3D DEMO</Text>
+        </View>
+      ) : null}
+    </>
+  );
 }
 
 function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
@@ -10858,6 +10884,14 @@ const styles = StyleSheet.create({
   // wasted half the screen on anything wider than a phone.
   cueCardFigure: { alignSelf: "stretch", flex: 1, minHeight: 220, marginBottom: 8 },
   pose3dHost: { ...StyleSheet.absoluteFillObject },
+  // Shown over the host until the viewer draws its first frame.
+  pose3dPlaceholder: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
+  pose3dPlaceholderText: { color: "#5A6058", fontSize: 10, fontWeight: "800", letterSpacing: 1.6 },
   // Top-right corner: visible immediately, balances the "01" top-left, and
   // never covers the figure -- centered under it, it sat over the feet and
   // the lying movements.
