@@ -590,7 +590,9 @@ export const exercisePoses = {
 
   cableCurl: pose(
     "side",
-    [178, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.494 }, 356, sideArms(176, forearm))),
+    // Upper arms a shade forward of the curl's: the cable comes up from a low
+    // pulley ahead and grazed the thighs with the hands hanging plumb.
+    [172, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.494 }, 356, sideArms(152, forearm))),
     [
       { kind: "floor" },
       // A short straight handle (a bell draws as one on a machine); a full
@@ -1049,7 +1051,18 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso - 25,
-        arms: sideArms(torso - 110, torso + 15),
+        // The rope is held at the forehead, 10cm IN FRONT of the face and
+        // riding with the trunk as it curls -- with the hands on the skull
+        // the cable had to pass through the head to reach them.
+        arms: (() => {
+          const top = spineTop(pelvis, torso);
+          const rad = (torso * Math.PI) / 180;
+          const rope = {
+            x: top.x - (0.1 * Math.cos(rad)) / (850 / 567) + (0.13 * Math.sin(rad)) / (850 / 567),
+            y: top.y - 0.1 * Math.sin(rad) - 0.13 * Math.cos(rad),
+          };
+          return reachingArms(pelvis, torso, "side", [rope, rope], FORWARD);
+        })(),
         legs: [{ upper: thigh, lower: 90, end: 98 }, { upper: thigh + 4, lower: 94, end: 102 }] as [Limb, Limb],
       };
     }),
