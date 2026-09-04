@@ -58,6 +58,9 @@ const HELD_OUTBOARD = 0.045;
 type BoneMeshes = { cylinder: THREE.Mesh; capA: THREE.Mesh; capB: THREE.Mesh; radius: number; part: string };
 
 const UP = new THREE.Vector3(0, 1, 0);
+const AXIS_X = new THREE.Vector3(1, 0, 0);
+// A landmine's hinge sits this far above the floor, on a short post.
+const LANDMINE_HINGE = 0.06;
 
 function vec(v: Vec3): THREE.Vector3 {
   return new THREE.Vector3(v[0], v[1], v[2]);
@@ -775,6 +778,88 @@ export class PoseViewer3D {
     return group;
   }
 
+  // Where a landmine's hinge is. The hands were authored on an arc about it,
+  // so it is the point at hinge height equidistant from the first and last
+  // grip; a movement authored with no travel falls back to the authored lean.
+  private pivots = new Map<number, THREE.Vector3>();
+  private landminePivot(propIndex: number, dir: Vec3): THREE.Vector3 {
+    const cached = this.pivots.get(propIndex);
+    if (cached) return cached;
+    const floor = this.frames[0]!.props.find((p) => p.kind === "floor");
+    const hingeY = (floor && floor.kind === "floor" ? floor.y : 0) + LANDMINE_HINGE;
+    const grips: THREE.Vector3[] = [];
+    for (const frame of this.frames) {
+      const p = frame.props[propIndex]!;
+      if (p.kind === "bar") grips.push(vec(p.center));
+    }
+    const first = grips[0]!;
+    const last = grips[grips.length - 1]!;
+    const x = grips.reduce((sum, g) => sum + g.x, 0) / grips.length;
+    let z: number;
+    if (Math.abs(first.z - last.z) > 0.01) {
+      z = ((first.y - hingeY) ** 2 + first.z ** 2 - (last.y - hingeY) ** 2 - last.z ** 2) / (2 * (first.z - last.z));
+    } else {
+      const t = (first.y - hingeY) / (dir[1] || 1);
+      z = first.z - dir[2] * t;
+    }
+    const pivot = new THREE.Vector3(x, hingeY, z);
+    this.pivots.set(propIndex, pivot);
+    return pivot;
+  }
+
+  // A landmine bar, built along +X with the origin at the hands' grip: the
+  // shaft runs back to x = -reach, where its far end sits in the pivot's
+  // sleeve; the loaded sleeve (collar, plates, clip) sits just behind the
+  // hands, and a short bare end pokes past them.
+  private landmine(reach: number): THREE.Group {
+    const group = new THREE.Group();
+    const tip = 0.05;
+    const shaftLen = reach - 0.2;
+    const shaft = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.0095, 0.0095, shaftLen, 12), this.chrome));
+    shaft.position.x = -reach + shaftLen / 2;
+    const sleeve = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.2 + tip, 12), this.chrome));
+    sleeve.position.x = (tip - 0.2) / 2;
+    const collar = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.016, 14), this.graphite));
+    collar.position.x = -0.2;
+    const big = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.105, 0.028, 26), this.iron));
+    big.position.x = -0.165;
+    const rim = this.alongX(new THREE.Mesh(new THREE.TorusGeometry(0.105, 0.006, 8, 26), this.ironRim));
+    rim.rotation.y = Math.PI / 2;
+    rim.rotation.z = 0;
+    rim.position.x = -0.165;
+    const small = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.024, 22), this.iron));
+    small.position.x = -0.137;
+    const hub = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.03, 14), this.ironRim));
+    hub.position.x = -0.15;
+    const clip = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.012, 14), this.graphite));
+    clip.position.x = -0.115;
+    const cap = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.012, 12), this.chrome));
+    cap.position.x = tip - 0.006;
+    // The pivot's sleeve: a tube the far end sits in, swinging with the bar.
+    const tube = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.16, 14), this.iron));
+    tube.position.x = -reach + 0.08;
+    const mouth = this.alongX(new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.005, 8, 14), this.ironRim));
+    mouth.rotation.y = Math.PI / 2;
+    mouth.rotation.z = 0;
+    mouth.position.x = -reach + 0.16;
+    group.add(shaft, sleeve, collar, big, rim, small, hub, clip, cap, tube, mouth);
+    return group;
+  }
+
+  // The fixed part of a landmine: a plate on the floor, a short post, and the
+  // ball hinge the sleeve swivels on.
+  private landmineBase(pivot: THREE.Vector3): THREE.Group {
+    const group = new THREE.Group();
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.02, 0.2), this.iron);
+    plate.position.y = -LANDMINE_HINGE + 0.012;
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, LANDMINE_HINGE - 0.02, 12), this.ironRim);
+    post.position.y = -LANDMINE_HINGE / 2 + 0.01;
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.034, 14, 10), this.graphite);
+    group.add(plate, post, ball);
+    group.position.copy(pivot);
+    return group;
+  }
+
   private plainBar(length: number): THREE.Group {
     const group = new THREE.Group();
     group.add(this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, length, 12), this.graphite)));
@@ -931,6 +1016,25 @@ export class PoseViewer3D {
       }
       if (prop.kind === "bar") {
         if (prop.plates && implement === undefined) continue;
+        if (prop.dir) {
+          // A landmine. The far end of a full-length bar sits in a sleeve on
+          // a floor pivot ahead of the lifter and the hands cup the near end,
+          // plates loaded just behind them. The pivot is wherever the hands'
+          // arc says it is, and the bar swings rigidly about it each frame
+          // (see update) instead of leaning at one fixed angle.
+          const pivot = this.landminePivot(i, prop.dir);
+          let reach = 0;
+          for (const frame of this.frames) {
+            const p = frame.props[i]!;
+            if (p.kind === "bar") reach += vec(p.center).distanceTo(pivot) / this.frames.length;
+          }
+          const landmine = this.landmine(reach);
+          this.scene.add(landmine, this.landmineBase(pivot));
+          const group = this.anchored(landmine, i, "bar");
+          group.userData.pivot = pivot;
+          this.held.push(group);
+          continue;
+        }
         let mesh: THREE.Group;
         if (implement === "kettlebell" && prop.plates) {
           // The named case: a kettlebell swing is authored on the hinge, and a
@@ -958,17 +1062,6 @@ export class PoseViewer3D {
           }
         } else {
           mesh = this.plainBar(prop.length);
-        }
-        if (prop.dir) {
-          // Landmine-style: the mesh is built along X. Aim it along dir and
-          // shift it inside a carrier so the HANDS hold an end -- the rest of
-          // the bar runs down toward its floor pivot.
-          const d = new THREE.Vector3(prop.dir[0], prop.dir[1], prop.dir[2]).normalize();
-          mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), d);
-          const carrier = new THREE.Group();
-          mesh.position.copy(d).multiplyScalar(-(prop.length / 2 - 0.05));
-          carrier.add(mesh);
-          mesh = carrier;
         }
         this.scene.add(mesh);
         const perHand = implement === "dumbbell" && prop.plates;
@@ -1044,8 +1137,15 @@ export class PoseViewer3D {
       }
       box.expandByPoint(vec(frame.head.c).addScalar(frame.head.r * 1.4));
       box.expandByPoint(vec(frame.head.c).addScalar(-frame.head.r * 1.4));
-      for (const prop of frame.props) {
-        if (prop.kind === "bar") {
+      for (const [index, prop] of frame.props.entries()) {
+        if (prop.kind === "bar" && prop.dir) {
+          // A landmine runs from the hands down to its floor base ahead.
+          const pivot = this.landminePivot(index, prop.dir);
+          box.expandByPoint(pivot.clone().add(new THREE.Vector3(0.1, 0, 0.1)));
+          box.expandByPoint(pivot.clone().add(new THREE.Vector3(-0.1, -LANDMINE_HINGE, -0.1)));
+          box.expandByPoint(vec(prop.center).addScalar(0.11));
+          box.expandByPoint(vec(prop.center).addScalar(-0.11));
+        } else if (prop.kind === "bar") {
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(prop.length / 2, 0.11, 0)));
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(-prop.length / 2, -0.11, 0)));
         } else if (prop.kind === "slab" && prop.width >= 0.5 && !prop.dir) {
@@ -1085,7 +1185,16 @@ export class PoseViewer3D {
     this.orbitRadius = Math.max(fitV * 1.06, fitH * 1.16, (extent / 2 / tanV / 2) * 1.16);
     if (this.floorDisc) {
       const halfW = this.orbitRadius * tanV * Math.max(this.camera.aspect, 0.5);
-      const s = Math.min(Math.max(halfW * 0.82, 0.5), 1.9);
+      let s = Math.min(Math.max(halfW * 0.82, 0.5), 1.9);
+      // A landmine's base stands well ahead of the lifter; the podium slides
+      // under the whole scene, and grows if it must, so the base is not left
+      // out on the black.
+      if (this.pivots.size) {
+        this.floorDisc.position.set(this.centre.x, this.floorDisc.position.y, this.centre.z);
+        for (const pivot of this.pivots.values()) {
+          s = Math.max(s, Math.hypot(pivot.x - this.centre.x, pivot.z - this.centre.z) + 0.18);
+        }
+      }
       this.floorDisc.scale.set(s, 1, s);
     }
     this.camera.position.set(
@@ -1227,6 +1336,10 @@ export class PoseViewer3D {
         group.position.x += which === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
       } else {
         group.position.copy(lerp3(pa.center, pb.center, f));
+        // A landmine bar is built along +X from its pivot end; aim it from
+        // the pivot through the hands, so the pivot end never leaves the floor.
+        const pivot = (group.userData as { pivot?: THREE.Vector3 }).pivot;
+        if (pivot) group.quaternion.setFromUnitVectors(AXIS_X, group.position.clone().sub(pivot).normalize());
       }
     }
 
