@@ -231,6 +231,16 @@ function build(figure: Figure, view: View): { segments: PoseSegment[]; head: { x
   return { segments, head: { ...headCentre, r: P.headRadius }, joints };
 }
 
+// How far in front of the trunk plane a front-view hand sits, by how close
+// to the centreline it is and how high: hands at the chest are a forearm's
+// depth out, hands out at the sides barely ahead of the shoulders, and hands
+// overhead stack over the shoulders rather than reaching forward.
+function frontDepth(xWorld: number, aboveShoulder: number): number {
+  const lateral = Math.max(0, Math.min(1, 1 - Math.abs(xWorld) / 0.4));
+  const lift = Math.max(0, Math.min(1, aboveShoulder / 0.2));
+  return 0.04 + 0.12 * lateral * (1 - 0.7 * lift);
+}
+
 // Builds the same figure in world space. The authored angles live in one plane
 // -- sagittal for a side view, frontal for a front view -- and the third axis
 // comes from the girdle widths, which is exactly the information a flat
@@ -290,6 +300,14 @@ function build3d(figure: Figure, view: View): { bones: PoseBone3D[]; head: { c: 
     const spread = arm.spread ?? 0;
     elbow[0] += out * (0.014 + spread / 2);
     wrist[0] += out * (0.028 + spread);
+    // Face on, the authored arms have no depth, so hands that cross in front
+    // of the trunk would sit INSIDE it; give them the depth a real arm has
+    // there -- well forward at the centreline, a hair forward at the sides.
+    if (view === "front") {
+      const z = frontDepth(wrist[0], wrist[1] - shoulderMid[1]);
+      elbow[2] += z / 2;
+      wrist[2] += z;
+    }
     // Walked from the already-shifted wrist, so it carries the splay with it.
     const handTip = walk(wrist, arm.end ?? arm.lower, P.hand);
     bones.push({ part: "upperArm", side, a: shoulder[side]!, b: elbow });
@@ -316,16 +334,26 @@ function build3d(figure: Figure, view: View): { bones: PoseBone3D[]; head: { c: 
 // The 2D props are already resolved against the figure; the world form is a
 // mechanical conversion of each one, plus the bar getting its real length --
 // a side view foreshortens a barbell to a stub, and a 3D one must not.
-function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
+function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp3D[] {
   const point = (x: number, y: number): Vec3 =>
     view === "side" ? [0, 1 - y, (x - 0.5) * ASPECT] : [(x - 0.5) * ASPECT, 1 - y, 0];
+  // Face on, anything held rides at the depth of the hand holding it -- the
+  // hand itself when the prop sits on one, the hands' mean when it spans both.
+  const heldDepth = (x: number, y: number): number => {
+    if (view !== "front") return 0;
+    const wx = (x - 0.5) * ASPECT;
+    const wy = 1 - y;
+    const own = hands.find((h) => Math.abs(h[0] - wx) < 0.012 && Math.abs(h[1] - wy) < 0.012);
+    return own ? own[2] : (hands[0][2] + hands[1][2]) / 2;
+  };
   return props.map((prop) => {
     if (prop.kind === "floor") return { kind: "floor" as const, y: 1 - prop.y };
     if (prop.kind === "bar") {
       const centre = point(prop.x, prop.y);
-      // In a front view the bar sits a hand's depth in front of the body --
-      // in the body plane it visibly passed through the neck and skull.
-      if (view === "front") centre[2] = 0.065;
+      // In a front view the bar sits at the hands' depth, and never inside
+      // the trunk -- in the body plane it visibly passed through the neck
+      // and skull.
+      if (view === "front") centre[2] = Math.max(heldDepth(prop.x, prop.y), 0.075);
       return {
         kind: "bar" as const,
         center: centre,
@@ -343,12 +371,19 @@ function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
           : {}),
       };
     }
-    if (prop.kind === "bell") return { kind: "bell" as const, center: point(prop.x, prop.y), size: prop.size };
+    if (prop.kind === "bell") {
+      const centre = point(prop.x, prop.y);
+      if (view === "front") centre[2] = heldDepth(prop.x, prop.y);
+      return { kind: "bell" as const, center: centre, size: prop.size };
+    }
     if (prop.kind === "cable") {
       // Face on, the machine stands IN FRONT of the figure (the figure faces
       // +Z); the authored anchor only says how high and how far to the side.
+      // The cable ends where the hand actually is, depth included.
       const anchor: Vec3 = view === "front" ? [(prop.ax - 0.5) * ASPECT, 1 - prop.ay, 0.45] : point(prop.ax, prop.ay);
-      return { kind: "cable" as const, center: point(prop.x, prop.y), anchor };
+      const centre = point(prop.x, prop.y);
+      if (view === "front") centre[2] = heldDepth(prop.x, prop.y);
+      return { kind: "cable" as const, center: centre, anchor };
     }
     return {
       kind: "slab" as const,
@@ -446,10 +481,10 @@ function pose(view: View, figures: Figure[], props: PropSpec[] = [], grip: GripS
   if (new Set(frames.map(shape)).size !== 1) throw new Error("key positions disagree on how many parts there are");
   // The world form is derived from the same figures and the already-resolved
   // props, so the two renderers can never disagree about the movement.
-  const frames3d = figures.map((figure, i) => ({
-    ...build3d(figure, view),
-    props: propsTo3d(frames[i]!.props, view),
-  }));
+  const frames3d = figures.map((figure, i) => {
+    const world = build3d(figure, view);
+    return { ...world, props: propsTo3d(frames[i]!.props, view, world.hands) };
+  });
   return { frames, frames3d, grip, facing };
 }
 
