@@ -202,8 +202,8 @@ export class PoseViewer3D {
   // --- The mannequin -------------------------------------------------------
 
   // The coach: a bronzed athlete in the app's kit -- light sleeveless top,
-  // dark knee-length shorts, and the brand lime on the headband, wristbands
-  // and shoes. Sleeveless on purpose: the arms stay bare so shoulders and
+  // dark knee-length shorts, and the brand lime on the wristbands and shoes.
+  // Sleeveless on purpose: the arms stay bare so shoulders and
   // elbows read clearly in every demo. The top is the old mannequin grey, the
   // one light surface that holds up against the dark card and the black
   // iron; a dark top made the trunk vanish and the figure read as floating
@@ -340,11 +340,8 @@ export class PoseViewer3D {
     const moustache = new THREE.Mesh(new THREE.BoxGeometry(R * 0.46, R * 0.09, R * 0.1), this.hair);
     moustache.position.set(0, -R * 0.3, R * 0.86);
     this.face.add(moustache);
-    // Headband above the brows, sized to the skull's cross-section there.
-    const band = new THREE.Mesh(new THREE.TorusGeometry(R * 0.8, R * 0.07, 8, 28), this.lime);
-    band.rotation.x = Math.PI / 2;
-    band.position.y = R * 0.52;
-    this.face.add(band);
+    // No headband: the user found the hoop on the head distracting, so the
+    // lime stays on the wrists and shoes only.
     this.scene.add(this.face);
 
     // A hand per side. Holding something, it is four fingers and a thumb
