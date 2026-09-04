@@ -14,7 +14,8 @@
 
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import type { ExercisePose, PoseFrame3D, Vec3 } from "./poses";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import type { ExercisePose, PoseFrame3D, PoseProp3D, Vec3 } from "./poses";
 
 // Matches the loadable implements the workout knows about; the viewer only
 // cares which family of equipment to draw.
@@ -334,7 +335,73 @@ export class PoseViewer3D {
   private iron = new THREE.MeshStandardMaterial({ color: 0x15181b, roughness: 0.45, metalness: 0.35 });
   private ironRim = new THREE.MeshStandardMaterial({ color: 0x3b444a, roughness: 0.4, metalness: 0.5 });
   private graphite = new THREE.MeshStandardMaterial({ color: 0x4c565c, roughness: 0.4, metalness: 0.7 });
-  private padMaterial = new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.8 });
+  // Vinyl: a little sheen, unlike the matte floor.
+  private padMaterial = new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.55, metalness: 0.05 });
+  private rubber = new THREE.MeshStandardMaterial({ color: 0x0b0d0c, roughness: 0.9 });
+
+  // A bench pad: a rounded vinyl slab, not a sharp box.
+  private pad(w: number, h: number, l: number): THREE.Mesh {
+    return new THREE.Mesh(new RoundedBoxGeometry(w, h, l, 4, Math.min(0.02, h / 2.2)), this.padMaterial);
+  }
+
+  // A flat weight bench as a gym actually has one: the pad on a board over a
+  // spine beam, a T-base at each end on rubber feet, a runner between them
+  // -- and, when the movement presses a plated bar, the rack uprights with
+  // the J-cups the bar starts from, standing just past the head end. The
+  // group's origin is the pad's centre, so `floorY` and `cupY` come in as
+  // world heights and are made relative here.
+  private flatBench(
+    prop: Extract<PoseProp3D, { kind: "slab" }>,
+    floorY: number,
+    rack?: { cupY: number; headward: 1 | -1 },
+  ): THREE.Group {
+    const g = new THREE.Group();
+    const len = prop.width;
+    const base = floorY - prop.center[1];
+    g.add(this.pad(0.32, prop.height, len));
+    const board = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.02, len - 0.04), this.iron);
+    board.position.y = -prop.height / 2 - 0.01;
+    const spine = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, len - 0.16), this.graphite);
+    spine.position.y = -prop.height / 2 - 0.045;
+    const runner = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.035, len - 0.24), this.iron);
+    runner.position.y = base + 0.05;
+    g.add(board, spine, runner);
+    const postTop = -prop.height / 2 - 0.07;
+    for (const z of [-(len / 2 - 0.12), len / 2 - 0.12]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.05, postTop - base - 0.035, 0.05), this.iron);
+      post.position.set(0, (postTop + base + 0.035) / 2, z);
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.035, 0.06), this.iron);
+      foot.position.set(0, base + 0.03, z);
+      g.add(post, foot);
+      for (const x of [-0.21, 0.21]) {
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.012, 12), this.rubber);
+        cap.position.set(x, base + 0.006, z);
+        g.add(cap);
+      }
+    }
+    if (rack) {
+      const zR = rack.headward * (len / 2 + 0.07);
+      const cupY = rack.cupY - prop.center[1];
+      const topY = cupY + 0.1;
+      for (const x of [-0.36, 0.36]) {
+        const upright = new THREE.Mesh(new THREE.BoxGeometry(0.055, topY - base, 0.055), this.iron);
+        upright.position.set(x, (topY + base) / 2, zR);
+        const foot = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.035, 0.34), this.iron);
+        foot.position.set(x, base + 0.0175, zR);
+        // The J-cup: a shelf reaching toward the bench, with a lip so the
+        // bar cannot roll off it.
+        const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.02, 0.1), this.graphite);
+        shelf.position.set(x, cupY - 0.02, zR - rack.headward * 0.075);
+        const lip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.02), this.graphite);
+        lip.position.set(x, cupY, zR - rack.headward * 0.115);
+        g.add(upright, foot, shelf, lip);
+      }
+      const brace = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.035, 0.035), this.iron);
+      brace.position.set(0, base + 0.16, zR);
+      g.add(brace);
+    }
+    return g;
+  }
 
   private alongX(mesh: THREE.Mesh): THREE.Mesh {
     mesh.rotation.z = Math.PI / 2;
@@ -457,11 +524,11 @@ export class PoseViewer3D {
           const n = new THREE.Vector3(0, d.z, -d.y).normalize();
           if (n.y > 0) n.negate();
           const group = new THREE.Group();
-          const back = new THREE.Mesh(new THREE.BoxGeometry(0.30, prop.height, prop.width), this.padMaterial);
+          const back = this.pad(0.32, prop.height, prop.width);
           back.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d);
           back.position.copy(d).multiplyScalar(prop.width / 2 - 0.05).addScaledVector(n, BODY_HALF + prop.height / 2);
           const feetward = -Math.sign(d.z) || 1;
-          const seat = new THREE.Mesh(new THREE.BoxGeometry(0.30, prop.height, 0.24), this.padMaterial);
+          const seat = this.pad(0.32, prop.height, 0.24);
           seat.position.set(0, -(BODY_HALF - 0.008 + prop.height / 2), feetward * 0.1);
           group.add(back, seat);
           if (floorY !== undefined) {
@@ -483,24 +550,16 @@ export class PoseViewer3D {
         // of the orbit where the camera passes behind it.
         const wall = prop.height > 0.3;
         const drop = floorY !== undefined && !wall ? prop.center[1] - floorY : 0;
-        if (drop > 0.12) {
-          // A flat weight bench: a proper pad on a steel frame -- two posts
-          // on wide feet and a rail between them -- not four toothpicks under
-          // a plank. Grouped so it re-anchors with the figure as one object.
-          const group = new THREE.Group();
-          const pad = new THREE.Mesh(new THREE.BoxGeometry(0.30, prop.height, prop.width), this.padMaterial);
-          const rail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.03, prop.width - 0.12), this.iron);
-          rail.position.y = -prop.height / 2 - 0.015;
-          group.add(pad, rail);
-          const base = -drop;
-          for (const z of [-(prop.width / 2 - 0.1), prop.width / 2 - 0.1]) {
-            const top = -prop.height / 2 - 0.03;
-            const post = new THREE.Mesh(new THREE.BoxGeometry(0.035, top - base, 0.035), this.iron);
-            post.position.set(0, (top + base) / 2, z);
-            const foot = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.025, 0.05), this.graphite);
-            foot.position.set(0, base + 0.0125, z);
-            group.add(post, foot);
-          }
+        if (drop > 0.12 && floorY !== undefined) {
+          // A full-length bench under a plated barbell is a bench-press
+          // station and gets the rack; a short bench (hip thrust) or a
+          // dumbbell/bodyweight movement does not.
+          const bar = first.props.find((p) => p.kind === "bar" && p.plates);
+          const rack =
+            bar && bar.kind === "bar" && implement === "barbell" && prop.width >= 0.5
+              ? { cupY: bar.center[1], headward: (Math.sign(bar.center[2] - prop.center[2]) || -1) as 1 | -1 }
+              : undefined;
+          const group = this.flatBench(prop, floorY, rack);
           this.scene.add(group);
           this.held.push(this.anchored(group, i, "slab"));
           continue;
@@ -644,6 +703,11 @@ export class PoseViewer3D {
         if (prop.kind === "bar") {
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(prop.length / 2, 0.11, 0)));
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(-prop.length / 2, -0.11, 0)));
+        } else if (prop.kind === "slab" && prop.width >= 0.5 && !prop.dir) {
+          // A full-length bench runs well past its centre, and a bench-press
+          // station's rack uprights stand wider still, just past the head end.
+          box.expandByPoint(vec(prop.center).add(new THREE.Vector3(0.4, 0.08, prop.width / 2 + 0.12)));
+          box.expandByPoint(vec(prop.center).add(new THREE.Vector3(-0.4, -0.08, -(prop.width / 2 + 0.12))));
         } else if (prop.kind !== "floor") {
           box.expandByPoint(vec(prop.center).addScalar(0.08));
           box.expandByPoint(vec(prop.center).addScalar(-0.08));
