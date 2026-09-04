@@ -29,6 +29,9 @@ export type PoseProp =
   // direction (same convention as a bar's angle) from the anchor, which is
   // then the hip joint rather than the pad's centre.
   | { kind: "slab"; x: number; y: number; width: number; height: number; angle?: number }
+  // A cable running from a pulley (the anchor, fixed in the world) to the
+  // hands; the world build draws the whole machine around the anchor.
+  | { kind: "cable"; x: number; y: number; ax: number; ay: number }
   // A ground line. Side views are hard to read without one -- a bent-over
   // figure and a lying one are the same jumble of sticks until you can see
   // which way is down and where the body is relative to the floor.
@@ -67,6 +70,8 @@ export type PoseProp3D =
   | { kind: "bell"; center: Vec3; size: number }
   // dir: an inclined bench's backrest direction; center is then the hip.
   | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3 }
+  // center is the grip (where the cable ends), anchor the pulley.
+  | { kind: "cable"; center: Vec3; anchor: Vec3 }
   | { kind: "floor"; y: number };
 
 export type PoseFrame3D = {
@@ -339,6 +344,12 @@ function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
       };
     }
     if (prop.kind === "bell") return { kind: "bell" as const, center: point(prop.x, prop.y), size: prop.size };
+    if (prop.kind === "cable") {
+      // Face on, the machine stands IN FRONT of the figure (the figure faces
+      // +Z); the authored anchor only says how high and how far to the side.
+      const anchor: Vec3 = view === "front" ? [(prop.ax - 0.5) * ASPECT, 1 - prop.ay, 0.45] : point(prop.ax, prop.ay);
+      return { kind: "cable" as const, center: point(prop.x, prop.y), anchor };
+    }
     return {
       kind: "slab" as const,
       center: point(prop.x, prop.y),
@@ -355,6 +366,9 @@ type PropSpec =
   | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean }
   | { kind: "bell"; at: string; size?: number; each?: boolean }
   | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number; angle?: number }
+  // anchor: the pulley, in authored coordinates (a high pulley sits above the
+  // frame's top edge, which is fine -- it only has to be off the figure).
+  | { kind: "cable"; at: string; anchor: Point }
   // Placed under the lowest point of the figure, so it sits where the ground
   // is. Pin it with `y` when the body leaves the ground: otherwise the floor
   // rises with the jump, which reads as the world moving, not the athlete.
@@ -366,6 +380,12 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
   for (const spec of specs) {
     if (spec.kind === "floor") {
       drawn.push({ kind: "floor", y: spec.y ?? lowest + 0.006 });
+      continue;
+    }
+    if (spec.kind === "cable") {
+      const grip = joints[spec.at];
+      if (!grip) throw new Error(`pose: cable anchored to unknown joint "${spec.at}"`);
+      drawn.push({ kind: "cable", x: grip.x, y: grip.y, ax: spec.anchor.x, ay: spec.anchor.y });
       continue;
     }
     if (spec.kind === "bell" && spec.each) {

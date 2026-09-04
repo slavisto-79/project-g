@@ -339,6 +339,107 @@ export class PoseViewer3D {
   private padMaterial = new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.55, metalness: 0.05 });
   private rubber = new THREE.MeshStandardMaterial({ color: 0x0b0d0c, roughness: 0.9 });
 
+  // --- Cable machines ------------------------------------------------------
+
+  // One per cable prop: the two cable runs (pulley to hands, pulley down to
+  // the stack) get re-stretched every frame, and the top of the weight stack
+  // rises by however much cable the hands have pulled past the rest length.
+  private cables: {
+    propIndex: number;
+    anchor: THREE.Vector3;
+    line: THREE.Mesh;
+    feed: THREE.Mesh;
+    mover: THREE.Group;
+    machine: THREE.Group;
+    capLocal: THREE.Vector3;
+    rest: number;
+  }[] = [];
+  private cableMaterial = new THREE.MeshStandardMaterial({ color: 0x23282c, roughness: 0.35, metalness: 0.8 });
+
+  // Stretch a unit cylinder between two world points.
+  private stretch(mesh: THREE.Mesh, from: THREE.Vector3, to: THREE.Vector3) {
+    const dir = to.clone().sub(from);
+    const len = Math.max(dir.length(), 1e-4);
+    mesh.position.copy(from).addScaledVector(dir, 0.5);
+    mesh.quaternion.setFromUnitVectors(UP, dir.divideScalar(len));
+    mesh.scale.set(1, len, 1);
+  }
+
+  // A cable station: a tall column on two posts with a weight stack riding
+  // guide rods inside it, a pulley on an arm at the anchor height, and the
+  // cable from the pulley to the hands. Built in a local frame whose +Z
+  // points from the column toward the figure, then turned to face it.
+  private cableMachine(prop: Extract<PoseProp3D, { kind: "cable" }>, floorY: number, propIndex: number) {
+    const anchor = vec(prop.anchor);
+    const grip = vec(prop.center);
+    const toward = new THREE.Vector3(grip.x - anchor.x, 0, grip.z - anchor.z);
+    if (toward.lengthSq() < 1e-6) toward.set(0, 0, -1);
+    toward.normalize();
+    const g = new THREE.Group();
+    g.position.set(anchor.x, 0, anchor.z);
+    g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), toward);
+    const colZ = -0.16;
+    const top = Math.max(anchor.y + 0.14, 1.18);
+    for (const x of [-0.17, 0.17]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.05, top - floorY, 0.05), this.iron);
+      post.position.set(x, (top + floorY) / 2, colZ);
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.03, 0.62), this.iron);
+      foot.position.set(x, floorY + 0.015, colZ + 0.06);
+      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, top - floorY - 0.12, 8), this.chrome);
+      rod.position.set(x * 0.55, (top + floorY) / 2 - 0.02, colZ);
+      g.add(post, foot, rod);
+    }
+    const crown = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.05, 0.08), this.iron);
+    crown.position.set(0, top - 0.025, colZ);
+    g.add(crown);
+    // The stack: fixed plates below, the selected plates on top that travel.
+    const plateH = 0.04;
+    const gap = 0.006;
+    let y = floorY + 0.05;
+    for (let i = 0; i < 9; i++) {
+      const plate = new THREE.Mesh(new THREE.BoxGeometry(0.26, plateH, 0.12), this.iron);
+      plate.position.set(0, y + plateH / 2, colZ);
+      g.add(plate);
+      y += plateH + gap;
+    }
+    const mover = new THREE.Group();
+    let my = 0;
+    for (let i = 0; i < 4; i++) {
+      const plate = new THREE.Mesh(new THREE.BoxGeometry(0.26, plateH, 0.12), this.iron);
+      plate.position.set(0, my + plateH / 2, 0);
+      mover.add(plate);
+      my += plateH + gap;
+    }
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.02, 0.14), this.graphite);
+    cap.position.set(0, my + 0.01, 0);
+    const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.08, 8), this.chrome);
+    pin.rotation.x = Math.PI / 2;
+    pin.position.set(0, plateH * 2, 0.09);
+    mover.add(cap, pin);
+    mover.position.set(0, y, colZ);
+    g.add(mover);
+    const capLocal = new THREE.Vector3(0, y + my + 0.02, colZ);
+    // The pulley on its arm, out from the column at the anchor height.
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.04, -colZ), this.iron);
+    arm.position.set(0, anchor.y + 0.035, colZ / 2);
+    const pulley = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 20), this.graphite);
+    pulley.rotation.z = Math.PI / 2;
+    pulley.position.set(0, anchor.y, 0);
+    g.add(arm, pulley);
+    this.scene.add(g);
+    const line = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 1, 8), this.cableMaterial);
+    const feed = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 1, 8), this.cableMaterial);
+    this.scene.add(line, feed);
+    // Rest length: the shortest pulley-to-hands run across the movement; the
+    // stack sits on its stop there and rises by the extra cable pulled.
+    let rest = Infinity;
+    for (const frame of this.frames) {
+      const p = frame.props[propIndex];
+      if (p && p.kind === "cable") rest = Math.min(rest, vec(p.center).distanceTo(vec(p.anchor)));
+    }
+    this.cables.push({ propIndex, anchor, line, feed, mover, machine: g, capLocal, rest });
+  }
+
   // A bench pad: a rounded vinyl slab, not a sharp box.
   private pad(w: number, h: number, l: number): THREE.Mesh {
     return new THREE.Mesh(new RoundedBoxGeometry(w, h, l, 4, Math.min(0.02, h / 2.2)), this.padMaterial);
@@ -510,6 +611,11 @@ export class PoseViewer3D {
         floorGroup.scale.set(0.55, 1, 0.55);
         this.floorDisc = floorGroup;
         this.scene.add(floorGroup);
+        continue;
+      }
+      if (prop.kind === "cable") {
+        const floor = first.props.find((p) => p.kind === "floor");
+        this.cableMachine(prop, floor && floor.kind === "floor" ? floor.y : 0, i);
         continue;
       }
       if (prop.kind === "slab") {
@@ -708,6 +814,11 @@ export class PoseViewer3D {
           // station's rack uprights stand wider still, just past the head end.
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(0.4, 0.08, prop.width / 2 + 0.12)));
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(-0.4, -0.08, -(prop.width / 2 + 0.12))));
+        } else if (prop.kind === "cable") {
+          // The station's column stands behind the pulley and reaches the
+          // floor; the fit has to hold all of it, not just the cable's end.
+          box.expandByPoint(vec(prop.anchor).add(new THREE.Vector3(0.28, 0.2, 0.28)));
+          box.expandByPoint(new THREE.Vector3(prop.anchor[0] - 0.28, 0.02, prop.anchor[2] - 0.28));
         } else if (prop.kind !== "floor") {
           box.expandByPoint(vec(prop.center).addScalar(0.08));
           box.expandByPoint(vec(prop.center).addScalar(-0.08));
@@ -844,6 +955,19 @@ export class PoseViewer3D {
       } else {
         group.position.copy(lerp3(pa.center, pb.center, f));
       }
+    }
+
+    for (const cable of this.cables) {
+      const pa = a.props[cable.propIndex]!;
+      const pb = b.props[cable.propIndex]!;
+      if (pa.kind !== "cable" || pb.kind !== "cable") continue;
+      const grip = lerp3(pa.center, pb.center, f);
+      this.stretch(cable.line, cable.anchor, grip);
+      const rise = Math.min(Math.max(grip.distanceTo(cable.anchor) - cable.rest, 0), 0.45);
+      cable.mover.position.y = cable.mover.userData.baseY ?? (cable.mover.userData.baseY = cable.mover.position.y);
+      cable.mover.position.y += rise;
+      const cap = cable.machine.localToWorld(cable.capLocal.clone().add(new THREE.Vector3(0, rise, 0)));
+      this.stretch(cable.feed, cable.anchor, cap);
     }
 
     if (this.controls) {

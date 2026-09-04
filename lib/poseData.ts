@@ -585,7 +585,7 @@ export const exercisePoses = {
   tricepsExtension: pose(
     "front",
     [100, 138, 174].map((forearm) => standFront(0.497, 0, bothArms(170, forearm))),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.16, plates: false }],
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.16, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.5, y: 0.02 } }],
   ),
 
   kickback: pose(
@@ -640,6 +640,7 @@ export const exercisePoses = {
       { kind: "floor" },
       { kind: "slab", at: "pelvis", width: 0.16, height: 0.055, dy: 0.075 },
       { kind: "bar", at: "grip", length: 0.10, plates: false },
+      { kind: "cable", at: "grip", anchor: { x: 0.88, y: 0.50 } },
     ],
   ),
 
@@ -654,7 +655,7 @@ export const exercisePoses = {
         legs: plantedLegs(pelvis, 4, "front", FEET_FRONT, OUT),
       };
     }),
-    [{ kind: "bar", at: "grip", length: 0.44, plates: false }],
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.44, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.5, y: -0.06 } }],
   ),
 
   pullUp: pose(
@@ -777,7 +778,7 @@ export const exercisePoses = {
       // Both hands travel together on a diagonal; that diagonal is the exercise.
       { pelvis: { x: 0.5, y: 0.585 }, torso: 12, arms: [{ upper: 214, lower: 210 }, { upper: 220, lower: 216 }], legs: plantedLegs({ x: 0.5, y: 0.585 }, 12, "front", [{ x: 0.612, y: FLOOR }, { x: 0.388, y: FLOOR }], OUT) },
     ],
-    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }],
+    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }, { kind: "cable", at: "grip", anchor: { x: 0.95, y: 0.08 } }],
   ),
 
   carry: pose(
@@ -883,14 +884,14 @@ export const exercisePoses = {
   straightArmPulldown: pose(
     "side",
     [40, 98, 166].map((arm) => stand({ x: 0.5, y: 0.494 }, 18, sideArms(arm, arm + 2), 14, [{ x: 0.557, y: FLOOR }, { x: 0.515, y: FLOOR }])),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.16, plates: false }],
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.16, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.9, y: 0.02 } }],
   ),
 
   // Pulled to the face with the elbows staying high.
   facePull: pose(
     "side",
     ([[82, 84], [96, 50], [108, 4]] as const).map(([up, low]) => stand({ x: 0.5, y: 0.494 }, 6, sideArms(up, low), undefined, [{ x: 0.538, y: FLOOR }, { x: 0.515, y: FLOOR }])),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.10, plates: false }],
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.10, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.92, y: 0.3 } }],
   ),
 
   // Hinged over, arms sweeping from a hang up and back with soft elbows.
@@ -985,7 +986,8 @@ export const exercisePoses = {
         legs: [{ upper: thigh, lower: 90, end: 98 }, { upper: thigh + 4, lower: 94, end: 102 }] as [Limb, Limb],
       };
     }),
-    [{ kind: "floor" }],
+    // The rope handle at the head, and the cable up to a high pulley in front.
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.08, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.18, y: 0.0 } }],
   ),
 
   // Seated and leaned back, feet light: the hands sweep between chest height
