@@ -220,7 +220,7 @@ export const exercisePoses = {
       arms: sideArms(150, 172),
       legs: sideLegs(92, shin, shin - 90),
     })),
-    [{ kind: "floor", y: 0.9 }, { kind: "slab", at: "pelvis", width: 0.22, height: 0.035, dy: 0.042 }],
+    [{ kind: "floor", y: 0.9 }, { kind: "slab", at: "pelvis", width: 0.22, height: 0.055, dy: 0.075 }],
   ),
 
   legCurl: pose(
@@ -232,7 +232,7 @@ export const exercisePoses = {
       arms: sideArms(226, 300),
       legs: sideLegs(92, shin, shin + 85),
     })),
-    [{ kind: "floor", y: 0.79 }, { kind: "slab", at: "pelvis", width: 0.40, height: 0.035, dy: 0.045 }],
+    [{ kind: "floor", y: 0.79 }, { kind: "slab", at: "pelvis", width: 0.62, height: 0.055, dx: -0.13, dy: 0.085 }],
     "overhand",
     -1,
   ),
@@ -330,7 +330,7 @@ export const exercisePoses = {
     }),
     [
       { kind: "floor", y: 0.742 },
-      { kind: "slab", at: "shoulder", width: 0.20, height: 0.035, dy: 0.038 },
+      { kind: "slab", at: "shoulder", width: 0.20, height: 0.055, dy: 0.085 },
       { kind: "bar", at: "pelvis", dy: -0.048, length: 0.17 },
     ],
   ),
@@ -401,7 +401,7 @@ export const exercisePoses = {
     ([[0.397, 0.304], [0.450, 0.385], [0.505, 0.465]] as const).map(([barX, barY]) => bench(barX, barY)),
     [
       { kind: "floor" },
-      { kind: "slab", at: "pelvis", width: 0.40, height: 0.035, dy: 0.045 },
+      { kind: "slab", at: "pelvis", width: 0.62, height: 0.055, dx: -0.13, dy: 0.085 },
       { kind: "bar", at: "grip", length: 0.17 },
     ],
   ),
@@ -411,7 +411,7 @@ export const exercisePoses = {
     ([[0.460, 0.212], [0.495, 0.262], [0.525, 0.305]] as const).map(([barX, barY]) => incline(barX, barY)),
     [
       { kind: "floor" },
-      { kind: "slab", at: "pelvis", width: 0.22, height: 0.035, dy: 0.045 },
+      { kind: "slab", at: "pelvis", width: 0.55, height: 0.055, angle: 306 },
       { kind: "bar", at: "grip", length: 0.17 },
     ],
   ),
@@ -424,7 +424,7 @@ export const exercisePoses = {
     })),
     [
       { kind: "floor" },
-      { kind: "slab", at: "pelvis", width: 0.40, height: 0.035, dy: 0.045 },
+      { kind: "slab", at: "pelvis", width: 0.62, height: 0.055, dx: -0.13, dy: 0.085 },
       { kind: "bar", at: "grip", length: 0.14, plates: false },
     ],
   ),
@@ -622,7 +622,7 @@ export const exercisePoses = {
     }),
     [
       { kind: "floor" },
-      { kind: "slab", at: "pelvis", width: 0.16, height: 0.035, dy: 0.042 },
+      { kind: "slab", at: "pelvis", width: 0.16, height: 0.055, dy: 0.075 },
       { kind: "bar", at: "grip", length: 0.10, plates: false },
     ],
   ),
@@ -810,7 +810,7 @@ export const exercisePoses = {
       };
     }),
     [
-      { kind: "slab", at: "pelvis", width: 0.20, height: 0.035, dy: 0.052 },
+      { kind: "slab", at: "pelvis", width: 0.42, height: 0.055, angle: 322 },
       { kind: "slab", at: "ankle0", dx: 0.055, width: 0.045, height: 0.34 },
     ],
   ),
@@ -928,7 +928,7 @@ export const exercisePoses = {
     }),
     [
       { kind: "floor" },
-      { kind: "slab", at: "pelvis", width: 0.15, height: 0.035, dy: 0.05 },
+      { kind: "slab", at: "pelvis", width: 0.15, height: 0.055, dy: 0.08 },
       // The machine pad the hands rest on, riding over the knees.
       { kind: "slab", at: "hand0", width: 0.12, height: 0.028, dy: 0.02 },
     ],
@@ -1116,7 +1116,7 @@ export const exercisePoses = {
     }),
     [
       { kind: "floor" },
-      { kind: "slab", at: "pelvis", width: 0.22, height: 0.035, dy: 0.045 },
+      { kind: "slab", at: "pelvis", width: 0.55, height: 0.055, angle: 306 },
       { kind: "bell", at: "hand0", each: true },
     ],
     "underhand",

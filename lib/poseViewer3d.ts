@@ -22,6 +22,9 @@ export type ViewerImplement = "dumbbell" | "kettlebell" | "barbell" | "machine" 
 
 const BODY = 0xd8d3cb;
 const BENCH = 0x66736c;
+// Half the trunk's depth (the spine ellipse's shallow axis): how far a bench
+// pad's surface must sit below the spine line for the body to rest ON it.
+const BODY_HALF = 0.052;
 const FLOOR = 0x181c1a;
 const FLOOR_RING = 0x2c332f;
 
@@ -331,6 +334,7 @@ export class PoseViewer3D {
   private iron = new THREE.MeshStandardMaterial({ color: 0x15181b, roughness: 0.45, metalness: 0.35 });
   private ironRim = new THREE.MeshStandardMaterial({ color: 0x3b444a, roughness: 0.4, metalness: 0.5 });
   private graphite = new THREE.MeshStandardMaterial({ color: 0x4c565c, roughness: 0.4, metalness: 0.7 });
+  private padMaterial = new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.8 });
 
   private alongX(mesh: THREE.Mesh): THREE.Mesh {
     mesh.rotation.z = Math.PI / 2;
@@ -442,36 +446,81 @@ export class PoseViewer3D {
         continue;
       }
       if (prop.kind === "slab") {
+        const floor = first.props.find((p) => p.kind === "floor");
+        const floorY = floor && floor.kind === "floor" ? floor.y : undefined;
+        if (prop.dir) {
+          // An inclined bench, built around the HIP: a backrest pad running
+          // up the authored direction, a flat seat under the hips, and a
+          // frame to the floor. Both pads sit a body's half-thickness off
+          // the spine line, so the trunk rests ON them instead of through.
+          const d = new THREE.Vector3(prop.dir[0], prop.dir[1], prop.dir[2]).normalize();
+          const n = new THREE.Vector3(0, d.z, -d.y).normalize();
+          if (n.y > 0) n.negate();
+          const group = new THREE.Group();
+          const back = new THREE.Mesh(new THREE.BoxGeometry(0.30, prop.height, prop.width), this.padMaterial);
+          back.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d);
+          back.position.copy(d).multiplyScalar(prop.width / 2 - 0.05).addScaledVector(n, BODY_HALF + prop.height / 2);
+          const feetward = -Math.sign(d.z) || 1;
+          const seat = new THREE.Mesh(new THREE.BoxGeometry(0.30, prop.height, 0.24), this.padMaterial);
+          seat.position.set(0, -(BODY_HALF - 0.008 + prop.height / 2), feetward * 0.1);
+          group.add(back, seat);
+          if (floorY !== undefined) {
+            const base = floorY - prop.center[1];
+            const backMid = back.position.clone().addScaledVector(d, 0.12);
+            for (const [z, top] of [[seat.position.z, seat.position.y - prop.height / 2], [backMid.z, backMid.y - prop.height / 2]] as const) {
+              const post = new THREE.Mesh(new THREE.BoxGeometry(0.035, top - base, 0.035), this.iron);
+              post.position.set(0, (top + base) / 2, z);
+              const foot = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.025, 0.05), this.graphite);
+              foot.position.set(0, base + 0.0125, z);
+              group.add(post, foot);
+            }
+          }
+          this.scene.add(group);
+          this.held.push(this.anchored(group, i, "slab"));
+          continue;
+        }
         // A tall slab is a wall; drawn solid it hides the figure for the part
         // of the orbit where the camera passes behind it.
         const wall = prop.height > 0.3;
+        const drop = floorY !== undefined && !wall ? prop.center[1] - floorY : 0;
+        if (drop > 0.12) {
+          // A flat weight bench: a proper pad on a steel frame -- two posts
+          // on wide feet and a rail between them -- not four toothpicks under
+          // a plank. Grouped so it re-anchors with the figure as one object.
+          const group = new THREE.Group();
+          const pad = new THREE.Mesh(new THREE.BoxGeometry(0.30, prop.height, prop.width), this.padMaterial);
+          const rail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.03, prop.width - 0.12), this.iron);
+          rail.position.y = -prop.height / 2 - 0.015;
+          group.add(pad, rail);
+          const base = -drop;
+          for (const z of [-(prop.width / 2 - 0.1), prop.width / 2 - 0.1]) {
+            const top = -prop.height / 2 - 0.03;
+            const post = new THREE.Mesh(new THREE.BoxGeometry(0.035, top - base, 0.035), this.iron);
+            post.position.set(0, (top + base) / 2, z);
+            const foot = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.025, 0.05), this.graphite);
+            foot.position.set(0, base + 0.0125, z);
+            group.add(post, foot);
+          }
+          this.scene.add(group);
+          this.held.push(this.anchored(group, i, "slab"));
+          continue;
+        }
         const pad = new THREE.Mesh(
           new THREE.BoxGeometry(0.26, prop.height, prop.width),
           new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.8, transparent: wall, opacity: wall ? 0.45 : 1 }),
         );
         this.scene.add(pad);
-        // Grounding. A tall drop is a bench and stands on legs; a short one
-        // is a step or block drawn as a solid plinth -- four stubby legs
-        // under a low box read as debris, which is exactly what the
-        // split-squat block looked like in review. A tall slab is a wall and
-        // needs no grounding at all.
-        const floor = first.props.find((p) => p.kind === "floor");
-        if (floor && floor.kind === "floor" && prop.height < 0.3) {
-          const drop = prop.center[1] - floor.y;
-          if (drop > 0.12) {
-            for (const [sx, sz] of [[-1, -1], [-1, 1], [1, -1], [1, 1]] as const) {
-              const leg = new THREE.Mesh(new THREE.BoxGeometry(0.02, drop, 0.02), this.iron);
-              leg.position.set(prop.center[0] + sx * 0.07, floor.y + drop / 2, prop.center[2] + sz * (prop.width / 2 - 0.03));
-              this.scene.add(leg);
-            }
-          } else if (drop > 0.02) {
-            const plinth = new THREE.Mesh(
-              new THREE.BoxGeometry(0.24, drop, prop.width),
-              new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.85 }),
-            );
-            plinth.position.set(prop.center[0], floor.y + drop / 2, prop.center[2]);
-            this.scene.add(plinth);
-          }
+        // A short drop is a step or block drawn as a solid plinth -- four
+        // stubby legs under a low box read as debris, which is exactly what
+        // the split-squat block looked like in review. A wall needs no
+        // grounding at all.
+        if (floorY !== undefined && drop > 0.02) {
+          const plinth = new THREE.Mesh(
+            new THREE.BoxGeometry(0.24, drop, prop.width),
+            new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.85 }),
+          );
+          plinth.position.set(prop.center[0], floorY + drop / 2, prop.center[2]);
+          this.scene.add(plinth);
         }
         this.held.push(this.anchored(pad, i, "slab"));
         continue;
