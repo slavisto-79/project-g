@@ -25,7 +25,10 @@ export type PoseSegment = { x1: number; y1: number; x2: number; y2: number; weig
 export type PoseProp =
   | { kind: "bar"; x: number; y: number; angle: number; length: number; plates: boolean; rails?: boolean }
   | { kind: "bell"; x: number; y: number; size: number }
-  | { kind: "slab"; x: number; y: number; width: number; height: number }
+  // angle: an inclined bench -- the backrest runs along this authored
+  // direction (same convention as a bar's angle) from the anchor, which is
+  // then the hip joint rather than the pad's centre.
+  | { kind: "slab"; x: number; y: number; width: number; height: number; angle?: number }
   // A ground line. Side views are hard to read without one -- a bent-over
   // figure and a lying one are the same jumble of sticks until you can see
   // which way is down and where the body is relative to the floor.
@@ -62,7 +65,8 @@ export type PoseProp3D =
   // pointing from the floor-pinned end up toward the hands.
   | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean; dir?: Vec3 }
   | { kind: "bell"; center: Vec3; size: number }
-  | { kind: "slab"; center: Vec3; width: number; height: number }
+  // dir: an inclined bench's backrest direction; center is then the hip.
+  | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3 }
   | { kind: "floor"; y: number };
 
 export type PoseFrame3D = {
@@ -330,14 +334,22 @@ function propsTo3d(props: PoseProp[], view: View): PoseProp3D[] {
       };
     }
     if (prop.kind === "bell") return { kind: "bell" as const, center: point(prop.x, prop.y), size: prop.size };
-    return { kind: "slab" as const, center: point(prop.x, prop.y), width: prop.width, height: prop.height };
+    return {
+      kind: "slab" as const,
+      center: point(prop.x, prop.y),
+      width: prop.width,
+      height: prop.height,
+      ...(view === "side" && prop.angle !== undefined && prop.angle !== 90
+        ? { dir: [0, Math.cos((prop.angle * Math.PI) / 180), Math.sin((prop.angle * Math.PI) / 180)] as Vec3 }
+        : {}),
+    };
   });
 }
 
 type PropSpec =
   | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean }
   | { kind: "bell"; at: string; size?: number; each?: boolean }
-  | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number }
+  | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number; angle?: number }
   // Placed under the lowest point of the figure, so it sits where the ground
   // is. Pin it with `y` when the body leaves the ground: otherwise the floor
   // rises with the jump, which reads as the world moving, not the athlete.
@@ -372,7 +384,14 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
     } else if (spec.kind === "bell") {
       drawn.push({ kind: "bell", x: anchor.x, y: anchor.y, size: spec.size ?? 0.055 });
     } else {
-      drawn.push({ kind: "slab", x: anchor.x + (spec.dx ?? 0), y: anchor.y + (spec.dy ?? 0), width: spec.width, height: spec.height });
+      drawn.push({
+        kind: "slab",
+        x: anchor.x + (spec.dx ?? 0),
+        y: anchor.y + (spec.dy ?? 0),
+        width: spec.width,
+        height: spec.height,
+        ...(spec.angle !== undefined ? { angle: spec.angle } : {}),
+      });
     }
   }
   return drawn;
