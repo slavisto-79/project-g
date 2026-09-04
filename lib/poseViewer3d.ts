@@ -103,17 +103,23 @@ export class PoseViewer3D {
   private fistOutboard = false;
   private readonly interactive: boolean;
   private readonly reduceMotion: boolean;
+  // Fired once, after the first frame has actually been drawn at a real
+  // size -- the host shows a placeholder until then, because the first
+  // WebGL context of a session can take a few seconds to come up.
+  private readonly onReady: (() => void) | undefined;
+  private readyFired = false;
 
   constructor(
     host: HTMLElement,
     pose: ExercisePose,
     implement: ViewerImplement,
-    options: { interactive: boolean; reduceMotion?: boolean },
+    options: { interactive: boolean; reduceMotion?: boolean; onReady?: () => void },
   ) {
     this.host = host;
     this.frames = pose.frames3d;
     this.interactive = options.interactive;
     this.reduceMotion = options.reduceMotion ?? false;
+    this.onReady = options.onReady;
 
     this.canvas = document.createElement("canvas");
     this.canvas.style.width = "100%";
@@ -988,5 +994,9 @@ export class PoseViewer3D {
     }
 
     this.renderer.render(this.scene, this.camera);
+    if (!this.readyFired && this.host.clientWidth > 0 && this.host.clientHeight > 0) {
+      this.readyFired = true;
+      this.onReady?.();
+    }
   }
 }
