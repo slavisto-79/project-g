@@ -901,20 +901,26 @@ export const exercisePoses = {
     ],
   ),
 
-  // One end of the bar is pinned to the floor ahead; the hands arc around it,
-  // so the drawn bar leans at the arc's mean angle and runs down to the pivot.
+  // One end of a full-length bar sits in a pivot on the floor ahead; the hands
+  // cup the other end at the chest and press it up AND forward, so they
+  // travel an arc about that pivot -- a 2.2m bar leaning 33 degrees at the
+  // start and 50 at lockout. The world build finds the pivot from the arc;
+  // the 2D angle is the bar's lean at the start.
   landminePress: pose(
     "side",
-    ([[0.530, 0.350, 12], [0.616, 0.303, 8], [0.705, 0.284, 6]] as const).map(([hx, hy, torso]) => {
+    ([[0.593, 0.355, 10], [0.643, 0.247, 11], [0.707, 0.145, 13]] as const).map(([hx, hy, torso]) => {
       const pelvis = { x: 0.5, y: 0.494 };
+      // Both hands cup the ONE bar end at the midline, so the elbows tuck in
+      // and the fists sit side by side instead of a shoulder-width apart.
+      const [near, far] = reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: hx - 0.012, y: hy + 0.01 }], BACK);
       return {
         pelvis,
         torso,
-        arms: reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: hx - 0.012, y: hy + 0.01 }], BACK),
+        arms: [{ ...near, spread: -0.065 }, { ...far, spread: -0.065 }] as [typeof near, typeof far],
         legs: plantedLegs(pelvis, torso, "side", [{ x: 0.548, y: FLOOR }, { x: 0.515, y: FLOOR }], FORWARD),
       };
     }),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", angle: 347, length: 0.30, plates: false }],
+    [{ kind: "floor" }, { kind: "bar", at: "grip", angle: 303, length: 0.30, plates: false }],
     "neutral",
   ),
 
