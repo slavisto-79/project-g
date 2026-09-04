@@ -214,30 +214,42 @@ for (const [name, entries] of Object.entries(RIGID_LEGS)) {
 // distance to that point is smaller than the two radii is being skewered.
 // The hip thrust is the one lift where the bar genuinely rests against the
 // thighs, so it gets a small allowance instead of an exemption.
-const LEG_RADII = { thigh: 0.048, shin: 0.034, foot: 0.02 };
+// Two builds are checked: the reference figure, and the heaviest the avatar
+// can be (lib/avatar.ts caps bulk at 1.45, and the viewer thickens legs by
+// 1 + 0.7 x (bulk - 1) = 1.315). A bar that clears a slim leg by a hair
+// skewers a heavy one; the heavy pass gets a little more slack because a
+// bar genuinely rests against big thighs in a few lifts.
+const BUILDS = [
+  { label: "", radii: { thigh: 0.048, shin: 0.034, foot: 0.02 }, slack: 0.008 },
+  { label: " (heavy build)", radii: { thigh: 0.063, shin: 0.045, foot: 0.02 }, slack: 0.018 },
+];
 const BAR_RADIUS = 0.011;
-for (const [name, pose] of Object.entries(exercisePoses)) {
-  const slack = name === "hipThrust" ? 0.03 : 0.008;
-  pose.frames3d.forEach((frame, fi) => {
-    for (const prop of frame.props) {
-      // A leaning (dir) bar does not run along X, which is what this
-      // clearance model assumes -- it is checked by eye instead.
-      if (prop.kind !== "bar" || prop.rails || prop.dir) continue;
-      for (const bone of frame.bones) {
-        const legR = LEG_RADII[bone.part];
-        if (!legR) continue;
-        // Closest approach in the YZ plane between the bar point and the bone.
-        const ay = bone.a[1] - prop.center[1], az = bone.a[2] - prop.center[2];
-        const by = bone.b[1] - prop.center[1], bz = bone.b[2] - prop.center[2];
-        const dy = by - ay, dz = bz - az;
-        const len2 = dy * dy + dz * dz;
-        const t = len2 > 0 ? Math.max(0, Math.min(1, -(ay * dy + az * dz) / len2)) : 0;
-        const dist = Math.hypot(ay + t * dy, az + t * dz);
-        const clash = legR + BAR_RADIUS - dist;
-        if (clash > slack) note(name + "[" + fi + "]: bar passes through a " + bone.part + " by " + clash.toFixed(3));
+for (const build of BUILDS) {
+  for (const [name, pose] of Object.entries(exercisePoses)) {
+    // The hip thrust rests the bar on the thighs; a hinge (Romanian deadlift)
+    // drags it down them from the standing top -- both touch by design.
+    const slack = name === "hipThrust" || name === "hinge" ? 0.03 + build.slack : build.slack;
+    pose.frames3d.forEach((frame, fi) => {
+      for (const prop of frame.props) {
+        // A leaning (dir) bar does not run along X, which is what this
+        // clearance model assumes -- it is checked by eye instead.
+        if (prop.kind !== "bar" || prop.rails || prop.dir) continue;
+        for (const bone of frame.bones) {
+          const legR = build.radii[bone.part];
+          if (!legR) continue;
+          // Closest approach in the YZ plane between the bar point and the bone.
+          const ay = bone.a[1] - prop.center[1], az = bone.a[2] - prop.center[2];
+          const by = bone.b[1] - prop.center[1], bz = bone.b[2] - prop.center[2];
+          const dy = by - ay, dz = bz - az;
+          const len2 = dy * dy + dz * dz;
+          const t = len2 > 0 ? Math.max(0, Math.min(1, -(ay * dy + az * dz) / len2)) : 0;
+          const dist = Math.hypot(ay + t * dy, az + t * dz);
+          const clash = legR + BAR_RADIUS - dist;
+          if (clash > slack) note(name + "[" + fi + "]: bar passes through a " + bone.part + build.label + " by " + clash.toFixed(3));
+        }
       }
-    }
-  });
+    });
+  }
 }
 
 // Nothing passes through the coach's head. The drawn head is wider than the

@@ -16,6 +16,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import type { ExercisePose, PoseFrame3D, PoseProp3D, Vec3 } from "./poses";
+import { REFERENCE_AVATAR, type AvatarBuild } from "./avatar";
 
 // Matches the loadable implements the workout knows about; the viewer only
 // cares which family of equipment to draw.
@@ -112,18 +113,24 @@ export class PoseViewer3D {
   // WebGL context of a session can take a few seconds to come up.
   private readonly onReady: (() => void) | undefined;
   private readyFired = false;
+  // Who the figure is built to look like (see lib/avatar.ts).
+  private readonly avatar: AvatarBuild;
+  // Trunk ellipse multipliers from the avatar's build, applied in update().
+  private trunkW = 1;
+  private trunkD = 1;
 
   constructor(
     host: HTMLElement,
     pose: ExercisePose,
     implement: ViewerImplement,
-    options: { interactive: boolean; reduceMotion?: boolean; onReady?: () => void },
+    options: { interactive: boolean; reduceMotion?: boolean; onReady?: () => void; avatar?: AvatarBuild },
   ) {
     this.host = host;
     this.frames = pose.frames3d;
     this.interactive = options.interactive;
     this.reduceMotion = options.reduceMotion ?? false;
     this.onReady = options.onReady;
+    this.avatar = options.avatar ?? REFERENCE_AVATAR;
 
     this.canvas = document.createElement("canvas");
     this.canvas.style.width = "100%";
@@ -284,8 +291,43 @@ export class PoseViewer3D {
         (p.kind === "bar" && !p.plates) ||
         ((p.kind === "bell" || (p.kind === "bar" && p.plates)) && implement !== undefined),
     );
+    // The avatar's build, as per-part radius multipliers. `t` is how far the
+    // build sits from the reference (negative = leaner). Legs thicken fastest
+    // with weight, arms follow muscle as much as weight, the trunk is handled
+    // by update()'s ellipse (width and belly depth), the hips widen with
+    // weight and on a female build.
+    const t = this.avatar.bulk - 1;
+    const female = this.avatar.sex === "female";
+    const muscle = this.avatar.muscle;
+    // Depth grows less than width: bench pads sit a fixed BODY_HALF below the
+    // spine line, and a deeper trunk would sink into them (at the heaviest
+    // build it is 1.2cm into a 5.5cm pad, which reads as padding giving way).
+    this.trunkW = (1 + 0.45 * t) * (female ? 0.94 : 1);
+    this.trunkD = (1 + (t > 0 ? 0.55 : 0.4) * t) * (female ? 0.96 : 1);
+    const buildScale = (part: string): number => {
+      switch (part) {
+        case "thigh":
+        case "shin":
+          return (1 + 0.7 * t) * (female ? 1.05 : 1);
+        case "upperArm":
+        case "forearm":
+          return (1 + 0.45 * t) * Math.sqrt(muscle);
+        case "neck":
+          return Math.pow(muscle, 0.4) * (1 + 0.3 * Math.max(t, 0)) * (female ? 0.9 : 1);
+        case "hips":
+          return (1 + 0.4 * Math.max(t, 0)) * (female ? 1.22 : 1);
+        default:
+          return 1;
+      }
+    };
+    // The trunk's own taper: a heavy build carries it at the waist (the
+    // bottom of the spine bone, taper[1]), a lean one keeps a V from the
+    // chest; the chest (taper[0]) grows with weight and with muscle.
+    const waist = 1 + (t > 0 ? 1.1 : 0.5) * t;
+    const chest = (1 + 0.25 * t) * Math.pow(muscle, 0.3);
     for (const bone of first.bones) {
-      const radius = RADII[bone.part];
+      const build = buildScale(bone.part);
+      const radius = RADII[bone.part] * build;
       // The trunk is a rib cage, not a tube: wider at the chest than at the
       // waist (the bone runs pelvis -> shoulders, so the taper widens upward),
       // and squashed front-to-back by update()'s elliptical scaling. Limbs
@@ -304,12 +346,17 @@ export class PoseViewer3D {
         // are the deltoids and get their own size below.
         shoulders: [0.03, 0.03],
       };
-      const taper = TAPER[bone.part];
+      const raw = TAPER[bone.part];
+      const taper: [number, number] | undefined = raw
+        ? bone.part === "spine"
+          ? [raw[0] * chest, raw[1] * waist]
+          : [raw[0] * build, raw[1] * build]
+        : undefined;
       const wear = this.kit(bone.part);
       const cylinder = taper
         ? new THREE.Mesh(new THREE.CylinderGeometry(taper[0], taper[1], 1, 16, 1, true), wear.body)
         : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), wear.body);
-      const delt = bone.part === "shoulders" ? 0.046 : undefined;
+      const delt = bone.part === "shoulders" ? 0.046 * Math.pow(muscle, 0.8) * (female ? 0.88 : 1) : undefined;
       const capA = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[1] : radius), 12, 10), wear.a);
       const capB = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[0] : radius), 12, 10), wear.b);
       // The fingered hand replaces the hand bone when something is held;
@@ -359,32 +406,45 @@ export class PoseViewer3D {
     const mouth = new THREE.Mesh(new THREE.BoxGeometry(R * 0.44, R * 0.08, R * 0.10), this.graphite);
     mouth.position.set(0, -R * 0.45, R * 0.80);
     this.face.add(mouth);
-    // The head of the coach, all in the face's frame so it turns with him.
-    // Buzz cut: a tight cap hugging the top and back of the skull.
-    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(R * 0.925, 18, 10, 0, Math.PI * 2, 0, 1.15), this.hair);
-    hairCap.rotation.x = -0.4;
-    this.face.add(hairCap);
-    // Brows angled in and down over the eyes.
+    // The head, all in the face's frame so it turns with the figure.
+    if (female) {
+      // Hair pulled back: a fuller cap down to the ears and a bun at the back.
+      const hairCap = new THREE.Mesh(new THREE.SphereGeometry(R * 0.95, 18, 12, 0, Math.PI * 2, 0, 1.75), this.hair);
+      hairCap.rotation.x = -0.3;
+      this.face.add(hairCap);
+      const bun = new THREE.Mesh(new THREE.SphereGeometry(R * 0.36, 12, 10), this.hair);
+      bun.position.set(0, R * 0.15, -R * 0.92);
+      this.face.add(bun);
+    } else {
+      // Buzz cut: a tight cap hugging the top and back of the skull.
+      const hairCap = new THREE.Mesh(new THREE.SphereGeometry(R * 0.925, 18, 10, 0, Math.PI * 2, 0, 1.15), this.hair);
+      hairCap.rotation.x = -0.4;
+      this.face.add(hairCap);
+    }
+    // Brows angled in and down over the eyes; finer on the female face.
     for (const side of [-1, 1]) {
-      const brow = new THREE.Mesh(new THREE.BoxGeometry(R * 0.3, R * 0.07, R * 0.07), this.hair);
+      const brow = new THREE.Mesh(new THREE.BoxGeometry(R * 0.3, R * (female ? 0.045 : 0.07), R * 0.07), this.hair);
       brow.position.set(side * R * 0.33, R * 0.34, R * 0.84);
-      brow.rotation.z = side * 0.32;
+      brow.rotation.z = side * (female ? 0.22 : 0.32);
       this.face.add(brow);
     }
-    // A short full beard: a chin-and-jaw shell below the mouth, the jaw sides
-    // up to the cheekbones, and a moustache. SphereGeometry's phi runs around
-    // Y with the face (+Z) at phi = PI/2; theta runs down from the crown.
-    // The shell sits at 0.96R -- the widest thing on the head (skull 0.91R),
-    // which is why HEAD_ENVELOPE in tests/check-poses.js is 1.25 x head.r.
-    const beard = (phi0: number, phiLen: number, th0: number, thLen: number) => {
-      this.face.add(new THREE.Mesh(new THREE.SphereGeometry(R * 0.96, 18, 10, phi0, phiLen, th0, thLen), this.hair));
-    };
-    beard(Math.PI * 0.1, Math.PI * 0.8, Math.PI * 0.7, Math.PI * 0.24);
-    beard(Math.PI * 0.1, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
-    beard(Math.PI * 0.7, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
-    const moustache = new THREE.Mesh(new THREE.BoxGeometry(R * 0.46, R * 0.09, R * 0.1), this.hair);
-    moustache.position.set(0, -R * 0.3, R * 0.86);
-    this.face.add(moustache);
+    if (!female) {
+      // A short full beard: a chin-and-jaw shell below the mouth, the jaw
+      // sides up to the cheekbones, and a moustache. SphereGeometry's phi runs
+      // around Y with the face (+Z) at phi = PI/2; theta runs down from the
+      // crown. The shell sits at 0.96R -- the widest thing on the head (skull
+      // 0.91R), which is why HEAD_ENVELOPE in tests/check-poses.js is 1.25 x
+      // head.r.
+      const beard = (phi0: number, phiLen: number, th0: number, thLen: number) => {
+        this.face.add(new THREE.Mesh(new THREE.SphereGeometry(R * 0.96, 18, 10, phi0, phiLen, th0, thLen), this.hair));
+      };
+      beard(Math.PI * 0.1, Math.PI * 0.8, Math.PI * 0.7, Math.PI * 0.24);
+      beard(Math.PI * 0.1, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
+      beard(Math.PI * 0.7, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
+      const moustache = new THREE.Mesh(new THREE.BoxGeometry(R * 0.46, R * 0.09, R * 0.1), this.hair);
+      moustache.position.set(0, -R * 0.3, R * 0.86);
+      this.face.add(moustache);
+    }
     // No headband: the user found the hoop on the head distracting, so the
     // lime stays on the wrists and shoes only.
     this.scene.add(this.face);
@@ -1003,9 +1063,9 @@ export class PoseViewer3D {
       if (bone.part === "foot") bone.cylinder.scale.set(1.25, len, 0.62);
       else if (bone.part === "hand") bone.cylinder.scale.set(1.7, len, 0.5);
       else if (bone.part === "spine") {
-        bone.cylinder.scale.set(1.45, len, 0.9);
-        bone.capA.scale.set(1.45, 1, 0.9);
-        bone.capB.scale.set(1.45, 1, 0.9);
+        bone.cylinder.scale.set(1.45 * this.trunkW, len, 0.9 * this.trunkD);
+        bone.capA.scale.set(1.45 * this.trunkW, 1, 0.9 * this.trunkD);
+        bone.capB.scale.set(1.45 * this.trunkW, 1, 0.9 * this.trunkD);
       } else bone.cylinder.scale.set(1, len, 1);
       bone.cylinder.quaternion.setFromUnitVectors(UP, dir.divideScalar(len));
       bone.capA.position.copy(pa);

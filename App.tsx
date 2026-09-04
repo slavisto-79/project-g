@@ -37,6 +37,7 @@ import {
 import { type ExercisePose, type PoseProp } from "./lib/poses";
 import { exercisePoses, type PoseName } from "./lib/poseData";
 import { PoseViewer3D, type ViewerImplement } from "./lib/poseViewer3d";
+import { avatarFromProfile, type AvatarBuild } from "./lib/avatar";
 import {
   exercisesForTier,
   suitsGoal,
@@ -7122,10 +7123,12 @@ function PoseFigure3DWeb({
   pose,
   implement,
   interactive,
+  avatar,
 }: {
   pose: ExercisePose;
   implement: ViewerImplement;
   interactive: boolean;
+  avatar: AvatarBuild;
 }) {
   const hostRef = useRef<View>(null);
   const reduceMotion = useReducedMotion();
@@ -7143,6 +7146,7 @@ function PoseFigure3DWeb({
     const viewer = new PoseViewer3D(host, pose, implement, {
       interactive,
       reduceMotion,
+      avatar,
       onReady: () => {
         if (live) setReady(true);
       },
@@ -7151,7 +7155,7 @@ function PoseFigure3DWeb({
       live = false;
       viewer.dispose();
     };
-  }, [pose, implement, interactive, reduceMotion]);
+  }, [pose, implement, interactive, reduceMotion, avatar]);
 
   return (
     <>
@@ -7166,7 +7170,7 @@ function PoseFigure3DWeb({
   );
 }
 
-function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
+function ExerciseCueCard({ exercise, avatar }: { exercise: WorkoutExercise; avatar: AvatarBuild }) {
   const [expanded, setExpanded] = useState(false);
   return (
     <View style={styles.cueCard}>
@@ -7179,7 +7183,7 @@ function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
               accessibilityRole="button"
               accessibilityLabel="Expand the exercise demo"
             >
-              <PoseFigure3DWeb pose={exercise.pose} implement={exercise.demoImplement ?? exercise.implement} interactive={false} />
+              <PoseFigure3DWeb pose={exercise.pose} implement={exercise.demoImplement ?? exercise.implement} interactive={false} avatar={avatar} />
               {/* The rotate affordance is a real chip, not a whisper in the
                   corner -- people should see the feature the moment the
                   first exercise appears. */}
@@ -7195,7 +7199,7 @@ function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
             <Modal visible={expanded} transparent animationType="none" onRequestClose={() => setExpanded(false)}>
               <View style={styles.poseModalBackdrop}>
                 <View style={styles.poseModalStage}>
-                  <PoseFigure3DWeb pose={exercise.pose} implement={exercise.demoImplement ?? exercise.implement} interactive />
+                  <PoseFigure3DWeb pose={exercise.pose} implement={exercise.demoImplement ?? exercise.implement} interactive avatar={avatar} />
                 </View>
                 <View style={styles.poseModalHeader} pointerEvents="box-none">
                   {/* flex 1 so a long hint wraps instead of shoving the close
@@ -7229,15 +7233,17 @@ function ExerciseCueCard({ exercise }: { exercise: WorkoutExercise }) {
 function ExerciseDemo({
   exerciseIndex,
   exercises,
+  avatar,
 }: {
   exerciseIndex: number;
   exercises: WorkoutExercise[];
+  avatar: AvatarBuild;
 }) {
   const exercise = exercises[exerciseIndex] ?? exercises[0]!;
 
   return (
     <View style={styles.demoStage}>
-      <ExerciseCueCard exercise={exercise} />
+      <ExerciseCueCard exercise={exercise} avatar={avatar} />
     </View>
   );
 }
@@ -7276,6 +7282,9 @@ function ActiveWorkoutScreen({
   const { height } = useWindowDimensions();
   const [exerciseList, setExerciseList] = useState<WorkoutExercise[]>(exercises);
   const baseExercises = exerciseList;
+  // The demo figure is built to this person; memoised so the viewer is not
+  // rebuilt on every render (it is an effect dependency).
+  const avatar = useMemo(() => avatarFromProfile(profile), [profile]);
   const targetSetCount = setCountForProfile(profile, adjustment, isDeload, checkIn);
   // Honour the time the user said they have. This replaces a flat "keep three
   // exercises" for the coach's time adjustment: the budget is the same 30
@@ -7761,7 +7770,7 @@ function ActiveWorkoutScreen({
           ]}
         />
         <Text style={styles.exerciseNumber}>0{exerciseIndex + 1}</Text>
-        <ExerciseDemo key={exerciseIndex} exerciseIndex={exerciseIndex} exercises={personalizedExercises} />
+        <ExerciseDemo key={exerciseIndex} exerciseIndex={exerciseIndex} exercises={personalizedExercises} avatar={avatar} />
         <View style={styles.formBadge}>
           <View style={styles.formDot} />
           <Text style={styles.formBadgeText}>{remainingLabel} REMAINING</Text>
