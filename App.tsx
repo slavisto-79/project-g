@@ -923,6 +923,13 @@ function InterviewScreen({
 }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  // The accent follows the very first answer, live: pick "Woman" and the
+  // whole interview turns pink before anything is saved (and back to lime
+  // if the answer changes). App() re-applies it from the profile later.
+  const [, setThemeTick] = useState(0);
+  useEffect(() => {
+    if (answers.sex && applyTheme(answers.sex === "female" ? "female" : "male")) setThemeTick((t) => t + 1);
+  }, [answers.sex]);
   const [complete, setComplete] = useState(false);
   const [planStage, setPlanStage] = useState<"review" | "generating" | "ready">("review");
   const [reminderDays, setReminderDays] = useState<string[]>([]);
