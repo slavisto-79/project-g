@@ -5858,6 +5858,9 @@ function poseForCatalogExercise(tag: ExerciseTag): PoseName | undefined {
   if (/bench|chest press|floor press/.test(n)) return "bench";
   if (/landmine/.test(n)) return "landminePress";
   if (/overhead press|shoulder press|military|push press|arnold|z press/.test(n)) return "overheadPress";
+  if (/cable.*(fly|crossover)/.test(n)) return "cableFly";
+  if (/cable.*(lateral|side) raise/.test(n)) return "cableLateralRaise";
+  if (/pull[- ]?through/.test(n)) return "cablePullThrough";
   if (/lateral raise|side raise/.test(n)) return "lateralRaise";
   if (/front raise/.test(n)) return "frontRaise";
   if (/reverse fly|rear delt/.test(n)) return "reverseFly";
@@ -5874,6 +5877,7 @@ function poseForCatalogExercise(tag: ExerciseTag): PoseName | undefined {
   if (/kickback/.test(n)) return "kickback";
   if (/pushdown|triceps extension|overhead extension/.test(n)) return "tricepsExtension";
   if (/ring.*curl|suspension.*curl|trx.*curl/.test(n)) return "ringCurl";
+  if (/cable.*curl/.test(n)) return "cableCurl";
   if (/incline.*curl/.test(n)) return "inclineCurl";
   if (/\bcurl\b/.test(n)) return "curl";
   if (/\bdips?\b/.test(n)) return "dip";
@@ -6332,14 +6336,14 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Barbell Curl": "curl",
   "Dumbbell Biceps Curl": "curl",
   "Hammer Curl": "curl",
-  "Cable Curl": "curl",
+  "Cable Curl": "cableCurl",
   "Band Curl": "curl",
 
   "Triceps Pushdown": "tricepsExtension",
   "Overhead Triceps Extension": "tricepsExtension",
 
   "Dumbbell Lateral Raise": "lateralRaise",
-  "Cable Lateral Raise": "lateralRaise",
+  "Cable Lateral Raise": "cableLateralRaise",
 
   "Bodyweight Calf Raise": "calfRaise",
   "Dumbbell Calf Raise": "calfRaise",
@@ -6357,7 +6361,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Archer Push-Up": "pushUp",
   "Plyo Push-Up": "pushUp",
   "Dumbbell Fly": "fly",
-  "Cable Chest Fly": "fly",
+  "Cable Chest Fly": "cableFly",
   "Pec Deck": "fly",
   "Bar Dip": "dip",
   "Bench Dip": "dip",
@@ -6383,7 +6387,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Preacher Curl": "curl",
   "Concentration Curl": "curl",
 
-  "Cable Pull-Through": "hinge",
+  "Cable Pull-Through": "cablePullThrough",
   "Back Extension": "hinge",
   "Hip Hinge Wall Touch": "hinge",
   "Single-Leg Romanian Deadlift": "singleLegHinge",
