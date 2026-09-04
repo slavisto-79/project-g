@@ -21,7 +21,7 @@ import type { ExercisePose, PoseFrame3D, PoseProp3D, Vec3 } from "./poses";
 // cares which family of equipment to draw.
 export type ViewerImplement = "dumbbell" | "kettlebell" | "barbell" | "machine" | "other" | undefined;
 
-const BODY = 0xd8d3cb;
+const SHIRT = 0xd8d3cb;
 const BENCH = 0x66736c;
 // Half the trunk's depth (the spine ellipse's shallow axis): how far a bench
 // pad's surface must sit below the spine line for the body to rest ON it.
@@ -201,7 +201,37 @@ export class PoseViewer3D {
 
   // --- The mannequin -------------------------------------------------------
 
-  private bodyMaterial = new THREE.MeshStandardMaterial({ color: BODY, roughness: 0.55, metalness: 0.05 });
+  // The coach: a bronzed athlete in the app's kit -- light sleeveless top,
+  // dark knee-length shorts, and the brand lime on the headband, wristbands
+  // and shoes. Sleeveless on purpose: the arms stay bare so shoulders and
+  // elbows read clearly in every demo. The top is the old mannequin grey, the
+  // one light surface that holds up against the dark card and the black
+  // iron; a dark top made the trunk vanish and the figure read as floating
+  // limbs.
+  private skin = new THREE.MeshStandardMaterial({ color: 0xc79b74, roughness: 0.6, metalness: 0.02 });
+  private hair = new THREE.MeshStandardMaterial({ color: 0x17140f, roughness: 0.8 });
+  private shirt = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.55, metalness: 0.05 });
+  private shorts = new THREE.MeshStandardMaterial({ color: 0x1f2421, roughness: 0.7, metalness: 0.05 });
+  private lime = new THREE.MeshStandardMaterial({ color: 0xc8ff32, roughness: 0.5, metalness: 0.05 });
+
+  // What each bone wears: the cylinder and its two end caps (a = the bone's
+  // start, b = its end -- for a forearm, b is the wrist).
+  private kit(part: string): { body: THREE.MeshStandardMaterial; a: THREE.MeshStandardMaterial; b: THREE.MeshStandardMaterial } {
+    switch (part) {
+      case "spine":
+      case "shoulders":
+        return { body: this.shirt, a: this.shirt, b: this.shirt };
+      case "hips":
+      case "thigh":
+        return { body: this.shorts, a: this.shorts, b: this.shorts };
+      case "foot":
+        return { body: this.lime, a: this.lime, b: this.lime };
+      case "forearm":
+        return { body: this.skin, a: this.skin, b: this.lime };
+      default:
+        return { body: this.skin, a: this.skin, b: this.skin };
+    }
+  }
 
   private buildMannequin(pose: ExercisePose, implement: ViewerImplement) {
     const first = this.frames[0]!;
@@ -243,12 +273,13 @@ export class PoseViewer3D {
         shoulders: [0.03, 0.03],
       };
       const taper = TAPER[bone.part];
+      const wear = this.kit(bone.part);
       const cylinder = taper
-        ? new THREE.Mesh(new THREE.CylinderGeometry(taper[0], taper[1], 1, 16, 1, true), this.bodyMaterial)
-        : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), this.bodyMaterial);
+        ? new THREE.Mesh(new THREE.CylinderGeometry(taper[0], taper[1], 1, 16, 1, true), wear.body)
+        : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), wear.body);
       const delt = bone.part === "shoulders" ? 0.046 : undefined;
-      const capA = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[1] : radius), 12, 10), this.bodyMaterial);
-      const capB = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[0] : radius), 12, 10), this.bodyMaterial);
+      const capA = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[1] : radius), 12, 10), wear.a);
+      const capB = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[0] : radius), 12, 10), wear.b);
       // The fingered hand replaces the hand bone when something is held;
       // otherwise the straight hand segment pokes out under the fingers.
       // Kept in the list so update() indexing stays aligned with the frames.
@@ -258,7 +289,7 @@ export class PoseViewer3D {
       this.scene.add(cylinder, capA, capB);
       this.bones.push({ cylinder, capA, capB, radius, part: bone.part });
     }
-    this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.18, 18, 14), this.bodyMaterial);
+    this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.18, 18, 14), this.skin);
     this.scene.add(this.head);
 
     // The face: two eyes, a nose, a mouth -- the whole reason a viewer can
@@ -272,15 +303,48 @@ export class PoseViewer3D {
     for (const side of [-1, 1]) {
       const eye = new THREE.Mesh(new THREE.SphereGeometry(R * 0.14, 10, 8), this.iron);
       eye.position.set(side * R * 0.34, R * 0.18, R * 0.82);
+      // Narrowed under the brow: the determined look.
+      eye.scale.set(1.05, 0.55, 0.8);
       this.face.add(eye);
     }
-    const nose = new THREE.Mesh(new THREE.SphereGeometry(R * 0.17, 10, 8), this.bodyMaterial);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(R * 0.17, 10, 8), this.skin);
     nose.scale.set(0.8, 1.1, 1.0);
     nose.position.set(0, -R * 0.08, R * 0.97);
     this.face.add(nose);
     const mouth = new THREE.Mesh(new THREE.BoxGeometry(R * 0.44, R * 0.08, R * 0.10), this.graphite);
     mouth.position.set(0, -R * 0.45, R * 0.80);
     this.face.add(mouth);
+    // The head of the coach, all in the face's frame so it turns with him.
+    // Buzz cut: a tight cap hugging the top and back of the skull.
+    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(R * 0.925, 18, 10, 0, Math.PI * 2, 0, 1.15), this.hair);
+    hairCap.rotation.x = -0.4;
+    this.face.add(hairCap);
+    // Brows angled in and down over the eyes.
+    for (const side of [-1, 1]) {
+      const brow = new THREE.Mesh(new THREE.BoxGeometry(R * 0.3, R * 0.07, R * 0.07), this.hair);
+      brow.position.set(side * R * 0.33, R * 0.34, R * 0.84);
+      brow.rotation.z = side * 0.32;
+      this.face.add(brow);
+    }
+    // A short full beard: a chin-and-jaw shell below the mouth, the jaw sides
+    // up to the cheekbones, and a moustache. SphereGeometry's phi runs around
+    // Y with the face (+Z) at phi = PI/2; theta runs down from the crown.
+    // The shell sits at 0.96R -- the widest thing on the head (skull 0.91R),
+    // which is why HEAD_ENVELOPE in tests/check-poses.js is 1.25 x head.r.
+    const beard = (phi0: number, phiLen: number, th0: number, thLen: number) => {
+      this.face.add(new THREE.Mesh(new THREE.SphereGeometry(R * 0.96, 18, 10, phi0, phiLen, th0, thLen), this.hair));
+    };
+    beard(Math.PI * 0.1, Math.PI * 0.8, Math.PI * 0.7, Math.PI * 0.24);
+    beard(Math.PI * 0.1, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
+    beard(Math.PI * 0.7, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
+    const moustache = new THREE.Mesh(new THREE.BoxGeometry(R * 0.46, R * 0.09, R * 0.1), this.hair);
+    moustache.position.set(0, -R * 0.3, R * 0.86);
+    this.face.add(moustache);
+    // Headband above the brows, sized to the skull's cross-section there.
+    const band = new THREE.Mesh(new THREE.TorusGeometry(R * 0.8, R * 0.07, 8, 28), this.lime);
+    band.rotation.x = Math.PI / 2;
+    band.position.y = R * 0.52;
+    this.face.add(band);
     this.scene.add(this.face);
 
     // A hand per side. Holding something, it is four fingers and a thumb
@@ -290,7 +354,7 @@ export class PoseViewer3D {
     // ninety degrees into a hammer hold. Empty-handed it is a closed fist.
     for (let side = 0; side < 2; side++) {
       const fist = gripping ? this.grippingHand(pose.grip, side as 0 | 1) : new THREE.Group();
-      if (!gripping) fist.add(new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 8), this.bodyMaterial));
+      if (!gripping) fist.add(new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 8), this.skin));
       this.scene.add(fist);
       this.fists.push(fist);
     }
@@ -307,18 +371,18 @@ export class PoseViewer3D {
     const wrap = new THREE.Group();
     const flip = grip === "underhand" ? Math.PI : 0;
     for (let k = 0; k < 4; k++) {
-      const finger = new THREE.Mesh(new THREE.TorusGeometry(0.02, 0.0062, 8, 14, 4.4), this.bodyMaterial);
+      const finger = new THREE.Mesh(new THREE.TorusGeometry(0.02, 0.0062, 8, 14, 4.4), this.skin);
       // Arc gap at the lower rear for an overhand grip.
       finger.rotation.z = 1.9 + flip;
       finger.position.z = (k - 1.5) * 0.0128;
       wrap.add(finger);
     }
-    const thumb = new THREE.Mesh(new THREE.TorusGeometry(0.016, 0.0058, 8, 12, 2.9), this.bodyMaterial);
+    const thumb = new THREE.Mesh(new THREE.TorusGeometry(0.016, 0.0058, 8, 12, 2.9), this.skin);
     thumb.rotation.z = -1.4 + flip;
     // The thumb sits on the inner side of each hand along the bar.
     thumb.position.z = side === 0 ? -0.024 : 0.024;
     wrap.add(thumb);
-    const palm = new THREE.Mesh(new THREE.SphereGeometry(0.017, 10, 8), this.bodyMaterial);
+    const palm = new THREE.Mesh(new THREE.SphereGeometry(0.017, 10, 8), this.skin);
     palm.scale.set(1.15, 1.15, 1.7);
     // The heel of the hand fills the arc gap, opposite the knuckles.
     const heel = 1.9 + flip + 4.4 / 2 + Math.PI;

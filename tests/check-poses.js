@@ -240,6 +240,44 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   });
 }
 
+// Nothing passes through the coach's head. The drawn head is wider than the
+// authored sphere: skull 1.18 x r, hair cap 1.2 x r, and the beard shell
+// 1.25 x r at the front -- so the envelope here is the beard's. Bars are
+// X-aligned points in YZ (like the leg rule); cables are the straight run
+// from the machine's pulley to the grip. The squat family carries the bar
+// on the traps, right behind the skull, so the margin there is small and
+// deliberate: it must stay positive, not comfortable.
+const HEAD_ENVELOPE = 1.25;
+const segmentDistance = (p, a, b) => {
+  const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+  const ap = [p[0] - a[0], p[1] - a[1], p[2] - a[2]];
+  const len2 = ab[0] * ab[0] + ab[1] * ab[1] + ab[2] * ab[2];
+  const t = len2 > 0 ? Math.max(0, Math.min(1, (ap[0] * ab[0] + ap[1] * ab[1] + ap[2] * ab[2]) / len2)) : 0;
+  return Math.hypot(ap[0] - t * ab[0], ap[1] - t * ab[1], ap[2] - t * ab[2]);
+};
+// The viewer draws the head 0.03 further along the neck than the authored
+// centre (so the neck shows) -- measure from where it is drawn.
+const HEAD_RIDE = 0.03;
+for (const [name, pose] of Object.entries(exercisePoses)) {
+  pose.frames3d.forEach((frame, fi) => {
+    const headR = frame.head.r * HEAD_ENVELOPE;
+    const neck = frame.bones.find((b) => b.part === "neck");
+    const dir = neck ? [neck.b[0] - neck.a[0], neck.b[1] - neck.a[1], neck.b[2] - neck.a[2]] : [0, 1, 0];
+    const len = Math.hypot(dir[0], dir[1], dir[2]) || 1;
+    const c = frame.head.c.map((v, i) => v + (dir[i] / len) * HEAD_RIDE);
+    for (const prop of frame.props) {
+      if (prop.kind === "bar" && !prop.rails && !prop.dir) {
+        const dist = Math.hypot(c[1] - prop.center[1], c[2] - prop.center[2]);
+        const clash = headR + BAR_RADIUS - dist;
+        if (clash > 0) note(name + "[" + fi + "]: bar passes through the head by " + clash.toFixed(3));
+      } else if (prop.kind === "cable") {
+        const clash = headR - segmentDistance(c, prop.anchor, prop.center);
+        if (clash > 0) note(name + "[" + fi + "]: cable passes through the head by " + clash.toFixed(3));
+      }
+    }
+  });
+}
+
 // Stance knees move in sync: when both ankles stand together (same height,
 // near-equal depth), both legs must hold the same angles -- one straight leg
 // beside a folded one is how the squat's far knee drifted out of sync.
