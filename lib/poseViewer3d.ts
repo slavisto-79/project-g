@@ -86,6 +86,10 @@ export class PoseViewer3D {
   private bones: BoneMeshes[] = [];
   private head!: THREE.Mesh;
   private fists: THREE.Group[] = [];
+  // Sneakers replace the foot capsules; placed from the foot and shin bones.
+  private shoes: THREE.Group[] = [];
+  private footIndex: [number, number] = [-1, -1];
+  private shinIndex: [number, number] = [-1, -1];
   private face = new THREE.Group();
   private floorDisc: THREE.Group | null = null;
   private spineIndex = -1;
@@ -224,13 +228,41 @@ export class PoseViewer3D {
       case "hips":
       case "thigh":
         return { body: this.shorts, a: this.shorts, b: this.shorts };
-      case "foot":
-        return { body: this.lime, a: this.lime, b: this.lime };
       case "forearm":
         return { body: this.skin, a: this.skin, b: this.lime };
       default:
+        // Includes the foot, whose capsule is hidden under the sneaker.
         return { body: this.skin, a: this.skin, b: this.skin };
     }
+  }
+
+  // A sneaker in its own frame: +Z heel to toe, +Y up, origin at the middle
+  // of the foot bone. Dark outsole, pale midsole, lime upper with a rounded
+  // toe box, a dark heel counter and three laces across the instep. The
+  // sole's underside sits where the old foot capsule's did (0.0124 below the
+  // bone), so planted feet still meet the floor disc.
+  private sole = new THREE.MeshStandardMaterial({ color: 0xe9e7e0, roughness: 0.7, metalness: 0.02 });
+  private sneaker(): THREE.Group {
+    const shoe = new THREE.Group();
+    const L = 0.104;
+    const W = 0.05;
+    const bottom = -0.0124;
+    const outsole = new THREE.Mesh(new RoundedBoxGeometry(W, 0.005, L, 3, 0.002), this.rubber);
+    outsole.position.y = bottom + 0.0025;
+    const midsole = new THREE.Mesh(new RoundedBoxGeometry(W, 0.009, L, 3, 0.003), this.sole);
+    midsole.position.y = bottom + 0.005 + 0.0045;
+    const upperBase = bottom + 0.014;
+    const upper = new THREE.Mesh(new RoundedBoxGeometry(W - 0.006, 0.03, L - 0.008, 4, 0.012), this.lime);
+    upper.position.set(0, upperBase + 0.014, -0.002);
+    const heelCounter = new THREE.Mesh(new RoundedBoxGeometry(W - 0.004, 0.036, 0.028, 3, 0.006), this.shorts);
+    heelCounter.position.set(0, upperBase + 0.018, -L / 2 + 0.016);
+    shoe.add(outsole, midsole, upper, heelCounter);
+    for (const z of [-0.014, -0.002, 0.01]) {
+      const lace = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.003, 0.0035), this.shorts);
+      lace.position.set(0, upperBase + 0.029, z);
+      shoe.add(lace);
+    }
+    return shoe;
   }
 
   private buildMannequin(pose: ExercisePose, implement: ViewerImplement) {
@@ -286,11 +318,24 @@ export class PoseViewer3D {
       if (bone.part === "hand" && gripping) {
         cylinder.visible = capA.visible = capB.visible = false;
       }
+      // The sneaker stands in for the foot capsule (see sneaker()).
+      if (bone.part === "foot") {
+        cylinder.visible = capA.visible = capB.visible = false;
+      }
       this.scene.add(cylinder, capA, capB);
       this.bones.push({ cylinder, capA, capB, radius, part: bone.part });
     }
     this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.18, 18, 14), this.skin);
     this.scene.add(this.head);
+
+    for (const side of [0, 1] as const) {
+      this.footIndex[side] = first.bones.findIndex((b) => b.part === "foot" && b.side === side);
+      this.shinIndex[side] = first.bones.findIndex((b) => b.part === "shin" && b.side === side);
+      const shoe = this.sneaker();
+      shoe.visible = this.footIndex[side] >= 0 && this.shinIndex[side] >= 0;
+      this.scene.add(shoe);
+      this.shoes.push(shoe);
+    }
 
     // The face: two eyes, a nose, a mouth -- the whole reason a viewer can
     // tell at a glance which way the figure is turned. Local +Z is out of
@@ -967,6 +1012,27 @@ export class PoseViewer3D {
       bone.capB.position.copy(pb);
     }
     this.head.position.copy(lerp3(a.head.c, b.head.c, f));
+    // Sneakers: heel-to-toe along the foot bone; "up" is the shin's direction
+    // with the foot's own taken out, so a pointed foot rolls the shoe with it
+    // and a planted foot keeps the sole flat on the floor.
+    for (let side = 0; side < 2; side++) {
+      const shoe = this.shoes[side];
+      const fi = this.footIndex[side]!;
+      const si = this.shinIndex[side]!;
+      if (!shoe || fi < 0 || si < 0) continue;
+      const heel = lerp3(a.bones[fi]!.a, b.bones[fi]!.a, f);
+      const toe = lerp3(a.bones[fi]!.b, b.bones[fi]!.b, f);
+      const knee = lerp3(a.bones[si]!.a, b.bones[si]!.a, f);
+      const ankle = lerp3(a.bones[si]!.b, b.bones[si]!.b, f);
+      const fwd = toe.clone().sub(heel).normalize();
+      const up = knee.sub(ankle).normalize();
+      up.addScaledVector(fwd, -up.dot(fwd));
+      if (up.lengthSq() < 1e-6) up.set(0, 1, 0);
+      up.normalize();
+      const right = new THREE.Vector3().crossVectors(up, fwd).normalize();
+      shoe.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, fwd));
+      shoe.position.copy(heel).addScaledVector(toe.sub(heel), 0.5);
+    }
     if (this.spineIndex >= 0 && this.neckIndex >= 0) {
       const sA = lerp3(a.bones[this.spineIndex]!.a, b.bones[this.spineIndex]!.a, f);
       const sB = lerp3(a.bones[this.spineIndex]!.b, b.bones[this.spineIndex]!.b, f);
