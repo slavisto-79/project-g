@@ -231,6 +231,10 @@ export class PoseViewer3D {
   // The female sports top: a dusty berry, distinct from the male's light
   // shirt at a glance and still bright enough against the dark card.
   private topFemale = new THREE.MeshStandardMaterial({ color: 0xb85c7a, roughness: 0.6, metalness: 0.03 });
+  // Her hair is chestnut with a little sheen -- the man's near-black hair
+  // vanished against the dark card and read as thin.
+  private hairFemale = new THREE.MeshStandardMaterial({ color: 0x5a3320, roughness: 0.5, metalness: 0.05 });
+  private lips = new THREE.MeshStandardMaterial({ color: 0xa8505c, roughness: 0.55, metalness: 0.02 });
 
   // What each bone wears: the cylinder and its two end caps (a = the bone's
   // start, b = its end -- for a forearm, b is the wrist). On the female build
@@ -424,39 +428,52 @@ export class PoseViewer3D {
     this.neckIndex = first.bones.findIndex((b) => b.part === "neck");
     this.facing = pose.facing ?? 1;
     const R = first.head.r * 1.3;
+    // Her face is softer: larger, open eyes, a smaller nose, lips instead of
+    // the man's set mouth. His stays the determined look.
     for (const side of [-1, 1]) {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(R * 0.14, 10, 8), this.iron);
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(R * (female ? 0.15 : 0.14), 10, 8), this.iron);
       eye.position.set(side * R * 0.34, R * 0.18, R * 0.82);
-      // Narrowed under the brow: the determined look.
-      eye.scale.set(1.05, 0.55, 0.8);
+      if (female) eye.scale.set(1.0, 0.85, 0.8);
+      else eye.scale.set(1.05, 0.55, 0.8);
       this.face.add(eye);
     }
-    const nose = new THREE.Mesh(new THREE.SphereGeometry(R * 0.17, 10, 8), this.skin);
-    nose.scale.set(0.8, 1.1, 1.0);
-    nose.position.set(0, -R * 0.08, R * 0.97);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(R * (female ? 0.12 : 0.17), 10, 8), this.skin);
+    nose.scale.set(0.8, female ? 1.0 : 1.1, 1.0);
+    nose.position.set(0, -R * 0.08, R * (female ? 0.95 : 0.97));
     this.face.add(nose);
-    const mouth = new THREE.Mesh(new THREE.BoxGeometry(R * 0.44, R * 0.08, R * 0.10), this.graphite);
-    mouth.position.set(0, -R * 0.45, R * 0.80);
+    const mouth = female
+      ? new THREE.Mesh(new THREE.BoxGeometry(R * 0.3, R * 0.075, R * 0.1), this.lips)
+      : new THREE.Mesh(new THREE.BoxGeometry(R * 0.44, R * 0.08, R * 0.1), this.graphite);
+    mouth.position.set(0, -R * 0.45, R * 0.8);
     this.face.add(mouth);
     // The head, all in the face's frame so it turns with the figure.
     if (female) {
-      // Hair pulled back into a ponytail: a fuller cap down to the ears, a
-      // gathered base at the back with a lime tie, and a tapered tail that
-      // hangs down and a little back.
-      const hairCap = new THREE.Mesh(new THREE.SphereGeometry(R * 0.95, 18, 12, 0, Math.PI * 2, 0, 1.75), this.hair);
-      hairCap.rotation.x = -0.3;
-      this.face.add(hairCap);
-      const gather = new THREE.Mesh(new THREE.SphereGeometry(R * 0.3, 12, 10), this.hair);
-      gather.position.set(0, R * 0.2, -R * 0.88);
+      // Hair pulled back into a ponytail, with the forehead open (no fringe):
+      // a crown piece that stops well above the brows, a side-and-back shell
+      // that leaves the face clear (SphereGeometry's phi puts the face at
+      // PI/2; the shell spans the back half plus a little past the ears), a
+      // full gathered base with a lime tie, and a thick tapered tail hanging
+      // down and a little back. Everything sits at 1.0R -- a hair's volume
+      // over the 0.91R skull -- so it reads as hair, not paint.
+      const crown = new THREE.Mesh(new THREE.SphereGeometry(R * 1.0, 20, 12, 0, Math.PI * 2, 0, 0.9), this.hairFemale);
+      crown.rotation.x = -0.25;
+      this.face.add(crown);
+      const sides = new THREE.Mesh(
+        new THREE.SphereGeometry(R * 1.0, 20, 12, Math.PI * 0.9, Math.PI * 1.2, 0.5, 1.45),
+        this.hairFemale,
+      );
+      this.face.add(sides);
+      const gather = new THREE.Mesh(new THREE.SphereGeometry(R * 0.38, 12, 10), this.hairFemale);
+      gather.position.set(0, R * 0.18, -R * 0.9);
       this.face.add(gather);
       const tilt = 0.3;
-      const tail = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.2, R * 0.1, R * 1.5, 10), this.hair);
+      const tail = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.28, R * 0.13, R * 1.7, 12), this.hairFemale);
       tail.rotation.x = tilt;
-      tail.position.set(0, R * 0.2 - R * 0.75 * Math.cos(tilt), -R * 0.88 - R * 0.75 * Math.sin(tilt));
+      tail.position.set(0, R * 0.18 - R * 0.85 * Math.cos(tilt), -R * 0.9 - R * 0.85 * Math.sin(tilt));
       this.face.add(tail);
-      const tie = new THREE.Mesh(new THREE.TorusGeometry(R * 0.2, R * 0.045, 8, 16), this.lime);
+      const tie = new THREE.Mesh(new THREE.TorusGeometry(R * 0.27, R * 0.05, 8, 18), this.lime);
       tie.rotation.x = -Math.PI / 2 + tilt;
-      tie.position.set(0, R * 0.2 - R * 0.06, -R * 0.88 - R * 0.02);
+      tie.position.set(0, R * 0.18 - R * 0.1, -R * 0.9 - R * 0.03);
       this.face.add(tie);
     } else {
       // Buzz cut: a tight cap hugging the top and back of the skull.
@@ -464,11 +481,15 @@ export class PoseViewer3D {
       hairCap.rotation.x = -0.4;
       this.face.add(hairCap);
     }
-    // Brows angled in and down over the eyes; finer on the female face.
+    // Brows: his angled in and down over the eyes; hers thin, higher and
+    // nearly level, with just the outer end lifted.
     for (const side of [-1, 1]) {
-      const brow = new THREE.Mesh(new THREE.BoxGeometry(R * 0.3, R * (female ? 0.045 : 0.07), R * 0.07), this.hair);
-      brow.position.set(side * R * 0.33, R * 0.34, R * 0.84);
-      brow.rotation.z = side * (female ? 0.22 : 0.32);
+      const brow = new THREE.Mesh(
+        new THREE.BoxGeometry(R * (female ? 0.27 : 0.3), R * (female ? 0.032 : 0.07), R * 0.07),
+        female ? this.hairFemale : this.hair,
+      );
+      brow.position.set(side * R * 0.33, R * (female ? 0.38 : 0.34), R * 0.84);
+      brow.rotation.z = side * (female ? 0.1 : 0.32);
       this.face.add(brow);
     }
     if (!female) {
