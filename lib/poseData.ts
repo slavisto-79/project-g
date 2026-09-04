@@ -62,12 +62,20 @@ function napeArms(pelvis: Point, torso: number): [Limb, Limb] {
   // upper-rear slope (the top of the spine is a 0.058 x 0.052 dome in the
   // world build, the bar is 0.012 thick) -- touching, not hovering behind it
   // -- while still clearing the neck and the back of the head.
+  // The 2D shoulders sit a depth-offset ahead of the 3D girdle, so the world
+  // grip lands ~1.8cm further back than this target: 0.02 back here is
+  // ~0.038 in the world -- the bar's surface a millimetre INTO the trunk's
+  // upper-rear slope at the top of the rep, deeper at the bottom, touching
+  // the base of the neck, clear of the head. Measured, not guessed.
   const nape = {
-    x: top.x - (0.05 * Math.cos(rad)) / (850 / 567) + (0.045 * Math.sin(rad)) / (850 / 567),
-    y: top.y - 0.05 * Math.sin(rad) - 0.045 * Math.cos(rad),
+    x: top.x - (0.02 * Math.cos(rad)) / (850 / 567) + (0.052 * Math.sin(rad)) / (850 / 567),
+    y: top.y - 0.02 * Math.sin(rad) - 0.052 * Math.cos(rad),
   };
-  const near = reachingArms(pelvis, torso, "side", [nape, nape], FORWARD)[0]!;
-  return [{ ...near, spread: 0.14 }, { ...echo(near), spread: 0.14 }];
+  // Both arms solved to the same point (equalizedPair makes the far one
+  // match): an echoed far arm drifted the grip midpoint 1.6cm back and
+  // deeper as the arms folded, so the bar slid on the back through the rep.
+  const [near, far] = reachingArms(pelvis, torso, "side", [nape, nape], FORWARD);
+  return [{ ...near, spread: 0.14 }, { ...far, spread: 0.14 }];
 }
 
 // Hands hugging a bell against the chest, elbows tucked down.
