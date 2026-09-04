@@ -58,9 +58,13 @@ function napeArms(pelvis: Point, torso: number): [Limb, Limb] {
   const top = spineTop(pelvis, torso);
   const rad = (torso * Math.PI) / 180;
   // Trunk axis and its forward perpendicular, in screen terms.
+  // 0.045 up and 0.05 back puts the bar's surface exactly on the trunk's
+  // upper-rear slope (the top of the spine is a 0.058 x 0.052 dome in the
+  // world build, the bar is 0.012 thick) -- touching, not hovering behind it
+  // -- while still clearing the neck and the back of the head.
   const nape = {
-    x: top.x - (0.05 * Math.cos(rad)) / (850 / 567) + (0.02 * Math.sin(rad)) / (850 / 567),
-    y: top.y - 0.05 * Math.sin(rad) - 0.02 * Math.cos(rad),
+    x: top.x - (0.05 * Math.cos(rad)) / (850 / 567) + (0.045 * Math.sin(rad)) / (850 / 567),
+    y: top.y - 0.05 * Math.sin(rad) - 0.045 * Math.cos(rad),
   };
   const near = reachingArms(pelvis, torso, "side", [nape, nape], FORWARD)[0]!;
   return [{ ...near, spread: 0.14 }, { ...echo(near), spread: 0.14 }];
