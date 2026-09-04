@@ -47,23 +47,23 @@ const SQUAT_FRAMES = [
   [0.500, 0.494, 2], [0.478, 0.578, 16], [0.454, 0.636, 30], [0.434, 0.690, 42],
 ] as const;
 
-// Hands gripping a bar that lies ACROSS THE TRAPS: the target sits just
-// above and behind the top of the spine, in the trunk's own frame, so it
-// rides the back as the torso tilts. The offsets are a balance: the bar must
-// touch the shoulder girdle (0.036 up is its radius plus the bar's), and the
-// hand must stay 0.07 from the side-view shoulder joint or the elbow folds
-// past 152 degrees -- so the bar sits well BACK (0.065), on the rear delts,
-// not high above the neck where the first draft floated it.
+// Hands gripping a bar that lies ACROSS THE TRAPS: the target sits on the
+// upper back -- a whisker above the top of the spine and behind it, in the
+// trunk's own frame, so it rides the back as the torso tilts. In the side
+// plane that puts the hand so close to the shoulder that the elbow would
+// fold past its range; the way out is the way a lifter actually does it: a
+// WIDE grip. `spread` carries the wrists 14cm outboard in the world build,
+// which opens the elbow to ~130 degrees while the bar stays on the back.
 function napeArms(pelvis: Point, torso: number): [Limb, Limb] {
   const top = spineTop(pelvis, torso);
   const rad = (torso * Math.PI) / 180;
   // Trunk axis and its forward perpendicular, in screen terms.
   const nape = {
-    x: top.x - (0.065 * Math.cos(rad)) / (850 / 567) + (0.036 * Math.sin(rad)) / (850 / 567),
-    y: top.y - 0.065 * Math.sin(rad) - 0.036 * Math.cos(rad),
+    x: top.x - (0.05 * Math.cos(rad)) / (850 / 567) + (0.02 * Math.sin(rad)) / (850 / 567),
+    y: top.y - 0.05 * Math.sin(rad) - 0.02 * Math.cos(rad),
   };
   const near = reachingArms(pelvis, torso, "side", [nape, nape], FORWARD)[0]!;
-  return [near, echo(near)];
+  return [{ ...near, spread: 0.14 }, { ...echo(near), spread: 0.14 }];
 }
 
 // Hands hugging a bell against the chest, elbows tucked down.
