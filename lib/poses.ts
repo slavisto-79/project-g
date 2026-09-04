@@ -124,7 +124,11 @@ function step(from: Point, angleDeg: number, length: number): Point {
 
 // One arm or leg: the two angles that define it, plus an optional angle for the
 // hand or foot on the end.
-type Limb = { upper: number; lower: number; end?: number };
+// spread: extra lateral reach in the WORLD build only -- the wrist moves this
+// far outboard (the elbow half as far). A side view cannot draw a wide grip,
+// but a bar carried on the back is held wide, and the width is what keeps
+// the elbow open in 3D while the hand sits close to the neck in the plane.
+type Limb = { upper: number; lower: number; end?: number; spread?: number };
 
 type Figure = {
   // Centre of the hip line, which is where the whole figure hangs from.
@@ -278,8 +282,9 @@ function build3d(figure: Figure, view: View): { bones: PoseBone3D[]; head: { c: 
     // dumbbell's inner head, a kettlebell's ball) sat exactly at shoulder
     // width and passed straight through the thighs.
     const out = side === 0 ? 1 : -1;
-    elbow[0] += out * 0.014;
-    wrist[0] += out * 0.028;
+    const spread = arm.spread ?? 0;
+    elbow[0] += out * (0.014 + spread / 2);
+    wrist[0] += out * (0.028 + spread);
     // Walked from the already-shifted wrist, so it carries the splay with it.
     const handTip = walk(wrist, arm.end ?? arm.lower, P.hand);
     bones.push({ part: "upperArm", side, a: shoulder[side]!, b: elbow });
