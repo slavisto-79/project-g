@@ -320,6 +320,9 @@ export class PoseViewer3D {
     // bigger delts or a thicker neck (the user: "стегнато и добре изглеждащо
     // момиче, не бодибилдърка").
     const tone = female ? Math.max(0, Math.min(1, (muscle - 1) / 0.3)) : 0;
+    // Her kit carries the app's pink accent (shoes, wristbands, hair tie)
+    // where his carries the lime -- the same swap the interface makes.
+    if (female) this.lime.color.setHex(0xff5fa8);
     // Depth grows less than width: bench pads sit a fixed BODY_HALF below the
     // spine line, and a deeper trunk would sink into them (at the heaviest
     // build it is 1.2cm into a 5.5cm pad, which reads as padding giving way).
