@@ -6907,13 +6907,19 @@ function PoseFigure3DWeb({
   implement,
   interactive,
   avatar,
+  topInset = 0,
 }: {
   pose: ExercisePose;
   implement: ViewerImplement;
   interactive: boolean;
   avatar: AvatarBuild;
+  // Pixels along the top of the stage covered by the host's own chrome (the
+  // fullscreen title bar); the figure is fitted below it, so the head is
+  // never under the title.
+  topInset?: number;
 }) {
   const hostRef = useRef<View>(null);
+  const viewerRef = useRef<PoseViewer3D | null>(null);
   const reduceMotion = useReducedMotion();
   // The first WebGL scene of a session can take a few seconds to draw; until
   // the viewer reports its first real frame the stage shows a placeholder
@@ -6930,15 +6936,26 @@ function PoseFigure3DWeb({
       interactive,
       reduceMotion,
       avatar,
+      topInset,
       onReady: () => {
         if (live) setReady(true);
       },
     });
+    viewerRef.current = viewer;
     return () => {
       live = false;
+      viewerRef.current = null;
       viewer.dispose();
     };
+    // topInset is deliberately not a dependency: the title bar measures
+    // itself after the viewer exists, and a refit is far cheaper than a
+    // second WebGL scene.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pose, implement, interactive, reduceMotion, avatar]);
+
+  useEffect(() => {
+    viewerRef.current?.setTopInset(topInset);
+  }, [topInset]);
 
   return (
     <>
@@ -6955,6 +6972,10 @@ function PoseFigure3DWeb({
 
 function ExerciseCueCard({ exercise, avatar }: { exercise: WorkoutExercise; avatar: AvatarBuild }) {
   const [expanded, setExpanded] = useState(false);
+  // The fullscreen title bar lies over the stage; its measured height goes
+  // to the viewer so the figure is framed below it -- a lunge's head sat
+  // under the title on a narrow phone.
+  const [headerHeight, setHeaderHeight] = useState(0);
   return (
     <View style={styles.cueCard}>
       {exercise.pose ? (
@@ -6982,9 +7003,19 @@ function ExerciseCueCard({ exercise, avatar }: { exercise: WorkoutExercise; avat
             <Modal visible={expanded} transparent animationType="none" onRequestClose={() => setExpanded(false)}>
               <View style={styles.poseModalBackdrop}>
                 <View style={styles.poseModalStage}>
-                  <PoseFigure3DWeb pose={exercise.pose} implement={exercise.demoImplement ?? exercise.implement} interactive avatar={avatar} />
+                  <PoseFigure3DWeb
+                    pose={exercise.pose}
+                    implement={exercise.demoImplement ?? exercise.implement}
+                    interactive
+                    avatar={avatar}
+                    topInset={headerHeight}
+                  />
                 </View>
-                <View style={styles.poseModalHeader} pointerEvents="box-none">
+                <View
+                  style={styles.poseModalHeader}
+                  pointerEvents="box-none"
+                  onLayout={(event) => setHeaderHeight(Math.round(event.nativeEvent.layout.height))}
+                >
                   {/* flex 1 so a long hint wraps instead of shoving the close
                       button off the right edge of a narrow screen. */}
                   <View style={styles.poseModalTitles}>
