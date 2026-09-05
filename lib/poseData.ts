@@ -41,6 +41,14 @@ const HANG = sideArms(178, 179);
 // travels in FRONT of the shins, and the knees never cross its line.
 const HANG_AHEAD = sideArms(168, 171);
 const HANG_FRONT = bothArms(175, 178);
+// Lying down, both legs are level with the floor: sideLegs' five-degree
+// depth offset on the far leg dropped its toes 4cm through the floor a body
+// was pinned to, and every lying floor was then pinned to THAT, leaving the
+// trunk hanging in the air. The world build separates the legs by the hip
+// width, so they never merge there.
+function lyingLegs(upper: number, lower: number, end?: number): [Limb, Limb] {
+  return [{ upper, lower, end }, { upper, lower, end }];
+}
 
 // One squat descent, shared by every carry variant of it.
 const SQUAT_FRAMES = [
@@ -891,12 +899,21 @@ export const exercisePoses = {
   proneRaise: pose(
     "side",
     [
-      { pelvis: { x: 0.5, y: 0.680 }, torso: 268, neck: 262, arms: sideArms(268, 272), legs: sideLegs(92, 92, 40) },
-      { pelvis: { x: 0.5, y: 0.678 }, torso: 280, neck: 272, arms: sideArms(292, 296), legs: sideLegs(80, 76, 26) },
+      // Face down: the feet are pointed (toes down, on the floor), not toes
+      // up as in the supine holds this was first copied from.
+      // The head is held a little up off the floor (neck 12 degrees above the
+      // trunk line), looking ahead: level with the trunk, the face went 3cm
+      // through the floor.
+      // Trunk 2 degrees up from the hips: the chest is thicker than the
+      // thighs the floor is pinned under, and level it went 2cm through.
+      { pelvis: { x: 0.5, y: 0.680 }, torso: 272, neck: 284, arms: sideArms(272, 276), legs: lyingLegs(92, 92, 104) },
+      { pelvis: { x: 0.5, y: 0.678 }, torso: 280, neck: 292, arms: sideArms(292, 296), legs: lyingLegs(80, 76, 112) },
       // Chest and legs both come off the ground, which is the whole exercise.
-      { pelvis: { x: 0.5, y: 0.676 }, torso: 292, neck: 282, arms: sideArms(312, 318), legs: sideLegs(68, 60, 12) },
+      { pelvis: { x: 0.5, y: 0.676 }, torso: 292, neck: 304, arms: sideArms(312, 318), legs: lyingLegs(68, 60, 96) },
     ],
-    [{ kind: "floor", y: 0.786 }],
+    // Pinned a thigh's radius under the leg line, where the belly and the
+    // thighs actually rest: at 0.786 the trunk hung 5cm over the floor.
+    [{ kind: "floor", y: 0.733 }],
     "overhand",
     -1,
   ),
@@ -906,9 +923,11 @@ export const exercisePoses = {
   hollowHold: pose(
     "side",
     [
-      { pelvis: { x: 0.5, y: 0.700 }, torso: 274, neck: 268, arms: sideArms(276, 279), legs: sideLegs(95, 92, 40) },
-      { pelvis: { x: 0.5, y: 0.696 }, torso: 278, neck: 271, arms: sideArms(294, 298), legs: sideLegs(78, 74, 24) },
-      { pelvis: { x: 0.5, y: 0.692 }, torso: 282, neck: 274, arms: sideArms(312, 317), legs: sideLegs(62, 56, 8) },
+      // The lower back stays on the floor throughout: the pelvis sits a hip's
+      // radius above it (at 0.700 over a 0.792 floor it hung 5cm in the air).
+      { pelvis: { x: 0.5, y: 0.735 }, torso: 274, neck: 268, arms: sideArms(276, 279), legs: lyingLegs(91, 89, 40) },
+      { pelvis: { x: 0.5, y: 0.733 }, torso: 278, neck: 271, arms: sideArms(294, 298), legs: lyingLegs(78, 74, 24) },
+      { pelvis: { x: 0.5, y: 0.731 }, torso: 282, neck: 274, arms: sideArms(312, 317), legs: lyingLegs(62, 56, 8) },
     ],
     [{ kind: "floor", y: 0.792 }],
   ),
@@ -918,8 +937,11 @@ export const exercisePoses = {
     [
       // One forearm on the ground and the other arm reaching straight up: the
       // asymmetry is what says "side" rather than "front".
-      { pelvis: { x: 0.5, y: 0.665 }, torso: 286, neck: 286, arms: [{ upper: 180, lower: 266, end: 266 }, { upper: 10, lower: 6 }], legs: sideLegs(100, 96, 10) },
-      { pelvis: { x: 0.5, y: 0.688 }, torso: 289, neck: 289, arms: [{ upper: 180, lower: 266, end: 266 }, { upper: 10, lower: 6 }], legs: sideLegs(104, 100, 14) },
+      // The hips lift by hinging over the planted feet: the legs steepen as
+      // the pelvis rises, so the feet stay on the floor (lifted with the
+      // legs at the same angle, the whole figure rose 6cm off it).
+      { pelvis: { x: 0.5, y: 0.665 }, torso: 286, neck: 286, arms: [{ upper: 180, lower: 266, end: 266 }, { upper: 10, lower: 6 }], legs: lyingLegs(107, 103, 17) },
+      { pelvis: { x: 0.5, y: 0.688 }, torso: 289, neck: 289, arms: [{ upper: 180, lower: 266, end: 266 }, { upper: 10, lower: 6 }], legs: lyingLegs(104, 100, 14) },
     ],
     [{ kind: "floor" }],
   ),
@@ -1196,7 +1218,9 @@ export const exercisePoses = {
       const tucked: Limb = { upper: 335, lower: 120, end: 80 };
       const long: Limb = { upper: 63, lower: 61, end: 22 };
       return {
-        pelvis: { x: 0.5, y: 0.70 },
+        // Lower back on the floor: a hip's radius above it, as in the hollow
+        // hold (at 0.70 it hung 3.5cm in the air).
+        pelvis: { x: 0.5, y: 0.733 },
         torso: 282,
         neck: 304,
         arms: sideArms(330, 185),
