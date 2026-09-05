@@ -166,7 +166,9 @@ export class PoseViewer3D {
     host: HTMLElement,
     pose: ExercisePose,
     implement: ViewerImplement,
-    options: { interactive: boolean; reduceMotion?: boolean; onReady?: () => void; avatar?: AvatarBuild },
+    // `topInset`: pixels along the top of the host that something else is
+    // drawn over (the fullscreen title bar). The figure is fitted below it.
+    options: { interactive: boolean; reduceMotion?: boolean; onReady?: () => void; avatar?: AvatarBuild; topInset?: number },
   ) {
     this.host = host;
     this.frames = pose.frames3d;
@@ -174,6 +176,7 @@ export class PoseViewer3D {
     this.reduceMotion = options.reduceMotion ?? false;
     this.onReady = options.onReady;
     this.avatar = options.avatar ?? REFERENCE_AVATAR;
+    this.topInsetPx = options.topInset ?? 0;
 
     this.canvas = document.createElement("canvas");
     this.canvas.style.width = "100%";
@@ -230,6 +233,25 @@ export class PoseViewer3D {
   }
 
   private fitted = false;
+  // The band along the top of the host that the fit keeps the figure out of,
+  // and the point the camera looks at: the scene's centre, raised so the
+  // figure sits below the band with the same air above and below it.
+  private topInsetPx = 0;
+  private readonly aim = new THREE.Vector3();
+
+  // The host learns its title bar's height after layout; refit under it.
+  setTopInset(px: number) {
+    if (px === this.topInsetPx) return;
+    this.topInsetPx = px;
+    if (!this.fitted) return;
+    this.fit();
+    if (this.controls) {
+      this.controls.target.copy(this.aim);
+      this.controls.minDistance = this.orbitRadius * 0.45;
+      this.controls.maxDistance = this.orbitRadius * 2.6;
+      this.controls.update();
+    }
+  }
 
   private applySize() {
     const w = Math.max(this.host.clientWidth, 1);
@@ -242,7 +264,7 @@ export class PoseViewer3D {
       this.fit();
       if (this.interactive) {
         this.controls = new OrbitControls(this.camera, this.canvas);
-        this.controls.target.copy(this.centre);
+        this.controls.target.copy(this.aim);
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.08;
         this.controls.enablePan = false;
@@ -1304,7 +1326,12 @@ export class PoseViewer3D {
     // top of the figure into the frame edge, and the first thing that clipped
     // was the head -- the one part that must never clip.
     const tanV = Math.tan((this.camera.fov * Math.PI) / 360);
-    const fitV = size.y / 2 / tanV;
+    // The title bar's share of the height. The camera aims above the scene's
+    // centre by that share of the half-frame, which drops the figure below
+    // the bar, and the fit then has (1 - inset) of the half-frame to work
+    // with at both edges -- the same air over the head as under the feet.
+    const inset = Math.min(this.topInsetPx / Math.max(this.host.clientHeight, 1), 0.4);
+    const fitV = size.y / 2 / tanV / (1 - 1.06 * inset);
     const fitH = Math.max(size.x, size.z) / 2 / (tanV * Math.max(this.camera.aspect, 0.1));
     // Margins are per-axis: height is the scarce dimension in the card (the
     // stage is wider than the figure on every real viewport), so the vertical
@@ -1312,6 +1339,7 @@ export class PoseViewer3D {
     // horizontal margin stays, because orbiting bar tips swing toward the
     // camera and are the first thing to clip at the side edges.
     this.orbitRadius = Math.max(fitV * 1.06, fitH * 1.16, (extent / 2 / tanV / 2) * 1.16);
+    const aimAt = (radius: number) => this.aim.set(this.centre.x, this.centre.y + inset * radius * tanV, this.centre.z);
     if (this.floorDisc) {
       const halfW = this.orbitRadius * tanV * Math.max(this.camera.aspect, 0.5);
       let s = Math.min(Math.max(halfW * 0.82, 0.5), 1.9);
@@ -1350,15 +1378,17 @@ export class PoseViewer3D {
     // side edge; it gets a little more air there.
     const inside = this.lyingScene ? FIT_INSIDE_LYING : FIT_INSIDE;
     const fits = (radius: number) => {
+      const aim = aimAt(radius);
       for (let k = 0; k < 24; k++) {
         const az = arc[0] + ((arc[1] - arc[0]) * k) / 24;
-        this.camera.position.set(this.centre.x + radius * Math.sin(az), this.centre.y + elevation, this.centre.z + radius * Math.cos(az));
-        this.camera.lookAt(this.centre);
+        this.camera.position.set(aim.x + radius * Math.sin(az), aim.y + elevation, aim.z + radius * Math.cos(az));
+        this.camera.lookAt(aim);
         this.camera.updateMatrixWorld();
         for (const { p, r } of hull) {
           const ndc = p.clone().project(this.camera);
           const pad = r / (p.distanceTo(this.camera.position) * tanV);
-          if (Math.abs(ndc.y) + pad > inside || Math.abs(ndc.x) + pad / this.camera.aspect > inside) return false;
+          // The top edge is the title bar's lower edge, not the frame's.
+          if (ndc.y + pad > inside - 2 * inset || -ndc.y + pad > inside || Math.abs(ndc.x) + pad / this.camera.aspect > inside) return false;
         }
       }
       return true;
@@ -1374,12 +1404,13 @@ export class PoseViewer3D {
       }
       this.orbitRadius = hi;
     }
+    aimAt(this.orbitRadius);
     this.camera.position.set(
-      this.centre.x + this.orbitRadius * Math.sin(0.9),
-      this.centre.y + extent * 0.1,
-      this.centre.z + this.orbitRadius * Math.cos(0.9),
+      this.aim.x + this.orbitRadius * Math.sin(0.9),
+      this.aim.y + extent * 0.1,
+      this.aim.z + this.orbitRadius * Math.cos(0.9),
     );
-    this.camera.lookAt(this.centre);
+    this.camera.lookAt(this.aim);
   }
 
   private update() {
@@ -1556,11 +1587,11 @@ export class PoseViewer3D {
         ? Math.PI / 2 + Math.sin(elapsed * 0.00045) * LYING_SWING
         : 0.9 + elapsed * 0.00035;
       this.camera.position.set(
-        this.centre.x + this.orbitRadius * Math.sin(az),
+        this.aim.x + this.orbitRadius * Math.sin(az),
         this.camera.position.y,
-        this.centre.z + this.orbitRadius * Math.cos(az),
+        this.aim.z + this.orbitRadius * Math.cos(az),
       );
-      this.camera.lookAt(this.centre);
+      this.camera.lookAt(this.aim);
     }
 
     this.renderer.render(this.scene, this.camera);
