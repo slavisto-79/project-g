@@ -65,8 +65,15 @@ const HELD_OUTBOARD = 0.045;
 type BoneMeshes = { cylinder: THREE.Mesh; capA: THREE.Mesh; capB: THREE.Mesh; radius: number; part: string };
 
 const UP = new THREE.Vector3(0, 1, 0);
-// A bench pad's width: about 30cm, narrower than the trunk lying on it.
-const BENCH_PAD_WIDTH = 0.16;
+// A bench pad's width: about 26cm -- narrower than the trunk lying on it and
+// a shade narrower than the shoulders, so arms hanging beside an inclined
+// backrest hang BESIDE it rather than through its edge.
+const BENCH_PAD_WIDTH = 0.14;
+// An incline bench's seat: short, and mostly BEHIND the hip joint, tucked
+// under the backrest. The thighs angle down to the floor from the hip, and
+// a seat that ran on ahead of it was what they sank into.
+const SEAT_LENGTH = 0.16;
+const SEAT_OFFSET = -0.06;
 // How far a hex bar's handles stand above its frame (the plates' axle).
 const TRAP_HANDLE_RISE = 0.06;
 
@@ -1049,8 +1056,8 @@ export class PoseViewer3D {
           back.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d);
           back.position.copy(d).multiplyScalar(prop.width / 2 - 0.05).addScaledVector(n, BODY_HALF + prop.height / 2);
           const feetward = (-Math.sign(d.z) || 1) as 1 | -1;
-          const seat = this.pad(BENCH_PAD_WIDTH, prop.height, 0.24);
-          seat.position.set(0, -(BODY_HALF - 0.008 + prop.height / 2), feetward * 0.1);
+          const seat = this.pad(BENCH_PAD_WIDTH, prop.height, SEAT_LENGTH);
+          seat.position.set(0, -(BODY_HALF - 0.008 + prop.height / 2), feetward * SEAT_OFFSET);
           group.add(back, seat);
           if (floorY !== undefined) {
             const base = floorY - prop.center[1];
@@ -1094,8 +1101,11 @@ export class PoseViewer3D {
           this.held.push(this.anchored(group, i, "slab"));
           continue;
         }
+        // A long low pad is a bench the figure lies along (the leg curl's),
+        // and gets a bench's width; a short one is a step or a box.
+        const padWidth = prop.width >= 0.5 ? BENCH_PAD_WIDTH : 0.26;
         const pad = new THREE.Mesh(
-          new THREE.BoxGeometry(0.26, prop.height, prop.width),
+          new THREE.BoxGeometry(padWidth, prop.height, prop.width),
           new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.8, transparent: wall, opacity: wall ? 0.45 : 1 }),
         );
         this.scene.add(pad);
@@ -1105,7 +1115,7 @@ export class PoseViewer3D {
         // grounding at all.
         if (floorY !== undefined && drop > 0.02) {
           const plinth = new THREE.Mesh(
-            new THREE.BoxGeometry(0.24, drop, prop.width),
+            new THREE.BoxGeometry(padWidth - 0.02, drop, prop.width),
             new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.85 }),
           );
           plinth.position.set(prop.center[0], floorY + drop / 2, prop.center[2]);
