@@ -182,7 +182,9 @@ export const exercisePoses = {
     }),
     [
       { kind: "floor" },
-      { kind: "slab", at: "ankle1", width: 0.17, height: 0.042, dy: 0.038 },
+      // The box top sits a sole and an ankle below the ankle joint; any
+      // higher and the shin's round sinks into it.
+      { kind: "slab", at: "ankle1", width: 0.17, height: 0.042, dy: 0.058 },
       { kind: "bell", at: "hand0", each: true },
     ],
     "neutral",
@@ -249,7 +251,8 @@ export const exercisePoses = {
       pelvis: { x: 0.47, y: 0.62 },
       torso: 266,
       neck: 318,
-      arms: sideArms(226, 300),
+      // Hands on the handles beside the bench, arms outside the pad.
+      arms: sideArms(226, 300).map((arm) => ({ ...arm, spread: 0.08 })) as [Limb, Limb],
       legs: sideLegs(92, shin, shin + 85),
     })),
     [{ kind: "floor", y: 0.79 }, { kind: "slab", at: "pelvis", width: 0.62, height: 0.055, dx: -0.13, dy: 0.085 }],
@@ -373,7 +376,9 @@ export const exercisePoses = {
     }),
     [
       { kind: "floor", y: 0.742 },
-      { kind: "slab", at: "shoulder", width: 0.20, height: 0.055, dy: 0.085 },
+      // The bench ends just past the shoulders: the trunk angles down from
+      // there and ran through a pad that reached further.
+      { kind: "slab", at: "shoulder", width: 0.20, height: 0.055, dx: -0.06, dy: 0.085 },
       { kind: "bar", at: "pelvis", dy: -0.048, length: 0.17 },
     ],
   ),
@@ -439,12 +444,14 @@ export const exercisePoses = {
 
   // --- Horizontal push -----------------------------------------------------
 
+  // The bench ends at the hip joint: the thighs angle down to the floor from
+  // there, and a pad running on past the hips is what they used to sink into.
   bench: pose(
     "side",
     ([[0.397, 0.304], [0.450, 0.385], [0.505, 0.465]] as const).map(([barX, barY]) => bench(barX, barY)),
     [
       { kind: "floor" },
-      { kind: "slab", at: "pelvis", width: 0.62, height: 0.055, dx: -0.13, dy: 0.085 },
+      { kind: "slab", at: "pelvis", width: 0.58, height: 0.055, dx: -0.197, dy: 0.085 },
       { kind: "bar", at: "grip", length: 0.17 },
     ],
   ),
@@ -467,7 +474,7 @@ export const exercisePoses = {
     })),
     [
       { kind: "floor" },
-      { kind: "slab", at: "pelvis", width: 0.62, height: 0.055, dx: -0.13, dy: 0.085 },
+      { kind: "slab", at: "pelvis", width: 0.58, height: 0.055, dx: -0.197, dy: 0.085 },
       { kind: "bar", at: "grip", length: 0.14, plates: false },
     ],
   ),
@@ -918,7 +925,9 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso + 20,
-        arms: sideArms(196, 206),
+        // Hands on the handles beside the seat: the arms hang outside the
+        // backrest, not through its edge.
+        arms: sideArms(196, 206).map((arm) => ({ ...arm, spread: 0.06 })) as [Limb, Limb],
         legs: plantedLegs(pelvis, torso, "side", [{ x: fx, y: fy }, { x: fx - 0.014, y: fy + 0.012 }], FORWARD, [352, 357]),
       };
     }),
@@ -1041,15 +1050,18 @@ export const exercisePoses = {
       return {
         pelvis,
         torso: 354,
-        arms: sideArms(128, 130),
+        // Hands a little higher, so the thigh pad they rest on clears the
+        // thighs it presses on instead of cutting into them.
+        arms: sideArms(118, 120),
         legs: plantedLegs(pelvis, 354, "side", [{ x: ax, y: ay }, { x: ax - 0.012, y: ay + 0.008 }], FORWARD, [end, end + 4]),
       };
     }),
     [
       { kind: "floor" },
       { kind: "slab", at: "pelvis", width: 0.15, height: 0.055, dy: 0.08 },
-      // The machine pad the hands rest on, riding over the knees.
-      { kind: "slab", at: "hand0", width: 0.12, height: 0.028, dy: 0.02 },
+      // The machine pad the hands rest on, riding over the knees -- pressing
+      // on the thighs, not cutting into them.
+      { kind: "slab", at: "hand0", width: 0.12, height: 0.028, dy: 0.012 },
     ],
   ),
 
@@ -1251,7 +1263,7 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: 316,
-        arms: sideArms(178, forearm).map((arm) => ({ ...arm, spread: 0.05 })) as [Limb, Limb],
+        arms: sideArms(178, forearm).map((arm) => ({ ...arm, spread: 0.07 })) as [Limb, Limb],
         legs: plantedLegs(pelvis, torso, "side", [{ x: 0.712, y: FLOOR }, { x: 0.696, y: FLOOR }], FORWARD),
       };
     }),
