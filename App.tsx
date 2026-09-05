@@ -166,7 +166,7 @@ const interviewQuestions: InterviewQuestion[] = [
     id: "sex",
     kicker: "PERSONALIZE YOUR TRAINING",
     title: "How should we personalize your plan?",
-    subtitle: "This sets your calorie maths and exercise demos. It can’t be changed later.",
+    subtitle: "This sets your calorie maths and exercise demos.",
     answers: [
       { label: "Woman", value: "female" },
       { label: "Man", value: "male" },
@@ -424,11 +424,7 @@ function toggleAnswerValue(current: string | undefined, value: string): string {
   return [...selected.filter((entry) => !EXCLUSIVE_ANSWER_VALUES.has(entry)), value].join(",");
 }
 
-// Answers that are fixed once onboarding is done, each for its own reason.
-//
-// "sex" feeds the BMR constant and picks which demo videos load -- it isn't a
-// preference to retune, and flipping it would silently rewrite every calorie
-// target.
+// Answers that are fixed once onboarding is done.
 //
 // "experience" exists to place someone correctly on day one. After that the
 // app earns their progression for them, session by session: rep floors, load
@@ -436,10 +432,14 @@ function toggleAnswerValue(current: string | undefined, value: string): string {
 // answer. Letting someone jump to "advanced" would reprice progress they
 // haven't made yet, on top of exercise history recorded under the old rules.
 //
-// Both stay editable during onboarding itself, and RESET PROFILE clears
+// It stays editable during onboarding itself, and RESET PROFILE clears
 // everything and re-runs the interview -- that's the deliberate way back.
+//
+// "sex" used to be locked too, on the grounds that flipping it rewrites the
+// calorie targets. It was unlocked at the user's request: everything that
+// reads it (calorie maths, the theme, the avatar, the strength standings)
+// reads the live profile, so a change takes effect everywhere at once.
 const LOCKED_AFTER_ONBOARDING: Record<string, string> = {
-  sex: "Set during onboarding",
   experience: "Your plan progresses this for you",
 };
 
