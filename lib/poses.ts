@@ -23,7 +23,7 @@ export type PoseSegment = { x1: number; y1: number; x2: number; y2: number; weig
 // Equipment drawn alongside the figure. A back squat and a goblet squat are the
 // same shape; what is being held is most of what tells them apart.
 export type PoseProp =
-  | { kind: "bar"; x: number; y: number; angle: number; length: number; plates: boolean; rails?: boolean }
+  | { kind: "bar"; x: number; y: number; angle: number; length: number; plates: boolean; rails?: boolean; hex?: boolean }
   | { kind: "bell"; x: number; y: number; size: number }
   // angle: an inclined bench -- the backrest runs along this authored
   // direction (same convention as a bar's angle) from the anchor, which is
@@ -66,7 +66,9 @@ export type PoseProp3D =
   // crossbar at hip height cannot exist without passing through it.
   // dir: a leaning bar (landmine) -- unit direction in the sagittal plane,
   // pointing from the floor-pinned end up toward the hands.
-  | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean; dir?: Vec3 }
+  // hex: a trap bar -- a hexagonal frame the lifter stands inside, handles at
+  // the sides where the hands are; the plates sit outside the frame.
+  | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean; dir?: Vec3; hex?: boolean }
   | { kind: "bell"; center: Vec3; size: number }
   // dir: an inclined bench's backrest direction; center is then the hip.
   | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3 }
@@ -364,6 +366,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
         length: prop.plates ? 1.04 : Math.max(view === "front" ? prop.length : 0.34, 0.34),
         plates: prop.plates,
         ...(prop.rails ? { rails: true } : {}),
+        ...(prop.hex ? { hex: true } : {}),
         // An authored lean survives into 3D as a direction; the bar is long
         // enough to visibly run down to its floor pivot.
         ...(view === "side" && prop.angle !== 90
@@ -398,7 +401,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
 }
 
 type PropSpec =
-  | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean }
+  | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean; hex?: boolean }
   | { kind: "bell"; at: string; size?: number; each?: boolean }
   | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number; angle?: number }
   // anchor: the pulley, in authored coordinates (a high pulley sits above the
@@ -440,6 +443,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
         length: spec.length ?? 0.34,
         plates: spec.plates ?? true,
         ...(spec.rails ? { rails: true } : {}),
+        ...(spec.hex ? { hex: true } : {}),
       });
     } else if (spec.kind === "bell") {
       drawn.push({ kind: "bell", x: anchor.x, y: anchor.y, size: spec.size ?? 0.055 });
