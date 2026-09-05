@@ -49,6 +49,9 @@ const RADII = {
 } as const;
 
 const PHASE_MS = 1100;
+// How far out from the centre of the frame (in clip units, 1 = the edge) the
+// fit keeps the head and hands around the orbit.
+const FIT_INSIDE = 0.96;
 
 // How far a hand-held weight rides outboard of the wrist. On the wrist
 // itself, a kettlebell's ball is wider than the gap to the thigh, and
@@ -1196,6 +1199,51 @@ export class PoseViewer3D {
         }
       }
       this.floorDisc.scale.set(s, 1, s);
+    }
+    // The box fit only holds at the centre's depth: on the near side of the
+    // orbit a raised hand is closer to the camera and projects past the edge
+    // -- a jump squat's fingertips were cut off at the top of the card. So
+    // the head and the hands, the parts the movement is read by, are
+    // actually projected through the camera around the arc the card will
+    // show, and the radius grows until they stay inside with a margin. Feet,
+    // plates and bench ends are left to the box: a foot pointing at the
+    // camera grazing the bottom edge is not worth shrinking the figure by a
+    // third, which is what keeping every near-side point in would cost.
+    const hull: { p: THREE.Vector3; r: number }[] = [];
+    for (const frame of this.frames) {
+      for (const bone of frame.bones) {
+        if (bone.part === "hand") hull.push({ p: vec(bone.a), r: 0.03 }, { p: vec(bone.b), r: 0.03 });
+      }
+      const neck = frame.bones[this.neckIndex];
+      const up = neck ? vec(neck.b).sub(vec(neck.a)).normalize() : new THREE.Vector3(0, 1, 0);
+      hull.push({ p: vec(frame.head.c).addScaledVector(up, 0.03), r: frame.head.r * 1.25 });
+    }
+    const elevation = extent * 0.1;
+    const arc: [number, number] = this.lyingScene ? [-0.2, 2.0] : [0, Math.PI * 2];
+    const fits = (radius: number) => {
+      for (let k = 0; k < 24; k++) {
+        const az = arc[0] + ((arc[1] - arc[0]) * k) / 24;
+        this.camera.position.set(this.centre.x + radius * Math.sin(az), this.centre.y + elevation, this.centre.z + radius * Math.cos(az));
+        this.camera.lookAt(this.centre);
+        this.camera.updateMatrixWorld();
+        for (const { p, r } of hull) {
+          const ndc = p.clone().project(this.camera);
+          const pad = r / (p.distanceTo(this.camera.position) * tanV);
+          if (Math.abs(ndc.y) + pad > FIT_INSIDE || Math.abs(ndc.x) + pad / this.camera.aspect > FIT_INSIDE) return false;
+        }
+      }
+      return true;
+    };
+    if (!fits(this.orbitRadius)) {
+      // Never below the box fit; bisect up to what keeps the hull inside.
+      let lo = this.orbitRadius;
+      let hi = this.orbitRadius * 2;
+      for (let i = 0; i < 14; i++) {
+        const mid = (lo + hi) / 2;
+        if (fits(mid)) hi = mid;
+        else lo = mid;
+      }
+      this.orbitRadius = hi;
     }
     this.camera.position.set(
       this.centre.x + this.orbitRadius * Math.sin(0.9),
