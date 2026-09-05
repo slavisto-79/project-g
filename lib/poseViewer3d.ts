@@ -1097,6 +1097,10 @@ export class PoseViewer3D {
               ? { cupY: bar.center[1], headward: (Math.sign(bar.center[2] - prop.center[2]) || -1) as 1 | -1 }
               : undefined;
           const group = this.flatBench(prop, floorY, rack);
+          // A bench the hands or feet rest on stands crosswise to the body:
+          // its length runs along x, the edge under the wrists or the toes,
+          // and none of it under the trunk.
+          if (prop.across) group.rotation.y = Math.PI / 2;
           this.scene.add(group);
           this.held.push(this.anchored(group, i, "slab"));
           continue;
