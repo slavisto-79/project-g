@@ -80,8 +80,10 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
     }),
   );
   // Calf raises genuinely travel less than anything else here; the seated
-  // one moves only the ankle, on purpose.
-  const floor = { calfRaise: 0.09, seatedCalfRaise: 0.04 }[name] ?? 0.12;
+  // one moves only the ankle, on purpose. The standing one goes from flat
+  // feet on the floor to full plantarflexion (0.078); the old 0.09 counted a
+  // heel dip under a step that was never drawn.
+  const floor = { calfRaise: 0.075, seatedCalfRaise: 0.04 }[name] ?? 0.12;
   if (!HOLDS.has(name) && travel < floor) note(`${name}: widest joint moves only ${travel.toFixed(3)} -- partial range`);
 
   // Union proportions: a lying figure fitted into a square card is small, but

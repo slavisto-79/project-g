@@ -222,7 +222,9 @@ export const exercisePoses = {
     "front",
     [
       standFront(0.497, 0, bothArms(150, 25)),
-      { ...standFront(0.560, 5, bothArms(150, 25), [{ x: 0.645, y: FLOOR }, { x: 0.400, y: FLOOR }]), pelvis: { x: 0.482, y: 0.560 } },
+      // Feet flat (explicit ends) in the stepped frames: left to the shins,
+      // the wide foot's toes tipped 4cm up and the long leg's 3cm down.
+      { ...standFront(0.560, 5, bothArms(150, 25), [{ x: 0.645, y: FLOOR }, { x: 0.400, y: FLOOR }]), pelvis: { x: 0.482, y: 0.560 }, legs: plantedLegs({ x: 0.482, y: 0.560 }, 5, "front", [{ x: 0.645, y: FLOOR }, { x: 0.400, y: FLOOR }], OUT, [90, 270]) },
       (() => {
         const pelvis = { x: 0.455, y: 0.605 };
         return {
@@ -230,7 +232,7 @@ export const exercisePoses = {
           torso: 10,
           arms: bothArms(150, 25),
           // One knee bends deeply over a wide foot; the other leg stays long.
-          legs: plantedLegs(pelvis, 10, "front", [{ x: 0.676, y: FLOOR }, { x: 0.372, y: FLOOR }], OUT),
+          legs: plantedLegs(pelvis, 10, "front", [{ x: 0.676, y: FLOOR }, { x: 0.372, y: FLOOR }], OUT, [90, 270]),
         };
       })(),
     ],
@@ -275,9 +277,13 @@ export const exercisePoses = {
 
   calfRaise: pose(
     "side",
-    // A calf raise really does travel less than any other movement here; this
-    // is the full range from a stretch under the step to full plantarflexion.
-    [[0.545, 62], [0.498, 112], [0.450, 141]].map(([y, toe]) => ({
+    // A calf raise really does travel less than any other movement here: flat
+    // feet up to full plantarflexion. The ball of the foot is the pivot, so
+    // the toe tip stays at one height while the ankle rises (pelvis 0.506 ->
+    // 0.450 = the toe's 0.056 drop below the ankle at 141 degrees). The old
+    // first frame dipped the heels under a step that was never drawn, and the
+    // floor, pinned to that heel, left the feet 4.6cm in the air at the top.
+    [[0.506, 90], [0.479, 112], [0.450, 141]].map(([y, toe]) => ({
       pelvis: { x: 0.5, y: y! },
       torso: 0,
       arms: HANG,
@@ -1101,13 +1107,16 @@ export const exercisePoses = {
     "front",
     [
       standFront(0.497, 0, bothArms(150, 25)),
+      // Both feet flat (explicit ends): left to the shin, the crossed leg's
+      // foot tilted with it and its toes went 6cm through the floor, which
+      // then sat 6cm under the standing frame.
       (() => {
         const pelvis = { x: 0.512, y: 0.565 };
-        return { pelvis, torso: 6, arms: bothArms(150, 25), legs: plantedLegs(pelvis, 6, "front", [{ x: 0.565, y: FLOOR }, { x: 0.628, y: FLOOR }], OUT) };
+        return { pelvis, torso: 6, arms: bothArms(150, 25), legs: plantedLegs(pelvis, 6, "front", [{ x: 0.565, y: FLOOR }, { x: 0.628, y: FLOOR }], OUT, [90, 270]) };
       })(),
       (() => {
         const pelvis = { x: 0.52, y: 0.632 };
-        return { pelvis, torso: 8, arms: bothArms(150, 25), legs: plantedLegs(pelvis, 8, "front", [{ x: 0.565, y: FLOOR }, { x: 0.652, y: FLOOR }], OUT) };
+        return { pelvis, torso: 8, arms: bothArms(150, 25), legs: plantedLegs(pelvis, 8, "front", [{ x: 0.565, y: FLOOR }, { x: 0.652, y: FLOOR }], OUT, [90, 270]) };
       })(),
     ],
     [{ kind: "floor" }],
