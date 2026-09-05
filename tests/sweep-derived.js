@@ -1,6 +1,6 @@
 // Every answer combination the interview can produce, against every number the
 // app derives from it.
-const { load } = require("./extract.js");
+const { load, lib } = require("./extract.js");
 
 const ROOTS = [
   "restingMetabolicRateKcal", "activityMultiplier", "dailyCalorieTargetKcal",
@@ -8,7 +8,14 @@ const ROOTS = [
   "restSecondsForProfile", "setCountForProfile", "sessionBudgetMinutes",
   "experienceLoadFactor", "estimateSessionCalories", "inferDietMode",
 ];
-const { api, pulled } = load("App.tsx", ROOTS, { createElement: () => null, require: () => 0 });
+const { api, pulled } = load("App.tsx", ROOTS, {
+  createElement: () => null,
+  require: () => 0,
+  // The lifted declarations drag in the demo-exercise table, whose `pose`
+  // fields point at the movement model imported from lib/. Pure data with no
+  // asset requires, so the real module is used.
+  exercisePoses: lib("lib/poseData.ts").exercisePoses,
+});
 console.log(`harness built from ${pulled} declarations lifted out of App.tsx\n`);
 
 const AXES = {

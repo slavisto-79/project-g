@@ -58,4 +58,21 @@ function load(file, roots, extraGlobals = {}) {
   return { api: fn(...globalNames.map((n) => extraGlobals[n])), pulled: unique.length };
 }
 
-module.exports = { load };
+// lib/ modules are transpiled and evaluated in place rather than required, so
+// a relative import between two of them has to be resolved here. Loaded
+// modules are cached, so the pose model is built once per process.
+const loaded = new Map();
+function lib(p) {
+  if (loaded.has(p)) return loaded.get(p);
+  const js = ts.transpileModule(fs.readFileSync(p, "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+  }).outputText;
+  const m = { exports: {} };
+  loaded.set(p, m.exports);
+  const resolve = (name) => (name.startsWith("./") ? lib("lib/" + name.slice(2) + ".ts") : require(name));
+  new Function("exports", "module", "require", js)(m.exports, m, resolve);
+  loaded.set(p, m.exports);
+  return m.exports;
+}
+
+module.exports = { load, lib };
