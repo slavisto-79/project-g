@@ -17,10 +17,14 @@ named declarations out along with everything they transitively reference, and
 evaluates that. Nothing is restated here, so a sweep cannot quietly drift away
 from what ships — if a function changes, the sweep runs the changed function.
 
-Symbols imported from `lib/` are supplied from the real modules. The one stub is
-`shippedMediaFor`, because `lib/exerciseMedia.ts` `require()`s `.mp4` and `.jpg`
-assets that Node cannot load; it returns "no footage", which is the branch these
-sweeps care about.
+Symbols imported from `lib/` are supplied from the real modules, transpiled in
+place by `extract.js`'s `lib()` helper. Every sweep passes `exercisePoses`, even
+the derived-value one: the lifted declarations drag in the demo-exercise table,
+whose `pose` fields point at the movement model, and without it the harness
+throws before checking a single combination. The one stub is `shippedMediaFor`,
+because `lib/exerciseMedia.ts` `require()`s `.mp4` and `.jpg` assets that Node
+cannot load; it returns "no footage", which is the branch these sweeps care
+about.
 
 ## What each covers
 
