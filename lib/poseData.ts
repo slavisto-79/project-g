@@ -321,9 +321,14 @@ export const exercisePoses = {
 
   // --- Hinge pattern -------------------------------------------------------
 
+  // A Romanian deadlift stops at mid-shin: the trunk just short of
+  // horizontal (81 degrees), the hanging hands 0.14 above the floor -- a
+  // plate's radius and some air. The old bottom (98 degrees) hung the hands
+  // 6.5cm off the floor, where a barbell's plates went 5cm through it and
+  // dumbbells looked planted on the feet.
   hinge: pose(
     "side",
-    ([[0.500, 0.494, 4], [0.528, 0.528, 40], [0.552, 0.538, 72], [0.570, 0.550, 98]] as const).map(([x, y, torso]) =>
+    ([[0.500, 0.494, 4], [0.528, 0.528, 36], [0.552, 0.538, 62], [0.570, 0.550, 81]] as const).map(([x, y, torso]) =>
       stand({ x, y }, torso, HANG_AHEAD, torso > 30 ? torso - 16 : torso),
     ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
