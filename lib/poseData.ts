@@ -493,6 +493,29 @@ export const exercisePoses = {
     -1,
   ),
 
+  // The same plank with the feet up on a bench. Derived from the flat frames:
+  // hands where they were, ankles raised 0.26 (a 49cm bench), the pelvis at
+  // the same 0.65 of the way along the ankle-to-shoulder line, the torso
+  // re-aimed along it. Level at lockout, 12 degrees head-down at the bottom
+  // -- which is what a decline push-up on a bench actually looks like; a
+  // steeper slope needs a box taller than a bench.
+  declinePushUp: pose(
+    "side",
+    ([[0.497, 0.596, 269.9, 0.800], [0.481, 0.635, 264.9, 0.784], [0.466, 0.688, 258.2, 0.764]] as const).map(([x, y, torso, ax]) =>
+      supported({ x, y }, torso, { x: 0.392, y: 0.855 }, { x: ax, y: 0.595 }),
+    ),
+    [
+      // Pinned where the flat push-up's unpinned floor lands, so the hands
+      // meet the ground exactly as they do there.
+      { kind: "floor", y: 0.907 },
+      // Bench top a sole's thickness under the toe tips: the toe bone ends
+      // 0.046 below the ankle, the sneaker sole 0.012 under that.
+      { kind: "slab", at: "ankle0", width: 0.22, height: 0.055, dy: 0.086 },
+    ],
+    "overhand",
+    -1,
+  ),
+
   kneePushUp: pose(
     "side",
     ([[0.536, 0.756, 307.5, 127.5], [0.524, 0.784, 299.1, 119.1], [0.515, 0.816, 290.2, 110.2]] as const).map(([x, y, torso, thigh]) => {
