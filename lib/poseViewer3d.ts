@@ -1189,7 +1189,7 @@ export class PoseViewer3D {
       // cable stack. "Medicine Ball Slam" carries no loadable implement at
       // all, so this cannot lean on the implement alone.
       const bellCount = first.props.filter((p) => p.kind === "bell").length;
-      const mesh =
+      let mesh =
         implement === "kettlebell"
           ? this.kettlebell()
           : implement === "dumbbell"
@@ -1199,7 +1199,20 @@ export class PoseViewer3D {
                 ? this.plainBar(0.16)
                 : this.medicineBall(prop.size)
               : this.dumbbell();
-      if (pose.grip === "neutral" && implement !== "kettlebell") mesh.rotation.y = Math.PI / 2;
+      // A goblet hold is one dumbbell authored at the grip -- held in BOTH
+      // hands (a one-arm row's single bell is at the rowing hand and stays
+      // a hand weight).
+      if (implement === "dumbbell" && bellCount === 1 && prop.both) {
+        // Upright, its top head cupped in both hands and the rest hanging
+        // below them. Laid flat it ran back through the chest (and the bust).
+        mesh.rotation.z = Math.PI / 2;
+        mesh.position.y = -0.072;
+        const carrier = new THREE.Group();
+        carrier.add(mesh);
+        mesh = carrier;
+      } else if (pose.grip === "neutral" && implement !== "kettlebell") {
+        mesh.rotation.y = Math.PI / 2;
+      }
       this.scene.add(mesh);
       this.fistOutboard = true;
       this.held.push(this.anchored(mesh, i, "bell"));

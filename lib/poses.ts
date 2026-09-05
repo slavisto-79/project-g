@@ -24,7 +24,8 @@ export type PoseSegment = { x1: number; y1: number; x2: number; y2: number; weig
 // same shape; what is being held is most of what tells them apart.
 export type PoseProp =
   | { kind: "bar"; x: number; y: number; angle: number; length: number; plates: boolean; rails?: boolean; hex?: boolean }
-  | { kind: "bell"; x: number; y: number; size: number }
+  // both: held in both hands (authored at the grip), not a per-hand weight.
+  | { kind: "bell"; x: number; y: number; size: number; both?: boolean }
   // angle: an inclined bench -- the backrest runs along this authored
   // direction (same convention as a bar's angle) from the anchor, which is
   // then the hip joint rather than the pad's centre.
@@ -69,7 +70,7 @@ export type PoseProp3D =
   // hex: a trap bar -- a hexagonal frame the lifter stands inside, handles at
   // the sides where the hands are; the plates sit outside the frame.
   | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean; dir?: Vec3; hex?: boolean }
-  | { kind: "bell"; center: Vec3; size: number }
+  | { kind: "bell"; center: Vec3; size: number; both?: boolean }
   // dir: an inclined bench's backrest direction; center is then the hip.
   | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3 }
   // center is the grip (where the cable ends), anchor the pulley.
@@ -377,7 +378,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
     if (prop.kind === "bell") {
       const centre = point(prop.x, prop.y);
       if (view === "front") centre[2] = heldDepth(prop.x, prop.y);
-      return { kind: "bell" as const, center: centre, size: prop.size };
+      return { kind: "bell" as const, center: centre, size: prop.size, ...(prop.both ? { both: true } : {}) };
     }
     if (prop.kind === "cable") {
       // Face on, the machine stands IN FRONT of the figure (the figure faces
@@ -446,7 +447,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
         ...(spec.hex ? { hex: true } : {}),
       });
     } else if (spec.kind === "bell") {
-      drawn.push({ kind: "bell", x: anchor.x, y: anchor.y, size: spec.size ?? 0.055 });
+      drawn.push({ kind: "bell", x: anchor.x, y: anchor.y, size: spec.size ?? 0.055, ...(spec.at === "grip" ? { both: true } : {}) });
     } else {
       drawn.push({
         kind: "slab",
