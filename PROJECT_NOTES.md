@@ -111,6 +111,12 @@
 - Use adaptive delivery or a lower-quality mobile version when network conditions require it.
 - A new exercise video is not complete until its file size, startup time, inline playback, looping, and phone behavior have been verified.
 
+## 3D demo authoring rules
+
+- Every animation or equipment change is checked and fixed on BOTH the male and the female figure in the same change, and reported for both.
+- Equipment is placed where a real gym places it: a bench for hands or feet stands crosswise with the edge under the wrists or toes; a high pulley for kneeling or seated cable work sits well above the authored frame (anchor y below 0), not at its top edge, or the cable reads as coming from ahead rather than from above.
+- Measure clearances (the pad replica, the in-page both-sex sweep) before viewing; a movement is not done until nothing sinks into a pad, a bar or a weight beyond the tolerances, on either build.
+
 ## Nutrition tracker
 
 - Food photos are resized and compressed on-device before analysis; never upload the full original photo.
