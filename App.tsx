@@ -6082,7 +6082,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
 
   "Conventional Deadlift": "hinge",
   "Sumo Deadlift": "hinge",
-  "Trap Bar Deadlift": "hinge",
+  "Trap Bar Deadlift": "trapBarDeadlift",
   "Romanian Deadlift": "hinge",
   "Dumbbell Romanian Deadlift": "hinge",
   "Stiff-Leg Deadlift": "hinge",

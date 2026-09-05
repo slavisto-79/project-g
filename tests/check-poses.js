@@ -101,7 +101,7 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
 // staying inside it is load-bearing, and this assertion keeps it that way.
 const STANDING_FRAMES = {
   squat: 0, frontSquat: 0, gobletSquat: 0, bodyweightSquat: 0, goodMorning: 0,
-  hinge: 0, singleLegHinge: 0, curl: 0, frontRaise: 0,
+  hinge: 0, trapBarDeadlift: 0, singleLegHinge: 0, curl: 0, frontRaise: 0,
   overheadPress: 0, pulldown: 0, lateralRaise: 0, fly: 0,
   tricepsExtension: 0, jump: 0, lateralLunge: 0, clean: 4,
   straightArmPulldown: 0, facePull: 0, landminePress: 0, burpee: 1,
@@ -233,7 +233,9 @@ for (const build of BUILDS) {
       for (const prop of frame.props) {
         // A leaning (dir) bar does not run along X, which is what this
         // clearance model assumes -- it is checked by eye instead.
-        if (prop.kind !== "bar" || prop.rails || prop.dir) continue;
+        // A hex bar's frame surrounds the legs by design; its sleeves are
+        // outside the body entirely.
+        if (prop.kind !== "bar" || prop.rails || prop.dir || prop.hex) continue;
         for (const bone of frame.bones) {
           const legR = build.radii[bone.part];
           if (!legR) continue;
@@ -278,7 +280,7 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
     const len = Math.hypot(dir[0], dir[1], dir[2]) || 1;
     const c = frame.head.c.map((v, i) => v + (dir[i] / len) * HEAD_RIDE);
     for (const prop of frame.props) {
-      if (prop.kind === "bar" && !prop.rails && !prop.dir) {
+      if (prop.kind === "bar" && !prop.rails && !prop.dir && !prop.hex) {
         const dist = Math.hypot(c[1] - prop.center[1], c[2] - prop.center[2]);
         const clash = headR + BAR_RADIUS - dist;
         if (clash > 0) note(name + "[" + fi + "]: bar passes through the head by " + clash.toFixed(3));

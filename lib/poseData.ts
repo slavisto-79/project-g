@@ -303,6 +303,27 @@ export const exercisePoses = {
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
   ),
 
+  // Standing inside a hex bar with the hands at the sides: the hips sit lower
+  // and the torso stays more upright than a straight-bar hinge, and the
+  // handles travel straight up the mid-foot. The bottom hand height is the
+  // bar's own -- plate radius plus the raised handles above the floor -- so
+  // the plates rest on the ground at the start of the pull.
+  trapBarDeadlift: pose(
+    "side",
+    ([[0.500, 0.494, 6, 0.540], [0.473, 0.580, 28, 0.650], [0.447, 0.670, 45, 0.766]] as const).map(([px, py, torso, hy]) => {
+      const pelvis = { x: px, y: py };
+      return {
+        pelvis,
+        torso,
+        neck: torso > 30 ? torso - 16 : torso,
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.54, y: hy }, { x: 0.54, y: hy }], BACK),
+        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.548, y: FLOOR }, { x: 0.515, y: FLOOR }], FORWARD),
+      };
+    }),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17, hex: true }],
+    "neutral",
+  ),
+
   goodMorning: pose(
     "side",
     ([[0.500, 0.494, 4], [0.528, 0.528, 40], [0.552, 0.538, 72]] as const).map(([x, y, torso]) =>
@@ -1207,7 +1228,9 @@ export const exercisePoses = {
   ),
 
   // Lying back on an incline: the upper arms hang plumb BEHIND the torso and
-  // stay there -- only the forearms curl, which is the whole point.
+  // stay there -- only the forearms curl, which is the whole point. The arms
+  // hang OUTSIDE the backrest (spread), the way they must on a real bench:
+  // the dumbbells used to swing through the pad.
   inclineCurl: pose(
     "side",
     [179, 130, 78].map((forearm) => {
@@ -1217,7 +1240,7 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: 316,
-        arms: sideArms(178, forearm),
+        arms: sideArms(178, forearm).map((arm) => ({ ...arm, spread: 0.05 })) as [Limb, Limb],
         legs: plantedLegs(pelvis, torso, "side", [{ x: 0.712, y: FLOOR }, { x: 0.696, y: FLOOR }], FORWARD),
       };
     }),

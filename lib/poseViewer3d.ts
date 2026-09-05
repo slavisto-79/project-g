@@ -65,6 +65,10 @@ const HELD_OUTBOARD = 0.045;
 type BoneMeshes = { cylinder: THREE.Mesh; capA: THREE.Mesh; capB: THREE.Mesh; radius: number; part: string };
 
 const UP = new THREE.Vector3(0, 1, 0);
+// A bench pad's width: about 30cm, narrower than the trunk lying on it.
+const BENCH_PAD_WIDTH = 0.16;
+// How far a hex bar's handles stand above its frame (the plates' axle).
+const TRAP_HANDLE_RISE = 0.06;
 
 // The female build's proportions, chosen by the user from a live three-way
 // mockup ("lean and toned" over "curvy" and "balanced"): a light frame with a
@@ -735,8 +739,10 @@ export class PoseViewer3D {
     const g = new THREE.Group();
     const len = prop.width;
     const base = floorY - prop.center[1];
-    g.add(this.pad(0.32, prop.height, len));
-    const board = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.02, len - 0.04), this.iron);
+    // A real bench pad is about 30cm wide -- narrower than the trunk, which
+    // overhangs it a little. The old 0.32 (66cm) was a table.
+    g.add(this.pad(BENCH_PAD_WIDTH, prop.height, len));
+    const board = new THREE.Mesh(new THREE.BoxGeometry(BENCH_PAD_WIDTH - 0.02, 0.02, len - 0.04), this.iron);
     board.position.y = -prop.height / 2 - 0.01;
     const spine = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, len - 0.16), this.graphite);
     spine.position.y = -prop.height / 2 - 0.045;
@@ -757,27 +763,78 @@ export class PoseViewer3D {
       }
     }
     if (rack) {
-      const zR = rack.headward * (len / 2 + 0.07);
-      const cupY = rack.cupY - prop.center[1];
-      const topY = cupY + 0.1;
-      for (const x of [-0.36, 0.36]) {
-        const upright = new THREE.Mesh(new THREE.BoxGeometry(0.055, topY - base, 0.055), this.iron);
-        upright.position.set(x, (topY + base) / 2, zR);
-        const foot = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.035, 0.34), this.iron);
-        foot.position.set(x, base + 0.0175, zR);
-        // The J-cup: a shelf reaching toward the bench, with a lip so the
-        // bar cannot roll off it.
-        const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.02, 0.1), this.graphite);
-        shelf.position.set(x, cupY - 0.02, zR - rack.headward * 0.075);
-        const lip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.02), this.graphite);
-        lip.position.set(x, cupY, zR - rack.headward * 0.115);
-        g.add(upright, foot, shelf, lip);
-      }
-      const brace = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.035, 0.035), this.iron);
-      brace.position.set(0, base + 0.16, zR);
-      g.add(brace);
+      g.add(...this.rack(base, rack.cupY - prop.center[1], rack.headward * (len / 2 + 0.07), rack.headward));
     }
     return g;
+  }
+
+  // The rack a pressed barbell starts from: two uprights on feet either side
+  // of the bench, J-cups (a shelf reaching toward the bench with a lip so the
+  // bar cannot roll off) at the bar's racked height, and a brace between the
+  // uprights. Heights are relative to the bench group; `zR` is where the
+  // uprights stand and `headward` which way the bench lies from them.
+  private rack(base: number, cupY: number, zR: number, headward: 1 | -1): THREE.Object3D[] {
+    const parts: THREE.Object3D[] = [];
+    const topY = cupY + 0.1;
+    for (const x of [-0.36, 0.36]) {
+      const upright = new THREE.Mesh(new THREE.BoxGeometry(0.055, topY - base, 0.055), this.iron);
+      upright.position.set(x, (topY + base) / 2, zR);
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.035, 0.34), this.iron);
+      foot.position.set(x, base + 0.0175, zR);
+      const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.02, 0.1), this.graphite);
+      shelf.position.set(x, cupY - 0.02, zR - headward * 0.075);
+      const lip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.02), this.graphite);
+      lip.position.set(x, cupY, zR - headward * 0.115);
+      parts.push(upright, foot, shelf, lip);
+    }
+    const brace = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.035, 0.035), this.iron);
+    brace.position.set(0, base + 0.16, zR);
+    parts.push(brace);
+    return parts;
+  }
+
+  // A hex (trap) bar: the lifter stands inside a hexagonal frame and holds
+  // the two handles at the sides, so the load sits at the body's centre.
+  // Origin at the hands' midpoint. The handles are raised above the frame
+  // the way the high handles on a real bar are, and the sleeves run out
+  // from the frame's side apexes with the plates on them.
+  private trapBar(): THREE.Group {
+    const group = new THREE.Group();
+    const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+    const tube = (a: THREE.Vector3, b: THREE.Vector3, r: number, material: THREE.Material) => {
+      const dir = b.clone().sub(a);
+      const len = dir.length();
+      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 10), material);
+      mesh.position.copy(a).addScaledVector(dir, 0.5);
+      mesh.quaternion.setFromUnitVectors(UP, dir.normalize());
+      return mesh;
+    };
+    const frameY = -TRAP_HANDLE_RISE;
+    const hx = 0.1;
+    const hz = 0.13;
+    const apex = 0.29;
+    const corners = [V(hx, frameY, hz), V(apex, frameY, 0), V(hx, frameY, -hz), V(-hx, frameY, -hz), V(-apex, frameY, 0), V(-hx, frameY, hz)];
+    for (let i = 0; i < 6; i++) group.add(tube(corners[i]!, corners[(i + 1) % 6]!, 0.013, this.graphite));
+    for (const side of [-1, 1]) {
+      group.add(tube(V(side * hx, 0, -hz), V(side * hx, 0, hz), 0.014, this.chrome));
+      for (const z of [-hz, hz]) group.add(tube(V(side * hx, frameY, z), V(side * hx, 0, z), 0.012, this.graphite));
+      const sleeve = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.26, 12), this.chrome));
+      sleeve.position.set(side * (apex + 0.13), frameY, 0);
+      const collar = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.016, 14), this.graphite));
+      collar.position.set(side * (apex + 0.02), frameY, 0);
+      const big = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.028, 26), this.iron));
+      big.position.set(side * (apex + 0.09), frameY, 0);
+      const rim = this.alongX(new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.006, 8, 26), this.ironRim));
+      rim.rotation.y = Math.PI / 2;
+      rim.rotation.z = 0;
+      rim.position.set(side * (apex + 0.09), frameY, 0);
+      const small = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.024, 22), this.iron));
+      small.position.set(side * (apex + 0.12), frameY, 0);
+      const hub = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.032, 14), this.ironRim));
+      hub.position.set(side * (apex + 0.105), frameY, 0);
+      group.add(sleeve, collar, big, rim, small, hub);
+    }
+    return group;
   }
 
   private alongX(mesh: THREE.Mesh): THREE.Mesh {
@@ -988,11 +1045,11 @@ export class PoseViewer3D {
           const n = new THREE.Vector3(0, d.z, -d.y).normalize();
           if (n.y > 0) n.negate();
           const group = new THREE.Group();
-          const back = this.pad(0.32, prop.height, prop.width);
+          const back = this.pad(BENCH_PAD_WIDTH, prop.height, prop.width);
           back.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d);
           back.position.copy(d).multiplyScalar(prop.width / 2 - 0.05).addScaledVector(n, BODY_HALF + prop.height / 2);
-          const feetward = -Math.sign(d.z) || 1;
-          const seat = this.pad(0.32, prop.height, 0.24);
+          const feetward = (-Math.sign(d.z) || 1) as 1 | -1;
+          const seat = this.pad(BENCH_PAD_WIDTH, prop.height, 0.24);
           seat.position.set(0, -(BODY_HALF - 0.008 + prop.height / 2), feetward * 0.1);
           group.add(back, seat);
           if (floorY !== undefined) {
@@ -1004,6 +1061,15 @@ export class PoseViewer3D {
               const foot = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.025, 0.05), this.graphite);
               foot.position.set(0, base + 0.0125, z);
               group.add(post, foot);
+            }
+            // An incline press starts from a rack past the head end of the
+            // backrest, like the flat bench-press station's; the cups sit a
+            // touch below the locked-out bar so it lifts out.
+            const bar = first.props.find((p) => p.kind === "bar" && p.plates);
+            if (bar && bar.kind === "bar" && implement === "barbell") {
+              const headEnd = back.position.clone().addScaledVector(d, prop.width / 2);
+              const headward = -feetward as 1 | -1;
+              group.add(...this.rack(base, bar.center[1] - prop.center[1] - 0.02, headEnd.z + headward * 0.1, headward));
             }
           }
           this.scene.add(group);
@@ -1070,7 +1136,9 @@ export class PoseViewer3D {
           continue;
         }
         let mesh: THREE.Group;
-        if (implement === "kettlebell" && prop.plates) {
+        if (prop.hex) {
+          mesh = this.trapBar();
+        } else if (implement === "kettlebell" && prop.plates) {
           // The named case: a kettlebell swing is authored on the hinge, and a
           // hinge holds a bar. Swap the object, keep the movement.
           mesh = this.kettlebell();
