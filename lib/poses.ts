@@ -29,7 +29,7 @@ export type PoseProp =
   // angle: an inclined bench -- the backrest runs along this authored
   // direction (same convention as a bar's angle) from the anchor, which is
   // then the hip joint rather than the pad's centre.
-  | { kind: "slab"; x: number; y: number; width: number; height: number; angle?: number }
+  | { kind: "slab"; x: number; y: number; width: number; height: number; angle?: number; across?: boolean }
   // A cable running from a pulley (the anchor, fixed in the world) to the
   // hands; the world build draws the whole machine around the anchor.
   | { kind: "cable"; x: number; y: number; ax: number; ay: number }
@@ -72,7 +72,9 @@ export type PoseProp3D =
   | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean; dir?: Vec3; hex?: boolean }
   | { kind: "bell"; center: Vec3; size: number; both?: boolean }
   // dir: an inclined bench's backrest direction; center is then the hip.
-  | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3 }
+  // `across`: the bench stands crosswise to the figure (its length along x),
+  // the way a bench is placed for hands or feet on its edge.
+  | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3; across?: boolean }
   // center is the grip (where the cable ends), anchor the pulley.
   | { kind: "cable"; center: Vec3; anchor: Vec3 }
   | { kind: "floor"; y: number };
@@ -397,6 +399,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
       ...(view === "side" && prop.angle !== undefined && prop.angle !== 90
         ? { dir: [0, Math.cos((prop.angle * Math.PI) / 180), Math.sin((prop.angle * Math.PI) / 180)] as Vec3 }
         : {}),
+      ...(prop.across ? { across: true } : {}),
     };
   });
 }
@@ -404,7 +407,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
 type PropSpec =
   | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean; hex?: boolean }
   | { kind: "bell"; at: string; size?: number; each?: boolean }
-  | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number; angle?: number }
+  | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean }
   // anchor: the pulley, in authored coordinates (a high pulley sits above the
   // frame's top edge, which is fine -- it only has to be off the figure).
   | { kind: "cable"; at: string; anchor: Point }
@@ -456,6 +459,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
         width: spec.width,
         height: spec.height,
         ...(spec.angle !== undefined ? { angle: spec.angle } : {}),
+        ...(spec.across ? { across: true } : {}),
       });
     }
   }

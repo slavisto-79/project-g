@@ -509,8 +509,31 @@ export const exercisePoses = {
       // meet the ground exactly as they do there.
       { kind: "floor", y: 0.907 },
       // Bench top a sole's thickness under the toe tips: the toe bone ends
-      // 0.046 below the ankle, the sneaker sole 0.012 under that.
-      { kind: "slab", at: "ankle0", width: 0.22, height: 0.055, dy: 0.086 },
+      // 0.046 below the ankle, the sneaker sole 0.012 under that. Crosswise,
+      // its near edge just behind the ankles, the whole foot on the pad.
+      { kind: "slab", at: "ankle0", width: 0.5, height: 0.055, dx: 0.033, dy: 0.086, across: true },
+    ],
+    "overhand",
+    -1,
+  ),
+
+  // The mirror image: hands up on the same bench, feet on the floor. Same
+  // derivation -- the hands rise 0.26 and the shoulders with them (the arm
+  // vector unchanged), the ankles stay put, the pelvis keeps its place on the
+  // ankle-to-shoulder line. 48 degrees up at lockout, 32 at the bottom.
+  inclinePushUp: pose(
+    "side",
+    ([[0.564, 0.518, 317.9, 0.513], [0.537, 0.557, 310.8, 0.487], [0.511, 0.610, 302.5, 0.459]] as const).map(([x, y, torso, hx]) =>
+      supported({ x, y }, torso, { x: hx, y: 0.595 }, { x: 0.767, y: 0.855 }),
+    ),
+    [
+      { kind: "floor", y: 0.907 },
+      // Bench top the same 0.052 under the wrists that the floor is under
+      // them in the flat push-up, so the palms meet it the same way. The
+      // bench stands crosswise with the wrists at its edge: run along the
+      // body it reached under the hips, and the thighs sank 2cm into it at
+      // the bottom of the rep.
+      { kind: "slab", at: "hand0", width: 0.5, height: 0.055, dx: -0.052, dy: 0.0795, across: true },
     ],
     "overhand",
     -1,
