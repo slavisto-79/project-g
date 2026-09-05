@@ -52,6 +52,10 @@ const PHASE_MS = 1100;
 // How far out from the centre of the frame (in clip units, 1 = the edge) the
 // fit keeps the head and hands around the orbit.
 const FIT_INSIDE = 0.96;
+const FIT_INSIDE_LYING = 0.93;
+// How far (radians) the card's camera swings either side of the side view
+// on a lying scene.
+const LYING_SWING = 0.9;
 
 // How far a hand-held weight rides outboard of the wrist. On the wrist
 // itself, a kettlebell's ball is wider than the gap to the thigh, and
@@ -1246,7 +1250,10 @@ export class PoseViewer3D {
       hull.push({ p: vec(frame.head.c).addScaledVector(up, 0.03), r: frame.head.r * 1.25 });
     }
     const elevation = extent * 0.1;
-    const arc: [number, number] = this.lyingScene ? [-0.2, 2.0] : [0, Math.PI * 2];
+    const arc: [number, number] = this.lyingScene ? [Math.PI / 2 - LYING_SWING, Math.PI / 2 + LYING_SWING] : [0, Math.PI * 2];
+    // A lying figure runs the width of the card, so its head ends up at a
+    // side edge; it gets a little more air there.
+    const inside = this.lyingScene ? FIT_INSIDE_LYING : FIT_INSIDE;
     const fits = (radius: number) => {
       for (let k = 0; k < 24; k++) {
         const az = arc[0] + ((arc[1] - arc[0]) * k) / 24;
@@ -1256,7 +1263,7 @@ export class PoseViewer3D {
         for (const { p, r } of hull) {
           const ndc = p.clone().project(this.camera);
           const pad = r / (p.distanceTo(this.camera.position) * tanV);
-          if (Math.abs(ndc.y) + pad > FIT_INSIDE || Math.abs(ndc.x) + pad / this.camera.aspect > FIT_INSIDE) return false;
+          if (Math.abs(ndc.y) + pad > inside || Math.abs(ndc.x) + pad / this.camera.aspect > inside) return false;
         }
       }
       return true;
@@ -1447,9 +1454,11 @@ export class PoseViewer3D {
     } else if (!this.reduceMotion) {
       // The card's slow orbit: a full turn every 18 seconds for a standing
       // figure. A lying figure is unreadable end-on, so wide scenes swing
-      // across the legible arc instead of circling through it.
+      // across the legible arc instead of circling through it: centred on
+      // the side view, never nearer than ~40 degrees to either end. The
+      // old arc started almost end-on, and a pike's feet filled the card.
       const az = this.lyingScene
-        ? 0.9 + Math.sin(elapsed * 0.00045) * 1.1
+        ? Math.PI / 2 + Math.sin(elapsed * 0.00045) * LYING_SWING
         : 0.9 + elapsed * 0.00035;
       this.camera.position.set(
         this.centre.x + this.orbitRadius * Math.sin(az),
