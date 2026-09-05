@@ -1166,7 +1166,10 @@ export const exercisePoses = {
     // The rope handle at the head, and the cable up to a high pulley in front.
     // The pulley stands well forward (x 0.04): any closer and the cable's run
     // down to the rope passes through the face at the bottom of the crunch.
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.08, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.04, y: 0.0 } }],
+    // It sits a quarter-frame ABOVE the authored frame (a 2.3m tower): at the
+    // frame's top edge the cable reached a kneeling lifter's hands at barely
+    // 30 degrees, and read as coming from ahead rather than from above.
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.08, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.04, y: -0.25 } }],
   ),
 
   // Seated and leaned back, feet light: the hands sweep between chest height
