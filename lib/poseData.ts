@@ -79,12 +79,16 @@ function napeArms(pelvis: Point, torso: number): [Limb, Limb] {
 }
 
 // Hands hugging a bell against the chest, elbows tucked down.
+// Hands holding a weight against the chest (the goblet hold). 14cm in front
+// of the spine line: the trunk's front is 5cm out, the bust a further 2,
+// and a kettlebell's ball hangs 6cm back from the grip -- at the old 7.5cm
+// the bell sat inside the chest on both figures.
 function chestArms(pelvis: Point, torso: number): [Limb, Limb] {
   const top = spineTop(pelvis, torso);
   const rad = (torso * Math.PI) / 180;
   const chest = {
-    x: top.x + (0.075 * Math.cos(rad)) / (850 / 567) + (0.062 * Math.sin(rad)) / (850 / 567),
-    y: top.y + 0.075 * Math.sin(rad) + 0.062 * Math.cos(rad),
+    x: top.x + (0.14 * Math.cos(rad)) / (850 / 567) + (0.062 * Math.sin(rad)) / (850 / 567),
+    y: top.y + 0.14 * Math.sin(rad) + 0.062 * Math.cos(rad),
   };
   return reachingArms(pelvis, torso, "side", [chest, { x: chest.x - 0.012, y: chest.y + 0.01 }], DOWN_SIDE);
 }
@@ -340,7 +344,9 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso > 30 ? torso - 14 : torso,
-        arms: HANG_AHEAD,
+        // Hanging dumbbells clear the hips (wider on the female build) only
+        // if the arms hang a little outboard.
+        arms: HANG_AHEAD.map((arm) => ({ ...arm, spread: 0.05 })) as [Limb, Limb],
         // Standing leg solved to the floor; the free leg swings back as the
         // counterweight, which is the balance the movement is built on.
         legs: [plantedLegs(pelvis, torso, "side", FEET, FORWARD)[0], { upper: up, lower: low, end: low - 90 }],
@@ -1214,8 +1220,13 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: 80,
-        // Near arm rows; far arm braces on the bench, nearly straight.
-        arms: reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: 0.75, y: 0.855 }], BACK),
+        // Near arm rows; far arm braces on the bench, nearly straight. The
+        // rowing arm hangs outboard so the dumbbell passes beside the shin,
+        // not through it.
+        arms: (() => {
+          const [near, far] = reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: 0.75, y: 0.855 }], BACK);
+          return [{ ...near, spread: 0.05 }, far] as [Limb, Limb];
+        })(),
         legs: plantedLegs(pelvis, torso, "side", [{ x: 0.46, y: FLOOR }, { x: 0.66, y: FLOOR }], FORWARD),
       };
     }),
