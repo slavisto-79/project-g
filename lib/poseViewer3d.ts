@@ -22,7 +22,10 @@ import { REFERENCE_AVATAR, type AvatarBuild } from "./avatar";
 // cares which family of equipment to draw.
 export type ViewerImplement = "dumbbell" | "kettlebell" | "barbell" | "machine" | "other" | undefined;
 
-const SHIRT = 0xd8d3cb;
+// His stringer: white, the one light surface that holds up against the dark
+// card (a dark top made the trunk vanish and the figure read as floating
+// limbs).
+const SHIRT = 0xf0efe9;
 const BENCH = 0x66736c;
 // Half the trunk's depth (the spine ellipse's shallow axis): how far a bench
 // pad's surface must sit below the spine line for the body to rest ON it.
@@ -92,6 +95,21 @@ const FEMALE = {
   glute: 0.7,
   // How much of the trunk, from the shoulders down, the cropped top covers.
   topCover: 0.55,
+} as const;
+// The male build's proportions, chosen by the user from a live three-way
+// mockup ("lean athlete" over "strong classic" and "clean minimal"): the
+// current ideal is lean and athletic, not big -- a V from the shoulders to a
+// narrow waist (shoulder-to-waist about 1.6 reads as most attractive in the
+// 2025 cross-cultural physique study; beyond that it plateaus), defined arms,
+// never the bodybuilder. He wears a white stringer that leaves the delts
+// bare, a textured crop over a fade, and stubble rather than a full beard.
+// These multiply the reference radii; training progress (`muscle`) still
+// grows the shoulders, arms, chest and neck on top of them.
+const MALE = {
+  chest: 1.12,
+  waist: 0.9,
+  delt: 1.18,
+  arm: 1.06,
 } as const;
 const AXIS_X = new THREE.Vector3(1, 0, 0);
 // A landmine's hinge sits this far above the floor, on a short post.
@@ -277,15 +295,14 @@ export class PoseViewer3D {
 
   // --- The mannequin -------------------------------------------------------
 
-  // The coach: a bronzed athlete in the app's kit -- light sleeveless top,
-  // dark knee-length shorts, and the brand lime on the wristbands and shoes.
-  // Sleeveless on purpose: the arms stay bare so shoulders and
-  // elbows read clearly in every demo. The top is the old mannequin grey, the
-  // one light surface that holds up against the dark card and the black
-  // iron; a dark top made the trunk vanish and the figure read as floating
-  // limbs.
+  // The coach: a bronzed athlete in the app's kit -- white stringer, dark
+  // knee-length shorts, and the brand lime on the wristbands and shoes. The
+  // stringer is on purpose: the arms and the delts stay bare, so shoulders
+  // and elbows read clearly in every demo and the V-taper shows.
   private skin = new THREE.MeshStandardMaterial({ color: 0xc79b74, roughness: 0.6, metalness: 0.02 });
   private hair = new THREE.MeshStandardMaterial({ color: 0x17140f, roughness: 0.8 });
+  // Stubble is shadow on the skin, not hair: a skin-dark tone, tight to it.
+  private stubble = new THREE.MeshStandardMaterial({ color: 0x6e5240, roughness: 0.85 });
   private shirt = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.55, metalness: 0.05 });
   private shorts = new THREE.MeshStandardMaterial({ color: 0x1f2421, roughness: 0.7, metalness: 0.05 });
   private lime = new THREE.MeshStandardMaterial({ color: 0xc8ff32, roughness: 0.5, metalness: 0.05 });
@@ -310,7 +327,9 @@ export class PoseViewer3D {
       case "spine":
         return female ? { body: this.skin, a: this.skin, b: this.setFemale } : { body: this.shirt, a: this.shirt, b: this.shirt };
       case "shoulders":
-        return female ? { body: this.setFemale, a: this.skin, b: this.skin } : { body: this.shirt, a: this.shirt, b: this.shirt };
+        // The girdle's bar is the straps of the top; the delts are bare on
+        // both builds (her cropped top, his stringer).
+        return female ? { body: this.setFemale, a: this.skin, b: this.skin } : { body: this.shirt, a: this.skin, b: this.skin };
       case "hips":
       case "thigh":
         return { body: legwear, a: legwear, b: legwear };
@@ -401,7 +420,7 @@ export class PoseViewer3D {
           return (1 + 0.7 * t) * (female ? FEMALE.thigh + 0.03 * tone : 1);
         case "upperArm":
         case "forearm":
-          return (1 + 0.45 * t) * (female ? FEMALE.arm + 0.06 * tone : Math.sqrt(muscle));
+          return (1 + 0.45 * t) * (female ? FEMALE.arm + 0.06 * tone : Math.sqrt(muscle) * MALE.arm);
         case "neck":
           return (1 + 0.3 * Math.max(t, 0)) * (female ? 0.86 : Math.pow(muscle, 0.4));
         case "hips":
@@ -415,8 +434,8 @@ export class PoseViewer3D {
     // chest; the chest (taper[0]) grows with weight and, for a man, with
     // muscle. The female waist starts narrower against her wider hips (the
     // hourglass) and tightens further as she trains.
-    const waist = (1 + (t > 0 ? 1.1 : 0.5) * t) * (female ? FEMALE.waist - 0.08 * tone : 1);
-    const chest = (1 + 0.25 * t) * (female ? 1 : Math.pow(muscle, 0.3));
+    const waist = (1 + (t > 0 ? 1.1 : 0.5) * t) * (female ? FEMALE.waist - 0.08 * tone : MALE.waist);
+    const chest = (1 + 0.25 * t) * (female ? 1 : Math.pow(muscle, 0.3) * MALE.chest);
     // The trunk is a rib cage, not a tube: wider at the chest than at the
     // waist (the bone runs pelvis -> shoulders, so the taper widens upward),
     // and squashed front-to-back by update()'s elliptical scaling. Limbs
@@ -448,7 +467,7 @@ export class PoseViewer3D {
       const cylinder = taper
         ? new THREE.Mesh(new THREE.CylinderGeometry(taper[0], taper[1], 1, 16, 1, true), wear.body)
         : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), wear.body);
-      const delt = bone.part === "shoulders" ? (female ? 0.046 * 0.86 : 0.046 * Math.pow(muscle, 0.8)) : undefined;
+      const delt = bone.part === "shoulders" ? (female ? 0.046 * 0.86 : 0.046 * Math.pow(muscle, 0.8) * MALE.delt) : undefined;
       const capA = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[1] : radius), 12, 10), wear.a);
       const capB = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[0] : radius), 12, 10), wear.b);
       // The fingered hand replaces the hand bone when something is held;
@@ -549,10 +568,16 @@ export class PoseViewer3D {
       tie.position.copy(bunDir).multiplyScalar(R * 0.7);
       this.face.add(tie);
     } else {
-      // Buzz cut: a tight cap hugging the top and back of the skull.
-      const hairCap = new THREE.Mesh(new THREE.SphereGeometry(R * 0.925, 18, 10, 0, Math.PI * 2, 0, 1.15), this.hair);
-      hairCap.rotation.x = -0.4;
-      this.face.add(hairCap);
+      // Textured crop over a fade: a tight cap hugging the sides and back of
+      // the skull, and a fuller crown piece standing proud of it, stopping
+      // above the brow line.
+      const fade = new THREE.Mesh(new THREE.SphereGeometry(R * 0.925, 18, 10, 0, Math.PI * 2, 0, 1.15), this.hair);
+      fade.rotation.x = -0.4;
+      this.face.add(fade);
+      const crop = new THREE.Mesh(new THREE.SphereGeometry(R * 1.0, 18, 10, 0, Math.PI * 2, 0, 0.78), this.hair);
+      crop.rotation.x = -0.32;
+      crop.scale.set(1, 1.06, 1);
+      this.face.add(crop);
     }
     // Brows: his angled in and down over the eyes; hers thin, higher and
     // nearly level, with just the outer end lifted.
@@ -566,21 +591,22 @@ export class PoseViewer3D {
       this.face.add(brow);
     }
     if (!female) {
-      // A short full beard: a chin-and-jaw shell below the mouth, the jaw
-      // sides up to the cheekbones, and a moustache. SphereGeometry's phi runs
-      // around Y with the face (+Z) at phi = PI/2; theta runs down from the
-      // crown. The shell sits at 0.96R -- the widest thing on the head (skull
-      // 0.91R), which is why HEAD_ENVELOPE in tests/check-poses.js is 1.25 x
-      // head.r.
-      const beard = (phi0: number, phiLen: number, th0: number, thLen: number) => {
-        this.face.add(new THREE.Mesh(new THREE.SphereGeometry(R * 0.96, 18, 10, phi0, phiLen, th0, thLen), this.hair));
+      // Stubble: a chin-and-jaw shell below the mouth, the jaw sides up to
+      // the cheekbones, and the lip -- the same pieces the old full beard was
+      // made of, but tight to the skin (0.935R over the 0.91R skull) and in a
+      // skin-dark tone, so it reads as shadow rather than hair.
+      // SphereGeometry's phi runs around Y with the face (+Z) at phi = PI/2;
+      // theta runs down from the crown. HEAD_ENVELOPE in
+      // tests/check-poses.js (1.25 x head.r) still covers it with room.
+      const stubble = (phi0: number, phiLen: number, th0: number, thLen: number) => {
+        this.face.add(new THREE.Mesh(new THREE.SphereGeometry(R * 0.935, 18, 10, phi0, phiLen, th0, thLen), this.stubble));
       };
-      beard(Math.PI * 0.1, Math.PI * 0.8, Math.PI * 0.7, Math.PI * 0.24);
-      beard(Math.PI * 0.1, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
-      beard(Math.PI * 0.7, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
-      const moustache = new THREE.Mesh(new THREE.BoxGeometry(R * 0.46, R * 0.09, R * 0.1), this.hair);
-      moustache.position.set(0, -R * 0.3, R * 0.86);
-      this.face.add(moustache);
+      stubble(Math.PI * 0.1, Math.PI * 0.8, Math.PI * 0.7, Math.PI * 0.24);
+      stubble(Math.PI * 0.1, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
+      stubble(Math.PI * 0.7, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
+      const lip = new THREE.Mesh(new THREE.BoxGeometry(R * 0.46, R * 0.07, R * 0.1), this.stubble);
+      lip.position.set(0, -R * 0.3, R * 0.84);
+      this.face.add(lip);
     }
     // No headband: the user found the hoop on the head distracting, so the
     // lime stays on the wrists and shoes only.

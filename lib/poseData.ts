@@ -67,9 +67,14 @@ function napeArms(pelvis: Point, torso: number): [Limb, Limb] {
   // ~0.038 in the world -- the bar's surface a millimetre INTO the trunk's
   // upper-rear slope at the top of the rep, deeper at the bottom, touching
   // the base of the neck, clear of the head. Measured, not guessed.
+  // 0.03 back (was 0.02): the male build's delts grew with the V-taper, and
+  // at the bottom of the squat the bar cut 7mm into them. Further back on
+  // the traps clears the delts (a sphere is narrower behind its centre)
+  // while the bar still touches the trunk's upper-rear slope; higher would
+  // have put it into the head envelope instead.
   const nape = {
-    x: top.x - (0.02 * Math.cos(rad)) / (850 / 567) + (0.052 * Math.sin(rad)) / (850 / 567),
-    y: top.y - 0.02 * Math.sin(rad) - 0.052 * Math.cos(rad),
+    x: top.x - (0.03 * Math.cos(rad)) / (850 / 567) + (0.052 * Math.sin(rad)) / (850 / 567),
+    y: top.y - 0.03 * Math.sin(rad) - 0.052 * Math.cos(rad),
   };
   // Both arms solved to the same point (equalizedPair makes the far one
   // match): an echoed far arm drifted the grip midpoint 1.6cm back and
