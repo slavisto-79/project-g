@@ -313,58 +313,29 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   });
 }
 
-// The CATALOG path picks its movement by name. It once hardcoded the back
-// squat for every catalog exercise, and no local run ever saw it because the
-// catalog API only exists in production -- so the selector is checked here,
-// against the code actually in App.tsx.
+// Every library exercise must demo as one of the authored movements. The
+// library is the only source of exercises (the catalog is gone), so a name
+// missing from POSE_FOR_EXERCISE would be a card with no figure, and a name
+// pointing at a movement that does not exist would crash the card. Checked
+// against the map actually in App.tsx.
 {
   const src = fs.readFileSync("App.tsx", "utf8");
-  const fnStart = src.indexOf("function poseForCatalogExercise");
-  const fnEnd = src.indexOf("function catalogExerciseToWorkoutExercise");
   const mapStart = src.indexOf("const POSE_FOR_EXERCISE");
   const mapEnd = src.indexOf("};", mapStart) + 2;
-  if (!src.includes("poseForCatalogExercise(tag)")) {
-    note("catalog pose selector: catalogExerciseToWorkoutExercise no longer calls it -- a hardcoded pose is how every catalog exercise once demoed as a squat");
-  }
-  if (fnStart < 0 || fnEnd < 0 || mapStart < 0) {
-    note("catalog pose selector: cannot find poseForCatalogExercise/POSE_FOR_EXERCISE in App.tsx");
+  if (mapStart < 0) {
+    note("library demos: cannot find POSE_FOR_EXERCISE in App.tsx");
   } else {
-    const code =
-      src.slice(mapStart, mapEnd).replace(": Record<string, PoseName>", "") +
-      "\n" +
-      src.slice(fnStart, fnEnd).replace(": ExerciseTag)", ")").replace(": PoseName | undefined", "");
-    const pick = new Function(code + "\nreturn poseForCatalogExercise;")();
-    const expect = [
-      ["Barbell Squat", "Barbell", "push", "squat"],
-      ["Barbell Deadlift", "Barbell", "hinge", "hinge"],
-      ["Barbell Bench Press", "Barbell", "push", "bench"],
-      ["Dumbbell Curl", "Dumbbells", "pull", "curl"],
-      ["Cable Lat Pulldown", "Cable", "pull", "pulldown"],
-      ["Push Up", "Bodyweight", "push", "pushUp"],
-      ["Machine Leg Press", "Machine", "squat", "legPress"],
-      ["Dumbbell Lateral Raise", "Dumbbells", "push", "lateralRaise"],
-      ["Rower Pike", "Machine", "pull", "pikePushUp"],
-      ["Barbell Z Press", "Barbell", "push", "overheadPress"],
-      ["Plank IYTW", "Bodyweight", "isometric", "plankIYTW"],
-      ["Side Lunges", "Bodyweight", "lunge", "lateralLunge"],
-      ["Plank Saw", "Bodyweight", "isometric", "plankSaw"],
-      ["Ring Curl", "Rings", "pull", "ringCurl"],
-      ["Cable Curl", "Cable", "pull", "cableCurl"],
-      ["Cable Chest Fly", "Cable", "push", "cableFly"],
-      ["Cable Crossover", "Cable", "push", "cableFly"],
-      ["Cable Lateral Raise", "Cable", "push", "cableLateralRaise"],
-      ["Cable Pull-Through", "Cable", "hinge", "cablePullThrough"],
-    ];
-    for (const [name, equipment, movementPattern, want] of expect) {
-      const got = pick({ name, equipment, movementPattern });
-      if (got !== want) note("catalog pose selector: " + name + " -> " + got + " (expected " + want + ")");
-      else if (!exercisePoses[got]) note("catalog pose selector: " + name + " -> unknown movement " + got);
+    const map = new Function(src.slice(mapStart, mapEnd).replace(": Record<string, PoseName>", "") + "\nreturn POSE_FOR_EXERCISE;")();
+    const lib = mod("lib/exerciseLibrary.ts");
+    for (const exercise of lib.exerciseLibrary) {
+      const movement = map[exercise.name];
+      if (!movement) note("library demos: " + exercise.name + " has no movement in POSE_FOR_EXERCISE");
+      else if (!exercisePoses[movement]) note("library demos: " + exercise.name + " -> unknown movement " + movement);
     }
-    // The production bug, verbatim: nothing that is not a squat demos as one.
-    for (const [name, mp] of [["Barbell Deadlift", "hinge"], ["Barbell Bench Press", "push"], ["Seated Cable Row", "pull"], ["Standing Military Press", "push"]]) {
-      const got = pick({ name, equipment: "Barbell", movementPattern: mp });
-      if (got === "squat") note("catalog pose selector: " + name + " demos as a SQUAT -- the production bug is back");
+    for (const name of Object.keys(map)) {
+      if (!lib.exerciseLibrary.some((exercise) => exercise.name === name)) note("library demos: POSE_FOR_EXERCISE names \"" + name + "\", which is not in the library");
     }
+    console.log(lib.exerciseLibrary.length + " library exercises, every one with a demo");
   }
 }
 

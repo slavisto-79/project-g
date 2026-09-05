@@ -1,12 +1,8 @@
-import type { MovementPattern, PrimaryMuscle } from "./exerciseCatalog";
-
-// A local exercise library, written rather than fetched.
-//
-// The MuscleWiki catalog is the richer source when it is reachable, but it has
-// been rate-limiting us, and when it fails every user drops to a handful of
-// hardcoded movements. This is the floor underneath that: enough exercises,
-// with enough metadata, that a sensible programme can be built with no network
-// at all.
+// The exercise library: every movement the app can prescribe, written here
+// rather than fetched. This is the one source of exercises -- the MuscleWiki
+// catalog that used to sit in front of it was removed (rate limits, and the
+// user's call that the exercises and their demos should be ours). A session
+// is built from this with no network at all.
 //
 // Every field here exists because some existing filter reads it. Nothing is
 // decorative: `pattern` fills split-template slots, `tiers` answers the
@@ -14,8 +10,31 @@ import type { MovementPattern, PrimaryMuscle } from "./exerciseCatalog";
 // feeds experience matching, `implement` decides which weights are loadable,
 // and the bodyweight fields feed the volume maths.
 //
-// No media yet, by design. `cue` carries the movement in words until demo
-// footage exists for these.
+// Every exercise here has a 3D demo (POSE_FOR_EXERCISE in App.tsx, checked by
+// tests/check-poses.js); `cue` carries the movement in words beside it.
+
+export type MovementPattern =
+  | "squat"
+  | "hinge"
+  | "push"
+  | "pull"
+  | "lunge"
+  | "carry"
+  | "rotation"
+  | "isometric";
+
+export type PrimaryMuscle =
+  | "quads"
+  | "hamstrings"
+  | "glutes"
+  | "chest"
+  | "back"
+  | "shoulders"
+  | "biceps"
+  | "triceps"
+  | "core"
+  | "calves"
+  | "full-body";
 
 export type EquipmentTier = "gym" | "home-gym" | "minimal" | "bodyweight" | "bars";
 

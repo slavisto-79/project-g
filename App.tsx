@@ -25,13 +25,11 @@ import {
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import {
-  buildProgram,
   determineSplitDay,
   splitDaySlotCount,
   splitDaySlots,
   splitDaySpineLength,
   suitsBodyweightCapability,
-  type ProgramBuilderProfile,
   type SplitDay,
 } from "./lib/programBuilder";
 import { type ExercisePose, type PoseProp } from "./lib/poses";
@@ -39,13 +37,14 @@ import { exercisePoses, type PoseName } from "./lib/poseData";
 import { PoseViewer3D, type ViewerImplement } from "./lib/poseViewer3d";
 import { avatarFromProfile, type AvatarBuild } from "./lib/avatar";
 import {
+  exerciseByName,
   exercisesForTier,
   suitsGoal,
   type EquipmentTier,
   type LibraryExercise,
   type LibraryImplement,
+  type PrimaryMuscle,
 } from "./lib/exerciseLibrary";
-import type { ExerciseTag, MovementPattern, PrimaryMuscle } from "./lib/exerciseCatalog";
 
 // Two accents on the same near-black ground: the electric lime the app
 // launched with, and a hot pink for women. The pink sits at a similar
@@ -4693,16 +4692,8 @@ type WorkoutExercise = {
   // loadable one: implementForExerciseName calls a medicine ball a "dumbbell"
   // so its weight snaps sensibly, and the demo must not inherit that.
   demoImplement?: ViewerImplement;
-  // How to perform it, in words. Carries the exercise until footage exists.
+  // How to perform it, in words, beside the demo.
   cue?: string;
-  // Only present for exercises sourced from the live MuscleWiki catalog --
-  // needed to look up "similar exercise" alternatives. Absent for the
-  // built-in fallback roster, which has no such data to search by.
-  catalogMeta?: {
-    externalId: number;
-    movementPattern: MovementPattern;
-    primaryMuscle: PrimaryMuscle;
-  };
 };
 
 
@@ -5018,17 +5009,6 @@ function implementForExerciseName(name: string): LoadableImplement {
   return "dumbbell";
 }
 
-// The catalog's `equipment` is MuscleWiki's own category string, which is the
-// more reliable signal when present; the name is the fallback.
-function implementForCatalogExercise(equipment: string, name: string): LoadableImplement {
-  const category = equipment.toLowerCase();
-  if (category.includes("barbell") || category.includes("smith")) return "barbell";
-  if (category.includes("dumbbell")) return "dumbbell";
-  if (category.includes("kettlebell")) return "kettlebell";
-  if (category.includes("cable") || category.includes("machine")) return "machine";
-  return implementForExerciseName(name);
-}
-
 // A dumbbell number is what goes in EACH hand, not the total being moved --
 // "7 kg" on a curl means picking up two 7kg dumbbells. That distinction has to
 // be on screen or the trainee either halves their load or doubles it.
@@ -5045,8 +5025,8 @@ function perSideUnitLabel(name: string, primaryMuscle?: PrimaryMuscle): "leg" | 
   if (/lunge|step[- ]?up|split squat|pistol|bulgarian|curtsy|single[- ]?leg/i.test(name)) return "leg";
   if (/one[- ]?arm|single[- ]?arm/i.test(name)) return "side";
   if (!primaryMuscle) return null;
-  // Catalog exercises flagged unilateral whose name doesn't match either
-  // pattern above -- fall back to the muscle being worked.
+  // A unilateral exercise whose name matches neither pattern above -- fall
+  // back to the muscle being worked.
   return ["quads", "hamstrings", "glutes", "calves"].includes(primaryMuscle) ? "leg" : "side";
 }
 
@@ -5406,16 +5386,8 @@ function holdSecondsForProfile(profile: Record<string, string>): number {
 // front rack carry, a wall sit, a hollow hold and a sprint interval are all
 // timed, and none of them say "plank". They were prescribed in seconds and
 // labelled REPS, which read as thirty repetitions of a wall sit.
-function isHoldExercise(exercise: {
-  name: string;
-  isHold?: boolean;
-  catalogMeta?: { movementPattern?: string };
-}): boolean {
-  return (
-    exercise.isHold === true ||
-    exercise.catalogMeta?.movementPattern === "isometric" ||
-    exercise.name.includes("Plank")
-  );
+function isHoldExercise(exercise: { name: string; isHold?: boolean }): boolean {
+  return exercise.isHold === true || exercise.name.includes("Plank");
 }
 
 // Whether an exercise carries no external load.
@@ -5834,284 +5806,26 @@ function createWorkout(
   return exercises;
 }
 
-// Conservative starting anchors for catalog exercises, expressed as what one
-// DUMBBELL would hold for an average untrained adult -- a shoulder press and a
-// biceps curl are not the same load, and neither is a row and a squat, so a
-// single number for the whole catalog (which is what this used to be) is
-// always wrong for almost every exercise. These are deliberately light
-// starting points, not strength predictions: the double-progression system is
-// what finds each person's real working weight from here.
-const CATALOG_BASE_DUMBBELL_KG: Record<PrimaryMuscle, number> = {
-  chest: 12,
-  back: 14,
-  shoulders: 8,
-  biceps: 8,
-  triceps: 7,
-  quads: 14,
-  hamstrings: 12,
-  glutes: 12,
-  calves: 14,
-  core: 5,
-  "full-body": 10,
-};
-
-// A dumbbell number is per hand; a barbell or a machine stack moves the whole
-// body of work at once, so the same effort reads as a much bigger number.
-const IMPLEMENT_LOAD_FACTOR: Record<LoadableImplement, number> = {
-  dumbbell: 1,
-  kettlebell: 1,
-  barbell: 1.8,
-  machine: 1.8,
-  other: 1,
-};
-
-// Bodyweight scaling alone understates the gap in upper-body starting loads,
-// so the catalog path (which has no per-sex exercise roster to draw from,
-// unlike createWorkout) applies a modest explicit factor as well.
-const CATALOG_SEX_LOAD_FACTOR: Record<string, number> = { male: 1, female: 0.7 };
-
-// Which movement demos a CATALOG exercise. Catalog names are free-form
-// (MuscleWiki's), so this is tiered: an exact library-name match first, then
-// name keywords from most to least specific, then a movement-pattern family
-// only where the family demo cannot mislead -- and a written cue (undefined)
-// over a wrong animation everywhere else. Born of a production bug: this
-// path hardcoded the back squat for every exercise, and no local review ever
-// saw it because the catalog API only runs in production.
-function poseForCatalogExercise(tag: ExerciseTag): PoseName | undefined {
-  const mapped = POSE_FOR_EXERCISE[tag.name];
-  if (mapped) return mapped;
-  const n = tag.name.toLowerCase();
-  const bodyweight = tag.equipment.toLowerCase() === "bodyweight";
-  if (/pistol/.test(n)) return "pistolSquat";
-  if (/goblet/.test(n)) return "gobletSquat";
-  if (/front squat/.test(n)) return "frontSquat";
-  if (/split squat|bulgarian/.test(n)) return "splitSquat";
-  if (/wall sit/.test(n)) return "wallSit";
-  if (/jump squat|squat jump/.test(n)) return "jump";
-  if (/\bsquat\b/.test(n)) return bodyweight ? "bodyweightSquat" : "squat";
-  if (/good morning/.test(n)) return "goodMorning";
-  if (/single[- ]leg.*(deadlift|rdl)|one[- ]leg.*deadlift/.test(n)) return "singleLegHinge";
-  if (/deadlift|\brdl\b|romanian|rack pull/.test(n)) return "hinge";
-  if (/hip thrust|glute bridge/.test(n)) return "hipThrust";
-  if (/swing/.test(n)) return "hinge";
-  if (/clean|snatch/.test(n)) return "clean";
-  if (/curtsy/.test(n)) return "curtsyLunge";
-  if (/lateral lunge|side lunge|cossack/.test(n)) return "lateralLunge";
-  if (/lunge|step[- ]?up/.test(n)) return "lunge";
-  if (/leg press/.test(n)) return "legPress";
-  if (/leg extension/.test(n)) return "legExtension";
-  if (/leg curl/.test(n)) return "legCurl";
-  if (/calf/.test(n)) return /seated/.test(n) ? "seatedCalfRaise" : "calfRaise";
-  if (/pike/.test(n)) return "pikePushUp";
-  if (/handstand/.test(n)) return "handstandPushUp";
-  if (/knee push/.test(n)) return "kneePushUp";
-  if (/push[- ]?up|pushup/.test(n)) return "pushUp";
-  if (/tate press/.test(n)) return "skullCrusher";
-  if (/spoto press|squeeze press/.test(n)) return "bench";
-  if (/pallof/.test(n)) return "facePull";
-  if (/knee tuck/.test(n)) return "mountainClimber";
-  if (/incline.*(press|bench)/.test(n)) return "inclinePress";
-  if (/bench|chest press|floor press/.test(n)) return "bench";
-  if (/landmine/.test(n)) return "landminePress";
-  if (/overhead press|shoulder press|military|push press|arnold|z press/.test(n)) return "overheadPress";
-  if (/cable.*(fly|crossover)/.test(n)) return "cableFly";
-  if (/cable.*(lateral|side) raise/.test(n)) return "cableLateralRaise";
-  if (/pull[- ]?through/.test(n)) return "cablePullThrough";
-  if (/lateral raise|side raise/.test(n)) return "lateralRaise";
-  if (/front raise/.test(n)) return "frontRaise";
-  if (/reverse fly|rear delt/.test(n)) return "reverseFly";
-  if (/\bfly\b|flye|pec deck/.test(n)) return "fly";
-  if (/face pull/.test(n)) return "facePull";
-  if (/straight[- ]arm pulldown|pullover/.test(n)) return "straightArmPulldown";
-  if (/pulldown|lat pull/.test(n)) return "pulldown";
-  if (/pull[- ]?up|chin[- ]?up|pullup|chinup/.test(n)) return "pullUp";
-  if (/one[- ]?arm.*row|single[- ]arm.*row/.test(n)) return "oneArmRow";
-  if (/inverted row/.test(n)) return "invertedRow";
-  if (/seated.*row|cable row/.test(n)) return "seatedRow";
-  if (/\brow\b/.test(n)) return "bentRow";
-  if (/skull ?crusher|lying triceps/.test(n)) return "skullCrusher";
-  if (/kickback/.test(n)) return "kickback";
-  if (/pushdown|triceps extension|overhead extension/.test(n)) return "tricepsExtension";
-  if (/ring.*curl|suspension.*curl|trx.*curl/.test(n)) return "ringCurl";
-  if (/cable.*curl/.test(n)) return "cableCurl";
-  if (/incline.*curl/.test(n)) return "inclineCurl";
-  if (/\bcurl\b/.test(n)) return "curl";
-  if (/\bdips?\b/.test(n)) return "dip";
-  if (/side plank/.test(n)) return "sidePlank";
-  if (/iytw/.test(n)) return "plankIYTW";
-  if (/plank saw|body saw/.test(n)) return "plankSaw";
-  if (/plank/.test(n)) return "plank";
-  if (/mountain climber/.test(n)) return "mountainClimber";
-  if (/burpee/.test(n)) return "burpee";
-  if (/bicycle/.test(n)) return "bicycleCrunch";
-  if (/cable crunch/.test(n)) return "cableCrunch";
-  if (/russian twist/.test(n)) return "russianTwist";
-  if (/woodchop|wood chop|chop|twist/.test(n)) return "woodchop";
-  if (/ab wheel|rollout/.test(n)) return "abWheelRollout";
-  if (/hanging.*raise|knee raise|leg raise|toes to bar/.test(n)) return "hangingRaise";
-  if (/hollow|crunch|sit[- ]?up|v[- ]?up|dead ?bug/.test(n)) return "hollowHold";
-  if (/superman|back extension|hyperextension/.test(n)) return "proneRaise";
-  if (/carry|farmer|suitcase/.test(n)) return "carry";
-  if (/jump|bound|hop/.test(n)) return "jump";
-  if (/sprint|running|high knees|jog/.test(n)) return "run";
-  if (/sled/.test(n)) return "sledPush";
-  if (/battle rope/.test(n)) return "battleRopes";
-  // Family fallback, only where the family cannot teach the wrong technique.
-  switch (tag.movementPattern) {
-    case "squat": return bodyweight ? "bodyweightSquat" : "squat";
-    case "hinge": return "hinge";
-    case "lunge": return "lunge";
-    case "carry": return "carry";
-    case "isometric": return "plank";
-    default: return undefined;
-  }
-}
-
-function catalogExerciseToWorkoutExercise(
-  tag: ExerciseTag,
-  profile: Record<string, string>,
-  exerciseProgress: Record<string, ExerciseProgress>,
-  isDeload: boolean = false,
-  weightModifier: number = 1,
-): WorkoutExercise {
-  const bodyWeightKg = Number(profile.weight);
-  const isBodyweight = tag.equipment.toLowerCase() === "bodyweight";
-  const isHold = tag.movementPattern === "isometric";
-  const implement = implementForCatalogExercise(tag.equipment, tag.name);
-  const range = baseRepRangeForProfile(profile);
-  const savedProgress = exerciseProgress[tag.name]
-    ? normalizeExerciseProgress(exerciseProgress[tag.name]!, range)
-    : null;
-  const reps = savedProgress
-    ? String(savedProgress.repsLow)
-    : String(isHold ? holdSecondsForProfile(profile) : range.low);
-  // Deload week backs off the weight on its own (lighter session, not a rest
-  // day) -- the readiness modifier is for everything else (poor recovery,
-  // self-reported "tired"), so the two never stack; deload wins when both apply.
-  const savedWeightKg =
-    savedProgress && hasEarnedWeight(savedProgress)
-      ? snapToLoadableWeight(savedProgress.weightKg * (isDeload ? 0.85 : weightModifier), implement)
-      : null;
-  const weight = isBodyweight
-    ? "Bodyweight"
-    : savedWeightKg !== null
-      ? `${savedWeightKg} kg`
-      : scaledStartingWeightLabel(
-          CATALOG_BASE_DUMBBELL_KG[tag.primaryMuscle] *
-            IMPLEMENT_LOAD_FACTOR[implement] *
-            (CATALOG_SEX_LOAD_FACTOR[profile.sex ?? ""] ?? 0.85) *
-            experienceLoadFactor(profile) *
-            (isDeload ? 0.85 : weightModifier),
-          bodyWeightKg,
-          implement,
-        );
-
-  return {
-    name: tag.name,
-    target: `${tag.primaryMuscle.replace("-", " ")} · ${tag.movementPattern}`,
-    weight,
-    reps,
-    repsHigh: isHold ? undefined : String(savedProgress ? savedProgress.repsHigh : range.high),
-    implement: isBodyweight ? undefined : implement,
-    weightPerHand: !isBodyweight && isPerHandLoad(tag.name, implement),
-    repsPerSide:
-      isHold || !tag.unilateral
-        ? undefined
-        : (perSideUnitLabel(tag.name, tag.primaryMuscle) ?? undefined),
-    tempo: isHold ? "HOLD" : "3-1-1",
-    phases: isHold ? ["BRACE", "HOLD", "HOLD"] : ["LOWER", "BRACE", "LIFT"],
-    pose: (() => { const p = poseForCatalogExercise(tag); return p ? exercisePoses[p] : undefined; })(),
-    demoImplement: isBodyweight ? undefined : implement,
-    catalogMeta: {
-      externalId: tag.source.externalId,
-      movementPattern: tag.movementPattern,
-      primaryMuscle: tag.primaryMuscle,
-    },
-  };
-}
-
-// Representative search keyword per movement pattern, used to look up
-// "similar exercise" alternatives for the swap feature.
-const movementPatternSearchKeyword: Record<MovementPattern, string> = {
-  squat: "squat",
-  hinge: "deadlift",
-  push: "press",
-  pull: "row",
-  lunge: "lunge",
-  carry: "carry",
-  rotation: "twist",
-  isometric: "plank",
-};
-
-async function fetchAlternativeExercises(
-  catalogMeta: { externalId: number; movementPattern: MovementPattern; primaryMuscle: PrimaryMuscle },
-  profile: Record<string, string>,
-  exerciseProgress: Record<string, ExerciseProgress>,
-  excludeNames: Set<string>,
-  isDeload: boolean = false,
-  weightModifier: number = 1,
-): Promise<WorkoutExercise[]> {
-  const keyword = movementPatternSearchKeyword[catalogMeta.movementPattern];
-  const params = new URLSearchParams({ search: keyword, limit: "25" });
-  const response = await fetch(`/api/exercise-catalog?${params.toString()}`);
-  if (!response.ok) return [];
-  const body = (await response.json()) as { exercises?: ExerciseTag[] };
-  const sex = profile.sex === "male" ? "male" : "female";
-  const alternatives = (body.exercises ?? []).filter(
-    (candidate) =>
-      candidate.primaryMuscle === catalogMeta.primaryMuscle &&
-      candidate.source.externalId !== catalogMeta.externalId &&
-      !excludeNames.has(candidate.name) &&
-      candidate.media[sex] !== null,
-  );
-  return alternatives
-    .slice(0, 5)
-    .map((tag) => catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress, isDeload, weightModifier));
-}
-
-async function createWorkoutFromCatalog(
+// Builds today's session from the exercise library: which split day it is,
+// whether it is a deload week, how readiness scales the loads, and the
+// rotation index for this split day -- then the library picker fills the
+// slots. No network is involved: the exercises, and their demos, are ours.
+//
+// Returns null only if the library somehow cannot fill four slots, which
+// sends the caller to the original hardcoded roster as a last resort.
+function createWorkoutFromLibrary(
   profile: Record<string, string>,
   exerciseProgress: Record<string, ExerciseProgress>,
   workoutHistory: WorkoutHistoryEntry[],
   coachAdjustment: CoachScenario | null,
   checkIn?: DailyCheckIn | null,
-): Promise<{
+): {
   exercises: WorkoutExercise[];
   splitLabel: string;
   splitDay: SplitDay;
   isDeload: boolean;
   weightModifier: number;
-} | null> {
-  const equipmentMap: Record<string, ProgramBuilderProfile["equipment"]> = {
-    gym: "gym",
-    "home-gym": "home-gym",
-    minimal: "minimal",
-    bodyweight: "bodyweight",
-    bars: "bars",
-  };
-  const limitationsMap: Record<string, ProgramBuilderProfile["limitations"][number]> = {
-    knee: "knee",
-    shoulder: "shoulder",
-    back: "back",
-    none: "none",
-    other: "other",
-  };
-
-  const builderProfile: ProgramBuilderProfile = {
-    equipment: equipmentMap[profile.equipment ?? ""] ?? "minimal",
-    experience: (profile.experience as ProgramBuilderProfile["experience"]) ?? "beginner",
-    limitations: splitAnswerValues(profile.limitations)
-      .map((entry) => limitationsMap[entry])
-      .filter((entry): entry is ProgramBuilderProfile["limitations"][number] => Boolean(entry)),
-    bodyweightStrength:
-      profile.bodyweightStrength === "both" ||
-      profile.bodyweightStrength === "pushups" ||
-      profile.bodyweightStrength === "neither"
-        ? profile.bodyweightStrength
-        : undefined,
-    sex: profile.sex === "male" ? "male" : "female",
-  };
-
+} | null {
   const reminderDays = profile.reminderDays ? profile.reminderDays.split(",") : [];
   const { day: splitDay, label: splitLabel } = determineSplitDay(reminderDays, recentSplitDaysFromHistory(workoutHistory));
   const { isDeload } = getMesocycleWeek(workoutHistory);
@@ -6123,30 +5837,49 @@ async function createWorkoutFromCatalog(
   // reshuffle the exercises under a user mid-workout on any re-render.
   const sessionIndex = workoutHistory.filter((entry) => entry.splitDay === splitDay).length;
   const blockIndex = mesocycleBlockIndex(workoutHistory);
+  return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier, sessionIndex, blockIndex);
+}
 
-  try {
-    const tags = await buildProgram(builderProfile, splitDay);
-    // Split templates range from 4 (push/pull) to 8 (full-body) slots -- judge
-    // "did this work" against a floor, not a fixed count meant for full-body.
-    if (tags.length < 4) {
-      console.error(
-        `Catalog program only filled ${tags.length} slots for "${splitDay}" -- building from the local library instead`,
-      );
-      return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier, sessionIndex, blockIndex);
-    }
-    return {
-      exercises: tags.map((tag) =>
-        catalogExerciseToWorkoutExercise(tag, profile, exerciseProgress, isDeload, weightModifier),
-      ),
-      splitLabel,
-      splitDay,
-      isDeload,
-      weightModifier,
-    };
-  } catch (error) {
-    console.error("Catalog workout build failed -- building from the local library instead", error);
-    return libraryWorkout(profile, splitDay, splitLabel, exerciseProgress, isDeload, weightModifier, sessionIndex, blockIndex);
-  }
+// "Same muscle, different move": the library's other exercises with this
+// one's movement pattern and primary muscle, available on the user's
+// equipment, safe for their limitations and within what they can do, minus
+// whatever the session already holds. Up to five, in library order.
+function libraryAlternatives(
+  current: WorkoutExercise,
+  profile: Record<string, string>,
+  exerciseProgress: Record<string, ExerciseProgress>,
+  excludeNames: Set<string>,
+  isDeload: boolean,
+  weightModifier: number,
+): WorkoutExercise[] {
+  const source = exerciseByName(current.name);
+  if (!source) return [];
+  const tier = (["gym", "home-gym", "minimal", "bodyweight", "bars"] as EquipmentTier[]).includes(
+    profile.equipment as EquipmentTier,
+  )
+    ? (profile.equipment as EquipmentTier)
+    : "minimal";
+  const limitations = splitAnswerValues(profile.limitations);
+  const bodyweightStrength =
+    profile.bodyweightStrength === "both" ||
+    profile.bodyweightStrength === "pushups" ||
+    profile.bodyweightStrength === "neither"
+      ? profile.bodyweightStrength
+      : undefined;
+  return exercisesForTier(tier)
+    .filter(
+      (exercise) =>
+        exercise.name !== current.name &&
+        !excludeNames.has(exercise.name) &&
+        exercise.pattern === source.pattern &&
+        exercise.primaryMuscle === source.primaryMuscle &&
+        !(limitations.includes("knee") && !exercise.injurySafe.kneeSafe) &&
+        !(limitations.includes("shoulder") && !exercise.injurySafe.shoulderSafe) &&
+        !(limitations.includes("back") && !exercise.injurySafe.backSafe) &&
+        suitsBodyweightCapability(exercise.name, bodyweightStrength),
+    )
+    .slice(0, 5)
+    .map((exercise) => libraryExerciseToWorkoutExercise(exercise, profile, exerciseProgress, isDeload, weightModifier));
 }
 
 // One decision per exercise, per limitation note -- kept, not re-asked.
@@ -6553,10 +6286,9 @@ function libraryExerciseToWorkoutExercise(
   };
 }
 
-// The library result shaped like a catalog result, so the caller doesn't need
-// to know which source answered. Returns null only if the library somehow
-// can't fill four slots, which sends the caller to the original hardcoded
-// roster as a last resort.
+// The built session with its split-day context. Returns null only if the
+// library somehow can't fill four slots, which sends the caller to the
+// original hardcoded roster as a last resort.
 function libraryWorkout(
   profile: Record<string, string>,
   splitDay: SplitDay,
@@ -6586,17 +6318,14 @@ function libraryWorkout(
   return { exercises, splitLabel, splitDay, isDeload, weightModifier };
 }
 
-// Builds a session from the local library, with no network involved.
+// Builds a session from the exercise library, with no network involved.
 //
-// This is what runs when the catalog is unreachable, which -- while it is
-// rate-limited -- is most of the time. It replaces a set of hardcoded rosters
-// that offered six or seven movements per equipment tier and ignored goal,
-// difficulty and most limitations.
+// This is the one way a session is built (the MuscleWiki catalog that used to
+// come first was removed). It replaced a set of hardcoded rosters that offered
+// six or seven movements per equipment tier and ignored goal, difficulty and
+// most limitations.
 //
-// Media is attached where the app already ships footage for that movement by
-// name; everything else carries its written cue. Mixing the two is the point:
-// a demo where one exists beats text, and text beats a photo of a different
-// exercise.
+// Every library movement carries its own 3D demo and a written cue.
 // Which implements a tier should actually reach for.
 //
 // Without this, picking was decided by declaration order: a full-gym lifter got
@@ -6764,8 +6493,8 @@ function buildProgramFromLibrary(
     if (limitations.includes("knee") && !exercise.injurySafe.kneeSafe) return false;
     if (limitations.includes("shoulder") && !exercise.injurySafe.shoulderSafe) return false;
     if (limitations.includes("back") && !exercise.injurySafe.backSafe) return false;
-    // Shared with the catalog path so the two sources agree about who should
-    // be shown a regression and who should be shown the real movement.
+    // One rule (in programBuilder) for who is shown a regression and who is
+    // shown the real movement.
     if (!suitsBodyweightCapability(exercise.name, bodyweightStrength)) return false;
     return true;
   });
@@ -7366,7 +7095,7 @@ function ActiveWorkoutScreen({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [workoutComplete, setWorkoutComplete] = useState(false);
   const [exerciseInfoOpen, setExerciseInfoOpen] = useState(false);
-  const [swapState, setSwapState] = useState<"closed" | "loading" | { options: WorkoutExercise[] }>("closed");
+  const [swapState, setSwapState] = useState<"closed" | { options: WorkoutExercise[] }>("closed");
   const exercise = personalizedExercises[exerciseIndex] ?? personalizedExercises[0]!;
   const isBodyweight = exercise.weight === "Bodyweight";
   const isHold = isHoldExercise(exercise);
@@ -7423,19 +7152,11 @@ function ActiveWorkoutScreen({
     setSessionLog((current) => ({ ...current, [exercise.name]: { weightKg: nextWeightKg, reps: nextReps } }));
   };
 
-  const openSwap = async () => {
-    if (!exercise.catalogMeta) return;
-    setSwapState("loading");
+  const openSwap = () => {
     const excludeNames = new Set(baseExercises.map((item) => item.name));
-    const options = await fetchAlternativeExercises(
-      exercise.catalogMeta,
-      profile,
-      exerciseProgress,
-      excludeNames,
-      isDeload,
-      weightModifier,
-    );
-    setSwapState({ options });
+    setSwapState({
+      options: libraryAlternatives(exercise, profile, exerciseProgress, excludeNames, isDeload ?? false, weightModifier ?? 1),
+    });
   };
 
   const applySwap = (replacement: WorkoutExercise) => {
@@ -7844,7 +7565,7 @@ function ActiveWorkoutScreen({
         </View>
 
         <View style={styles.exerciseActionRow}>
-          {exercise.catalogMeta ? (
+          {exerciseByName(exercise.name) ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Swap ${exercise.name} for a similar exercise`}
@@ -8117,10 +7838,8 @@ function ActiveWorkoutScreen({
               </Pressable>
             </View>
 
-            {swapState === "closed" ? null : swapState === "loading" ? (
-              <Text style={styles.swapLoadingText}>Finding alternatives…</Text>
-            ) : swapState.options.length === 0 ? (
-              <Text style={styles.swapLoadingText}>No alternatives found for this exercise right now.</Text>
+            {swapState === "closed" ? null : swapState.options.length === 0 ? (
+              <Text style={styles.swapLoadingText}>No other exercise in the library works this muscle the same way on your equipment.</Text>
             ) : (
               swapState.options.map((option) => (
                 <Pressable
@@ -8974,7 +8693,7 @@ export default function App() {
     setTooSoonWarningOpen(false);
     setWorkoutLoading(true);
     const effectiveCheckIn = checkInOverride !== undefined ? checkInOverride : dailyCheckIn;
-    const result = await createWorkoutFromCatalog(
+    const result = await createWorkoutFromLibrary(
       profile,
       exerciseProgress,
       workoutHistory,
@@ -8982,7 +8701,7 @@ export default function App() {
       effectiveCheckIn,
     );
     // Resolve which list is actually being used before the veto runs, so the
-    // built-in fallback roster is reviewed too -- not just catalog sessions.
+    // built-in fallback roster is reviewed too -- not just library sessions.
     const builtExercises = result?.exercises ?? createWorkout(profile, exerciseProgress);
 
     const { exercises: vettedExercises, rejectedCount } = await vetAndRefill(
@@ -9357,7 +9076,7 @@ export default function App() {
             onStartWorkout={async (answers) => {
               setProfile(answers);
               setWorkoutLoading(true);
-              const result = await createWorkoutFromCatalog(answers, exerciseProgress, workoutHistory, coachAdjustment);
+              const result = await createWorkoutFromLibrary(answers, exerciseProgress, workoutHistory, coachAdjustment);
               // `answers`, not `profile` -- setProfile above hasn't landed yet,
               // and this is the first session, where the limitation matters most.
               const built = result?.exercises ?? createWorkout(answers, exerciseProgress);
