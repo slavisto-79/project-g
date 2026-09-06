@@ -93,6 +93,16 @@ function bisector(a: THREE.Vector3, b: THREE.Vector3): THREE.Vector3 {
   return sum.lengthSq() > 1e-6 ? sum.normalize() : a.clone();
 }
 
+// For the segment below a joint (`lower`, pointing away from the joint):
+// the direction across it toward the segment above -- the inside of the
+// bend, where the calf or the inner elbow faces. Well defined at every
+// angle short of straight; straight, the joint's own hint stands in.
+function insideOfBend(upper: THREE.Vector3, lower: THREE.Vector3, fallback: THREE.Vector3): THREE.Vector3 {
+  const back = upper.clone().negate();
+  back.addScaledVector(lower, -back.dot(lower));
+  return back.lengthSq() > 0.01 ? back.normalize() : fallback;
+}
+
 type Aimed = {
   bone: THREE.Bone;
   // The bone's own direction to its child, and its "forward", both in the
@@ -323,8 +333,15 @@ export class SkinnedFigure {
         // arm bends nowhere, so it faces the way the trunk does.
         const bend = foreDir.clone().addScaledVector(upperDir, -foreDir.dot(upperDir));
         const hint = bend.lengthSq() > 0.01 ? bend.normalize() : ventral;
+        // The forearm's own forward faces back up the bend, toward the
+        // shoulder. Aiming it at `bend` as well was wrong past 90 degrees:
+        // there the bend lies along the forearm, its projection onto the
+        // forearm's plane shrinks to nothing and changes sign, and the
+        // forearm came out twisted half a turn about its length -- the
+        // elbow's rings wrung down to the axis and the joint vanished.
+        const foreHint = insideOfBend(upperDir, foreDir, hint);
         this.aim(this.aimed.get(`${key}UpperArm`)!, upperDir, hint);
-        this.aim(this.aimed.get(`${key}Forearm`)!, foreDir, hint);
+        this.aim(this.aimed.get(`${key}Forearm`)!, foreDir, foreHint);
         const el = this.aimed.get(`${key}Elbow`);
         if (el) this.aim(el, bisector(upperDir, foreDir), hint);
         const hd = this.aimed.get(`${key}Hand`);
@@ -332,7 +349,7 @@ export class SkinnedFigure {
           const handDir = hand ? hand.b.clone().sub(hand.a).normalize() : foreDir;
           // A hand on the floor lies palm down: its flat side faces up, so
           // its "forward" runs across the floor, perpendicular to the hand.
-          let handHint = hint;
+          let handHint = foreHint;
           if (hand && sample.floorY !== undefined && hand.b.y - sample.floorY < 0.03 && hand.a.y - sample.floorY < 0.05) {
             const flat = new THREE.Vector3().crossVectors(Y, handDir);
             if (flat.lengthSq() > 0.01) handHint = flat.normalize();
@@ -350,8 +367,11 @@ export class SkinnedFigure {
         // way the leg bends, which for a straight leg is away from the belly.
         const bend = shinDir.clone().addScaledVector(thighDir, -shinDir.dot(thighDir));
         const hint = bend.lengthSq() > 0.01 ? bend.normalize() : ventral.clone().negate();
+        // The shin's back (the calf) faces back up the bend toward the hip;
+        // see the forearm above for why it cannot share the thigh's hint.
+        const shinHint = insideOfBend(thighDir, shinDir, hint);
         this.aim(this.aimed.get(`${key}Thigh`)!, thighDir, hint);
-        this.aim(this.aimed.get(`${key}Shin`)!, shinDir, hint);
+        this.aim(this.aimed.get(`${key}Shin`)!, shinDir, shinHint);
         const kn = this.aimed.get(`${key}Knee`);
         if (kn) this.aim(kn, bisector(thighDir, shinDir), hint);
         if (foot) {
