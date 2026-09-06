@@ -68,7 +68,9 @@ const LYING_SWING = 0.9;
 // carried bells clipped straight through the legs.
 const HELD_OUTBOARD = 0.045;
 
-type BoneMeshes = { cylinder: THREE.Mesh; capA: THREE.Mesh; capB: THREE.Mesh; radius: number; part: string };
+// The capsule mannequin's meshes per bone; null when the skinned body is the
+// figure and the capsules were never built.
+type BoneMeshes = { cylinder: THREE.Mesh | null; capA: THREE.Mesh | null; capB: THREE.Mesh | null; radius: number; part: string };
 
 const UP = new THREE.Vector3(0, 1, 0);
 // A bench pad's width: about 26cm -- narrower than the trunk lying on it and
@@ -234,6 +236,7 @@ export class PoseViewer3D {
   // figure has loaded and taken over the pose.
   private mannequin: THREE.Object3D[] = [];
   private skinned: SkinnedFigure | null = null;
+  private readonly capsules: boolean;
   // The proportions the mannequin was built to, for the skinned body.
   private bodySpec: Omit<BodySpec, "style"> | null = null;
   // The face's jaw ellipsoid; the skinned body sculpts the jaw into the
@@ -267,6 +270,9 @@ export class PoseViewer3D {
     this.onReady = options.onReady;
     this.avatar = options.avatar ?? REFERENCE_AVATAR;
     this.topInsetPx = options.topInset ?? 0;
+    // The capsule body is only built when a downloaded model is the figure
+    // (it shows until the model loads); the built body replaces it outright.
+    this.capsules = !!options.figure && "url" in options.figure;
 
     this.canvas = document.createElement("canvas");
     this.canvas.style.width = "100%";
@@ -390,7 +396,11 @@ export class PoseViewer3D {
     const leg = this.bodySpec.lengths.thigh + this.bodySpec.lengths.shin;
     const figure = SkinnedFigure.fromScene(body.root, leg);
     this.skinned = figure;
-    for (const b of this.bones) b.cylinder.visible = b.capA.visible = b.capB.visible = false;
+    for (const b of this.bones) {
+      if (b.cylinder) b.cylinder.visible = false;
+      if (b.capA) b.capA.visible = false;
+      if (b.capB) b.capB.visible = false;
+    }
     this.head.visible = false;
     if (this.jawBlob) this.jawBlob.visible = false;
     if (this.cropTop) this.cropTop.visible = false;
@@ -630,6 +640,10 @@ export class PoseViewer3D {
           : [raw[0] * build, raw[1] * build]
         : undefined;
       if (taper) builtTaper[bone.part] = taper;
+      if (!this.capsules) {
+        this.bones.push({ cylinder: null, capA: null, capB: null, radius, part: bone.part });
+        continue;
+      }
       const wear = this.kit(bone.part);
       // The trunk is turned on a lathe, not tapered between two circles: a
       // waist that is narrowest a little above the hips, a rib cage that
@@ -667,6 +681,7 @@ export class PoseViewer3D {
     // A head is an egg, not a ball: a touch taller than it is wide.
     this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.18, 32, 24), this.skin);
     this.head.scale.set(0.95, 1.06, 0.98);
+    this.head.visible = this.capsules;
     this.scene.add(this.head);
 
     // What the skinned body (lib/bodyMesh.ts) is built to, should one be
@@ -709,7 +724,7 @@ export class PoseViewer3D {
       gripping,
     };
 
-    if (female) {
+    if (female && this.capsules) {
       // The cropped top covers the upper part of the trunk (FEMALE.topCover),
       // sized a hair over the trunk's own taper so it sits on the skin rather
       // than in it; the waist shows below it. update() places both along the
@@ -1720,6 +1735,7 @@ export class PoseViewer3D {
       if (bone.part === "neck") pb.addScaledVector(pb.clone().sub(pa).normalize(), 0.05);
       const dir = pb.clone().sub(pa);
       const len = Math.max(dir.length(), 1e-4);
+      if (!bone.cylinder || !bone.capA || !bone.capB) continue;
       bone.cylinder.position.copy(pa).addScaledVector(dir, 0.5);
       // Feet are flat slabs and open hands are palm paddles, not round
       // sticks; the trunk is an ellipse -- broad across, shallower deep.
@@ -1744,6 +1760,7 @@ export class PoseViewer3D {
     // The shorts' hems ride the thighs, 1.5cm short of the knee.
     for (const hem of this.hems) {
       const thigh = this.bones[hem.bone]!;
+      if (!thigh.cylinder || !thigh.capA || !thigh.capB) continue;
       hem.mesh.quaternion.copy(thigh.cylinder.quaternion);
       const knee = thigh.capB.position;
       const hip = thigh.capA.position;
@@ -1800,7 +1817,7 @@ export class PoseViewer3D {
           // are deep: two separate balls was the first draft's mistake.
           lobe.position.copy(sA).addScaledVector(spineDir, spineLen * 0.76).addScaledVector(ventral, 0.03).addScaledVector(lateral, side * 0.025);
           lobe.scale.set(0.038 * this.trunkW, 0.03, 0.027 * this.trunkD);
-          lobe.quaternion.copy(this.bones[this.spineIndex]!.cylinder.quaternion);
+          lobe.quaternion.copy(this.bones[this.spineIndex]!.cylinder!.quaternion);
         });
         // The glute lobes sit just behind and below the pelvis, either side
         // of the midline, and turn with the trunk.
@@ -1809,7 +1826,7 @@ export class PoseViewer3D {
           lobe.position.copy(sA).addScaledVector(ventral, -0.028).addScaledVector(spineDir, -0.012).addScaledVector(lateral, side * 0.03);
           const g = FEMALE.glute;
           lobe.scale.set(0.046 * g, 0.04 * g, 0.042 * g);
-          lobe.quaternion.copy(this.bones[this.spineIndex]!.cylinder.quaternion);
+          lobe.quaternion.copy(this.bones[this.spineIndex]!.cylinder!.quaternion);
         });
       }
     }

@@ -582,13 +582,44 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     if (spec.gripping) {
       rings.push(...cap(wrist.c, Y, Z, dir, wrist.radii, 0.006, [[hand, 1]], MAT.skin, 2));
     } else {
-      // An open hand: a flat paddle, palm down in the T-pose.
+      // An open hand, palm down in the T-pose: a flat palm over the first
+      // 55% of the hand's length, then four fingers and a thumb. The
+      // fingers droop a little and the outer ones are shorter, so a hand on
+      // the floor or held out reads as a hand, not a paddle.
       const hb: [number, number][] = [[hand, 1]];
+      const palmEnd = L.hand * 0.55;
+      const halfW = spec.hand * 1.8;
       rings.push(armRing(at(wristD + 0.008), spec.hand * 0.85, spec.hand * 1.5, [[fore, 0.15], [hand, 0.85]]));
-      rings.push(armRing(at(wristD + 0.03), spec.hand * 0.75, spec.hand * 1.8, hb));
-      rings.push(armRing(at(wristD + 0.06), spec.hand * 0.65, spec.hand * 1.75, hb));
-      const tip = armRing(at(wristD + L.hand - 0.012), spec.hand * 0.55, spec.hand * 1.45, hb);
-      rings.push(tip, ...cap(tip.c, Y, Z, dir, tip.radii, 0.012, hb, MAT.skin, 3));
+      rings.push(armRing(at(wristD + palmEnd * 0.5), spec.hand * 0.75, halfW, hb));
+      const palm = armRing(at(wristD + palmEnd), spec.hand * 0.62, halfW * 0.98, hb);
+      rings.push(palm, ...cap(palm.c, Y, Z, dir, palm.radii, 0.006, hb, MAT.skin, 2));
+      b.tube(rings);
+      // A finger: a thin tube from `from` to `to`, rounded at the tip.
+      const finger = (from: THREE.Vector3, to: THREE.Vector3, r0: number, r1: number) => {
+        const axis = to.clone().sub(from).normalize();
+        const v = new THREE.Vector3().crossVectors(Y, axis).normalize();
+        const fr: Ring[] = [];
+        for (const [t, r] of [[0, r0], [0.5, (r0 + r1) / 2], [1, r1]] as const) {
+          fr.push(ring(from.clone().lerp(to, t), Y, v, ellipseRadii(r * 0.9, r), hb, MAT.skin));
+        }
+        fr.push(...cap(to, Y, v, axis, ellipseRadii(r1 * 0.9, r1), r1 * 0.9, hb, MAT.skin, 2));
+        b.tube(fr);
+      };
+      const fingerLen = L.hand - palmEnd;
+      const fr0 = spec.hand * 0.32, fr1 = spec.hand * 0.26;
+      [-0.72, -0.24, 0.24, 0.72].forEach((k, i) => {
+        const z = k * halfW;
+        const reach = i === 1 || i === 2 ? 1 : 0.88;
+        const root = new THREE.Vector3(x0 + s * (wristD + palmEnd - 0.006), shoulderY, z);
+        const tipP = new THREE.Vector3(x0 + s * (wristD + palmEnd + fingerLen * reach), shoulderY - fingerLen * 0.18, z * 1.04);
+        finger(root, tipP, fr0, fr1);
+      });
+      // The thumb leaves the palm's forward edge near the wrist and angles
+      // out ahead of the fingers.
+      const thumbRoot = new THREE.Vector3(x0 + s * (wristD + palmEnd * 0.25), shoulderY - spec.hand * 0.1, halfW * 0.75);
+      const thumbTip = new THREE.Vector3(x0 + s * (wristD + palmEnd * 0.85), shoulderY - spec.hand * 0.2, halfW * 1.45);
+      finger(thumbRoot, thumbTip, spec.hand * 0.36, spec.hand * 0.28);
+      continue;
     }
     b.tube(rings);
   }
