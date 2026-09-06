@@ -1786,7 +1786,7 @@ export class PoseViewer3D {
       const fx = new THREE.Vector3().crossVectors(up, fz).normalize();
       this.face.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(fx, up, fz));
       this.face.position.copy(this.head.position);
-      if (this.skinned) this.skinned.apply({ bones: sample, head: this.head.position.clone(), ventral });
+      if (this.skinned) this.skinned.apply({ bones: sample, head: this.head.position.clone(), ventral, floorY: this.floorDisc?.position.y });
       if (this.busts.length) {
         // A gentle bust: two rounded lobes high on the chest, either side of
         // the midline, standing a little proud of the trunk's front (its
