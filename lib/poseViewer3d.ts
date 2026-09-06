@@ -25,10 +25,11 @@ import { buildBody, buildHair, BODY_STYLE_DEFAULT, type BodySpec, type BodyStyle
 // cares which family of equipment to draw.
 export type ViewerImplement = "dumbbell" | "kettlebell" | "barbell" | "machine" | "other" | undefined;
 
-// His stringer: white, the one light surface that holds up against the dark
-// card (a dark top made the trunk vanish and the figure read as floating
-// limbs).
-const SHIRT = 0xf0efe9;
+// His tee: black, at the user's direction ("черни къси гащи и черна спортна
+// тениска с къс ръкав"); a charcoal with a little sheen rather than pure
+// black, so the trunk keeps its shading against the dark card, and a shade
+// lighter than the shorts so the two garments read as two.
+const SHIRT = 0x2b302e;
 const BENCH = 0x66736c;
 // Half the trunk's depth (the spine ellipse's shallow axis): how far a bench
 // pad's surface must sit below the spine line for the body to rest ON it.
@@ -567,8 +568,8 @@ export class PoseViewer3D {
   private hair = new THREE.MeshStandardMaterial({ color: 0x17140f, roughness: 0.75 });
   // Stubble is shadow on the skin, not hair: a skin-dark tone, tight to it.
   private stubble = new THREE.MeshStandardMaterial({ color: 0x6e5240, roughness: 0.85 });
-  private shirt = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.8, metalness: 0 });
-  private shorts = new THREE.MeshStandardMaterial({ color: 0x1f2421, roughness: 0.85, metalness: 0 });
+  private shirt = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.72, metalness: 0 });
+  private shorts = new THREE.MeshStandardMaterial({ color: 0x181b1a, roughness: 0.85, metalness: 0 });
   private lime = new THREE.MeshStandardMaterial({ color: 0xc8ff32, roughness: 0.5, metalness: 0.05 });
   // The female set -- cropped top and leggings in one sage green: distinct
   // from the male's light shirt and dark shorts at a glance, light enough to

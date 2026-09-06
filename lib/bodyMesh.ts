@@ -558,10 +558,15 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     };
   };
   const layered = !!spec.style.layered;
+  // His top is a short-sleeved tee (the user: "черна спортна тениска с къс
+  // ръкав" in place of the stringer): the whole trunk in fabric, a crew
+  // neckline cut through the traps dome, sleeves over the delts on the arm
+  // tubes. Hers keeps the cropped top with straps.
+  const tee = !female && !layered;
   const trunkMat = (u: number): { mat: number; cloth?: (k: number) => number } => {
     if (layered) return { mat: trunkBand(u) === MAT.legwear ? MAT.legwear : MAT.skin };
     const band = trunkBand(u);
-    if (band !== MAT.top || u < neckFrom) return { mat: band };
+    if (band !== MAT.top || u < neckFrom || tee) return { mat: band };
     return { mat: MAT.neck, cloth: strapCloth((u - neckFrom) / (0.5 - neckFrom)) };
   };
   const front = Math.PI / 2;
@@ -616,10 +621,11 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     x: L.hipHalf * 0.62,
     // The centre, below the hip joints.
     y: female ? -0.022 : -0.018,
-    rx: Math.min(thighTop.ru * (female ? 1.5 : 1.4), hipW - L.hipHalf * 0.62 - 0.002),
-    rz: thighTop.rv * (female ? 1.05 : 0.9),
-    // How far the apex stands behind the thigh's own back.
-    out: thighTop.rv * (female ? 0.38 : 0.27),
+    rx: Math.min(thighTop.ru * (female ? 1.5 : 1.3), hipW - L.hipHalf * 0.62 - 0.002),
+    rz: thighTop.rv * (female ? 1.05 : 0.8),
+    // How far the apex stands behind the thigh's own back (his was 0.27:
+    // "Задника на мъжа не трябва да е толкова голям").
+    out: thighTop.rv * (female ? 0.38 : 0.14),
     // The vertical half-extents: round below, a long fade above.
     down: 0.05,
     up: female ? 0.065 : 0.06,
@@ -778,10 +784,16 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   const topBones: [number, number][] = [[bi("Spine2"), 1]];
   const domeMat = layered ? MAT.skin : MAT.neck;
   const dome = [[0.015, 0.93, 0.94], [0.03, 0.8, 0.84], [0.045, 0.6, 0.68]] as const;
+  // The tee's crew neck: fabric up to a collar line a little lower in front
+  // than behind, cut through the dome's faces by the cloth mask.
+  const collar = (c: THREE.Vector3) => (k: number) => {
+    const th = (k / N) * Math.PI * 2;
+    return (shoulderY + 0.04 - 0.008 * Math.sin(th) - c.y) * 40;
+  };
   for (const [dy, kw, kd] of dome) {
     const c = new THREE.Vector3(0, shoulderY + dy, 0);
     const radii = ellipseRadii(W(0.5) * kw, D(0.5) * kd);
-    const d = ring(c, X, Z, radii, topBones, domeMat, layered ? undefined : clearDelts(c, radii, panelCloth(1, c, radii)));
+    const d = ring(c, X, Z, radii, topBones, domeMat, layered ? undefined : tee ? collar(c) : clearDelts(c, radii, panelCloth(1, c, radii)));
     d.breath = 0.4;
     trunk.push(d);
   }
@@ -982,21 +994,32 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const armRing = (c: THREE.Vector3, ru: number, rv: number, bones: [number, number][], mat: number = MAT.skin, bulges: Bulge[] = []) =>
       ring(c, Y, Z, ellipseRadii(ru, rv, bulges), bones, mat);
     const dir = new THREE.Vector3(s, 0, 0);
+    // The tee's sleeve: fabric over the delt and the top of the arm to a
+    // hem standing a little proud, then skin.
+    const sleeveD = 0.42 * L.upperArm;
+    const armMat = (d: number) => (tee && d <= sleeveD ? MAT.top : MAT.skin);
     // The deltoid: rounded over the shoulder, staying with the trunk.
-    const capRings = cap(at(0), Y, Z, dir.clone().negate(), ellipseRadii(delt, delt), 0.032, [[clav, 1]], MAT.skin, 4).reverse();
+    const capRings = cap(at(0), Y, Z, dir.clone().negate(), ellipseRadii(delt, delt), 0.032, [[clav, 1]], armMat(0), 4).reverse();
     rings.push(...capRings);
-    rings.push(armRing(at(0), delt, delt, [[clav, 0.5], [arm, 0.5]]));
-    rings.push(armRing(at(0.025), delt * 0.99, delt * 0.99, [[clav, 0.15], [arm, 0.85]]));
+    rings.push(armRing(at(0), delt, delt, [[clav, 0.5], [arm, 0.5]], armMat(0)));
+    rings.push(armRing(at(0.025), delt * 0.99, delt * 0.99, [[clav, 0.15], [arm, 0.85]], armMat(0.025)));
     const uaR = (t: number) => {
       const base = uaA + (uaB - uaA) * t;
       const biceps = 1 + 0.18 * def * Math.exp(-Math.pow((t - 0.45) / 0.25, 2));
       return base * biceps;
     };
+    let hemmed = !tee;
     for (const t of [0.3, 0.45, 0.6, 0.78]) {
       const d = t * L.upperArm;
+      if (!hemmed && d > sleeveD) {
+        const rh = uaR(sleeveD / L.upperArm);
+        rings.push(armRing(at(sleeveD), rh + 0.003, rh * 1.05 + 0.003, [[arm, 1]], MAT.top));
+        rings.push(armRing(at(sleeveD + 0.002), rh, rh * 1.05, [[arm, 1]], MAT.skin));
+        hemmed = true;
+      }
       const r = uaR(t);
       // The biceps sits in front, the triceps behind: a little depth.
-      rings.push(armRing(at(d), r, r * 1.05, [[arm, 1]]));
+      rings.push(armRing(at(d), r, r * 1.05, [[arm, 1]], armMat(d)));
     }
     const elbowBones = (d: number): [number, number][] => {
       const k = (d - L.upperArm) / 0.025;
