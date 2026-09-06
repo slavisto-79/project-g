@@ -187,7 +187,9 @@ export class PoseViewer3D {
   // Female build only: a cropped sports top over a bare-skin trunk, and a
   // gentle bust under it. Both ride the spine bone in update().
   private cropTop: THREE.Mesh | null = null;
-  private bust: THREE.Mesh | null = null;
+  // Two rounded lobes high on the chest, in the top's colour: a single wide
+  // ellipsoid read as a flat disc under the crop top from the front.
+  private busts: THREE.Mesh[] = [];
   private glutes: THREE.Mesh[] = [];
   // The shorts' hems: a ring at the knee end of each thigh, so the shorts
   // end in a clean line instead of the jagged edge two capsules made.
@@ -578,8 +580,12 @@ export class PoseViewer3D {
       const waistR = spineTaper[1] * waist;
       const hemR = (waistR + (spineTaper[0] * chest - waistR) * (1 - FEMALE.topCover)) * 1.05;
       this.cropTop = new THREE.Mesh(new THREE.CylinderGeometry(chestR, hemR, 1, SEGS, 1, true), this.setFemale);
-      this.bust = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H), this.setFemale);
-      this.scene.add(this.cropTop, this.bust);
+      this.scene.add(this.cropTop);
+      for (let i = 0; i < 2; i++) {
+        const lobe = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H), this.setFemale);
+        this.scene.add(lobe);
+        this.busts.push(lobe);
+      }
       // Glutes: two lobes on the back of the pelvis, in the leggings. The
       // pelvis bone alone is a flat bar; these are what give her a seat.
       for (let i = 0; i < 2; i++) {
@@ -1631,16 +1637,23 @@ export class PoseViewer3D {
       const fx = new THREE.Vector3().crossVectors(up, fz).normalize();
       this.face.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(fx, up, fz));
       this.face.position.copy(this.head.position);
-      if (this.bust) {
-        // A gentle bust: a flattened ellipsoid high on the trunk, pushed a
-        // little out of its front face, in the top's colour.
+      if (this.busts.length) {
+        // A gentle bust: two rounded lobes high on the chest, either side of
+        // the midline, standing a little proud of the trunk's front (its
+        // depth radius there is ~0.052) in the top's colour. Modest on
+        // purpose -- the user chose "lean and toned" over the curvier build.
         const spineLen = sB.clone().sub(sA).length();
-        this.bust.position.copy(sA).addScaledVector(spineDir, spineLen * 0.78).addScaledVector(ventral, 0.02);
-        this.bust.scale.set(0.058 * 1.45 * this.trunkW * 0.92, 0.03, 0.05 * this.trunkD);
-        this.bust.quaternion.copy(this.bones[this.spineIndex]!.cylinder.quaternion);
+        const lateral = new THREE.Vector3().crossVectors(spineDir, ventral).normalize();
+        this.busts.forEach((lobe, i) => {
+          const side = i === 0 ? 1 : -1;
+          // Close enough together to meet at the midline, wider than they
+          // are deep: two separate balls was the first draft's mistake.
+          lobe.position.copy(sA).addScaledVector(spineDir, spineLen * 0.76).addScaledVector(ventral, 0.03).addScaledVector(lateral, side * 0.025);
+          lobe.scale.set(0.038 * this.trunkW, 0.03, 0.027 * this.trunkD);
+          lobe.quaternion.copy(this.bones[this.spineIndex]!.cylinder.quaternion);
+        });
         // The glute lobes sit just behind and below the pelvis, either side
         // of the midline, and turn with the trunk.
-        const lateral = new THREE.Vector3().crossVectors(spineDir, ventral).normalize();
         this.glutes.forEach((lobe, i) => {
           const side = i === 0 ? 1 : -1;
           lobe.position.copy(sA).addScaledVector(ventral, -0.028).addScaledVector(spineDir, -0.012).addScaledVector(lateral, side * 0.03);
