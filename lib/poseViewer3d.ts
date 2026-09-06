@@ -15,6 +15,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { ExercisePose, PoseFrame3D, PoseProp3D, Vec3 } from "./poses";
 import { REFERENCE_AVATAR, type AvatarBuild } from "./avatar";
 
@@ -108,9 +109,18 @@ const FEMALE = {
 const MALE = {
   chest: 1.12,
   waist: 0.9,
-  delt: 1.18,
+  // The delts were 1.18 here on top of a 0.046 sphere: at the reference
+  // build that was a 12cm ball on each shoulder, and the user's review was
+  // "прекалил с мускулите". The cap is now a smaller, flatter shoulder that
+  // grows with training, not a bodybuilder's.
+  delt: 1.0,
   arm: 1.06,
 } as const;
+// Geometry resolution. The old 12- and 16-segment meshes shaded as facets,
+// which is most of what made the figure read as blocks rather than a body.
+const SEGS = 32;
+const SPHERE_W = 28;
+const SPHERE_H = 20;
 const AXIS_X = new THREE.Vector3(1, 0, 0);
 // A landmine's hinge sits this far above the floor, on a short post.
 const LANDMINE_HINGE = 0.06;
@@ -179,6 +189,9 @@ export class PoseViewer3D {
   private cropTop: THREE.Mesh | null = null;
   private bust: THREE.Mesh | null = null;
   private glutes: THREE.Mesh[] = [];
+  // The shorts' hems: a ring at the knee end of each thigh, so the shorts
+  // end in a clean line instead of the jagged edge two capsules made.
+  private hems: { mesh: THREE.Mesh; bone: number }[] = [];
 
   constructor(
     host: HTMLElement,
@@ -207,18 +220,43 @@ export class PoseViewer3D {
 
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    // Filmic tone mapping and a soft shadow map: the figure is lit like a
+    // thing in a room, and stands on the floor instead of hovering over it.
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     this.camera = new THREE.PerspectiveCamera(34, 1, 0.05, 20);
 
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x2c332c, 1.05);
-    const key = new THREE.DirectionalLight(0xffffff, 1.1);
+    // Image-based light from a neutral room: what gives the skin its soft
+    // gradients and the iron its reflections. Three lamps of direct light
+    // alone flattened everything into two tones, which read as plastic.
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environmentIntensity = 0.55;
+    pmrem.dispose();
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x2c332c, 0.45);
+    const key = new THREE.DirectionalLight(0xffffff, 1.4);
     key.position.set(1.6, 2.6, 2.0);
-    const rim = new THREE.DirectionalLight(0x9fffc0, 0.35);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.camera.near = 0.5;
+    key.shadow.camera.far = 8;
+    key.shadow.camera.left = key.shadow.camera.bottom = -1.6;
+    key.shadow.camera.right = key.shadow.camera.top = 1.6;
+    key.shadow.bias = -0.0005;
+    key.shadow.radius = 4;
+    const rim = new THREE.DirectionalLight(0x9fffc0, 0.3);
     rim.position.set(-2.0, 1.2, -1.6);
     this.scene.add(hemi, key, rim);
 
     this.buildMannequin(pose, implement);
     this.buildProps(pose, implement);
+    // Everything casts onto the floor disc; the disc itself only receives.
+    this.scene.traverse((o) => {
+      if ((o as THREE.Mesh).isMesh && !o.userData.floor) o.castShadow = true;
+    });
 
     this.resize = new ResizeObserver(() => this.applySize());
     this.resize.observe(host);
@@ -299,12 +337,15 @@ export class PoseViewer3D {
   // knee-length shorts, and the brand lime on the wristbands and shoes. The
   // stringer is on purpose: the arms and the delts stay bare, so shoulders
   // and elbows read clearly in every demo and the V-taper shows.
-  private skin = new THREE.MeshStandardMaterial({ color: 0xc79b74, roughness: 0.6, metalness: 0.02 });
-  private hair = new THREE.MeshStandardMaterial({ color: 0x17140f, roughness: 0.8 });
+  // Skin is soft and a little glossy, cloth is matte: with the room
+  // environment lighting the difference is what separates a body from its
+  // kit.
+  private skin = new THREE.MeshStandardMaterial({ color: 0xc79b74, roughness: 0.48, metalness: 0 });
+  private hair = new THREE.MeshStandardMaterial({ color: 0x17140f, roughness: 0.75 });
   // Stubble is shadow on the skin, not hair: a skin-dark tone, tight to it.
   private stubble = new THREE.MeshStandardMaterial({ color: 0x6e5240, roughness: 0.85 });
-  private shirt = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.55, metalness: 0.05 });
-  private shorts = new THREE.MeshStandardMaterial({ color: 0x1f2421, roughness: 0.7, metalness: 0.05 });
+  private shirt = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.8, metalness: 0 });
+  private shorts = new THREE.MeshStandardMaterial({ color: 0x1f2421, roughness: 0.85, metalness: 0 });
   private lime = new THREE.MeshStandardMaterial({ color: 0xc8ff32, roughness: 0.5, metalness: 0.05 });
   // The female set -- cropped top and leggings in one sage green: distinct
   // from the male's light shirt and dark shorts at a glance, light enough to
@@ -331,8 +372,11 @@ export class PoseViewer3D {
         // both builds (her cropped top, his stringer).
         return female ? { body: this.setFemale, a: this.skin, b: this.skin } : { body: this.shirt, a: this.skin, b: this.skin };
       case "hips":
-      case "thigh":
         return { body: legwear, a: legwear, b: legwear };
+      case "thigh":
+        // His shorts end above the knee (the hem ring draws the edge), so
+        // the knee itself is skin; her leggings run on down the shin.
+        return { body: legwear, a: legwear, b: female ? legwear : this.skin };
       case "shin":
         return female ? { body: legwear, a: legwear, b: legwear } : { body: this.skin, a: this.skin, b: this.skin };
       case "forearm":
@@ -464,12 +508,43 @@ export class PoseViewer3D {
           : [raw[0] * build, raw[1] * build]
         : undefined;
       const wear = this.kit(bone.part);
+      // The trunk is turned on a lathe, not tapered between two circles: a
+      // waist that is narrowest a little above the hips, a rib cage that
+      // widens to the chest and rounds off under the shoulders. The profile
+      // runs -0.5 (pelvis) to 0.5 (shoulders), the same unit height the
+      // limb cylinders have, so update() scales it the same way.
       const cylinder = taper
-        ? new THREE.Mesh(new THREE.CylinderGeometry(taper[0], taper[1], 1, 16, 1, true), wear.body)
-        : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, 14, 1, true), wear.body);
-      const delt = bone.part === "shoulders" ? (female ? 0.046 * 0.86 : 0.046 * Math.pow(muscle, 0.8) * MALE.delt) : undefined;
-      const capA = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[1] : radius), 12, 10), wear.a);
-      const capB = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[0] : radius), 12, 10), wear.b);
+        ? bone.part === "spine"
+          ? new THREE.Mesh(
+              new THREE.LatheGeometry(
+                [
+                  [taper[1] * 0.96, -0.5],
+                  [taper[1], -0.34],
+                  [taper[1] * 1.04, -0.12],
+                  [taper[0] * 0.94, 0.14],
+                  [taper[0], 0.34],
+                  [taper[0] * 0.97, 0.5],
+                ].map(([r, y]) => new THREE.Vector2(r, y)),
+                SEGS,
+              ),
+              wear.body,
+            )
+          : new THREE.Mesh(new THREE.CylinderGeometry(taper[0], taper[1], 1, SEGS, 1, true), wear.body)
+        : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, SEGS, 1, true), wear.body);
+      // The deltoid: a shoulder cap a shade wider than the upper arm it sits
+      // on, growing gently with training. Half a power on `muscle`, and no
+      // multiplier beyond the build's: at the old 0.8 power and x1.18 it
+      // was a ball twice the arm's width.
+      const delt = bone.part === "shoulders" ? (female ? 0.036 : 0.040 * Math.sqrt(muscle) * MALE.delt) : undefined;
+      const capA = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[1] : radius), SPHERE_W, SPHERE_H), wear.a);
+      const capB = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[0] : radius), SPHERE_W, SPHERE_H), wear.b);
+      if (bone.part === "thigh" && !female) {
+        // The shorts' hem: a ring just above the knee, a little proud of the
+        // thigh, in the shorts' cloth. Placed along the thigh in update().
+        const hem = new THREE.Mesh(new THREE.CylinderGeometry(taper![0] * build + 0.004, taper![0] * build + 0.006, 0.026, SEGS, 1, true), this.shorts);
+        this.scene.add(hem);
+        this.hems.push({ mesh: hem, bone: this.bones.length });
+      }
       // The fingered hand replaces the hand bone when something is held;
       // otherwise the straight hand segment pokes out under the fingers.
       // Kept in the list so update() indexing stays aligned with the frames.
@@ -483,7 +558,9 @@ export class PoseViewer3D {
       this.scene.add(cylinder, capA, capB);
       this.bones.push({ cylinder, capA, capB, radius, part: bone.part });
     }
-    this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.18, 18, 14), this.skin);
+    // A head is an egg, not a ball: a touch taller than it is wide.
+    this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.18, 32, 24), this.skin);
+    this.head.scale.set(0.95, 1.06, 0.98);
     this.scene.add(this.head);
 
     if (female) {
@@ -495,13 +572,13 @@ export class PoseViewer3D {
       const chestR = spineTaper[0] * chest * 1.05;
       const waistR = spineTaper[1] * waist;
       const hemR = (waistR + (spineTaper[0] * chest - waistR) * (1 - FEMALE.topCover)) * 1.05;
-      this.cropTop = new THREE.Mesh(new THREE.CylinderGeometry(chestR, hemR, 1, 16, 1, true), this.setFemale);
-      this.bust = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), this.setFemale);
+      this.cropTop = new THREE.Mesh(new THREE.CylinderGeometry(chestR, hemR, 1, SEGS, 1, true), this.setFemale);
+      this.bust = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H), this.setFemale);
       this.scene.add(this.cropTop, this.bust);
       // Glutes: two lobes on the back of the pelvis, in the leggings. The
       // pelvis bone alone is a flat bar; these are what give her a seat.
       for (let i = 0; i < 2; i++) {
-        const lobe = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), this.setFemale);
+        const lobe = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H), this.setFemale);
         this.scene.add(lobe);
         this.glutes.push(lobe);
       }
@@ -1065,9 +1142,11 @@ export class PoseViewer3D {
         // camera view, so the circle is always WHOLE on screen instead of a
         // clipped band with black wings.
         const disc = new THREE.Mesh(
-          new THREE.CircleGeometry(1, 48),
+          new THREE.CircleGeometry(1, 64),
           new THREE.MeshStandardMaterial({ color: FLOOR, roughness: 0.95 }),
         );
+        disc.receiveShadow = true;
+        disc.userData.floor = true;
         disc.rotation.x = -Math.PI / 2;
         const ring = new THREE.Mesh(
           new THREE.RingGeometry(0.98, 1, 48),
@@ -1486,6 +1565,14 @@ export class PoseViewer3D {
         this.cropTop.scale.set(1.45 * this.trunkW, len * cover, 0.9 * this.trunkD);
         this.cropTop.quaternion.copy(bone.cylinder.quaternion);
       }
+    }
+    // The shorts' hems ride the thighs, 1.5cm short of the knee.
+    for (const hem of this.hems) {
+      const thigh = this.bones[hem.bone]!;
+      hem.mesh.quaternion.copy(thigh.cylinder.quaternion);
+      const knee = thigh.capB.position;
+      const hip = thigh.capA.position;
+      hem.mesh.position.copy(knee).addScaledVector(hip.clone().sub(knee).normalize(), 0.015);
     }
     this.head.position.copy(lerp3(a.head.c, b.head.c, f));
     // Sneakers: heel-to-toe along the foot bone; "up" is the shin's direction
