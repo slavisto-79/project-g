@@ -19,7 +19,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import type { ExercisePose, PoseFrame3D, PoseProp3D, Vec3 } from "./poses";
 import { REFERENCE_AVATAR, type AvatarBuild } from "./avatar";
 import { SkinnedFigure, type RigMap, type FigureSample } from "./skinnedFigure";
-import { buildBody, BODY_STYLE_DEFAULT, type BodySpec, type BodyStyle } from "./bodyMesh";
+import { buildBody, buildHair, BODY_STYLE_DEFAULT, type BodySpec, type BodyStyle } from "./bodyMesh";
 
 // Matches the loadable implements the workout knows about; the viewer only
 // cares which family of equipment to draw.
@@ -956,16 +956,9 @@ export class PoseViewer3D {
       // its base. Everything sits at 1.0R -- a hair's volume over the 0.91R
       // skull -- so it reads as hair, not paint.
       // Stretched with the egg-shaped skull (y scale 1.06), like his.
-      const crown = new THREE.Mesh(new THREE.SphereGeometry(R * 1.0, SPHERE_W, SPHERE_H, 0, Math.PI * 2, 0, 0.9), this.hairFemale);
-      crown.rotation.x = -0.25;
-      crown.scale.set(1, 1.08, 1);
-      this.face.add(crown);
-      const sides = new THREE.Mesh(
-        new THREE.SphereGeometry(R * 1.0, SPHERE_W, SPHERE_H, Math.PI * 0.9, Math.PI * 1.2, 0.5, 1.45),
-        this.hairFemale,
-      );
-      sides.scale.set(1, 1.08, 1);
-      this.face.add(sides);
+      // The hair itself is a lofted shell over the skull (lib/bodyMesh.ts):
+      // sleek and even, pulled back, forehead open and ears clear.
+      this.face.add(buildHair(first.head.r, true, this.hairFemale));
       const bunDir = new THREE.Vector3(0, 0.42, -0.78).normalize();
       const bun = new THREE.Mesh(new THREE.SphereGeometry(R * 0.5, 14, 12), this.hairFemale);
       bun.position.copy(bunDir).multiplyScalar(R * 0.89);
@@ -980,14 +973,9 @@ export class PoseViewer3D {
       // above the brow line.
       // Both pieces are stretched with the egg-shaped skull (its y scale is
       // 1.06): a round cap sank into the taller crown and left a bald patch.
-      const fade = new THREE.Mesh(new THREE.SphereGeometry(R * 0.93, SPHERE_W, SPHERE_H, 0, Math.PI * 2, 0, 1.15), this.hair);
-      fade.rotation.x = -0.4;
-      fade.scale.set(1, 1.08, 1);
-      this.face.add(fade);
-      const crop = new THREE.Mesh(new THREE.SphereGeometry(R * 1.0, SPHERE_W, SPHERE_H, 0, Math.PI * 2, 0, 0.78), this.hair);
-      crop.rotation.x = -0.32;
-      crop.scale.set(1, 1.12, 1);
-      this.face.add(crop);
+      // A lofted shell over the skull (lib/bodyMesh.ts): a fade at the sides
+      // and back, the crop full on top with a forward sweep and soft ridges.
+      this.face.add(buildHair(first.head.r, false, this.hair));
     }
     // Brows: his angled in and down over the eyes; hers thin, higher and
     // nearly level, with just the outer end lifted.

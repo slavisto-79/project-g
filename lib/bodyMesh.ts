@@ -307,6 +307,137 @@ function profileAt(profile: [number, number][], y: number): number {
   return profile[profile.length - 1]![0];
 }
 
+// The skull's silhouette, ring by ring: for a height `yr` in units of R
+// (= headR x 1.3, the face's own unit; 0 at the head's centre), the radius
+// at each of the N angles around (front at PI/2, back at -PI/2, the sides
+// at 0 and PI). Each ring is the larger of the egg and the jaw ellipsoid
+// the face used to carry as a separate blob (so the stubble shell still
+// fits it), with the occiput drawn out behind, cheekbones, a chin,
+// flattened temples and a little brow bossing above the brows. The eyes,
+// nose, mouth, ears and hair sit in front of these surfaces, so every
+// shape here keeps clear of the front between the brows and the mouth.
+export function skullProfile(headR: number, female: boolean): (yr: number) => number[] {
+  const R = headR * 1.3;
+  const Rx = headR * 1.18 * 0.95, Ry = headR * 1.18 * 1.06, Rz = headR * 1.18 * 0.98;
+  const jaw = female ? { a: 0.64, b: 0.5, c: 0.66, cy: -0.4, cz: 0.06 } : { a: 0.72, b: 0.52, c: 0.7, cy: -0.42, cz: 0.08 };
+  const g = (y: number, c: number, w: number) => Math.exp(-Math.pow((y - c) / w, 2));
+  const front = Math.PI / 2;
+  const back = -Math.PI / 2;
+  return (yr: number): number[] => {
+    const y = yr * R;
+    const eggK = Math.abs(y) < Ry ? Math.sqrt(1 - (y / Ry) ** 2) : 0;
+    const out: number[] = [];
+    for (let k = 0; k < N; k++) {
+      const t = (k / N) * Math.PI * 2;
+      const c = Math.cos(t), s = Math.sin(t);
+      const egg = eggK > 0 ? ((Rx * Rz) / Math.sqrt(Rz * Rz * c * c + Rx * Rx * s * s)) * eggK : 0;
+      // The jaw ellipsoid along this ray from the ring's centre.
+      let jawR = 0;
+      const dy = (yr - jaw.cy) / jaw.b;
+      if (Math.abs(dy) < 1) {
+        const A = (c * c) / (jaw.a * jaw.a) + (s * s) / (jaw.c * jaw.c);
+        const B = (-2 * s * jaw.cz) / (jaw.c * jaw.c);
+        const C = (jaw.cz * jaw.cz) / (jaw.c * jaw.c) - (1 - dy * dy);
+        const disc = B * B - 4 * A * C;
+        if (disc > 0) jawR = Math.max(0, (-B + Math.sqrt(disc)) / (2 * A)) * R;
+      }
+      let r = Math.max(egg, jawR);
+      const lobe = (at: number, width: number) => {
+        let d = Math.abs(t - at);
+        d = Math.min(d, Math.PI * 2 - d);
+        if (d >= width) return 0;
+        const f = 0.5 + 0.5 * Math.cos((d / width) * Math.PI);
+        return f * f;
+      };
+      const cheek = (female ? 0.028 : 0.035) * g(yr, -0.08, 0.16) * (lobe(front - 0.85, 0.6) + lobe(front + 0.85, 0.6));
+      const occiput = 0.05 * g(yr, 0.15, 0.35) * lobe(back, 1.3);
+      const temples = -0.025 * g(yr, 0.35, 0.25) * (lobe(0, 0.7) + lobe(Math.PI, 0.7));
+      const chin = (female ? 0.02 : 0.03) * g(yr, -0.62, 0.14) * lobe(front, 0.5);
+      const brow = 0.025 * g(yr, 0.5, 0.12) * lobe(front, 1.0);
+      r += R * (cheek + occiput + temples + chin + brow);
+      out.push(Math.max(r, 0.01 * R));
+    }
+    return out;
+  };
+}
+
+// Hair with volume, lofted over the skull in the head's own frame (origin
+// at the head's centre, +Z out of the face, +Y up): a shell that stands
+// off the skull by a thickness that varies over the head, thins to
+// nothing along the hairline and is cut away below it. His is a textured
+// crop over a fade -- close at the sides and back, full on top with a
+// forward sweep and a few soft ridges; hers is sleek and even, pulled
+// back, with the forehead open and the ears clear (the bun is the
+// viewer's). Returns a plain mesh for the face group; the cut is the
+// same per-vertex mask the garments use.
+export function buildHair(headR: number, female: boolean, material: THREE.Material): THREE.Mesh {
+  const R = headR * 1.3;
+  const skull = skullProfile(headR, female);
+  const front = Math.PI / 2;
+  // Height of the hairline around the head, in R: open forehead, dipping at
+  // the temples, running down behind the ears to the nape.
+  const hairline = (t: number): number => {
+    let d = Math.abs(t - front);
+    d = Math.min(d, Math.PI * 2 - d); // 0 at the front, PI at the back
+    // The nape line runs nearly level: a point there read as a widow's
+    // peak at the back of the neck.
+    const pts: [number, number][] = female
+      ? [[0, 0.56], [0.6, 0.5], [1.05, 0.3], [1.5, 0.16], [2.0, -0.12], [2.5, -0.3], [Math.PI, -0.34]]
+      : [[0, 0.54], [0.55, 0.47], [1.0, 0.22], [1.5, 0.0], [2.0, -0.14], [2.5, -0.24], [Math.PI, -0.27]];
+    for (let i = 1; i < pts.length; i++) {
+      const [x0, y0] = pts[i - 1]!, [x1, y1] = pts[i]!;
+      if (d <= x1) return y0 + ((y1 - y0) * (d - x0)) / (x1 - x0);
+    }
+    return pts[pts.length - 1]![1];
+  };
+  // Thickness over the skull, in R.
+  const thickness = (yr: number, t: number): number => {
+    let d = Math.abs(t - front);
+    d = Math.min(d, Math.PI * 2 - d);
+    const top = Math.min(1, Math.max(0, (yr - 0.25) / 0.4)); // 0 at the sides, 1 on top
+    if (female) return 0.05 + 0.03 * top;
+    // The fade: tight at the sides and back, the crop standing up on top and
+    // sweeping forward, with soft ridges across it.
+    const sweep = d < 1.2 ? 0.05 * (1 - d / 1.2) * top : 0;
+    const ridges = 0.012 * top * Math.sin(t * 5 + yr * 9);
+    return 0.018 + 0.09 * top + sweep + ridges;
+  };
+  const b = new Builder();
+  const rings: Ring[] = [];
+  // Dense where the hairline runs, so its diagonal over the temple is a
+  // clean line and not a staircase of whole quads.
+  const ys: number[] = [];
+  for (let y = -0.45; y <= 0.6; y += 0.05) ys.push(+y.toFixed(3));
+  ys.push(0.68, 0.76, 0.83, 0.89, 0.94, 0.97);
+  for (const yr of ys) {
+    const base = skull(yr);
+    const radii: number[] = [];
+    const mask: number[] = [];
+    for (let k = 0; k < N; k++) {
+      const t = (k / N) * Math.PI * 2;
+      const line = hairline(t);
+      // Feather the thickness to nothing over the last bit above the
+      // hairline, so the edge lies flush with the skin; below it the shell
+      // tucks a hair inside the skull and the mask removes it.
+      const above = yr - line;
+      const feather = Math.min(1, Math.max(0, above / 0.12));
+      radii.push(base[k]! + R * (above > 0 ? thickness(yr, t) * feather : -0.01));
+      mask.push(above * 20);
+    }
+    rings.push(ring(new THREE.Vector3(0, yr * R, 0), X, Z, radii, [[0, 1]], MAT.topShell, (k) => mask[k]!));
+  }
+  // Close the crown.
+  const crown = skull(0.97).map((r) => r * 0.02);
+  rings.push(ring(new THREE.Vector3(0, 0.99 * R, 0), X, Z, crown, [[0, 1]], MAT.topShell, () => 1));
+  b.tube(rings);
+  const geometry = b.geometry();
+  geometry.deleteAttribute("skinIndex");
+  geometry.deleteAttribute("skinWeight");
+  const mesh = new THREE.Mesh(geometry, shellMaterial(material));
+  mesh.castShadow = true;
+  return mesh;
+}
+
 export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   const L = spec.lengths;
   const female = spec.sex === "female";
@@ -567,46 +698,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   // shape here keeps clear of the front between the brows and the mouth.
   const headBones: [number, number][] = [[bi("Head"), 1]];
   const R = L.headR * 1.3;
-  const jaw = female ? { a: 0.64, b: 0.5, c: 0.66, cy: -0.4, cz: 0.06 } : { a: 0.72, b: 0.52, c: 0.7, cy: -0.42, cz: 0.08 };
-  const g = (y: number, c: number, w: number) => Math.exp(-Math.pow((y - c) / w, 2));
-  const headRadii = (yr: number): number[] => {
-    const y = yr * R;
-    const eggK = Math.abs(y) < Ry ? Math.sqrt(1 - (y / Ry) ** 2) : 0;
-    const out: number[] = [];
-    for (let k = 0; k < N; k++) {
-      const t = (k / N) * Math.PI * 2;
-      const c = Math.cos(t), s = Math.sin(t);
-      const egg = eggK > 0 ? ((Rx * Rz) / Math.sqrt(Rz * Rz * c * c + Rx * Rx * s * s)) * eggK : 0;
-      // The jaw ellipsoid along this ray from the ring's centre.
-      let jawR = 0;
-      const dy = (yr - jaw.cy) / jaw.b;
-      if (Math.abs(dy) < 1) {
-        const A = (c * c) / (jaw.a * jaw.a) + (s * s) / (jaw.c * jaw.c);
-        const B = (-2 * s * jaw.cz) / (jaw.c * jaw.c);
-        const C = (jaw.cz * jaw.cz) / (jaw.c * jaw.c) - (1 - dy * dy);
-        const disc = B * B - 4 * A * C;
-        if (disc > 0) jawR = Math.max(0, (-B + Math.sqrt(disc)) / (2 * A)) * R;
-      }
-      let r = Math.max(egg, jawR);
-      // Sculpting, in units of R. Angles: front is PI/2, back -PI/2, the
-      // sides 0 and PI.
-      const lobe = (at: number, width: number) => {
-        let d = Math.abs(t - at);
-        d = Math.min(d, Math.PI * 2 - d);
-        if (d >= width) return 0;
-        const f = 0.5 + 0.5 * Math.cos((d / width) * Math.PI);
-        return f * f;
-      };
-      const cheek = (female ? 0.028 : 0.035) * g(yr, -0.08, 0.16) * (lobe(front - 0.85, 0.6) + lobe(front + 0.85, 0.6));
-      const occiput = 0.05 * g(yr, 0.15, 0.35) * lobe(back, 1.3);
-      const temples = -0.025 * g(yr, 0.35, 0.25) * (lobe(0, 0.7) + lobe(Math.PI, 0.7));
-      const chin = (female ? 0.02 : 0.03) * g(yr, -0.62, 0.14) * lobe(front, 0.5);
-      const brow = 0.025 * g(yr, 0.5, 0.12) * lobe(front, 1.0);
-      r += R * (cheek + occiput + temples + chin + brow);
-      out.push(Math.max(r, 0.01 * R));
-    }
-    return out;
-  };
+  const headRadii = skullProfile(L.headR, female);
   const skull: Ring[] = [];
   const headYs = [-0.94, -0.88, -0.78, -0.66, -0.52, -0.38, -0.24, -0.1, 0.05, 0.2, 0.35, 0.5, 0.65, 0.78, 0.88, 0.95];
   skull.push(ring(new THREE.Vector3(0, headY - 0.955 * R, 0), X, Z, headRadii(-0.94).map((r) => r * 0.15), headBones, MAT.skin));
