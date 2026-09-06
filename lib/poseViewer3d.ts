@@ -20,6 +20,7 @@ import type { ExercisePose, PoseFrame3D, PoseProp3D, Vec3 } from "./poses";
 import { REFERENCE_AVATAR, type AvatarBuild } from "./avatar";
 import { SkinnedFigure, type RigMap, type FigureSample } from "./skinnedFigure";
 import { buildBody, buildHair, BODY_STYLE_DEFAULT, type BodySpec, type BodyStyle } from "./bodyMesh";
+import { Strand, Spring } from "./hair";
 
 // Matches the loadable implements the workout knows about; the viewer only
 // cares which family of equipment to draw.
@@ -100,6 +101,9 @@ const TRAP_HANDLE_RISE = 0.06;
 // Thighs and hips were 1.02 and 1.22 of the reference; on the skinned body
 // that read as legs too big for her trunk (the user's review), so both
 // came down.
+// Her hair: a wound bun with loose strands at the nape, or a high ponytail
+// that swings. Both are lofted from the same sleek shell.
+const FEMALE_HAIR: "bun" | "tail" = "bun";
 const FEMALE = {
   hips: 1.12,
   waist: 0.82,
@@ -278,6 +282,14 @@ export class PoseViewer3D {
   private footIndex: [number, number] = [-1, -1];
   private shinIndex: [number, number] = [-1, -1];
   private face = new THREE.Group();
+  // Hair that moves (lib/hair.ts): the shell's own sway (his quiff) as a
+  // spring applied to its vertices, her bun on a spring at its tie, and
+  // strands -- a ponytail or loose wisps -- as chains hanging from the head.
+  private hairShell: THREE.Mesh | null = null;
+  private hairSway: Spring | null = null;
+  private bun: { mesh: THREE.Mesh; rest: THREE.Vector3; spring: Spring } | null = null;
+  private strands: { strand: Strand; root: THREE.Vector3; dir: THREE.Vector3; gravity: number; damping: number; stiffness: number }[] = [];
+  private hairAt = 0;
   private floorDisc: THREE.Group | null = null;
   private spineIndex = -1;
   private neckIndex = -1;
@@ -332,6 +344,12 @@ export class PoseViewer3D {
   // figure has loaded and taken over the pose.
   private mannequin: THREE.Object3D[] = [];
   private skinned: SkinnedFigure | null = null;
+  // The skinned body's head bone: the face group follows it, not the
+  // interpolated head point -- between key positions the pose's points lerp
+  // (a rotating segment's chord is shorter than its arc) while the skeleton
+  // keeps its bone lengths, and the two drifted apart by over a centimetre
+  // mid-movement, the skull poking through the hair.
+  private headBone: THREE.Object3D | null = null;
   private readonly capsules: boolean;
   private readonly hold: boolean;
   // The skinned body's breath uniform (lib/bodyMesh.ts), driven each frame.
@@ -498,6 +516,7 @@ export class PoseViewer3D {
     const leg = this.bodySpec.lengths.thigh + this.bodySpec.lengths.shin;
     const figure = SkinnedFigure.fromScene(body.root, leg);
     this.skinned = figure;
+    this.headBone = body.root.getObjectByName("mixamorigHead") ?? null;
     this.bodyBreath = body.breath;
     for (const b of this.bones) {
       if (b.cylinder) b.cylinder.visible = false;
@@ -565,7 +584,8 @@ export class PoseViewer3D {
   // environment lighting the difference is what separates a body from its
   // kit.
   private skin = new THREE.MeshStandardMaterial({ color: 0xc79b74, roughness: 0.48, metalness: 0 });
-  private hair = new THREE.MeshStandardMaterial({ color: 0x17140f, roughness: 0.75 });
+  // A little sheen, so the crop's tufts and parting catch the light.
+  private hair = new THREE.MeshStandardMaterial({ color: 0x1a1712, roughness: 0.58 });
   // Stubble is shadow on the skin, not hair: a skin-dark tone, tight to it.
   private stubble = new THREE.MeshStandardMaterial({ color: 0x6e5240, roughness: 0.85 });
   private shirt = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.72, metalness: 0 });
@@ -963,24 +983,68 @@ export class PoseViewer3D {
       // Stretched with the egg-shaped skull (y scale 1.06), like his.
       // The hair itself is a lofted shell over the skull (lib/bodyMesh.ts):
       // sleek and even, pulled back, forehead open and ears clear.
-      this.face.add(buildHair(first.head.r, true, this.hairFemale));
+      this.hairShell = buildHair(first.head.r, true, this.hairFemale);
+      this.face.add(this.hairShell);
       const bunDir = new THREE.Vector3(0, 0.42, -0.78).normalize();
-      const bun = new THREE.Mesh(new THREE.SphereGeometry(R * 0.5, 14, 12), this.hairFemale);
-      bun.position.copy(bunDir).multiplyScalar(R * 0.89);
-      this.face.add(bun);
       const tie = new THREE.Mesh(new THREE.TorusGeometry(R * 0.3, R * 0.05, 8, 18), this.lime);
       tie.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), bunDir);
       tie.position.copy(bunDir).multiplyScalar(R * 0.7);
       this.face.add(tie);
+      // The hair gathered into the tie.
+      const gather = new THREE.Mesh(new THREE.SphereGeometry(R * 0.24, 12, 10), this.hairFemale);
+      gather.position.copy(bunDir).multiplyScalar(R * 0.8);
+      this.face.add(gather);
+      if (FEMALE_HAIR === "tail") {
+        // A high ponytail: a chain hanging from the tie, swinging with the
+        // head, tapering to a point.
+        const tail = new Strand(this.hairFemale, 7, R * 2.2, R * 0.2, R * 0.05, 12);
+        this.scene.add(tail.mesh);
+        this.strands.push({ strand: tail, root: bunDir.clone().multiplyScalar(R * 0.8), dir: bunDir.clone(), gravity: 5, damping: 0.965, stiffness: 0.3 });
+      } else {
+        // A wound bun: a flattened ball of hair with a coil wrapped round it
+        // (the strand wound on itself), on a spring at its tie so it sways
+        // and settles with the head.
+        const bun = new THREE.Group();
+        const ball = new THREE.Mesh(new THREE.SphereGeometry(R * 0.42, 20, 16), this.hairFemale);
+        ball.scale.set(1, 0.9, 0.72);
+        ball.castShadow = true;
+        bun.add(ball);
+        const coil = new THREE.Mesh(new THREE.TorusGeometry(R * 0.3, R * 0.09, 10, 28), this.hairFemale);
+        coil.rotation.set(0.5, 0.35, 0);
+        coil.position.z = R * 0.06;
+        coil.castShadow = true;
+        bun.add(coil);
+        const coil2 = new THREE.Mesh(new THREE.TorusGeometry(R * 0.22, R * 0.07, 10, 24), this.hairFemale);
+        coil2.rotation.set(-0.4, -0.3, 0.6);
+        coil2.position.z = R * 0.16;
+        bun.add(coil2);
+        bun.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), bunDir);
+        const rest = bunDir.clone().multiplyScalar(R * 0.92);
+        bun.position.copy(rest);
+        this.face.add(bun);
+        this.bun = { mesh: bun as unknown as THREE.Mesh, rest, spring: new Spring(0.35, 0.9, R * 0.12) };
+        // Two loose strands at the nape, behind the ears, that hang and
+        // swing: short and soft, not strings.
+        for (const side of [-1, 1]) {
+          const wisp = new Strand(this.hairFemale, 4, R * 0.42, R * 0.05, R * 0.012, 7);
+          this.scene.add(wisp.mesh);
+          this.strands.push({
+            strand: wisp,
+            root: new THREE.Vector3(side * 0.74 * R, -0.05 * R, -0.5 * R),
+            dir: new THREE.Vector3(side * 0.2, -0.8, -0.55).normalize(),
+            gravity: 5,
+            damping: 0.96,
+            stiffness: 0.25,
+          });
+        }
+      }
     } else {
-      // Textured crop over a fade: a tight cap hugging the sides and back of
-      // the skull, and a fuller crown piece standing proud of it, stopping
-      // above the brow line.
-      // Both pieces are stretched with the egg-shaped skull (its y scale is
-      // 1.06): a round cap sank into the taller crown and left a bald patch.
       // A lofted shell over the skull (lib/bodyMesh.ts): a fade at the sides
-      // and back, the crop full on top with a forward sweep and soft ridges.
-      this.face.add(buildHair(first.head.r, false, this.hair));
+      // and back, the crop full on top rising into a quiff, tufts and a
+      // parting; the quiff lags the head on a spring (stepHair).
+      this.hairShell = buildHair(first.head.r, false, this.hair);
+      this.face.add(this.hairShell);
+      this.hairSway = new Spring(0.3, 0.9, R * 0.1);
     }
     // Brows: his angled in and down over the eyes; hers thin, higher and
     // nearly level, with just the outer end lifted.
@@ -1862,6 +1926,45 @@ export class PoseViewer3D {
     this.camera.lookAt(this.aim);
   }
 
+  // Hair dynamics for this frame, from the face group's world transform
+  // (set just before): the shell's sway, the bun on its tie, the strands.
+  private stepHair() {
+    if (!this.hairShell && !this.bun && !this.strands.length) return;
+    const now = performance.now();
+    const dt = this.hairAt ? (now - this.hairAt) / 1000 : 0;
+    this.hairAt = now;
+    this.face.updateMatrixWorld(true);
+    const headW = this.face.getWorldPosition(new THREE.Vector3());
+    const q = this.face.getWorldQuaternion(new THREE.Quaternion());
+    const qInv = q.clone().invert();
+    const toWorld = (local: THREE.Vector3) => local.clone().applyQuaternion(q).add(headW);
+    const R = this.faceR;
+    if (this.hairShell && this.hairSway) {
+      // The quiff: a point a little ahead of the crown, sprung to where the
+      // head carries it; its lag, in the face's frame, moves the shell's
+      // vertices by their weight.
+      const off = this.hairSway.step(toWorld(new THREE.Vector3(0, 0.9 * R, 0.5 * R)), dt).applyQuaternion(qInv);
+      const position = this.hairShell.geometry.getAttribute("position") as THREE.BufferAttribute;
+      const rest = this.hairShell.userData.rest as Float32Array;
+      const lag = this.hairShell.userData.lag as Float32Array;
+      const arr = position.array as Float32Array;
+      for (let i = 0; i < lag.length; i++) {
+        const w = lag[i]!;
+        arr[i * 3] = rest[i * 3]! + off.x * w;
+        arr[i * 3 + 1] = rest[i * 3 + 1]! + off.y * w;
+        arr[i * 3 + 2] = rest[i * 3 + 2]! + off.z * w;
+      }
+      position.needsUpdate = true;
+    }
+    if (this.bun) {
+      const off = this.bun.spring.step(toWorld(this.bun.rest), dt, 1.5).applyQuaternion(qInv);
+      this.bun.mesh.position.copy(this.bun.rest).add(off);
+    }
+    for (const s of this.strands) {
+      s.strand.step(toWorld(s.root), s.dir.clone().applyQuaternion(q), dt, headW, R * 0.98, { gravity: s.gravity, damping: s.damping, stiffness: s.stiffness });
+    }
+  }
+
   private update() {
     const elapsed = performance.now() - this.start;
     const last = this.frames.length - 1;
@@ -2007,6 +2110,14 @@ export class PoseViewer3D {
         this.mouthLine.scale.set(r.s.x * (1 + 0.15 * effort), r.s.y, r.s.z);
       }
       if (this.skinned) this.skinned.apply({ bones: sample, head: this.head.position.clone(), ventral, floorY: this.floorDisc?.position.y });
+      if (this.skinned && this.headBone && this.bodySpec) {
+        // The face sits where the skinned skull is: the head bone's frame,
+        // lifted to the skull's centre.
+        this.headBone.updateMatrixWorld(true);
+        this.face.position.copy(this.headBone.localToWorld(new THREE.Vector3(0, this.bodySpec.lengths.headLift, 0)));
+        this.headBone.getWorldQuaternion(this.face.quaternion);
+      }
+      this.stepHair();
       if (this.busts.length) {
         // A gentle bust: two rounded lobes high on the chest, either side of
         // the midline, standing a little proud of the trunk's front (its

@@ -405,13 +405,35 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
     let d = Math.abs(t - front);
     d = Math.min(d, Math.PI * 2 - d);
     const top = Math.min(1, Math.max(0, (yr - 0.25) / 0.4)); // 0 at the sides, 1 on top
-    if (female) return 0.05 + 0.03 * top;
-    // The fade: tight at the sides and back, the crop standing up on top and
-    // sweeping forward, with soft ridges across it.
-    const sweep = d < 1.2 ? 0.05 * (1 - d / 1.2) * top : 0;
-    const ridges = 0.012 * top * Math.sin(t * 5 + yr * 9);
-    return 0.018 + 0.09 * top + sweep + ridges;
+    if (female) {
+      // Sleek and combed back, but hair, not paint: fine grooves run from
+      // the hairline over the crown toward the tie (the strands), and the
+      // crown carries a little more volume than the sides.
+      const strands = 0.007 * Math.sin(t * 18 + yr * 1.5) * (0.5 + 0.5 * top);
+      return 0.045 + 0.035 * top * top + strands;
+    }
+    // The fade: tight at the sides and back; the crop full on top, rising
+    // into a quiff at the front, broken into tufts by two crossing ripples,
+    // with a parting combed in on one side.
+    const quiff = d < 1.1 ? 0.075 * (1 - d / 1.1) * Math.pow(top, 1.4) : 0;
+    const tufts = top * (0.014 * Math.sin(t * 9 + yr * 6) + 0.008 * Math.sin(t * 17 - yr * 11 + 1));
+    let side = t - front;
+    if (side > Math.PI) side -= Math.PI * 2;
+    if (side < -Math.PI) side += Math.PI * 2;
+    const parting = 0.05 * top * Math.exp(-Math.pow((side - 0.5) / 0.14, 2));
+    return 0.016 + 0.085 * top + quiff + tufts - parting;
   };
+  // How much of the head's motion the hair at a vertex lags behind (the
+  // viewer sways it): his quiff, nothing on her sleek shell (her bun and
+  // wisps are the viewer's own).
+  const lagAt = (yr: number, t: number): number => {
+    if (female) return 0;
+    let d = Math.abs(t - front);
+    d = Math.min(d, Math.PI * 2 - d);
+    const top = Math.min(1, Math.max(0, (yr - 0.25) / 0.4));
+    return top * top * Math.max(0, 1 - d / 1.3);
+  };
+  const lag: number[] = [];
   const b = new Builder();
   const rings: Ring[] = [];
   // Dense where the hairline runs, so its diagonal over the temple is a
@@ -433,18 +455,25 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
       const feather = Math.min(1, Math.max(0, above / 0.12));
       radii.push(base[k]! + R * (above > 0 ? thickness(yr, t) * feather : -0.01));
       mask.push(above * 20);
+      lag.push(above > 0 ? lagAt(yr, t) * feather : 0);
     }
     rings.push(ring(new THREE.Vector3(0, yr * R, 0), X, Z, radii, [[0, 1]], MAT.topShell, (k) => mask[k]!));
   }
   // Close the crown.
   const crown = skull(0.97).map((r) => r * 0.02);
   rings.push(ring(new THREE.Vector3(0, 0.99 * R, 0), X, Z, crown, [[0, 1]], MAT.topShell, () => 1));
+  for (let k = 0; k < N; k++) lag.push(lagAt(0.99, (k / N) * Math.PI * 2));
   b.tube(rings);
   const geometry = b.geometry();
   geometry.deleteAttribute("skinIndex");
   geometry.deleteAttribute("skinWeight");
   const mesh = new THREE.Mesh(geometry, shellMaterial(material));
   mesh.castShadow = true;
+  // The rest positions and the per-vertex lag, for the viewer's sway.
+  const position = geometry.getAttribute("position") as THREE.BufferAttribute;
+  position.setUsage(THREE.DynamicDrawUsage);
+  mesh.userData.rest = Float32Array.from(position.array as Float32Array);
+  mesh.userData.lag = Float32Array.from(lag);
   return mesh;
 }
 
