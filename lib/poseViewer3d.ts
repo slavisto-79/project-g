@@ -55,6 +55,11 @@ const RADII = {
 } as const;
 
 const PHASE_MS = 1100;
+// One breath, and how far the chest stands out at the top of it.
+const BREATH_MS = 3400;
+const BREATH_DEPTH = 0.004;
+// A hold's tremble, in world units per wave.
+const TREMOR = 0.0009;
 // How far out from the centre of the frame (in clip units, 1 = the edge) the
 // fit keeps the head and hands around the orbit.
 const FIT_INSIDE = 0.96;
@@ -323,6 +328,9 @@ export class PoseViewer3D {
   private mannequin: THREE.Object3D[] = [];
   private skinned: SkinnedFigure | null = null;
   private readonly capsules: boolean;
+  private readonly hold: boolean;
+  // The skinned body's breath uniform (lib/bodyMesh.ts), driven each frame.
+  private bodyBreath: { value: number } | null = null;
   // The proportions the mannequin was built to, for the skinned body.
   private bodySpec: Omit<BodySpec, "style"> | null = null;
   // The face's jaw ellipsoid; the skinned body sculpts the jaw into the
@@ -347,6 +355,8 @@ export class PoseViewer3D {
       // the avatar's proportions (lib/bodyMesh.ts), in the given style --
       // the default when nothing is passed.
       figure?: { url: string; rig?: RigMap } | { body: Partial<BodyStyle> };
+      // An isometric hold: the figure trembles slightly under the strain.
+      hold?: boolean;
     },
   ) {
     this.host = host;
@@ -359,6 +369,7 @@ export class PoseViewer3D {
     // The capsule body is only built when a downloaded model is the figure
     // (it shows until the model loads); the built body replaces it outright.
     this.capsules = !!options.figure && "url" in options.figure;
+    this.hold = options.hold ?? false;
 
     this.canvas = document.createElement("canvas");
     this.canvas.style.width = "100%";
@@ -482,6 +493,7 @@ export class PoseViewer3D {
     const leg = this.bodySpec.lengths.thigh + this.bodySpec.lengths.shin;
     const figure = SkinnedFigure.fromScene(body.root, leg);
     this.skinned = figure;
+    this.bodyBreath = body.breath;
     for (const b of this.bones) {
       if (b.cylinder) b.cylinder.visible = false;
       if (b.capA) b.capA.visible = false;
@@ -1877,12 +1889,32 @@ export class PoseViewer3D {
     const a = this.frames[i]!;
     const b = this.frames[i + 1]!;
 
+    // The breath: the rib cage swells and settles on a slow cycle, the
+    // exhale a little longer than the inhale.
+    if (this.bodyBreath && !this.reduceMotion) {
+      const cycle = (elapsed % BREATH_MS) / BREATH_MS;
+      const wave = cycle < 0.4 ? Math.sin((cycle / 0.4) * Math.PI * 0.5) : Math.cos(((cycle - 0.4) / 0.6) * Math.PI * 0.5);
+      this.bodyBreath.value = BREATH_DEPTH * wave;
+    }
+    // A hold trembles: a small drift summed from a few incommensurate
+    // waves, applied to the whole figure and to what its hands hold, never
+    // to the floor or the fixed equipment.
+    const jitter = new THREE.Vector3();
+    if (this.hold && !this.reduceMotion) {
+      const s = elapsed / 1000;
+      jitter.set(
+        TREMOR * (Math.sin(s * 57) + 0.6 * Math.sin(s * 83 + 1.3)),
+        TREMOR * (0.7 * Math.sin(s * 71 + 0.4) + 0.5 * Math.sin(s * 97 + 2.1)),
+        TREMOR * (Math.sin(s * 63 + 2.6) + 0.5 * Math.sin(s * 89)),
+      );
+    }
+
     // This frame's segments, for the skinned figure (if one has loaded).
     const sample: FigureSample["bones"] = [];
     for (let n = 0; n < this.bones.length; n++) {
       const bone = this.bones[n]!;
-      const pa = lerp3(a.bones[n]!.a, b.bones[n]!.a, f);
-      const pb = lerp3(a.bones[n]!.b, b.bones[n]!.b, f);
+      const pa = lerp3(a.bones[n]!.a, b.bones[n]!.a, f).add(jitter);
+      const pb = lerp3(a.bones[n]!.b, b.bones[n]!.b, f).add(jitter);
       sample.push({ part: bone.part, side: a.bones[n]!.side, a: pa.clone(), b: pb.clone() });
       // The neck column continues up under the raised head (see below).
       if (bone.part === "neck") pb.addScaledVector(pb.clone().sub(pa).normalize(), 0.05);
@@ -1919,7 +1951,7 @@ export class PoseViewer3D {
       const hip = thigh.capA.position;
       hem.mesh.position.copy(knee).addScaledVector(hip.clone().sub(knee).normalize(), 0.015);
     }
-    this.head.position.copy(lerp3(a.head.c, b.head.c, f));
+    this.head.position.copy(lerp3(a.head.c, b.head.c, f)).add(jitter);
     // Sneakers: heel-to-toe along the foot bone; "up" is the shin's direction
     // with the foot's own taken out, so a pointed foot rolls the shoe with it
     // and a planted foot keeps the sole flat on the floor.
@@ -1939,7 +1971,7 @@ export class PoseViewer3D {
       up.normalize();
       const right = new THREE.Vector3().crossVectors(up, fwd).normalize();
       shoe.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, fwd));
-      shoe.position.copy(heel).addScaledVector(toe.sub(heel), 0.5);
+      shoe.position.copy(heel).addScaledVector(toe.sub(heel), 0.5).add(jitter);
     }
     if (this.spineIndex >= 0 && this.neckIndex >= 0) {
       const sA = lerp3(a.bones[this.spineIndex]!.a, b.bones[this.spineIndex]!.a, f);
@@ -2010,7 +2042,7 @@ export class PoseViewer3D {
     }
 
     for (let s = 0; s < 2; s++) {
-      this.fists[s]!.position.copy(lerp3(a.hands[s as 0 | 1], b.hands[s as 0 | 1], f));
+      this.fists[s]!.position.copy(lerp3(a.hands[s as 0 | 1], b.hands[s as 0 | 1], f)).add(jitter);
       if (this.fistOutboard) this.fists[s]!.position.x += s === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
       // Roll the fist to match the forearm. An arm hanging straight down is
       // the authored zero, so a deadlift keeps today's look and a press ends
@@ -2031,18 +2063,18 @@ export class PoseViewer3D {
       if (mode === "grip") {
         const h0 = lerp3(a.hands[0], b.hands[0], f);
         const h1 = lerp3(a.hands[1], b.hands[1], f);
-        group.position.set((h0.x + h1.x) / 2, (h0.y + h1.y) / 2, (h0.z + h1.z) / 2);
+        group.position.set((h0.x + h1.x) / 2, (h0.y + h1.y) / 2, (h0.z + h1.z) / 2).add(jitter);
         continue;
       }
       if (mode === "hands" || mode === "twin") {
         const side = mode === "twin" ? 1 : 0;
-        group.position.copy(lerp3(a.hands[side]!, b.hands[side]!, f));
+        group.position.copy(lerp3(a.hands[side]!, b.hands[side]!, f)).add(jitter);
         group.position.x += side === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
       } else if (pa.kind === "bell" && pb.kind === "bell" && this.frames[0]!.props.filter((p) => p.kind === "bell").length >= 2) {
         // Two bells were authored per hand; keep each on its hand in 3D, where
         // the hands genuinely sit apart on the lateral axis.
         const which = Math.min(this.frames[0]!.props.filter((p, idx) => p.kind === "bell" && idx < propIndex).length, 1) as 0 | 1;
-        group.position.copy(lerp3(a.hands[which], b.hands[which], f));
+        group.position.copy(lerp3(a.hands[which], b.hands[which], f)).add(jitter);
         group.position.x += which === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
       } else {
         group.position.copy(lerp3(pa.center, pb.center, f));

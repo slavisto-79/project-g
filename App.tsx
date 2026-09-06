@@ -6952,6 +6952,7 @@ function PoseFigure3DWeb({
   interactive,
   avatar,
   topInset = 0,
+  hold = false,
 }: {
   pose: ExercisePose;
   implement: ViewerImplement;
@@ -6961,6 +6962,8 @@ function PoseFigure3DWeb({
   // fullscreen title bar); the figure is fitted below it, so the head is
   // never under the title.
   topInset?: number;
+  // An isometric hold: the figure trembles under the strain.
+  hold?: boolean;
 }) {
   const hostRef = useRef<View>(null);
   const viewerRef = useRef<PoseViewer3D | null>(null);
@@ -6981,6 +6984,7 @@ function PoseFigure3DWeb({
       reduceMotion,
       avatar,
       topInset,
+      hold,
       onReady: () => {
         if (live) setReady(true);
       },
@@ -7025,6 +7029,7 @@ function Figure3DStage({
   title,
   expandLabel,
   style,
+  hold = false,
 }: {
   pose: ExercisePose;
   implement: ViewerImplement;
@@ -7032,6 +7037,7 @@ function Figure3DStage({
   title: string;
   expandLabel: string;
   style: StyleProp<ViewStyle>;
+  hold?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   // The fullscreen title bar lies over the stage; its measured height goes
@@ -7041,7 +7047,7 @@ function Figure3DStage({
   return (
     <>
       <Pressable style={style} onPress={() => setExpanded(true)} accessibilityRole="button" accessibilityLabel={expandLabel}>
-        <PoseFigure3DWeb pose={pose} implement={implement} interactive={false} avatar={avatar} />
+        <PoseFigure3DWeb pose={pose} implement={implement} interactive={false} avatar={avatar} hold={hold} />
         {/* The rotate affordance is a real chip, not a whisper in the
             corner -- people should see the feature the moment the first
             exercise appears. */}
@@ -7055,7 +7061,7 @@ function Figure3DStage({
       <Modal visible={expanded} transparent animationType="none" onRequestClose={() => setExpanded(false)}>
         <View style={styles.poseModalBackdrop}>
           <View style={styles.poseModalStage}>
-            <PoseFigure3DWeb pose={pose} implement={implement} interactive avatar={avatar} topInset={headerHeight} />
+            <PoseFigure3DWeb pose={pose} implement={implement} interactive avatar={avatar} topInset={headerHeight} hold={hold} />
           </View>
           <View
             style={styles.poseModalHeader}
@@ -7090,6 +7096,7 @@ function ExerciseCueCard({ exercise, avatar }: { exercise: WorkoutExercise; avat
             title={exercise.name}
             expandLabel="Expand the exercise demo"
             style={styles.cueCardFigure}
+            hold={isHoldExercise(exercise)}
           />
         ) : (
           <View style={styles.cueCardFigure}>
