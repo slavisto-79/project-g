@@ -109,6 +109,11 @@ export class SkinnedFigure {
     });
   }
 
+  // A skeleton built in code (lib/bodyMesh.ts) rather than loaded.
+  static fromScene(scene: THREE.Group, legLength: number, rig: RigMap = MIXAMO_RIG): SkinnedFigure {
+    return new SkinnedFigure(scene, rig, legLength);
+  }
+
   private constructor(scene: THREE.Group, rig: RigMap, legLength: number) {
     scene.updateMatrixWorld(true);
     const bones = new Map<string, THREE.Bone>();

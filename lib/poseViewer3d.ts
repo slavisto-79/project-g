@@ -19,6 +19,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import type { ExercisePose, PoseFrame3D, PoseProp3D, Vec3 } from "./poses";
 import { REFERENCE_AVATAR, type AvatarBuild } from "./avatar";
 import { SkinnedFigure, type RigMap, type FigureSample } from "./skinnedFigure";
+import { buildBody, BODY_STYLE_DEFAULT, type BodySpec, type BodyStyle } from "./bodyMesh";
 
 // Matches the loadable implements the workout knows about; the viewer only
 // cares which family of equipment to draw.
@@ -233,6 +234,11 @@ export class PoseViewer3D {
   // figure has loaded and taken over the pose.
   private mannequin: THREE.Object3D[] = [];
   private skinned: SkinnedFigure | null = null;
+  // The proportions the mannequin was built to, for the skinned body.
+  private bodySpec: Omit<BodySpec, "style"> | null = null;
+  // The face's jaw ellipsoid; the skinned body sculpts the jaw into the
+  // head itself, so it hides this one.
+  private jawBlob: THREE.Mesh | null = null;
 
   constructor(
     host: HTMLElement,
@@ -248,7 +254,10 @@ export class PoseViewer3D {
       onReady?: () => void;
       avatar?: AvatarBuild;
       topInset?: number;
-      figure?: { url: string; rig?: RigMap };
+      // ...or `{ body }`: the continuous skinned body built in code from
+      // the avatar's proportions (lib/bodyMesh.ts), in the given style --
+      // the default when nothing is passed.
+      figure?: { url: string; rig?: RigMap } | { body: Partial<BodyStyle> };
     },
   ) {
     this.host = host;
@@ -305,7 +314,11 @@ export class PoseViewer3D {
     this.buildMannequin(pose, implement);
     this.mannequin = this.scene.children.filter((c) => !beforeMannequin.has(c));
     this.buildProps(pose, implement);
-    if (options.figure) this.loadFigure(options.figure.url, options.figure.rig);
+    // The skinned body is the figure; the capsule mannequin it is built
+    // from stays for the parts it still draws (face, hair, sneakers, fists).
+    const figure = options.figure ?? { body: {} };
+    if ("body" in figure) this.attachBody({ ...BODY_STYLE_DEFAULT, ...figure.body });
+    else this.loadFigure(figure.url, figure.rig);
     // Everything casts onto the floor disc; the disc itself only receives.
     this.scene.traverse((o) => {
       if ((o as THREE.Mesh).isMesh && !o.userData.floor) o.castShadow = true;
@@ -361,6 +374,29 @@ export class PoseViewer3D {
         this.scene.add(figure.root);
       })
       .catch((e) => console.warn("skinned figure failed to load; keeping the mannequin", e));
+  }
+
+  // Build the continuous skinned body in the mannequin's proportions and
+  // hand it the pose. The capsule body hides; the face, hair, sneakers and
+  // fists stay, placed from the pose as before, since the body's head and
+  // joints are exactly where theirs are.
+  private attachBody(style: BodyStyle) {
+    if (!this.bodySpec) return;
+    const female = this.avatar.sex === "female";
+    const body = buildBody(
+      { ...this.bodySpec, style },
+      { skin: this.skin, top: female ? this.setFemale : this.shirt, legwear: female ? this.setFemale : this.shorts, band: this.lime },
+    );
+    const leg = this.bodySpec.lengths.thigh + this.bodySpec.lengths.shin;
+    const figure = SkinnedFigure.fromScene(body.root, leg);
+    this.skinned = figure;
+    for (const b of this.bones) b.cylinder.visible = b.capA.visible = b.capB.visible = false;
+    this.head.visible = false;
+    if (this.jawBlob) this.jawBlob.visible = false;
+    if (this.cropTop) this.cropTop.visible = false;
+    for (const m of [...this.busts, ...this.glutes]) m.visible = false;
+    for (const h of this.hems) h.mesh.visible = false;
+    this.scene.add(figure.root);
   }
 
   private fitted = false;
@@ -578,6 +614,12 @@ export class PoseViewer3D {
       // are the deltoids and get their own size below.
       shoulders: [0.03, 0.03],
     };
+    // The deltoid: a shoulder cap a shade wider than the upper arm it sits
+    // on, growing gently with training. Half a power on `muscle`, and no
+    // multiplier beyond the build's: at the old 0.8 power and x1.18 it
+    // was a ball twice the arm's width.
+    const deltR = female ? 0.036 : 0.040 * Math.sqrt(muscle) * MALE.delt;
+    const builtTaper: Record<string, [number, number]> = {};
     for (const bone of first.bones) {
       const build = buildScale(bone.part);
       const radius = RADII[bone.part] * build;
@@ -587,6 +629,7 @@ export class PoseViewer3D {
           ? [raw[0] * chest, raw[1] * waist]
           : [raw[0] * build, raw[1] * build]
         : undefined;
+      if (taper) builtTaper[bone.part] = taper;
       const wear = this.kit(bone.part);
       // The trunk is turned on a lathe, not tapered between two circles: a
       // waist that is narrowest a little above the hips, a rib cage that
@@ -598,11 +641,7 @@ export class PoseViewer3D {
           ? new THREE.Mesh(new THREE.LatheGeometry(trunkProfile(taper[0], taper[1]).map(([r, y]) => new THREE.Vector2(r, y)), SEGS), wear.body)
           : new THREE.Mesh(new THREE.CylinderGeometry(taper[0], taper[1], 1, SEGS, 1, true), wear.body)
         : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, SEGS, 1, true), wear.body);
-      // The deltoid: a shoulder cap a shade wider than the upper arm it sits
-      // on, growing gently with training. Half a power on `muscle`, and no
-      // multiplier beyond the build's: at the old 0.8 power and x1.18 it
-      // was a ball twice the arm's width.
-      const delt = bone.part === "shoulders" ? (female ? 0.036 : 0.040 * Math.sqrt(muscle) * MALE.delt) : undefined;
+      const delt = bone.part === "shoulders" ? deltR : undefined;
       const capA = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[1] : radius), SPHERE_W, SPHERE_H), wear.a);
       const capB = new THREE.Mesh(new THREE.SphereGeometry(delt ?? (taper ? taper[0] : radius), SPHERE_W, SPHERE_H), wear.b);
       if (bone.part === "thigh" && !female) {
@@ -629,6 +668,46 @@ export class PoseViewer3D {
     this.head = new THREE.Mesh(new THREE.SphereGeometry(first.head.r * 1.18, 32, 24), this.skin);
     this.head.scale.set(0.95, 1.06, 0.98);
     this.scene.add(this.head);
+
+    // What the skinned body (lib/bodyMesh.ts) is built to, should one be
+    // asked for: the pose's own segment lengths and the radii above.
+    const seg = (part: string, side?: 0 | 1) => first.bones.find((b) => b.part === part && (side === undefined || b.side === side));
+    const len = (part: string, side?: 0 | 1) => {
+      const s = seg(part, side);
+      return s ? vec(s.a).distanceTo(vec(s.b)) : 0;
+    };
+    const neckBone = seg("neck");
+    this.bodySpec = {
+      sex: female ? "female" : "male",
+      lengths: {
+        spine: len("spine"),
+        neck: len("neck"),
+        headLift: (neckBone ? vec(first.head.c).distanceTo(vec(neckBone.b)) : 0) + 0.03,
+        headR: first.head.r,
+        upperArm: len("upperArm", 0),
+        forearm: len("forearm", 0),
+        hand: len("hand", 0),
+        thigh: len("thigh", 0),
+        shin: len("shin", 0),
+        shoulderHalf: len("shoulders") / 2,
+        hipHalf: len("hips") / 2,
+        ankle: 0.0124,
+      },
+      taper: {
+        neck: builtTaper.neck ?? [0.019, 0.028],
+        upperArm: builtTaper.upperArm ?? [0.026, 0.035],
+        forearm: builtTaper.forearm ?? [0.02, 0.028],
+        thigh: builtTaper.thigh ?? [0.032, 0.048],
+        shin: builtTaper.shin ?? [0.019, 0.034],
+      },
+      hand: RADII.hand,
+      delt: deltR,
+      trunkProfile: trunkProfile(TAPER.spine![0] * chest, TAPER.spine![1] * waist),
+      trunkW: this.trunkW,
+      trunkD: this.trunkD,
+      topCover: FEMALE.topCover,
+      gripping,
+    };
 
     if (female) {
       // The cropped top covers the upper part of the trunk (FEMALE.topCover),
@@ -690,7 +769,7 @@ export class PoseViewer3D {
     };
     // The jaw: an ellipsoid low on the skull that squares the lower face and
     // gives it a chin. His is broader; hers narrower and softer.
-    blob(this.skin, female ? 0.64 : 0.72, female ? 0.5 : 0.52, female ? 0.66 : 0.7, 0, female ? -0.4 : -0.42, female ? 0.06 : 0.08);
+    this.jawBlob = blob(this.skin, female ? 0.64 : 0.72, female ? 0.5 : 0.52, female ? 0.66 : 0.7, 0, female ? -0.4 : -0.42, female ? 0.06 : 0.08);
     // Ears, either side, just behind the midline.
     for (const side of [-1, 1]) blob(this.skin, 0.1, 0.17, 0.06, side * 0.87, 0.05, 0.02);
     // Eyes: a white, an iris standing proud of it, and an upper lid of skin
