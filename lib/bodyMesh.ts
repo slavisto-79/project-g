@@ -652,7 +652,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const h = Math.max(SEAT_BLEND - Math.abs(a - b), 0) / SEAT_BLEND;
     return Math.max(a, b) + h * h * SEAT_BLEND * 0.25;
   };
-  const seatOutline = (y: number): { radii: number[]; sides: number[] } => {
+  const seatOutline = (y: number): { radii: number[] } => {
     const dy = y - hipY;
     const u = -0.5 + dy / L.spine;
     const below = dy < 0;
@@ -705,21 +705,39 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
         }
       }
       radii.push(r);
-      sides.push(side);
     }
-    return { radii, sides };
+    return { radii };
+  };
+  // Who owns a vertex around the seat: the thighs by how far down the seat
+  // it sits (`f`, 0 at the hip joints, 1 at the fold), the pelvis for the
+  // rest. The thighs' part is split between the LEFT and RIGHT leg by the
+  // vertex's distance from the midline, half and half at the crotch and
+  // the cleft, so every neighbour's owners are close to its own and a
+  // flexed hip stretches the surface instead of tearing it. Two things
+  // this replaces: owners switching from pelvis to thigh between two
+  // vertices of one ring (a fin off the back of the pelvis and a blade in
+  // the crotch at a deep squat or a hinge), and a crotch left with the
+  // pelvis while the thighs beside it rotated 90 degrees (a membrane
+  // trailing from the inner thigh in the row).
+  const leftShare = (x: number) => {
+    const s = Math.min(1, Math.max(0, (x + 0.02) / 0.04));
+    return s * s * (3 - 2 * s);
+  };
+  const hipsBone = bi("Hips"), leftLeg = bi("LeftUpLeg"), rightLeg = bi("RightUpLeg");
+  const seatBones = (x: number, f: number): [number, number][] => {
+    if (f <= 0) return [[hipsBone, 1]];
+    const l = leftShare(x);
+    const out: [number, number][] = [];
+    if (l > 0) out.push([leftLeg, f * l]);
+    if (l < 1) out.push([rightLeg, f * (1 - l)]);
+    if (f < 1) out.push([hipsBone, 1 - f]);
+    return out;
   };
   const seatRing = (drop: number, tuck = 1): Ring => {
     const f = Math.min(1, drop / SEAT_DROP);
-    const { radii, sides } = seatOutline(hipY - drop);
-    const hipsBone = bi("Hips"), left = bi("LeftUpLeg"), right = bi("RightUpLeg");
+    const { radii } = seatOutline(hipY - drop);
     const out = ring(new THREE.Vector3(0, hipY - drop, 0), X, Z, radii.map((r) => r * tuck), pelvisBones, legMat);
-    out.bonesAt = (k) => {
-      const side = sides[k]!;
-      if (side === 0 || f <= 0) return [[hipsBone, 1]];
-      const leg = side > 0 ? left : right;
-      return [[leg, f], [hipsBone, 1 - f]];
-    };
+    out.bonesAt = (k) => seatBones(out.radii[k]! * Math.cos((k / N) * Math.PI * 2), f);
     return out;
   };
   // Dense through the seat, so the eggs' curve is a curve and not facets.
@@ -910,11 +928,26 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       const t = (hipY - y) / L.thigh;
       const sh = shape ?? thighShape(t);
       const bulges: Bulge[] = sh.quad > 0.0005 ? [{ at: front, amp: sh.quad, width: 1.1 }] : [];
-      return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(sh.ru + extra, sh.rv + extra, bulges), legBones(y), mat);
+      const out = ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(sh.ru + extra, sh.rv + extra, bulges), legBones(y), mat);
+      // The top of the thigh shares its inner side with the other leg the
+      // way the seat's crotch does, fading out over 7cm below the fold, so
+      // the thigh's first ring owns its vertices exactly as the seat's last
+      // ring does.
+      const g = Math.min(1, Math.max(0, 1 - (hipY - y - SEAT_DROP) / 0.07));
+      if (g > 0) {
+        const other = s > 0 ? rightLeg : leftLeg;
+        out.bonesAt = (k) => {
+          const l = leftShare(x + out.radii[k]! * Math.cos((k / N) * Math.PI * 2));
+          const o = (s > 0 ? 1 - l : l) * g;
+          return o <= 0 ? [[up, 1]] : [[up, 1 - o], [other, o]];
+        };
+      }
+      return out;
     };
     const tSeat = SEAT_DROP / L.thigh;
     rings.push(thighRing(hipY - SEAT_DROP, MAT.legwear));
-    for (const t of [0.3, 0.42, 0.55, 0.7]) if (t > tSeat + 0.04) rings.push(thighRing(hipY - t * L.thigh, legWear));
+    rings.push(thighRing(hipY - SEAT_DROP - 0.03, legWear));
+    for (const t of [0.3, 0.42, 0.55, 0.7]) if (t > tSeat + 0.03 / L.thigh + 0.04) rings.push(thighRing(hipY - t * L.thigh, legWear));
     const tHem = (hipY - hemY) / L.thigh;
     if (!female && !layered) {
       // The shorts' hem: cloth standing a little proud, then skin.
