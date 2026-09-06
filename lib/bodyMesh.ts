@@ -483,10 +483,16 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const clav = bone(`mixamorig${side}Shoulder`, spine2, 0, 0.02, 0);
     const arm = bone(`mixamorig${side}Arm`, clav, s * L.shoulderHalf, 0, 0);
     const fore = bone(`mixamorig${side}ForeArm`, arm, s * L.upperArm, 0, 0);
+    // Joint helpers at the elbow and the knee (siblings of the segment
+    // below), which the retargeting aims along the bisector of the two
+    // segments: the rings around each joint ride them, so a bent joint keeps
+    // its corner instead of collapsing toward the axis.
+    bone(`mixamorig${side}ElbowCap`, arm, s * L.upperArm, 0, 0);
     const hand = bone(`mixamorig${side}Hand`, fore, s * L.forearm, 0, 0);
     bone(`mixamorig${side}HandMiddle1`, hand, s * L.hand, 0, 0);
     const upLeg = bone(`mixamorig${side}UpLeg`, hips, s * L.hipHalf, 0, 0);
     const leg = bone(`mixamorig${side}Leg`, upLeg, 0, -L.thigh, 0);
+    bone(`mixamorig${side}KneeCap`, upLeg, 0, -L.thigh, 0);
     const foot = bone(`mixamorig${side}Foot`, leg, 0, -L.shin, 0);
     bone(`mixamorig${side}ToeBase`, foot, 0, -ankleY * 0.6, 0.08);
   }
@@ -920,14 +926,20 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // through the blend (below) so a bent knee turns in steps and not at
     // one crease: at 120 degrees of flexion a single 50/50 ring pinched to
     // half its width and the shin's top cut into the thigh.
+    // The rings through the blend ride the knee helper bone (aimed along the
+    // bisector of thigh and shin) and hand over to the thigh above or the
+    // shin below: a thigh/shin blend collapsed the kneecap toward the joint
+    // axis at 120 degrees (linear-blend skinning), and the knee vanished.
     const KNEE_BLEND = 0.035;
+    const knee = bi(`${side}KneeCap`);
     const legBones = (y: number): [number, number][] => {
       const d = (y - kneeY) / KNEE_BLEND;
       if (d >= 1) return [[up, 1]];
       if (d <= -1) return [[lo, 1]];
-      const s = 0.5 + 0.5 * d;
-      const w = s * s * (3 - 2 * s);
-      return [[up, w], [lo, 1 - w]];
+      const a = Math.abs(d);
+      const s = a * a * (3 - 2 * a);
+      if (s <= 0) return [[knee, 1]];
+      return [[knee, 1 - s], [d > 0 ? up : lo, s]];
     };
     const hemY = kneeY + 0.03;
     // Under a layered garment the leg is skin; otherwise the legwear is
@@ -1072,15 +1084,21 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       // The biceps sits in front, the triceps behind: a little depth.
       rings.push(armRing(at(d), r, r * 1.05, [[arm, 1]], armMat(d)));
     }
+    // The elbow rides its helper bone the way the knee does (see legBones).
+    const elbow = bi(`${side}ElbowCap`);
     const elbowBones = (d: number): [number, number][] => {
-      const k = (d - L.upperArm) / 0.025;
+      const k = (d - L.upperArm) / 0.03;
       if (k <= -1) return [[arm, 1]];
       if (k >= 1) return [[fore, 1]];
-      const w = 0.5 + 0.5 * k;
-      return [[arm, 1 - w], [fore, w]];
+      const a = Math.abs(k);
+      const s = a * a * (3 - 2 * a);
+      if (s <= 0) return [[elbow, 1]];
+      return [[elbow, 1 - s], [k < 0 ? arm : fore, s]];
     };
     rings.push(armRing(at(L.upperArm - 0.02), uaB * 1.02, uaB * 1.02, elbowBones(L.upperArm - 0.02)));
+    rings.push(armRing(at(L.upperArm - 0.01), uaB * 1.03, uaB * 1.01, elbowBones(L.upperArm - 0.01)));
     rings.push(armRing(at(L.upperArm), uaB * 1.04, uaB * 1.0, elbowBones(L.upperArm)));
+    rings.push(armRing(at(L.upperArm + 0.01), (uaB * 1.02 + faA) / 2, (uaB + faA * 0.98) / 2, elbowBones(L.upperArm + 0.01)));
     rings.push(armRing(at(L.upperArm + 0.02), faA * 1.0, faA * 0.98, elbowBones(L.upperArm + 0.02)));
     const faR = (t: number) => {
       const base = faA + (faB - faA) * t;

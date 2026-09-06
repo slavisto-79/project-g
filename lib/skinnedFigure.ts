@@ -37,6 +37,14 @@ export type RigMap = {
   rightThigh: string;
   rightShin: string;
   rightFoot: string;
+  // Optional joint helpers at the knee and elbow, aimed along the bisector
+  // of the two limb segments: the rings around a joint ride them instead of
+  // a 50/50 blend, which at 120 degrees of flexion sank the kneecap by half
+  // the knee's radius (linear-blend skinning collapses toward the axis).
+  leftKnee?: string;
+  rightKnee?: string;
+  leftElbow?: string;
+  rightElbow?: string;
 };
 
 export const MIXAMO_RIG: RigMap = {
@@ -58,6 +66,11 @@ export const MIXAMO_RIG: RigMap = {
   rightThigh: "mixamorigRightUpLeg",
   rightShin: "mixamorigRightLeg",
   rightFoot: "mixamorigRightFoot",
+  // Our own body has these; a Mixamo export does not, and they are skipped.
+  leftKnee: "mixamorigLeftKneeCap",
+  rightKnee: "mixamorigRightKneeCap",
+  leftElbow: "mixamorigLeftElbowCap",
+  rightElbow: "mixamorigRightElbowCap",
 };
 
 // One frame of the app's pose, in world units: each segment's ends by part
@@ -72,6 +85,13 @@ export type FigureSample = {
 
 // How much of the hip's flexion the pelvis takes (the rest is the hip joint).
 const PELVIS_TILT = 0.35;
+
+// The direction halfway between two unit directions (the first, should they
+// oppose each other exactly).
+function bisector(a: THREE.Vector3, b: THREE.Vector3): THREE.Vector3 {
+  const sum = a.clone().add(b);
+  return sum.lengthSq() > 1e-6 ? sum.normalize() : a.clone();
+}
 
 type Aimed = {
   bone: THREE.Bone;
@@ -190,6 +210,11 @@ export class SkinnedFigure {
       register(`${side}Thigh`, thigh, toward(thigh, shin), NZ);
       register(`${side}Shin`, shin, toward(shin, foot), NZ);
       register(`${side}Foot`, foot, Z, Y);
+      // The joint helpers, when the rig has them: at rest they lie along the
+      // segment below the joint.
+      const knee = r[`${side}Knee`], elbow = r[`${side}Elbow`];
+      if (knee && bones.has(knee)) register(`${side}Knee`, knee, toward(shin, foot), NZ);
+      if (elbow && bones.has(elbow)) register(`${side}Elbow`, elbow, toward(forearm, hand), Z);
     }
 
     // Scale the model so its leg is the pose's leg.
@@ -300,6 +325,8 @@ export class SkinnedFigure {
         const hint = bend.lengthSq() > 0.01 ? bend.normalize() : ventral;
         this.aim(this.aimed.get(`${key}UpperArm`)!, upperDir, hint);
         this.aim(this.aimed.get(`${key}Forearm`)!, foreDir, hint);
+        const el = this.aimed.get(`${key}Elbow`);
+        if (el) this.aim(el, bisector(upperDir, foreDir), hint);
         const hd = this.aimed.get(`${key}Hand`);
         if (hd) {
           const handDir = hand ? hand.b.clone().sub(hand.a).normalize() : foreDir;
@@ -325,6 +352,8 @@ export class SkinnedFigure {
         const hint = bend.lengthSq() > 0.01 ? bend.normalize() : ventral.clone().negate();
         this.aim(this.aimed.get(`${key}Thigh`)!, thighDir, hint);
         this.aim(this.aimed.get(`${key}Shin`)!, shinDir, hint);
+        const kn = this.aimed.get(`${key}Knee`);
+        if (kn) this.aim(kn, bisector(thighDir, shinDir), hint);
         if (foot) {
           const footDir = foot.b.clone().sub(foot.a).normalize();
           // The foot's top faces up the shin.
