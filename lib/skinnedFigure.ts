@@ -66,6 +66,8 @@ export type FigureSample = {
   bones: { part: string; side?: 0 | 1; a: THREE.Vector3; b: THREE.Vector3 }[];
   head: THREE.Vector3;
   ventral: THREE.Vector3;
+  // The floor's height, if there is one: a hand resting on it lies flat.
+  floorY?: number;
 };
 
 type Aimed = {
@@ -267,7 +269,17 @@ export class SkinnedFigure {
         this.aim(this.aimed.get(`${key}UpperArm`)!, upperDir, hint);
         this.aim(this.aimed.get(`${key}Forearm`)!, foreDir, hint);
         const hd = this.aimed.get(`${key}Hand`);
-        if (hd) this.aim(hd, hand ? hand.b.clone().sub(hand.a).normalize() : foreDir, hint);
+        if (hd) {
+          const handDir = hand ? hand.b.clone().sub(hand.a).normalize() : foreDir;
+          // A hand on the floor lies palm down: its flat side faces up, so
+          // its "forward" runs across the floor, perpendicular to the hand.
+          let handHint = hint;
+          if (hand && sample.floorY !== undefined && hand.b.y - sample.floorY < 0.03 && hand.a.y - sample.floorY < 0.05) {
+            const flat = new THREE.Vector3().crossVectors(Y, handDir);
+            if (flat.lengthSq() > 0.01) handHint = flat.normalize();
+          }
+          this.aim(hd, handDir, handHint);
+        }
       }
       const thigh = seg("thigh", side);
       const shin = seg("shin", side);

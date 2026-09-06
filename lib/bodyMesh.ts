@@ -338,7 +338,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // a little above the middle of the trunk and fading out above and below.
     const chestF = Math.exp(-Math.pow((u - 0.26) / 0.13, 2));
     if (chestF > 0.05) {
-      const amp = female ? 0.015 * chestF : 0.012 * def * chestF;
+      // His pectorals stay modest: a prone figure rests its chest on a pad
+      // or the floor, and every millimetre here is a millimetre sunk in.
+      const amp = female ? 0.015 * chestF : 0.008 * def * chestF;
       const spread = female ? 0.48 : 0.5;
       out.push({ at: front - spread, amp, width: 0.75 }, { at: front + spread, amp, width: 0.75 });
     }
@@ -475,11 +477,17 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       // t: 0 at the hip, 1 at the knee. Quads sweep out a little below the
       // hip, then taper to the knee.
       const base = thighA + (thighB - thighA) * t;
-      const quad = 1 + 0.12 * def * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
+      const quad = 1 + 0.03 * def * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
       return base * quad;
     };
-    const thighRing = (y: number, rr: number, mat: number, extra = 0) =>
-      ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr + extra, rr * 1.06 + extra), legBones(y), mat);
+    // The quadriceps is a lobe on the FRONT of the thigh: the back of the
+    // thigh is what rests on seats and pads, and a round bulge there sank
+    // 5mm into every seat in the sweep.
+    const thighRing = (y: number, rr: number, mat: number, extra = 0) => {
+      const t = (hipY - y) / L.thigh;
+      const quad = 0.09 * def * rr * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
+      return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr + extra, rr + extra, quad > 0.0005 ? [{ at: front, amp: quad, width: 1.1 }] : []), legBones(y), mat);
+    };
     rings.push(thighRing(hipY + 0.03, thighA * 0.96, MAT.legwear));
     for (const t of [0, 0.12, 0.25, 0.4, 0.55, 0.7]) rings.push(thighRing(hipY - t * L.thigh, thighR(t), MAT.legwear));
     if (!female) {
@@ -506,7 +514,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       rings.push(ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(shinR(t) * 0.96, shinR(t) * 1.08, [{ at: back, amp: 0.004 * def * Math.exp(-Math.pow((t - 0.3) / 0.25, 2)), width: 1.2 }]), legBones(y), kneeMat));
     }
     const ankle = ring(new THREE.Vector3(x, ankleY, 0), X, Z, ellipseRadii(shinB, shinB * 1.05), [[lo, 1]], kneeMat);
-    rings.push(ankle, ...cap(ankle.c, X, Z, new THREE.Vector3(0, -1, 0), ankle.radii, 0.012, [[lo, 1]], kneeMat, 3));
+    // A short cap: the shin ends inside the sneaker, and a longer one poked
+    // through the floor when the shin leaned.
+    rings.push(ankle, ...cap(ankle.c, X, Z, new THREE.Vector3(0, -1, 0), ankle.radii, 0.005, [[lo, 1]], kneeMat, 2));
     b.tube(rings);
   }
 
@@ -570,7 +580,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const wrist = armRing(at(wristD), faB * 0.95, faB * 1.05, [[fore, 0.5], [hand, 0.5]]);
     rings.push(wrist);
     if (spec.gripping) {
-      rings.push(...cap(wrist.c, Y, Z, dir, wrist.radii, 0.012, [[hand, 1]], MAT.skin, 3));
+      rings.push(...cap(wrist.c, Y, Z, dir, wrist.radii, 0.006, [[hand, 1]], MAT.skin, 2));
     } else {
       // An open hand: a flat paddle, palm down in the T-pose.
       const hb: [number, number][] = [[hand, 1]];

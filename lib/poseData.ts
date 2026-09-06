@@ -283,7 +283,10 @@ export const exercisePoses = {
       arms: sideArms(226, 300).map((arm) => ({ ...arm, spread: 0.08 })) as [Limb, Limb],
       legs: sideLegs(92, shin, shin + 85),
     })),
-    [{ kind: "floor", y: 0.79 }, { kind: "slab", at: "pelvis", width: 0.62, height: 0.055, dx: -0.13, dy: 0.085 }],
+    // The pad sits a centimetre lower than a lying pad's usual body-half:
+    // the trunk tilts 4 degrees head-down, which put the chest 2.5cm into
+    // the pad (measured on the skinned body).
+    [{ kind: "floor", y: 0.79 }, { kind: "slab", at: "pelvis", width: 0.62, height: 0.055, dx: -0.13, dy: 0.095 }],
     "overhand",
     -1,
   ),
