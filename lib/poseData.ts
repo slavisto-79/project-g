@@ -41,6 +41,13 @@ const HANG = sideArms(178, 179);
 // travels in FRONT of the shins, and the knees never cross its line.
 const HANG_AHEAD = sideArms(168, 171);
 const HANG_FRONT = bothArms(175, 178);
+// Arms carried a little wider than plumb. A dumbbell hanging at the side has
+// its inner head between the wrist and the thigh; with the wrist 0.4cm off
+// the thigh's skin (the authored hang) the head sat 2cm inside it on the
+// skinned body. Four centimetres of spread clears it on every build.
+function wide(arms: [Limb, Limb], spread = 0.04): [Limb, Limb] {
+  return arms.map((arm) => ({ ...arm, spread: (arm.spread ?? 0) + spread })) as [Limb, Limb];
+}
 // Lying down, both legs are level with the floor: sideLegs' five-degree
 // depth offset on the far leg dropped its toes 4cm through the floor a body
 // was pinned to, and every lying floor was then pinned to THAT, leaving the
@@ -223,7 +230,7 @@ export const exercisePoses = {
       return {
         pelvis,
         torso: 4,
-        arms: HANG,
+        arms: wide(HANG),
         legs: plantedLegs(pelvis, 4, "side", [{ x: 0.605, y: FLOOR }, { x: 0.372, y: FLOOR }], FORWARD),
       };
     }),
@@ -345,7 +352,7 @@ export const exercisePoses = {
   hinge: pose(
     "side",
     ([[0.500, 0.494, 4], [0.528, 0.528, 36], [0.552, 0.538, 62], [0.570, 0.550, 81]] as const).map(([x, y, torso]) =>
-      stand({ x, y }, torso, HANG_AHEAD, torso > 30 ? torso - 16 : torso),
+      stand({ x, y }, torso, wide(HANG_AHEAD), torso > 30 ? torso - 16 : torso),
     ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
   ),
@@ -697,7 +704,7 @@ export const exercisePoses = {
 
   frontRaise: pose(
     "side",
-    [174, 133, 92].map((arm) => stand({ x: 0.5, y: 0.494 }, 356, sideArms(arm, arm + 2))),
+    [174, 133, 92].map((arm) => stand({ x: 0.5, y: 0.494 }, 356, wide(sideArms(arm, arm + 2)))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
     "neutral",
   ),
@@ -891,7 +898,7 @@ export const exercisePoses = {
 
   curl: pose(
     "side",
-    [178, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.494 }, 356, sideArms(176, forearm))),
+    [178, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.494 }, 356, wide(sideArms(176, forearm)))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
     "underhand",
   ),
@@ -987,9 +994,9 @@ export const exercisePoses = {
   carry: pose(
     "side",
     [
-      { pelvis: { x: 0.5, y: 0.520 }, torso: 0, arms: HANG, legs: [{ upper: 172, lower: 176, end: 86 }, { upper: 186, lower: 182, end: 92 }] },
-      { pelvis: { x: 0.5, y: 0.516 }, torso: 1, arms: HANG, legs: [{ upper: 182, lower: 179, end: 89 }, { upper: 176, lower: 179, end: 89 }] },
-      { pelvis: { x: 0.5, y: 0.520 }, torso: 0, arms: HANG, legs: [{ upper: 190, lower: 184, end: 94 }, { upper: 168, lower: 174, end: 84 }] },
+      { pelvis: { x: 0.5, y: 0.520 }, torso: 0, arms: wide(HANG), legs: [{ upper: 172, lower: 176, end: 86 }, { upper: 186, lower: 182, end: 92 }] },
+      { pelvis: { x: 0.5, y: 0.516 }, torso: 1, arms: wide(HANG), legs: [{ upper: 182, lower: 179, end: 89 }, { upper: 176, lower: 179, end: 89 }] },
+      { pelvis: { x: 0.5, y: 0.520 }, torso: 0, arms: wide(HANG), legs: [{ upper: 190, lower: 184, end: 94 }, { upper: 168, lower: 174, end: 84 }] },
     ],
     [{ kind: "floor", y: 0.972 }, { kind: "bell", at: "hand0", each: true }],
     "neutral",

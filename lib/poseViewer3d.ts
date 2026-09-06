@@ -167,6 +167,78 @@ function vec(v: Vec3): THREE.Vector3 {
   return new THREE.Vector3(v[0], v[1], v[2]);
 }
 
+// Piecewise-linear sample of [x, y] control points at x.
+function sample(pts: [number, number][], x: number): number {
+  if (x <= pts[0]![0]) return pts[0]![1];
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1]!;
+    const [x1, y1] = pts[i]!;
+    if (x <= x1) return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0);
+  }
+  return pts[pts.length - 1]![1];
+}
+
+// A cross-section for lofting: `n` points around a rounded rectangle of
+// half-width w between heights y0 and y1, in the plane z.
+function roundedSection(w: number, y0: number, y1: number, z: number, n: number): THREE.Vector3[] {
+  const out: THREE.Vector3[] = [];
+  const cy = (y0 + y1) / 2;
+  const hh = (y1 - y0) / 2;
+  for (let k = 0; k < n; k++) {
+    const t = (k / n) * Math.PI * 2;
+    // A superellipse: squarer than a circle, still soft at the corners.
+    const c = Math.cos(t), s = Math.sin(t);
+    out.push(new THREE.Vector3(w * Math.sign(c) * Math.pow(Math.abs(c), 0.45), cy + hh * Math.sign(s) * Math.pow(Math.abs(s), 0.45), z));
+  }
+  return out;
+}
+
+// A D-shaped section: a half-ellipse of half-width w and height h standing
+// on a flat base at y0, closed underneath.
+function dSection(w: number, y0: number, h: number, z: number, n: number): THREE.Vector3[] {
+  const out: THREE.Vector3[] = [];
+  for (let k = 0; k <= n; k++) {
+    const t = (k / n) * Math.PI;
+    out.push(new THREE.Vector3(w * Math.cos(t), y0 + h * Math.sin(t), z));
+  }
+  // Back along the base from -w to w, a little inside.
+  for (let k = 1; k < 4; k++) out.push(new THREE.Vector3(-w + (2 * w * k) / 4, y0, z));
+  return out;
+}
+
+// Stitch equal-length sections into a closed surface with capped ends.
+function loft(sections: THREE.Vector3[][]): THREE.BufferGeometry {
+  const positions: number[] = [];
+  const index: number[] = [];
+  const n = sections[0]!.length;
+  for (const s of sections) for (const p of s) positions.push(p.x, p.y, p.z);
+  for (let i = 0; i + 1 < sections.length; i++) {
+    for (let k = 0; k < n; k++) {
+      const k1 = (k + 1) % n;
+      const a0 = i * n + k, a1 = i * n + k1, b0 = (i + 1) * n + k, b1 = (i + 1) * n + k1;
+      index.push(a0, b0, a1, a1, b0, b1);
+    }
+  }
+  // End caps: a fan from each end's centre.
+  for (const end of [0, sections.length - 1]) {
+    const c = new THREE.Vector3();
+    for (const p of sections[end]!) c.add(p);
+    c.divideScalar(n);
+    const ci = positions.length / 3;
+    positions.push(c.x, c.y, c.z);
+    for (let k = 0; k < n; k++) {
+      const a = end * n + k, b = end * n + ((k + 1) % n);
+      if (end === 0) index.push(ci, a, b);
+      else index.push(ci, b, a);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  g.setIndex(index);
+  g.computeVertexNormals();
+  return g;
+}
+
 function lerp3(a: Vec3, b: Vec3, t: number): THREE.Vector3 {
   return new THREE.Vector3(
     a[0] + (b[0] - a[0]) * t,
@@ -519,24 +591,48 @@ export class PoseViewer3D {
   // sole's underside sits where the old foot capsule's did (0.0124 below the
   // bone), so planted feet still meet the floor disc.
   private sole = new THREE.MeshStandardMaterial({ color: 0xe9e7e0, roughness: 0.7, metalness: 0.02 });
+  // The shoe is lofted from cross-sections along its length -- a sole that
+  // narrows at the arch and widens at the ball, an upper that stands tall at
+  // the heel collar and slopes down over the toes -- instead of the stack of
+  // rounded boxes it was, which read as a brick under the foot.
   private sneaker(): THREE.Group {
     const shoe = new THREE.Group();
     const L = 0.104;
-    const W = 0.05;
     const bottom = -0.0124;
-    const outsole = new THREE.Mesh(new RoundedBoxGeometry(W, 0.005, L, 3, 0.002), this.rubber);
-    outsole.position.y = bottom + 0.0025;
-    const midsole = new THREE.Mesh(new RoundedBoxGeometry(W, 0.009, L, 3, 0.003), this.sole);
-    midsole.position.y = bottom + 0.005 + 0.0045;
-    const upperBase = bottom + 0.014;
-    const upper = new THREE.Mesh(new RoundedBoxGeometry(W - 0.006, 0.03, L - 0.008, 4, 0.012), this.lime);
-    upper.position.set(0, upperBase + 0.014, -0.002);
-    const heelCounter = new THREE.Mesh(new RoundedBoxGeometry(W - 0.004, 0.036, 0.028, 3, 0.006), this.shorts);
-    heelCounter.position.set(0, upperBase + 0.018, -L / 2 + 0.016);
-    shoe.add(outsole, midsole, upper, heelCounter);
-    for (const z of [-0.014, -0.002, 0.01]) {
-      const lace = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.003, 0.0035), this.shorts);
-      lace.position.set(0, upperBase + 0.029, z);
+    const soleTop = bottom + 0.013;
+    // Plan half-width and upper height along the shoe, heel (-1) to toe (1).
+    const halfWidth = (t: number): number => {
+      const pts: [number, number][] = [[-1, 0.007], [-0.85, 0.02], [-0.6, 0.023], [-0.2, 0.021], [0.35, 0.026], [0.75, 0.023], [0.93, 0.015], [1, 0.006]];
+      return sample(pts, t);
+    };
+    const upperHeight = (t: number): number => {
+      const pts: [number, number][] = [[-1, 0.012], [-0.85, 0.03], [-0.5, 0.027], [-0.1, 0.023], [0.35, 0.017], [0.75, 0.011], [0.93, 0.007], [1, 0.003]];
+      return sample(pts, t);
+    };
+    const ts: number[] = [];
+    for (let i = 0; i <= 16; i++) ts.push(-1 + (2 * i) / 16);
+    const zOf = (t: number) => (t * L) / 2;
+    // Sole: a rounded slab, pale, on a thin dark outsole.
+    const slab = (y0: number, y1: number, grow: number) =>
+      ts.map((t) => {
+        const w = halfWidth(t) + grow;
+        return roundedSection(w, y0, y1, zOf(t), 12);
+      });
+    shoe.add(new THREE.Mesh(loft(slab(bottom, bottom + 0.004, 0.0015)), this.rubber));
+    shoe.add(new THREE.Mesh(loft(slab(bottom + 0.0035, soleTop, 0.0015)), this.sole));
+    // Upper: a D-section rising from the sole, in the accent colour.
+    const upperSections = (from: number, to: number, grow: number) =>
+      ts
+        .filter((t) => t >= from && t <= to)
+        .map((t) => dSection(halfWidth(t) + grow, soleTop - 0.002, upperHeight(t) + grow, zOf(t), 12));
+    shoe.add(new THREE.Mesh(loft(upperSections(-1, 1, 0)), this.lime));
+    // Heel counter: the same upper over the back of the shoe, a shade proud,
+    // in the dark trim.
+    shoe.add(new THREE.Mesh(loft(upperSections(-1, -0.5, 0.0012)), this.shorts));
+    // Three laces across the instep.
+    for (const t of [-0.3, -0.08, 0.14]) {
+      const lace = new THREE.Mesh(new THREE.BoxGeometry(halfWidth(t) * 1.1, 0.0025, 0.0035), this.shorts);
+      lace.position.set(0, soleTop + upperHeight(t) - 0.0005, zOf(t));
       shoe.add(lace);
     }
     return shoe;
