@@ -35,7 +35,11 @@ export type BodyStyle = {
 // The user's pick from a three-way mockup ("B defined" over "A athletic"
 // and "C soft"), for both builds: full muscle definition, wider deltoids
 // and chest, on top of each build's own radii.
-export const BODY_STYLE_DEFAULT: BodyStyle = { definition: 1, shoulders: 1.18, chest: 1.08, layered: true };
+// Clothes are painted on the skin again: the layered shells (still
+// available through `layered`) cut the stringer's straps and armholes into
+// ragged patches over the deltoids and hung its hem in a point, and the
+// user's review was "изглеждат отвратително".
+export const BODY_STYLE_DEFAULT: BodyStyle = { definition: 1, shoulders: 1.18, chest: 1.08, layered: false };
 
 export type BodyMaterials = {
   skin: THREE.MeshStandardMaterial;
@@ -544,7 +548,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // Her glutes, on the back of the pelvis.
     if (female) {
       const gluteF = Math.exp(-Math.pow((u + 0.46) / 0.16, 2));
-      if (gluteF > 0.05) out.push({ at: back - 0.58, amp: 0.017 * gluteF, width: 0.85 }, { at: back + 0.58, amp: 0.017 * gluteF, width: 0.85 });
+      if (gluteF > 0.05) out.push({ at: back - 0.58, amp: 0.013 * gluteF, width: 0.85 }, { at: back + 0.58, amp: 0.013 * gluteF, width: 0.85 });
     }
     // Lats: a little width high on the back, with definition.
     const latF = Math.exp(-Math.pow((u - 0.2) / 0.2, 2));
@@ -569,6 +573,31 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   // The breath lives in the rib cage: nothing below the waist, everything
   // from the lower chest up.
   const breathAt = (u: number) => Math.min(1, Math.max(0, (u + 0.15) / 0.25));
+  // Fabric inside a deltoid is cut away: the shoulder rings reach into the
+  // delts, and a strap poking out of one read as a white patch.
+  const deltR = spec.delt * spec.style.shoulders + 0.004;
+  const clearDelts = (c: THREE.Vector3, radii: number[], base?: (k: number) => number) => (k: number) => {
+    const t = (k / N) * Math.PI * 2;
+    const px = c.x + radii[k]! * Math.cos(t), pz = c.z + radii[k]! * Math.sin(t);
+    let clear = Infinity;
+    for (const s of [1, -1]) clear = Math.min(clear, Math.hypot(px - s * L.shoulderHalf, c.y - (shoulderY - 0.006), pz) - deltR);
+    return Math.min(base ? base(k) : 1, clear * 40);
+  };
+  // The neckline and armholes, cut by where each vertex sits across the
+  // body: from `neckFrom` up, the fabric narrows to a strap band between
+  // `strapIn` and `strapOut` of the midline -- so the front and back
+  // panels scoop toward the straps, the armholes open outside them, and
+  // the straps cross the shoulder medial to the deltoids. Painted or
+  // layered, the same cut.
+  const strapIn = 0.022, strapOut = female ? 0.056 : 0.047;
+  const panelCloth = (t: number, c: THREE.Vector3, radii: number[]) => (k: number) => {
+    const th = (k / N) * Math.PI * 2;
+    const ax = Math.abs(c.x + radii[k]! * Math.cos(th));
+    const s = Math.min(1, Math.max(0, t));
+    const xMin = strapIn * s;
+    const xMax = radii[0]! + (strapOut - radii[0]!) * s;
+    return Math.min(ax - xMin, xMax - ax) * 40;
+  };
   for (const u of trunkUs) {
     let ru = W(u), rv = D(u);
     // A raised edge where cloth ends: the waistband and the top's hem (his
@@ -580,7 +609,10 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       ru += 0.003;
       rv += 0.003;
     }
-    const body = ring(new THREE.Vector3(0, trunkY(u), 0), X, Z, ellipseRadii(ru, rv, trunkBulges(u)), trunkBones(u), mat, cloth);
+    const c = new THREE.Vector3(0, trunkY(u), 0);
+    const radii = ellipseRadii(ru, rv, trunkBulges(u));
+    const cut = mat === MAT.neck ? clearDelts(c, radii, panelCloth((u - neckFrom) / (0.5 - neckFrom), c, radii)) : cloth;
+    const body = ring(c, X, Z, radii, trunkBones(u), mat, cut);
     body.breath = breathAt(u);
     trunk.push(body);
   }
@@ -590,12 +622,12 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   const neckA = spec.taper.neck[1], neckB = spec.taper.neck[0];
   const Rx = L.headR * 1.18 * 0.95, Ry = L.headR * 1.18 * 1.06, Rz = L.headR * 1.18 * 0.98;
   const topBones: [number, number][] = [[bi("Spine2"), 1]];
-  const straps = strapCloth(1);
   const domeMat = layered ? MAT.skin : MAT.neck;
-  const domeCloth = layered ? undefined : straps;
   const dome = [[0.015, 0.93, 0.94], [0.03, 0.8, 0.84], [0.045, 0.6, 0.68]] as const;
   for (const [dy, kw, kd] of dome) {
-    const d = ring(new THREE.Vector3(0, shoulderY + dy, 0), X, Z, ellipseRadii(W(0.5) * kw, D(0.5) * kd), topBones, domeMat, domeCloth);
+    const c = new THREE.Vector3(0, shoulderY + dy, 0);
+    const radii = ellipseRadii(W(0.5) * kw, D(0.5) * kd);
+    const d = ring(c, X, Z, radii, topBones, domeMat, layered ? undefined : clearDelts(c, radii, panelCloth(1, c, radii)));
     d.breath = 0.4;
     trunk.push(d);
   }
@@ -622,30 +654,6 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // Loose, but not by much: the sweep charges every millimetre of slack
     // against the pads a seated or lying figure rests on.
     const gapAt = (u: number) => (female ? 0.004 : 0.005 + Math.max(0, -0.1 - u) * 0.015);
-    // Fabric inside a deltoid is cut away too: the shell's shoulder rings
-    // reach into the delts, and a strap poking out of one read as a patch.
-    const deltR = spec.delt * spec.style.shoulders + 0.004;
-    const clearDelts = (c: THREE.Vector3, radii: number[], base?: (k: number) => number) => (k: number) => {
-      const t = (k / N) * Math.PI * 2;
-      const px = c.x + radii[k]! * Math.cos(t), pz = c.z + radii[k]! * Math.sin(t);
-      let clear = Infinity;
-      for (const s of [1, -1]) clear = Math.min(clear, Math.hypot(px - s * L.shoulderHalf, c.y - (shoulderY - 0.006), pz) - deltR);
-      return Math.min(base ? base(k) : 1, clear * 40);
-    };
-    // The neckline and armholes, cut by where each vertex sits across the
-    // body: from `neckFrom` up, the fabric narrows to a strap band between
-    // `strapIn` and `strapOut` of the midline -- so the front and back
-    // panels scoop toward the straps, the armholes open outside them, and
-    // the straps cross the shoulder medial to the deltoids.
-    const strapIn = 0.022, strapOut = female ? 0.056 : 0.047;
-    const panelCloth = (t: number, c: THREE.Vector3, radii: number[]) => (k: number) => {
-      const th = (k / N) * Math.PI * 2;
-      const ax = Math.abs(c.x + radii[k]! * Math.cos(th));
-      const s = Math.min(1, Math.max(0, t));
-      const xMin = strapIn * s;
-      const xMax = radii[0]! + (strapOut - radii[0]!) * s;
-      return Math.min(ax - xMin, xMax - ax) * 40;
-    };
     const shell = (u: number, gap: number) => {
       const c = new THREE.Vector3(0, trunkY(u), 0);
       const radii = ellipseRadii(W(u) + gap, D(u) + gap, trunkBulges(u));
@@ -735,9 +743,12 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // The quadriceps is a lobe on the FRONT of the thigh: the back of the
     // thigh is what rests on seats and pads, and a round bulge there sank
     // 5mm into every seat in the sweep.
+    // Her legs carry half the muscle relief: the same quads and calves as
+    // his read as too much leg against her narrower trunk.
+    const legDef = female ? def * 0.5 : def;
     const thighRing = (y: number, rr: number, mat: number, extra = 0) => {
       const t = (hipY - y) / L.thigh;
-      const quad = 0.09 * def * rr * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
+      const quad = 0.09 * legDef * rr * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
       return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr + extra, rr + extra, quad > 0.0005 ? [{ at: front, amp: quad, width: 1.1 }] : []), legBones(y), mat);
     };
     rings.push(thighRing(hipY + 0.03, thighA * 0.96, MAT.legwear));
@@ -758,13 +769,13 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     rings.push(ring(new THREE.Vector3(x, kneeY - 0.012, 0), X, Z, ellipseRadii(shinA * 1.0, shinA * 1.06), legBones(kneeY - 0.012), kneeMat));
     const shinR = (t: number) => {
       const base = shinA + (shinB - shinA) * t;
-      const calf = 1 + (0.08 + 0.2 * def) * Math.exp(-Math.pow((t - 0.3) / 0.22, 2));
+      const calf = 1 + (0.08 + 0.2 * legDef) * Math.exp(-Math.pow((t - 0.3) / 0.22, 2));
       return base * calf;
     };
     for (const t of [0.12, 0.3, 0.45, 0.6, 0.8, 0.93]) {
       const y = kneeY - t * L.shin;
       // The calf sits at the back: the bulge is deeper than it is wide.
-      rings.push(ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(shinR(t) * 0.96, shinR(t) * 1.08, [{ at: back, amp: 0.004 * def * Math.exp(-Math.pow((t - 0.3) / 0.25, 2)), width: 1.2 }]), legBones(y), kneeMat));
+      rings.push(ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(shinR(t) * 0.96, shinR(t) * 1.08, [{ at: back, amp: 0.004 * legDef * Math.exp(-Math.pow((t - 0.3) / 0.25, 2)), width: 1.2 }]), legBones(y), kneeMat));
     }
     const ankle = ring(new THREE.Vector3(x, ankleY, 0), X, Z, ellipseRadii(shinB, shinB * 1.05), [[lo, 1]], kneeMat);
     // A short cap: the shin ends inside the sneaker, and a longer one poked
@@ -777,7 +788,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       // hem above the knee; her leggings hug the whole leg to the ankle.
       const shellRing = (y: number, rr: number, gap: number) => {
         const t = (hipY - y) / L.thigh;
-        const quad = 0.09 * def * rr * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
+        const quad = 0.09 * legDef * rr * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
         return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr + gap, rr + gap, quad > 0.0005 ? [{ at: front, amp: quad, width: 1.1 }] : []), legBones(y), MAT.legShell);
       };
       const leg: Ring[] = [];
@@ -796,7 +807,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
         leg.push(ring(new THREE.Vector3(x, kneeY - 0.012, 0), X, Z, ellipseRadii(shinA + 0.003, shinA * 1.06 + 0.003), legBones(kneeY - 0.012), MAT.legShell));
         for (const t of [0.12, 0.3, 0.45, 0.6, 0.8, 0.93]) {
           const y = kneeY - t * L.shin;
-          leg.push(ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(shinR(t) * 0.96 + 0.003, shinR(t) * 1.08 + 0.003, [{ at: back, amp: 0.004 * def * Math.exp(-Math.pow((t - 0.3) / 0.25, 2)), width: 1.2 }]), legBones(y), MAT.legShell));
+          leg.push(ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(shinR(t) * 0.96 + 0.003, shinR(t) * 1.08 + 0.003, [{ at: back, amp: 0.004 * legDef * Math.exp(-Math.pow((t - 0.3) / 0.25, 2)), width: 1.2 }]), legBones(y), MAT.legShell));
         }
         leg.push(ring(new THREE.Vector3(x, ankleY + 0.004, 0), X, Z, ellipseRadii(shinB + 0.003, shinB * 1.05 + 0.003), [[lo, 1]], MAT.legShell));
       }
