@@ -294,6 +294,20 @@ export class PoseViewer3D {
   // Trunk ellipse multipliers from the avatar's build, applied in update().
   private trunkW = 1;
   private trunkD = 1;
+  // How much deeper than the reference this build's trunk and thighs are:
+  // pads a lying trunk or a seated thigh rests on move away by this much,
+  // so a heavy build rests on the bench instead of sinking into it.
+  private trunkExtra = 0;
+  private seatExtra = 0;
+  // The face's movable features and their rest, for the effort expression.
+  private brows: THREE.Mesh[] = [];
+  private lids: THREE.Mesh[] = [];
+  private lipsMeshes: THREE.Mesh[] = [];
+  private mouthLine: THREE.Mesh | null = null;
+  private faceR = 0;
+  // How much strain the movement shows at its hardest point: none for a
+  // sway, full for a rep that travels.
+  private effortScale = 0;
   // Female build only: a cropped sports top over a bare-skin trunk, and a
   // gentle bust under it. Both ride the spine bone in update().
   private cropTop: THREE.Mesh | null = null;
@@ -679,6 +693,9 @@ export class PoseViewer3D {
     // build it is 1.2cm into a 5.5cm pad, which reads as padding giving way).
     this.trunkW = (1 + 0.45 * t) * (female ? 0.92 : 1);
     this.trunkD = (1 + (t > 0 ? 0.55 : 0.4) * t) * (female ? 0.96 : 1);
+    // Pads only ever move AWAY from the body: a lighter build keeps the
+    // reference pads (her bust and his lats are not in trunkD).
+    this.trunkExtra = Math.max(0, BODY_HALF * (this.trunkD - 1));
     const buildScale = (part: string): number => {
       switch (part) {
         case "thigh":
@@ -725,6 +742,15 @@ export class PoseViewer3D {
     // multiplier beyond the build's: at the old 0.8 power and x1.18 it
     // was a ball twice the arm's width.
     const deltR = female ? 0.036 : 0.040 * Math.sqrt(muscle) * MALE.delt;
+    this.seatExtra = Math.max(0, RADII.thigh * (buildScale("thigh") - 1));
+    // Strain shows only on a rep that travels: the profile's idle sway
+    // keeps a neutral face.
+    const last = this.frames[this.frames.length - 1]!;
+    let travel = 0;
+    for (const s of [0, 1] as const) travel = Math.max(travel, vec(first.hands[s]).distanceTo(vec(last.hands[s])));
+    const pelvis0 = first.bones.find((b) => b.part === "spine"), pelvis1 = last.bones.find((b) => b.part === "spine");
+    if (pelvis0 && pelvis1) travel = Math.max(travel, vec(pelvis0.a).distanceTo(vec(pelvis1.a)));
+    this.effortScale = Math.min(1, Math.max(0, (travel - 0.03) / 0.1));
     const builtTaper: Record<string, [number, number]> = {};
     for (const bone of first.bones) {
       const build = buildScale(bone.part);
@@ -893,7 +919,9 @@ export class PoseViewer3D {
       lid.scale.set(0.145 * R, (female ? 0.115 : 0.1) * R, 0.09 * R);
       lid.position.set(x * R, R * (female ? 0.165 : 0.16), R * 0.84);
       this.face.add(lid);
+      this.lids.push(lid);
     }
+    this.faceR = R;
     // Nose: a bridge running down from between the brows to a tip, with a
     // nostril bulge either side of the tip.
     const bridge = blob(this.skin, 0.07, 0.22, 0.07, 0, 0.03, 0.9);
@@ -903,9 +931,9 @@ export class PoseViewer3D {
     // Mouth: an upper and a fuller lower lip with the line between them.
     const lipMat = female ? this.lips : this.lipsMale;
     const mouthW = female ? 0.17 : 0.2;
-    blob(lipMat, mouthW, 0.026, 0.05, 0, -0.4, 0.86);
-    blob(lipMat, mouthW * 0.92, 0.036, 0.055, 0, -0.455, 0.855);
-    blob(this.iron, mouthW * 0.9, 0.007, 0.03, 0, -0.427, 0.895);
+    this.lipsMeshes.push(blob(lipMat, mouthW, 0.026, 0.05, 0, -0.4, 0.86));
+    this.lipsMeshes.push(blob(lipMat, mouthW * 0.92, 0.036, 0.055, 0, -0.455, 0.855));
+    this.mouthLine = blob(this.iron, mouthW * 0.9, 0.007, 0.03, 0, -0.427, 0.895);
     // The head, all in the face's frame so it turns with the figure.
     if (female) {
       // Hair pulled back into a sleek high bun, with the forehead open (no
@@ -954,6 +982,11 @@ export class PoseViewer3D {
     for (const side of [-1, 1]) {
       const brow = blob(female ? this.hairFemale : this.hair, female ? 0.15 : 0.16, female ? 0.02 : 0.032, 0.035, side * 0.33, female ? 0.37 : 0.34, 0.86);
       brow.rotation.z = side * (female ? 0.12 : 0.3);
+      this.brows.push(brow);
+    }
+    // Rest positions, scales and angles the effort expression works from.
+    for (const m of [...this.brows, ...this.lids, ...this.lipsMeshes, ...(this.mouthLine ? [this.mouthLine] : [])]) {
+      m.userData.rest = { p: m.position.clone(), s: m.scale.clone(), rz: m.rotation.z };
     }
     if (!female) {
       // Stubble: a shell over the jaw ellipsoid, a hair's breadth proud of
@@ -1135,6 +1168,25 @@ export class PoseViewer3D {
   }
 
   // A bench pad: a rounded vinyl slab, not a sharp box.
+  // How far a flat pad moves for this build: down by the trunk's extra
+  // depth when it lies under the trunk, by the thighs' when it is a seat
+  // under them, not at all when it is a step or a box under a foot or a
+  // hand (those are away from the trunk).
+  private padOffset(prop: Extract<PoseProp3D, { kind: "slab" }>): THREE.Vector3 {
+    const first = this.frames[0]!;
+    const spine = first.bones.find((b) => b.part === "spine");
+    if (!spine) return new THREE.Vector3();
+    const a = vec(spine.a), b = vec(spine.b), c = vec(prop.center);
+    const ab = b.clone().sub(a);
+    const t = Math.max(0, Math.min(1, c.clone().sub(a).dot(ab) / ab.lengthSq()));
+    const nearest = a.clone().addScaledVector(ab, t);
+    const gap = c.distanceTo(nearest);
+    if (gap > 0.15) return new THREE.Vector3();
+    // Under the pelvis end with the trunk upright it is a seat.
+    const seat = t < 0.15 && Math.abs(ab.normalize().y) > 0.7;
+    return new THREE.Vector3(0, -(seat ? this.seatExtra : this.trunkExtra), 0);
+  }
+
   private pad(w: number, h: number, l: number): THREE.Mesh {
     return new THREE.Mesh(new RoundedBoxGeometry(w, h, l, 4, Math.min(0.02, h / 2.2)), this.padMaterial);
   }
@@ -1463,10 +1515,11 @@ export class PoseViewer3D {
           const group = new THREE.Group();
           const back = this.pad(BENCH_PAD_WIDTH, prop.height, prop.width);
           back.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d);
-          back.position.copy(d).multiplyScalar(prop.width / 2 - 0.05).addScaledVector(n, BODY_HALF + prop.height / 2);
+          // ...and a deeper build's pads sit further off by its extra depth.
+          back.position.copy(d).multiplyScalar(prop.width / 2 - 0.05).addScaledVector(n, BODY_HALF + this.trunkExtra + prop.height / 2);
           const feetward = (-Math.sign(d.z) || 1) as 1 | -1;
           const seat = this.pad(BENCH_PAD_WIDTH, prop.height, SEAT_LENGTH);
-          seat.position.set(0, -(BODY_HALF - 0.008 + prop.height / 2), feetward * SEAT_OFFSET);
+          seat.position.set(0, -(BODY_HALF - 0.008 + this.seatExtra + prop.height / 2), feetward * SEAT_OFFSET);
           group.add(back, seat);
           if (floorY !== undefined) {
             const base = floorY - prop.center[1];
@@ -1511,7 +1564,9 @@ export class PoseViewer3D {
           // and none of it under the trunk.
           if (prop.across) group.rotation.y = Math.PI / 2;
           this.scene.add(group);
-          this.held.push(this.anchored(group, i, "slab"));
+          const anchored = this.anchored(group, i, "slab");
+          if (!prop.across) anchored.userData.buildOffset = this.padOffset(prop);
+          this.held.push(anchored);
           continue;
         }
         // A long low pad is a bench the figure lies along (the leg curl's),
@@ -1534,7 +1589,9 @@ export class PoseViewer3D {
           plinth.position.set(prop.center[0], floorY + drop / 2, prop.center[2]);
           this.scene.add(plinth);
         }
-        this.held.push(this.anchored(pad, i, "slab"));
+        const anchoredPad = this.anchored(pad, i, "slab");
+        if (!wall && !prop.across) anchoredPad.userData.buildOffset = this.padOffset(prop);
+        this.held.push(anchoredPad);
         continue;
       }
       if (prop.kind === "bar") {
@@ -1899,6 +1956,31 @@ export class PoseViewer3D {
       const fx = new THREE.Vector3().crossVectors(up, fz).normalize();
       this.face.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(fx, up, fz));
       this.face.position.copy(this.head.position);
+      // Effort: the face sets as the rep reaches its hardest point (the
+      // last key position) -- brows drawn down and in, eyes narrowed, lips
+      // pressed together -- and relaxes on the way back.
+      const effort = this.effortScale * (t / last) * (t / last);
+      const R = this.faceR;
+      const rest = (m: THREE.Mesh) => m.userData.rest as { p: THREE.Vector3; s: THREE.Vector3; rz: number };
+      this.brows.forEach((brow, i) => {
+        const r = rest(brow);
+        const side = i === 0 ? -1 : 1;
+        brow.position.set(r.p.x - side * 0.02 * R * effort, r.p.y - 0.035 * R * effort, r.p.z);
+        brow.rotation.z = r.rz + side * 0.22 * effort;
+      });
+      for (const lid of this.lids) {
+        const r = rest(lid);
+        lid.position.set(r.p.x, r.p.y - 0.03 * R * effort, r.p.z);
+      }
+      this.lipsMeshes.forEach((lip, i) => {
+        const r = rest(lip);
+        lip.scale.set(r.s.x * (1 + 0.08 * effort), r.s.y * (1 - (i === 0 ? 0.35 : 0.3) * effort), r.s.z);
+        lip.position.set(r.p.x, r.p.y + (i === 0 ? -0.012 : 0.012) * R * effort, r.p.z);
+      });
+      if (this.mouthLine) {
+        const r = rest(this.mouthLine);
+        this.mouthLine.scale.set(r.s.x * (1 + 0.15 * effort), r.s.y, r.s.z);
+      }
       if (this.skinned) this.skinned.apply({ bones: sample, head: this.head.position.clone(), ventral, floorY: this.floorDisc?.position.y });
       if (this.busts.length) {
         // A gentle bust: two rounded lobes high on the chest, either side of
@@ -1964,6 +2046,8 @@ export class PoseViewer3D {
         group.position.x += which === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
       } else {
         group.position.copy(lerp3(pa.center, pb.center, f));
+        const buildOffset = (group.userData as { buildOffset?: THREE.Vector3 }).buildOffset;
+        if (buildOffset) group.position.add(buildOffset);
         // A landmine bar is built along +X from its pivot end; aim it from
         // the pivot through the hands, so the pivot end never leaves the floor.
         const pivot = (group.userData as { pivot?: THREE.Vector3 }).pivot;
