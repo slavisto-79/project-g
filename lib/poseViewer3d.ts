@@ -355,6 +355,11 @@ export class PoseViewer3D {
   // vanished against the dark card and read as thin.
   private hairFemale = new THREE.MeshStandardMaterial({ color: 0x5a3320, roughness: 0.5, metalness: 0.05 });
   private lips = new THREE.MeshStandardMaterial({ color: 0xa8505c, roughness: 0.55, metalness: 0.02 });
+  // His lips are a shade darker than his skin, not painted; the whites of
+  // the eyes are off-white, the irises dark brown.
+  private lipsMale = new THREE.MeshStandardMaterial({ color: 0xa87a62, roughness: 0.6, metalness: 0 });
+  private sclera = new THREE.MeshStandardMaterial({ color: 0xf1ede6, roughness: 0.35, metalness: 0 });
+  private iris = new THREE.MeshStandardMaterial({ color: 0x3a2416, roughness: 0.3, metalness: 0 });
 
   // What each bone wears: the cylinder and its two end caps (a = the bone's
   // start, b = its end -- for a forearm, b is the wrist). On the female build
@@ -601,24 +606,44 @@ export class PoseViewer3D {
     this.neckIndex = first.bones.findIndex((b) => b.part === "neck");
     this.facing = pose.facing ?? 1;
     const R = first.head.r * 1.3;
-    // Her face is softer: larger, open eyes, a smaller nose, lips instead of
-    // the man's set mouth. His stays the determined look.
+    // Every feature is a scaled sphere -- the one primitive that shades like
+    // flesh -- placed on the skull (radius 0.89R at the front). Boxes for
+    // eyes and mouths were what made the face read as a block character.
+    const blob = (material: THREE.Material, sx: number, sy: number, sz: number, x: number, y: number, z: number) => {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H), material);
+      m.scale.set(sx * R, sy * R, sz * R);
+      m.position.set(x * R, y * R, z * R);
+      this.face.add(m);
+      return m;
+    };
+    // The jaw: an ellipsoid low on the skull that squares the lower face and
+    // gives it a chin. His is broader; hers narrower and softer.
+    blob(this.skin, female ? 0.64 : 0.72, female ? 0.5 : 0.52, female ? 0.66 : 0.7, 0, female ? -0.4 : -0.42, female ? 0.06 : 0.08);
+    // Ears, either side, just behind the midline.
+    for (const side of [-1, 1]) blob(this.skin, 0.1, 0.17, 0.06, side * 0.87, 0.05, 0.02);
+    // Eyes: a white, an iris standing proud of it, and an upper lid of skin
+    // hooding the top -- his lids sit lower for the set look, hers open.
     for (const side of [-1, 1]) {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(R * (female ? 0.15 : 0.14), 10, 8), this.iron);
-      eye.position.set(side * R * 0.34, R * 0.18, R * 0.82);
-      if (female) eye.scale.set(1.0, 0.85, 0.8);
-      else eye.scale.set(1.05, 0.55, 0.8);
-      this.face.add(eye);
+      const x = side * 0.34;
+      blob(this.sclera, 0.13, female ? 0.1 : 0.085, 0.08, x, 0.16, 0.84);
+      blob(this.iris, 0.062, 0.062, 0.05, x, 0.16, 0.905);
+      const lid = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H, 0, Math.PI * 2, 0, Math.PI * (female ? 0.4 : 0.5)), this.skin);
+      lid.scale.set(0.145 * R, (female ? 0.115 : 0.1) * R, 0.09 * R);
+      lid.position.set(x * R, R * (female ? 0.165 : 0.16), R * 0.84);
+      this.face.add(lid);
     }
-    const nose = new THREE.Mesh(new THREE.SphereGeometry(R * (female ? 0.12 : 0.17), 10, 8), this.skin);
-    nose.scale.set(0.8, female ? 1.0 : 1.1, 1.0);
-    nose.position.set(0, -R * 0.08, R * (female ? 0.95 : 0.97));
-    this.face.add(nose);
-    const mouth = female
-      ? new THREE.Mesh(new THREE.BoxGeometry(R * 0.3, R * 0.075, R * 0.1), this.lips)
-      : new THREE.Mesh(new THREE.BoxGeometry(R * 0.44, R * 0.08, R * 0.1), this.graphite);
-    mouth.position.set(0, -R * 0.45, R * 0.8);
-    this.face.add(mouth);
+    // Nose: a bridge running down from between the brows to a tip, with a
+    // nostril bulge either side of the tip.
+    const bridge = blob(this.skin, 0.07, 0.22, 0.07, 0, 0.03, 0.9);
+    bridge.rotation.x = -0.35;
+    blob(this.skin, female ? 0.07 : 0.085, female ? 0.065 : 0.08, female ? 0.07 : 0.085, 0, -0.14, female ? 0.97 : 0.99);
+    for (const side of [-1, 1]) blob(this.skin, 0.05, 0.04, 0.05, side * (female ? 0.07 : 0.08), -0.17, 0.93);
+    // Mouth: an upper and a fuller lower lip with the line between them.
+    const lipMat = female ? this.lips : this.lipsMale;
+    const mouthW = female ? 0.17 : 0.2;
+    blob(lipMat, mouthW, 0.026, 0.05, 0, -0.4, 0.86);
+    blob(lipMat, mouthW * 0.92, 0.036, 0.055, 0, -0.455, 0.855);
+    blob(this.iron, mouthW * 0.9, 0.007, 0.03, 0, -0.427, 0.895);
     // The head, all in the face's frame so it turns with the figure.
     if (female) {
       // Hair pulled back into a sleek high bun, with the forehead open (no
@@ -628,13 +653,16 @@ export class PoseViewer3D {
       // ears), and the bun high on the back of the head with a pink tie at
       // its base. Everything sits at 1.0R -- a hair's volume over the 0.91R
       // skull -- so it reads as hair, not paint.
-      const crown = new THREE.Mesh(new THREE.SphereGeometry(R * 1.0, 20, 12, 0, Math.PI * 2, 0, 0.9), this.hairFemale);
+      // Stretched with the egg-shaped skull (y scale 1.06), like his.
+      const crown = new THREE.Mesh(new THREE.SphereGeometry(R * 1.0, SPHERE_W, SPHERE_H, 0, Math.PI * 2, 0, 0.9), this.hairFemale);
       crown.rotation.x = -0.25;
+      crown.scale.set(1, 1.08, 1);
       this.face.add(crown);
       const sides = new THREE.Mesh(
-        new THREE.SphereGeometry(R * 1.0, 20, 12, Math.PI * 0.9, Math.PI * 1.2, 0.5, 1.45),
+        new THREE.SphereGeometry(R * 1.0, SPHERE_W, SPHERE_H, Math.PI * 0.9, Math.PI * 1.2, 0.5, 1.45),
         this.hairFemale,
       );
+      sides.scale.set(1, 1.08, 1);
       this.face.add(sides);
       const bunDir = new THREE.Vector3(0, 0.42, -0.78).normalize();
       const bun = new THREE.Mesh(new THREE.SphereGeometry(R * 0.5, 14, 12), this.hairFemale);
@@ -648,42 +676,34 @@ export class PoseViewer3D {
       // Textured crop over a fade: a tight cap hugging the sides and back of
       // the skull, and a fuller crown piece standing proud of it, stopping
       // above the brow line.
-      const fade = new THREE.Mesh(new THREE.SphereGeometry(R * 0.925, 18, 10, 0, Math.PI * 2, 0, 1.15), this.hair);
+      // Both pieces are stretched with the egg-shaped skull (its y scale is
+      // 1.06): a round cap sank into the taller crown and left a bald patch.
+      const fade = new THREE.Mesh(new THREE.SphereGeometry(R * 0.93, SPHERE_W, SPHERE_H, 0, Math.PI * 2, 0, 1.15), this.hair);
       fade.rotation.x = -0.4;
+      fade.scale.set(1, 1.08, 1);
       this.face.add(fade);
-      const crop = new THREE.Mesh(new THREE.SphereGeometry(R * 1.0, 18, 10, 0, Math.PI * 2, 0, 0.78), this.hair);
+      const crop = new THREE.Mesh(new THREE.SphereGeometry(R * 1.0, SPHERE_W, SPHERE_H, 0, Math.PI * 2, 0, 0.78), this.hair);
       crop.rotation.x = -0.32;
-      crop.scale.set(1, 1.06, 1);
+      crop.scale.set(1, 1.12, 1);
       this.face.add(crop);
     }
     // Brows: his angled in and down over the eyes; hers thin, higher and
     // nearly level, with just the outer end lifted.
     for (const side of [-1, 1]) {
-      const brow = new THREE.Mesh(
-        new THREE.BoxGeometry(R * (female ? 0.27 : 0.3), R * (female ? 0.032 : 0.07), R * 0.07),
-        female ? this.hairFemale : this.hair,
-      );
-      brow.position.set(side * R * 0.33, R * (female ? 0.38 : 0.34), R * 0.84);
-      brow.rotation.z = side * (female ? 0.1 : 0.32);
-      this.face.add(brow);
+      const brow = blob(female ? this.hairFemale : this.hair, female ? 0.15 : 0.16, female ? 0.02 : 0.032, 0.035, side * 0.33, female ? 0.37 : 0.34, 0.86);
+      brow.rotation.z = side * (female ? 0.12 : 0.3);
     }
     if (!female) {
-      // Stubble: a chin-and-jaw shell below the mouth, the jaw sides up to
-      // the cheekbones, and the lip -- the same pieces the old full beard was
-      // made of, but tight to the skin (0.935R over the 0.91R skull) and in a
-      // skin-dark tone, so it reads as shadow rather than hair.
-      // SphereGeometry's phi runs around Y with the face (+Z) at phi = PI/2;
-      // theta runs down from the crown. HEAD_ENVELOPE in
-      // tests/check-poses.js (1.25 x head.r) still covers it with room.
-      const stubble = (phi0: number, phiLen: number, th0: number, thLen: number) => {
-        this.face.add(new THREE.Mesh(new THREE.SphereGeometry(R * 0.935, 18, 10, phi0, phiLen, th0, thLen), this.stubble));
-      };
-      stubble(Math.PI * 0.1, Math.PI * 0.8, Math.PI * 0.7, Math.PI * 0.24);
-      stubble(Math.PI * 0.1, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
-      stubble(Math.PI * 0.7, Math.PI * 0.2, Math.PI * 0.5, Math.PI * 0.22);
-      const lip = new THREE.Mesh(new THREE.BoxGeometry(R * 0.46, R * 0.07, R * 0.1), this.stubble);
-      lip.position.set(0, -R * 0.3, R * 0.84);
-      this.face.add(lip);
+      // Stubble: a shell over the jaw ellipsoid, a hair's breadth proud of
+      // it, in a skin-dark tone -- shadow following the jaw and chin, not a
+      // beard. SphereGeometry's phi runs around Y with the face at PI/2, so
+      // the shell covers the front and sides and stops at the cheekbones;
+      // the moustache shadow is a flattened blob on the upper lip.
+      const shadow = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H, Math.PI * 0.05, Math.PI * 0.9, Math.PI * 0.42, Math.PI * 0.58), this.stubble);
+      shadow.scale.set(0.73 * R, 0.53 * R, 0.71 * R);
+      shadow.position.set(0, -0.42 * R, 0.08 * R);
+      this.face.add(shadow);
+      blob(this.stubble, 0.17, 0.03, 0.03, 0, -0.33, 0.9);
     }
     // No headband: the user found the hoop on the head distracting, so the
     // lime stays on the wrists and shoes only.
