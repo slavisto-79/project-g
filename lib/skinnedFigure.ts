@@ -70,6 +70,9 @@ export type FigureSample = {
   floorY?: number;
 };
 
+// How much of the hip's flexion the pelvis takes (the rest is the hip joint).
+const PELVIS_TILT = 0.35;
+
 type Aimed = {
   bone: THREE.Bone;
   // The bone's own direction to its child, and its "forward", both in the
@@ -92,6 +95,8 @@ export class SkinnedFigure {
   // From the hips bone to the midpoint of the hip joints, in the hips'
   // rest frame, in app units.
   private hipJointOffset = new THREE.Vector3();
+  // The first spine bone's rest distance from the hips, in model units.
+  private spineRest = 0;
 
   // `legLength`: the pose's thigh plus shin, which the model is scaled to.
   static load(url: string, legLength: number, rig: RigMap = MIXAMO_RIG): Promise<SkinnedFigure> {
@@ -169,6 +174,7 @@ export class SkinnedFigure {
 
     register("hips", rig.hips, Y, Z);
     rig.spine.forEach((name, i) => register(`spine${i}`, name, Y, Z));
+    this.spineRest = need(rig.spine[0]!).position.length();
     register("neck", rig.neck, Y, Z);
     register("head", rig.head, Y, Z);
     for (const side of ["left", "right"] as const) {
@@ -231,19 +237,45 @@ export class SkinnedFigure {
       leftSide = shoulders.a.clone().sub(shoulders.b).dot(leftward) >= 0 ? 0 : 1;
     }
 
+    // The pelvis tilts with the thighs. A deep squat or a hinge flexes the
+    // hip 90-140 degrees, and linear-blend skinning across that much
+    // rotation at ONE joint collapses the seat toward the joint axis: the
+    // upper glutes creased against the small of the back and the seat
+    // pinched. The hips bone goes PELVIS_TILT of the way from the trunk
+    // toward the reversed mean thigh direction (as a real pelvis rolls
+    // under in a squat and forward in a hinge); the spine bones stay on the
+    // trunk, so the lumbar rings take that part of the bend over the lower
+    // trunk and the hip joint sees only the rest. Standing, the thighs hang
+    // down the trunk line and nothing changes.
+    const thighDirs = ([0, 1] as const).map((s) => seg("thigh", s)).filter((t): t is NonNullable<typeof t> => !!t).map((t) => t.b.clone().sub(t.a).normalize());
+    let pelvisDir = trunkDir;
+    if (thighDirs.length) {
+      const legDir = thighDirs.reduce((acc, d) => acc.add(d), new THREE.Vector3());
+      if (legDir.lengthSq() > 0.01) {
+        pelvisDir = trunkDir.clone().multiplyScalar(1 - PELVIS_TILT).addScaledVector(legDir.normalize(), -PELVIS_TILT);
+        pelvisDir = pelvisDir.lengthSq() > 0.01 ? pelvisDir.normalize() : trunkDir;
+      }
+    }
     // The hips bone sits at the pose's pelvis, then every bone is aimed
     // parent-first so each reads its parent's settled orientation.
     this.root.updateMatrixWorld(true);
     const parent = this.hips.parent!;
-    this.aim(this.aimed.get("hips")!, trunkDir, ventral);
+    this.aim(this.aimed.get("hips")!, pelvisDir, ventral);
     const hipsQ = this.hips.getWorldQuaternion(new THREE.Quaternion());
     const toJoints = this.hipJointOffset.clone().applyQuaternion(hipsQ);
     this.hips.position.copy(parent.worldToLocal(spine.a.clone().sub(toJoints)));
     this.hips.updateMatrixWorld(true);
+    const hipsPos = this.hips.getWorldPosition(new THREE.Vector3());
     for (let i = 0; ; i++) {
       const a = this.aimed.get(`spine${i}`);
       if (!a) break;
       this.aim(a, trunkDir, ventral);
+      if (i === 0) {
+        // The first spine bone stays on the trunk line whatever the pelvis
+        // does: its rest offset from the hips, laid along the trunk.
+        a.bone.position.copy(this.hips.worldToLocal(hipsPos.clone().addScaledVector(trunkDir, this.spineRest * this.scale)));
+        a.bone.updateMatrixWorld(true);
+      }
     }
     const neck = seg("neck");
     if (neck) {
