@@ -142,6 +142,9 @@ type Ring = {
   cloth?: (k: number) => number;
   // How much of the breath this ring carries (1 at the chest, 0 elsewhere).
   breath?: number;
+  // Per-vertex bone weights, where one ring spans two bones side by side
+  // (the seat, whose lobes belong half to the thighs).
+  bonesAt?: (k: number) => [number, number][];
 };
 
 const MAT = { skin: 0, top: 1, legwear: 2, band: 3, neck: 4, topShell: 5, legShell: 6 } as const;
@@ -241,7 +244,7 @@ class Builder {
       // shadow pass reads the same value.
       this.cloth.push(r.cloth ? r.cloth(k) : 1);
       this.breath.push(r.breath ?? 0);
-      const bones = r.bones.slice(0, 4);
+      const bones = (r.bonesAt ? r.bonesAt(k) : r.bones).slice(0, 4);
       const total = bones.reduce((s, [, w]) => s + w, 0) || 1;
       for (let i = 0; i < 4; i++) {
         const b = bones[i];
@@ -500,6 +503,19 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   // tubes side by side (which made a skirt of the shorts).
   const THIGH_LAT = 0.78;
   const hipW = L.hipHalf + spec.taper.thigh[1] * THIGH_LAT + (female ? 0.004 : 0);
+  // The thigh's cross-section at `t` (0 at the hip joint, 1 at the knee):
+  // base radius with the quad sweep, oval at the top and round by the knee.
+  // Shared by the seat, which is cut to the thighs' own outline.
+  const legDef = female ? def * 0.5 : def;
+  const thighShape = (t: number): { ru: number; rv: number; quad: number } => {
+    const [thighB, thighA] = spec.taper.thigh;
+    const tt = Math.min(1, Math.max(0, t));
+    const base = (thighA + (thighB - thighA) * t) * (1 + 0.03 * def * Math.exp(-Math.pow((t - 0.35) / 0.3, 2)));
+    const quad = 0.09 * legDef * base * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
+    return { ru: base * (THIGH_LAT + (1 - THIGH_LAT) * tt), rv: base * (1.1 - 0.1 * tt), quad };
+  };
+  // How far below the hip joints the seat runs before the thighs take over.
+  const SEAT_DROP = 0.05;
   const W = (u: number) => {
     const base = profileAt(spec.trunkProfile, u) * 1.45 * spec.trunkW * (u > 0 ? spec.style.chest : 1);
     if (u >= -0.28) return base;
@@ -587,11 +603,76 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   // The seat under the hip line: the width shrinks to the crotch between the
   // thighs while the depth (and the glutes on it) holds, so the seat is
   // round where a real one is and the crotch stays a crotch.
-  const pelvisDrops = [[0.048, 0.42, 0.55], [0.036, 0.62, 0.8], [0.022, 0.85, 0.95], [0.008, 0.97, 1]] as const;
-  for (const [drop, kw, kd] of pelvisDrops) {
-    const bulges = trunkBulges(-0.5).map((bg) => ({ ...bg, amp: bg.amp * (bg.at < 0 ? kd : kw) }));
-    trunk.push(ring(new THREE.Vector3(0, hipY - drop, 0), X, Z, ellipseRadii(W(-0.5) * kw, D(-0.5) * kd, bulges), pelvisBones, legMat));
-  }
+  // The seat, from the hip joints down to where the thighs part: each ring
+  // is the outline of the two thighs at that height (so the seat's surface
+  // IS the thighs' surface, with no crease where one meets the other),
+  // bridged across the front and back by an ellipse that shrinks from the
+  // pelvis to the crotch. The glutes ride the back of it and fade out by
+  // the bottom, which is the fold under the seat. The lobes' vertices lean
+  // on the thigh bones more the lower they sit, so a raised knee takes the
+  // seat with it.
+  const seatRing = (drop: number, tuck = 1): Ring => {
+    const f = Math.min(1, drop / SEAT_DROP);
+    const t = drop / L.thigh;
+    const { ru: a, rv: bb, quad } = thighShape(t);
+    const bridgeW = hipW + (0.012 - hipW) * f * f;
+    const bridgeD = D(-0.5) * (1 - 0.55 * f);
+    const bulges = trunkBulges(-0.5).filter((bg) => bg.at < 0).map((bg) => ({ ...bg, amp: bg.amp * (1 - f) }));
+    const radii: number[] = [];
+    const sides: number[] = [];
+    for (let k = 0; k < N; k++) {
+      const th = (k / N) * Math.PI * 2;
+      const c = Math.cos(th), s = Math.sin(th);
+      let r = (bridgeW * bridgeD) / Math.sqrt(bridgeD * bridgeD * c * c + bridgeW * bridgeW * s * s);
+      let side = 0;
+      for (const sx of [L.hipHalf, -L.hipHalf]) {
+        const A = (c * c) / (a * a) + (s * s) / (bb * bb);
+        const B = (-2 * c * sx) / (a * a);
+        const C = (sx * sx) / (a * a) - 1;
+        const disc = B * B - 4 * A * C;
+        if (disc < 0) continue;
+        let hit = (-B + Math.sqrt(disc)) / (2 * A);
+        // The thigh's own quad lobe, on the front of that thigh.
+        if (quad > 0.0005) {
+          const local = Math.atan2(hit * s, hit * c - sx);
+          let d = Math.abs(local - front);
+          d = Math.min(d, Math.PI * 2 - d);
+          if (d < 1.1) {
+            const g = 0.5 + 0.5 * Math.cos((d / 1.1) * Math.PI);
+            hit += quad * g * g;
+          }
+        }
+        if (hit > r) {
+          r = hit;
+          side = Math.sign(sx);
+        }
+      }
+      for (const bg of bulges) {
+        let d = Math.abs(th - bg.at);
+        d = Math.min(d, Math.PI * 2 - d);
+        if (d < bg.width) {
+          const g = 0.5 + 0.5 * Math.cos((d / bg.width) * Math.PI);
+          r += bg.amp * g * g;
+        }
+      }
+      radii.push(r * tuck);
+      sides.push(side);
+    }
+    const hipsBone = bi("Hips"), left = bi("LeftUpLeg"), right = bi("RightUpLeg");
+    const out = ring(new THREE.Vector3(0, hipY - drop, 0), X, Z, radii, pelvisBones, legMat);
+    out.bonesAt = (k) => {
+      const side = sides[k]!;
+      if (side === 0 || f <= 0) return [[hipsBone, 1]];
+      const leg = side > 0 ? left : right;
+      return [[leg, f], [hipsBone, 1 - f]];
+    };
+    return out;
+  };
+  // The seat's lowest ring tucks a hair inside the thighs, below where they
+  // start, so the join is the thighs' own edge and not two coincident
+  // surfaces shading differently.
+  trunk.push(seatRing(SEAT_DROP + 0.008, 0.985));
+  for (const drop of [SEAT_DROP, SEAT_DROP * 0.75, SEAT_DROP * 0.5, SEAT_DROP * 0.25]) trunk.push(seatRing(drop));
   const trunkUs = [-0.5, -0.44, -0.42, -0.41, -0.36, -0.35, -0.3, -0.22, -0.12, -0.05, -0.04, 0.02, 0.1, 0.18, 0.26, 0.34, 0.42, 0.5];
   // The breath lives in the rib cage: nothing below the waist, everything
   // from the lower chest up.
@@ -713,9 +794,11 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       pelvis.push(pshell(waistU, legGap + LIP));
     } else pelvis.push(pshell(waistU, legGap));
     for (const u of trunkUs) if (u < waistU - 0.005) pelvis.push(pshell(u, legGap));
-    for (const [drop, k] of pelvisDrops) {
-      const bulges = trunkBulges(-0.5).map((bg) => ({ ...bg, amp: bg.amp * k }));
-      pelvis.push(ring(new THREE.Vector3(0, hipY - drop, 0), X, Z, ellipseRadii(W(-0.5) * k + legGap, D(-0.5) * k + legGap, bulges), pelvisBones, MAT.legShell));
+    for (const drop of [SEAT_DROP * 0.25, SEAT_DROP * 0.5, SEAT_DROP * 0.75, SEAT_DROP]) {
+      const seat = seatRing(drop);
+      seat.radii = seat.radii.map((r) => r + legGap);
+      seat.mat = MAT.legShell;
+      pelvis.push(seat);
     }
     b.tube(pelvis);
   }
@@ -756,47 +839,31 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // Under a layered garment the leg is skin; otherwise the legwear is
     // painted on the thigh (and, for her leggings, the whole leg).
     const legWear = layered ? MAT.skin : MAT.legwear;
-    const thighR = (t: number) => {
-      // t: 0 at the hip, 1 at the knee. Quads sweep out a little below the
-      // hip, then taper to the knee.
-      const base = thighA + (thighB - thighA) * t;
-      const quad = 1 + 0.03 * def * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
-      return base * quad;
-    };
+    // The thigh from where the seat parts: its first ring is the seat's
+    // own outline at that height, so the two surfaces meet without a step.
     // The quadriceps is a lobe on the FRONT of the thigh: the back of the
     // thigh is what rests on seats and pads, and a round bulge there sank
     // 5mm into every seat in the sweep.
-    // Her legs carry half the muscle relief: the same quads and calves as
-    // his read as too much leg against her narrower trunk.
-    const legDef = female ? def * 0.5 : def;
-    const thighRing = (y: number, rr: number, mat: number, extra = 0) => {
+    const thighRing = (y: number, mat: number, extra = 0, shape?: { ru: number; rv: number; quad: number }) => {
       const t = (hipY - y) / L.thigh;
-      const quad = 0.09 * legDef * rr * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
-      const bulges: Bulge[] = quad > 0.0005 ? [{ at: front, amp: quad, width: 1.1 }] : [];
-      // The glute continues onto the top of the thigh and fades by a fifth
-      // of the way down: the fold between seat and hamstring.
-      const seat = (female ? 0.012 : 0.009) * Math.max(0, 1 - Math.max(t, 0) / 0.22);
-      if (seat > 0.0005) bulges.push({ at: back, amp: seat, width: 1.0 });
-      // Oval at the hip, round by the knee.
-      const tt = Math.min(1, Math.max(0, t));
-      const lat = THIGH_LAT + (1 - THIGH_LAT) * tt;
-      const dep = 1.1 - 0.1 * tt;
-      return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr * lat + extra, rr * dep + extra, bulges), legBones(y), mat);
+      const sh = shape ?? thighShape(t);
+      const bulges: Bulge[] = sh.quad > 0.0005 ? [{ at: front, amp: sh.quad, width: 1.1 }] : [];
+      return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(sh.ru + extra, sh.rv + extra, bulges), legBones(y), mat);
     };
-    rings.push(thighRing(hipY + 0.03, thighA * 0.96, MAT.legwear));
-    rings.push(thighRing(hipY, thighR(0), MAT.legwear));
-    for (const t of [0.12, 0.25, 0.4, 0.55, 0.7]) rings.push(thighRing(hipY - t * L.thigh, thighR(t), legWear));
+    const tSeat = SEAT_DROP / L.thigh;
+    rings.push(thighRing(hipY - SEAT_DROP, MAT.legwear));
+    for (const t of [0.3, 0.42, 0.55, 0.7]) if (t > tSeat + 0.04) rings.push(thighRing(hipY - t * L.thigh, legWear));
     const tHem = (hipY - hemY) / L.thigh;
     if (!female && !layered) {
       // The shorts' hem: cloth standing a little proud, then skin.
-      rings.push(thighRing(hemY + 0.004, thighR(tHem), MAT.legwear, 0.004));
-      rings.push(thighRing(hemY, thighR(tHem), MAT.legwear, 0.004));
-      rings.push(thighRing(hemY - 0.002, thighR(tHem), MAT.skin));
+      rings.push(thighRing(hemY + 0.004, MAT.legwear, 0.004));
+      rings.push(thighRing(hemY, MAT.legwear, 0.004));
+      rings.push(thighRing(hemY - 0.002, MAT.skin));
     } else {
-      rings.push(thighRing(hemY, thighR(tHem), legWear));
+      rings.push(thighRing(hemY, legWear));
     }
     const kneeMat = female && !layered ? MAT.legwear : MAT.skin;
-    rings.push(thighRing(kneeY + 0.012, thighB * 1.02, kneeMat));
+    rings.push(thighRing(kneeY + 0.012, kneeMat, 0, { ru: thighB * 1.02, rv: thighB * 1.02, quad: 0 }));
     rings.push(ring(new THREE.Vector3(x, kneeY, 0), X, Z, ellipseRadii(thighB * 1.04, thighB * 1.1), legBones(kneeY), kneeMat));
     rings.push(ring(new THREE.Vector3(x, kneeY - 0.012, 0), X, Z, ellipseRadii(shinA * 1.0, shinA * 1.06), legBones(kneeY - 0.012), kneeMat));
     const shinR = (t: number) => {
@@ -818,26 +885,23 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     if (layered) {
       // The leg's garment shell: his shorts flare from the hip to an open
       // hem above the knee; her leggings hug the whole leg to the ankle.
-      const shellRing = (y: number, rr: number, gap: number) => {
+      const shellRing = (y: number, gap: number) => {
         const t = (hipY - y) / L.thigh;
-        const quad = 0.09 * legDef * rr * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
-        const tt = Math.min(1, Math.max(0, t));
-        const lat = THIGH_LAT + (1 - THIGH_LAT) * tt;
-        const dep = 1.1 - 0.1 * tt;
-        return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr * lat + gap, rr * dep + gap, quad > 0.0005 ? [{ at: front, amp: quad, width: 1.1 }] : []), legBones(y), MAT.legShell);
+        const sh = thighShape(t);
+        return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(sh.ru + gap, sh.rv + gap, sh.quad > 0.0005 ? [{ at: front, amp: sh.quad, width: 1.1 }] : []), legBones(y), MAT.legShell);
       };
       const leg: Ring[] = [];
-      leg.push(shellRing(hipY + 0.03, thighA * 0.96, 0.004));
+      leg.push(shellRing(hipY - SEAT_DROP, 0.004));
       if (!female) {
-        for (const t of [0, 0.12, 0.25, 0.4, 0.55, 0.7]) leg.push(shellRing(hipY - t * L.thigh, thighR(t), 0.004 + 0.006 * t));
+        for (const t of [0.3, 0.42, 0.55, 0.7]) leg.push(shellRing(hipY - t * L.thigh, 0.004 + 0.006 * t));
         const g = 0.004 + 0.006 * tHem;
-        leg.push(shellRing(hemY, thighR(tHem), g + LIP));
-        leg.push(shellRing(hemY, thighR(tHem), g - LIP));
-        leg.push(shellRing(hemY + 0.012, thighR(tHem), g - LIP));
+        leg.push(shellRing(hemY, g + LIP));
+        leg.push(shellRing(hemY, g - LIP));
+        leg.push(shellRing(hemY + 0.012, g - LIP));
       } else {
-        for (const t of [0, 0.12, 0.25, 0.4, 0.55, 0.7]) leg.push(shellRing(hipY - t * L.thigh, thighR(t), 0.003));
-        leg.push(shellRing(hemY, thighR(tHem), 0.003));
-        leg.push(shellRing(kneeY + 0.012, thighB * 1.02, 0.003));
+        for (const t of [0.3, 0.42, 0.55, 0.7]) leg.push(shellRing(hipY - t * L.thigh, 0.003));
+        leg.push(shellRing(hemY, 0.003));
+        leg.push(ring(new THREE.Vector3(x, kneeY + 0.012, 0), X, Z, ellipseRadii(thighB * 1.02 + 0.003, thighB * 1.02 + 0.003), legBones(kneeY + 0.012), MAT.legShell));
         leg.push(ring(new THREE.Vector3(x, kneeY, 0), X, Z, ellipseRadii(thighB * 1.04 + 0.003, thighB * 1.1 + 0.003), legBones(kneeY), MAT.legShell));
         leg.push(ring(new THREE.Vector3(x, kneeY - 0.012, 0), X, Z, ellipseRadii(shinA + 0.003, shinA * 1.06 + 0.003), legBones(kneeY - 0.012), MAT.legShell));
         for (const t of [0.12, 0.3, 0.45, 0.6, 0.8, 0.93]) {
