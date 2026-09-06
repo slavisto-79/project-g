@@ -119,7 +119,8 @@ const FEMALE = {
 // These multiply the reference radii; training progress (`muscle`) still
 // grows the shoulders, arms, chest and neck on top of them.
 const MALE = {
-  chest: 1.12,
+  // 1.12 read as a barrel on the skinned body (the user: too wide a chest).
+  chest: 1.04,
   waist: 0.9,
   // The delts were 1.18 here on top of a 0.046 sphere: at the reference
   // build that was a 12cm ball on each shoulder, and the user's review was
