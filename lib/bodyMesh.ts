@@ -90,7 +90,27 @@ export type BodySpec = {
 export type Body = {
   root: THREE.Group;
   mesh: THREE.SkinnedMesh;
+  // Set each frame: how far (world units) the chest stands out from rest.
+  breath: { value: number };
 };
+
+// The breath: every vertex moves out along its rest normal by the shared
+// uniform times its own `breath` weight, before skinning, in every
+// material the body wears -- skin, shells and the shadow pass alike.
+const BREATH_VERTEX = "#include <begin_vertex>\ntransformed += normal * (uBreath * breath);";
+function breathing<T extends THREE.Material>(material: T, uniform: { value: number }): T {
+  const previous = material.onBeforeCompile;
+  material.onBeforeCompile = (shader, renderer) => {
+    previous.call(material, shader, renderer);
+    shader.uniforms.uBreath = uniform;
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nattribute float breath;\nuniform float uBreath;")
+      .replace("#include <begin_vertex>", BREATH_VERTEX);
+  };
+  const key = material.customProgramCacheKey.bind(material);
+  material.customProgramCacheKey = () => key() + "|breath";
+  return material;
+}
 
 const N = 28; // vertices around each ring
 const X = new THREE.Vector3(1, 0, 0);
@@ -113,6 +133,8 @@ type Ring = {
   // (positive = cloth), interpolated across the faces so the edge is a
   // clean line through them rather than a staircase of whole quads.
   cloth?: (k: number) => number;
+  // How much of the breath this ring carries (1 at the chest, 0 elsewhere).
+  breath?: number;
 };
 
 const MAT = { skin: 0, top: 1, legwear: 2, band: 3, neck: 4, topShell: 5, legShell: 6 } as const;
@@ -198,6 +220,7 @@ class Builder {
   skinIndex: number[] = [];
   skinWeight: number[] = [];
   cloth: number[] = [];
+  breath: number[] = [];
   // Triangles per material.
   tris: number[][] = [[], [], [], [], [], [], []];
 
@@ -210,6 +233,7 @@ class Builder {
       // Uncut by default; only a garment's mask goes negative, and the
       // shadow pass reads the same value.
       this.cloth.push(r.cloth ? r.cloth(k) : 1);
+      this.breath.push(r.breath ?? 0);
       const bones = r.bones.slice(0, 4);
       const total = bones.reduce((s, [, w]) => s + w, 0) || 1;
       for (let i = 0; i < 4; i++) {
@@ -246,6 +270,7 @@ class Builder {
     g.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(this.skinIndex, 4));
     g.setAttribute("skinWeight", new THREE.Float32BufferAttribute(this.skinWeight, 4));
     g.setAttribute("cloth", new THREE.Float32BufferAttribute(this.cloth, 1));
+    g.setAttribute("breath", new THREE.Float32BufferAttribute(this.breath, 1));
     const index: number[] = [];
     let start = 0;
     this.tris.forEach((tris, mat) => {
@@ -410,6 +435,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     trunk.push(ring(new THREE.Vector3(0, hipY - drop, 0), X, Z, ellipseRadii(W(-0.5) * k, D(-0.5) * k, bulges), pelvisBones, legMat));
   }
   const trunkUs = [-0.5, -0.44, -0.42, -0.41, -0.36, -0.35, -0.3, -0.22, -0.12, -0.05, -0.04, 0.02, 0.1, 0.18, 0.26, 0.34, 0.42, 0.5];
+  // The breath lives in the rib cage: nothing below the waist, everything
+  // from the lower chest up.
+  const breathAt = (u: number) => Math.min(1, Math.max(0, (u + 0.15) / 0.25));
   for (const u of trunkUs) {
     let ru = W(u), rv = D(u);
     // A raised edge where cloth ends: the waistband and the top's hem (his
@@ -421,7 +449,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       ru += 0.003;
       rv += 0.003;
     }
-    trunk.push(ring(new THREE.Vector3(0, trunkY(u), 0), X, Z, ellipseRadii(ru, rv, trunkBulges(u)), trunkBones(u), mat, cloth));
+    const body = ring(new THREE.Vector3(0, trunkY(u), 0), X, Z, ellipseRadii(ru, rv, trunkBulges(u)), trunkBones(u), mat, cloth);
+    body.breath = breathAt(u);
+    trunk.push(body);
   }
   // Shoulders to neck: the traps, a dome as tall as the mannequin's was
   // (its trunk cap was a 6cm sphere), so the neck reads as a neck and not
@@ -434,7 +464,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   const domeCloth = layered ? undefined : straps;
   const dome = [[0.015, 0.93, 0.94], [0.03, 0.8, 0.84], [0.045, 0.6, 0.68]] as const;
   for (const [dy, kw, kd] of dome) {
-    trunk.push(ring(new THREE.Vector3(0, shoulderY + dy, 0), X, Z, ellipseRadii(W(0.5) * kw, D(0.5) * kd), topBones, domeMat, domeCloth));
+    const d = ring(new THREE.Vector3(0, shoulderY + dy, 0), X, Z, ellipseRadii(W(0.5) * kw, D(0.5) * kd), topBones, domeMat, domeCloth);
+    d.breath = 0.4;
+    trunk.push(d);
   }
   trunk.push(ring(new THREE.Vector3(0, shoulderY + 0.058, 0), X, Z, ellipseRadii(Math.max(W(0.5) * 0.38, neckA * 1.3), Math.max(D(0.5) * 0.5, neckA * 1.2)), [[bi("Spine2"), 0.6], [bi("Neck"), 0.4]], MAT.skin));
   // Neck, on up into the head.
@@ -487,7 +519,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       const c = new THREE.Vector3(0, trunkY(u), 0);
       const radii = ellipseRadii(W(u) + gap, D(u) + gap, trunkBulges(u));
       const base = u >= neckFrom ? panelCloth((u - neckFrom) / (0.5 - neckFrom), c, radii) : undefined;
-      return ring(c, X, Z, radii, trunkBones(u), MAT.topShell, u > 0.3 ? clearDelts(c, radii, base) : base);
+      const r = ring(c, X, Z, radii, trunkBones(u), MAT.topShell, u > 0.3 ? clearDelts(c, radii, base) : base);
+      r.breath = breathAt(u);
+      return r;
     };
     const top: Ring[] = [];
     top.push(shell(hemU + 0.012, gapAt(hemU) - LIP));
@@ -497,7 +531,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     for (const [dy, kw, kd] of dome) {
       const c = new THREE.Vector3(0, shoulderY + dy, 0);
       const radii = ellipseRadii(W(0.5) * kw + 0.005, D(0.5) * kd + 0.005);
-      top.push(ring(c, X, Z, radii, topBones, MAT.topShell, clearDelts(c, radii, panelCloth(1, c, radii))));
+      const d = ring(c, X, Z, radii, topBones, MAT.topShell, clearDelts(c, radii, panelCloth(1, c, radii)));
+      d.breath = 0.4;
+      top.push(d);
     }
     b.tube(top);
 
@@ -781,17 +817,20 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   }
 
   const geometry = b.geometry();
+  // The body's materials are its own clones: the breath is injected into
+  // them, and the face, sneakers and equipment share the originals.
+  const breath = { value: 0 };
   const mesh = new THREE.SkinnedMesh(geometry, [
-    mats.skin,
-    mats.top,
-    mats.legwear,
+    breathing(mats.skin.clone(), breath),
+    breathing(mats.top.clone(), breath),
+    breathing(mats.legwear.clone(), breath),
     mats.band,
-    necklineMaterial(mats.skin, mats.top),
-    shellMaterial(mats.top),
-    shellMaterial(mats.legwear),
+    breathing(necklineMaterial(mats.skin, mats.top), breath),
+    breathing(shellMaterial(mats.top), breath),
+    breathing(shellMaterial(mats.legwear), breath),
   ]);
   mesh.castShadow = true;
-  mesh.customDepthMaterial = shadowMaterial();
+  mesh.customDepthMaterial = breathing(shadowMaterial(), breath);
   mesh.frustumCulled = false;
   const skeleton = new THREE.Skeleton(bones);
   const root = new THREE.Group();
@@ -799,5 +838,5 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   root.add(mesh);
   root.updateMatrixWorld(true);
   mesh.bind(skeleton, mesh.matrixWorld);
-  return { root, mesh };
+  return { root, mesh, breath };
 }
