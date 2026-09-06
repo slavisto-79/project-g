@@ -18,6 +18,7 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { ExercisePose, PoseFrame3D, PoseProp3D, Vec3 } from "./poses";
 import { REFERENCE_AVATAR, type AvatarBuild } from "./avatar";
+import { SkinnedFigure, type RigMap, type FigureSample } from "./skinnedFigure";
 
 // Matches the loadable implements the workout knows about; the viewer only
 // cares which family of equipment to draw.
@@ -228,6 +229,10 @@ export class PoseViewer3D {
   // The shorts' hems: a ring at the knee end of each thigh, so the shorts
   // end in a clean line instead of the jagged edge two capsules made.
   private hems: { mesh: THREE.Mesh; bone: number }[] = [];
+  // Everything buildMannequin() put in the scene, hidden once a skinned
+  // figure has loaded and taken over the pose.
+  private mannequin: THREE.Object3D[] = [];
+  private skinned: SkinnedFigure | null = null;
 
   constructor(
     host: HTMLElement,
@@ -235,7 +240,16 @@ export class PoseViewer3D {
     implement: ViewerImplement,
     // `topInset`: pixels along the top of the host that something else is
     // drawn over (the fullscreen title bar). The figure is fitted below it.
-    options: { interactive: boolean; reduceMotion?: boolean; onReady?: () => void; avatar?: AvatarBuild; topInset?: number },
+    // `figure`: a rigged humanoid GLB to pose instead of the built mannequin
+    // (lib/skinnedFigure.ts). The mannequin shows until the model has loaded.
+    options: {
+      interactive: boolean;
+      reduceMotion?: boolean;
+      onReady?: () => void;
+      avatar?: AvatarBuild;
+      topInset?: number;
+      figure?: { url: string; rig?: RigMap };
+    },
   ) {
     this.host = host;
     this.frames = pose.frames3d;
@@ -287,8 +301,11 @@ export class PoseViewer3D {
     rim.position.set(-2.0, 1.2, -1.6);
     this.scene.add(hemi, key, rim);
 
+    const beforeMannequin = new Set(this.scene.children);
     this.buildMannequin(pose, implement);
+    this.mannequin = this.scene.children.filter((c) => !beforeMannequin.has(c));
     this.buildProps(pose, implement);
+    if (options.figure) this.loadFigure(options.figure.url, options.figure.rig);
     // Everything casts onto the floor disc; the disc itself only receives.
     this.scene.traverse((o) => {
       if ((o as THREE.Mesh).isMesh && !o.userData.floor) o.castShadow = true;
@@ -322,6 +339,28 @@ export class PoseViewer3D {
     });
     this.renderer.dispose();
     this.canvas.remove();
+  }
+
+  // Fetch the rigged model and hand it the pose. The model is scaled to the
+  // pose's leg, so it stands where the mannequin stood and the props fit.
+  private loadFigure(url: string, rig?: RigMap) {
+    const first = this.frames[0]!;
+    const len = (part: string) => {
+      const bone = first.bones.find((b) => b.part === part && b.side === 0);
+      return bone ? vec(bone.a).distanceTo(vec(bone.b)) : 0;
+    };
+    const leg = len("thigh") + len("shin");
+    SkinnedFigure.load(url, leg > 0 ? leg : 0.44, rig)
+      .then((figure) => {
+        if (this.disposed) {
+          figure.dispose();
+          return;
+        }
+        this.skinned = figure;
+        for (const part of this.mannequin) part.visible = false;
+        this.scene.add(figure.root);
+      })
+      .catch((e) => console.warn("skinned figure failed to load; keeping the mannequin", e));
   }
 
   private fitted = false;
@@ -1591,10 +1630,13 @@ export class PoseViewer3D {
     const a = this.frames[i]!;
     const b = this.frames[i + 1]!;
 
+    // This frame's segments, for the skinned figure (if one has loaded).
+    const sample: FigureSample["bones"] = [];
     for (let n = 0; n < this.bones.length; n++) {
       const bone = this.bones[n]!;
       const pa = lerp3(a.bones[n]!.a, b.bones[n]!.a, f);
       const pb = lerp3(a.bones[n]!.b, b.bones[n]!.b, f);
+      sample.push({ part: bone.part, side: a.bones[n]!.side, a: pa.clone(), b: pb.clone() });
       // The neck column continues up under the raised head (see below).
       if (bone.part === "neck") pb.addScaledVector(pb.clone().sub(pa).normalize(), 0.05);
       const dir = pb.clone().sub(pa);
@@ -1665,6 +1707,7 @@ export class PoseViewer3D {
       const fx = new THREE.Vector3().crossVectors(up, fz).normalize();
       this.face.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(fx, up, fz));
       this.face.position.copy(this.head.position);
+      if (this.skinned) this.skinned.apply({ bones: sample, head: this.head.position.clone(), ventral });
       if (this.busts.length) {
         // A gentle bust: two rounded lobes high on the chest, either side of
         // the midline, standing a little proud of the trunk's front (its
