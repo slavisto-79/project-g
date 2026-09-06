@@ -724,7 +724,13 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     return s * s * (3 - 2 * s);
   };
   const hipsBone = bi("Hips"), leftLeg = bi("LeftUpLeg"), rightLeg = bi("RightUpLeg");
-  const seatBones = (x: number, f: number): [number, number][] => {
+  // The front of the seat belongs to the thighs sooner than the back: the
+  // hip crease is where the thigh's front folds against the belly, and a
+  // front left mostly with the pelvis opened a dark slit there at a deep
+  // squat, where the rotated thigh cut up through it. `front` is how far
+  // toward the front the vertex sits (0 at the sides and back, 1 in front).
+  const seatBones = (x: number, f: number, front = 0): [number, number][] => {
+    f = Math.min(1, f * (1 + 0.9 * Math.max(0, front)));
     if (f <= 0) return [[hipsBone, 1]];
     const l = leftShare(x);
     const out: [number, number][] = [];
@@ -737,7 +743,10 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const f = Math.min(1, drop / SEAT_DROP);
     const { radii } = seatOutline(hipY - drop);
     const out = ring(new THREE.Vector3(0, hipY - drop, 0), X, Z, radii.map((r) => r * tuck), pelvisBones, legMat);
-    out.bonesAt = (k) => seatBones(out.radii[k]! * Math.cos((k / N) * Math.PI * 2), f);
+    out.bonesAt = (k) => {
+      const th = (k / N) * Math.PI * 2;
+      return seatBones(out.radii[k]! * Math.cos(th), f, Math.sin(th));
+    };
     return out;
   };
   // Dense through the seat, so the eggs' curve is a curve and not facets.
@@ -907,12 +916,17 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const [thighB, thighA] = spec.taper.thigh;
     const [shinB, shinA] = spec.taper.shin;
     const rings: Ring[] = [];
-    // Blend across the knee over 3cm either side.
+    // Blend across the knee over 3.5cm either side, eased, with rings
+    // through the blend (below) so a bent knee turns in steps and not at
+    // one crease: at 120 degrees of flexion a single 50/50 ring pinched to
+    // half its width and the shin's top cut into the thigh.
+    const KNEE_BLEND = 0.035;
     const legBones = (y: number): [number, number][] => {
-      const d = (y - kneeY) / 0.03;
+      const d = (y - kneeY) / KNEE_BLEND;
       if (d >= 1) return [[up, 1]];
       if (d <= -1) return [[lo, 1]];
-      const w = 0.5 + 0.5 * d;
+      const s = 0.5 + 0.5 * d;
+      const w = s * s * (3 - 2 * s);
       return [[up, w], [lo, 1 - w]];
     };
     const hemY = kneeY + 0.03;
@@ -958,9 +972,13 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       rings.push(thighRing(hemY, legWear));
     }
     const kneeMat = female && !layered ? MAT.legwear : MAT.skin;
-    rings.push(thighRing(kneeY + 0.012, kneeMat, 0, { ru: thighB * 1.02, rv: thighB * 1.02, quad: 0 }));
-    rings.push(ring(new THREE.Vector3(x, kneeY, 0), X, Z, ellipseRadii(thighB * 1.04, thighB * 1.1), legBones(kneeY), kneeMat));
-    rings.push(ring(new THREE.Vector3(x, kneeY - 0.012, 0), X, Z, ellipseRadii(shinA * 1.0, shinA * 1.06), legBones(kneeY - 0.012), kneeMat));
+    rings.push(thighRing(kneeY + 0.022, kneeMat, 0, { ru: thighB * 1.02, rv: thighB * 1.03, quad: 0 }));
+    rings.push(thighRing(kneeY + 0.012, kneeMat, 0, { ru: thighB * 1.03, rv: thighB * 1.05, quad: 0 }));
+    // The kneecap: a little proud of the front, which is the outside of the
+    // bend and the part a squat stretches thin.
+    rings.push(ring(new THREE.Vector3(x, kneeY, 0), X, Z, ellipseRadii(thighB * 1.04, thighB * 1.08, [{ at: front, amp: 0.004, width: 1.0 }]), legBones(kneeY), kneeMat));
+    rings.push(ring(new THREE.Vector3(x, kneeY - 0.012, 0), X, Z, ellipseRadii(shinA * 1.02, shinA * 1.06), legBones(kneeY - 0.012), kneeMat));
+    rings.push(ring(new THREE.Vector3(x, kneeY - 0.024, 0), X, Z, ellipseRadii(shinA * 1.0, shinA * 1.04), legBones(kneeY - 0.024), kneeMat));
     const shinR = (t: number) => {
       const base = shinA + (shinB - shinA) * t;
       const calf = 1 + (0.08 + 0.2 * legDef) * Math.exp(-Math.pow((t - 0.3) / 0.22, 2));
