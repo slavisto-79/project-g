@@ -26,12 +26,16 @@ export type BodyStyle = {
   shoulders: number;
   // Multiplier on the trunk's chest width, on top of the build's.
   chest: number;
+  // Clothes as shells a few millimetres off an all-skin body, with open
+  // hems that show the fabric's thickness and necklines cut through the
+  // fabric, instead of paint on the skin.
+  layered?: boolean;
 };
 
 // The user's pick from a three-way mockup ("B defined" over "A athletic"
 // and "C soft"), for both builds: full muscle definition, wider deltoids
 // and chest, on top of each build's own radii.
-export const BODY_STYLE_DEFAULT: BodyStyle = { definition: 1, shoulders: 1.18, chest: 1.08 };
+export const BODY_STYLE_DEFAULT: BodyStyle = { definition: 1, shoulders: 1.18, chest: 1.08, layered: true };
 
 export type BodyMaterials = {
   skin: THREE.MeshStandardMaterial;
@@ -111,7 +115,40 @@ type Ring = {
   cloth?: (k: number) => number;
 };
 
-const MAT = { skin: 0, top: 1, legwear: 2, band: 3, neck: 4 } as const;
+const MAT = { skin: 0, top: 1, legwear: 2, band: 3, neck: 4, topShell: 5, legShell: 6 } as const;
+
+// A garment shell: the fabric's own material, seen from both sides, cut
+// away wherever the per-vertex `cloth` value is negative (the neckline).
+function shellMaterial(base: THREE.Material): THREE.Material {
+  const m = (base as THREE.MeshStandardMaterial).clone();
+  m.side = THREE.DoubleSide;
+  m.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nattribute float cloth;\nvarying float vCloth;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvCloth = cloth;");
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", "#include <common>\nvarying float vCloth;")
+      .replace("#include <clipping_planes_fragment>", "#include <clipping_planes_fragment>\nif (vCloth < 0.0) discard;");
+  };
+  m.customProgramCacheKey = () => "body-shell";
+  return m;
+}
+
+// The shadow pass with the same cut: without it a scooped neckline still
+// threw the shadow of a whole shirt.
+function shadowMaterial(): THREE.MeshDepthMaterial {
+  const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+  m.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nattribute float cloth;\nvarying float vCloth;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvCloth = cloth;");
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", "#include <common>\nvarying float vCloth;")
+      .replace("#include <clipping_planes_fragment>", "#include <clipping_planes_fragment>\nif (vCloth < 0.0) discard;");
+  };
+  m.customProgramCacheKey = () => "body-shadow";
+  return m;
+}
 
 // Skin that turns into the top wherever the per-vertex `cloth` value is
 // positive: the neckline and straps cut through faces instead of along
@@ -162,7 +199,7 @@ class Builder {
   skinWeight: number[] = [];
   cloth: number[] = [];
   // Triangles per material.
-  tris: number[][] = [[], [], [], [], []];
+  tris: number[][] = [[], [], [], [], [], [], []];
 
   private addRing(r: Ring): number {
     const base = this.positions.length / 3;
@@ -170,7 +207,9 @@ class Builder {
       const t = (k / N) * Math.PI * 2;
       const p = r.c.clone().addScaledVector(r.u, r.radii[k]! * Math.cos(t)).addScaledVector(r.v, r.radii[k]! * Math.sin(t));
       this.positions.push(p.x, p.y, p.z);
-      this.cloth.push(r.cloth ? r.cloth(k) : r.mat === MAT.top ? 1 : -1);
+      // Uncut by default; only a garment's mask goes negative, and the
+      // shadow pass reads the same value.
+      this.cloth.push(r.cloth ? r.cloth(k) : 1);
       const bones = r.bones.slice(0, 4);
       const total = bones.reduce((s, [, w]) => s + w, 0) || 1;
       for (let i = 0; i < 4; i++) {
@@ -325,7 +364,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       return half - lateral;
     };
   };
+  const layered = !!spec.style.layered;
   const trunkMat = (u: number): { mat: number; cloth?: (k: number) => number } => {
+    if (layered) return { mat: trunkBand(u) === MAT.legwear ? MAT.legwear : MAT.skin };
     const band = trunkBand(u);
     if (band !== MAT.top || u < neckFrom) return { mat: band };
     return { mat: MAT.neck, cloth: strapCloth((u - neckFrom) / (0.5 - neckFrom)) };
@@ -359,8 +400,12 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   // shoulders, then the traps sloping in to the neck.
   const trunk: Ring[] = [];
   const pelvisBones: [number, number][] = [[bi("Hips"), 1]];
+  // The pelvis is painted in the legwear even under a layered garment: the
+  // only place it shows is the crotch between the shells, and skin there
+  // read as a gap in the shorts.
   const legMat = MAT.legwear;
-  for (const [drop, k] of [[0.045, 0.5], [0.032, 0.8], [0.018, 0.93], [0.006, 0.99]] as const) {
+  const pelvisDrops = [[0.045, 0.5], [0.032, 0.8], [0.018, 0.93], [0.006, 0.99]] as const;
+  for (const [drop, k] of pelvisDrops) {
     const bulges = trunkBulges(-0.5).map((bg) => ({ ...bg, amp: bg.amp * k }));
     trunk.push(ring(new THREE.Vector3(0, hipY - drop, 0), X, Z, ellipseRadii(W(-0.5) * k, D(-0.5) * k, bulges), pelvisBones, legMat));
   }
@@ -372,7 +417,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const { mat, cloth } = trunkMat(u);
     const band = trunkBand(u);
     const edge = band !== trunkBand(u - 0.011) || band !== trunkBand(u + 0.011);
-    if (edge && band !== MAT.skin && !(band === MAT.top && !female)) {
+    if (!layered && edge && band !== MAT.skin && !(band === MAT.top && !female)) {
       ru += 0.003;
       rv += 0.003;
     }
@@ -385,9 +430,12 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   const Rx = L.headR * 1.18 * 0.95, Ry = L.headR * 1.18 * 1.06, Rz = L.headR * 1.18 * 0.98;
   const topBones: [number, number][] = [[bi("Spine2"), 1]];
   const straps = strapCloth(1);
-  trunk.push(ring(new THREE.Vector3(0, shoulderY + 0.015, 0), X, Z, ellipseRadii(W(0.5) * 0.93, D(0.5) * 0.94), topBones, MAT.neck, straps));
-  trunk.push(ring(new THREE.Vector3(0, shoulderY + 0.03, 0), X, Z, ellipseRadii(W(0.5) * 0.8, D(0.5) * 0.84), topBones, MAT.neck, straps));
-  trunk.push(ring(new THREE.Vector3(0, shoulderY + 0.045, 0), X, Z, ellipseRadii(W(0.5) * 0.6, D(0.5) * 0.68), topBones, MAT.neck, straps));
+  const domeMat = layered ? MAT.skin : MAT.neck;
+  const domeCloth = layered ? undefined : straps;
+  const dome = [[0.015, 0.93, 0.94], [0.03, 0.8, 0.84], [0.045, 0.6, 0.68]] as const;
+  for (const [dy, kw, kd] of dome) {
+    trunk.push(ring(new THREE.Vector3(0, shoulderY + dy, 0), X, Z, ellipseRadii(W(0.5) * kw, D(0.5) * kd), topBones, domeMat, domeCloth));
+  }
   trunk.push(ring(new THREE.Vector3(0, shoulderY + 0.058, 0), X, Z, ellipseRadii(Math.max(W(0.5) * 0.38, neckA * 1.3), Math.max(D(0.5) * 0.5, neckA * 1.2)), [[bi("Spine2"), 0.6], [bi("Neck"), 0.4]], MAT.skin));
   // Neck, on up into the head.
   const neckBones: [number, number][] = [[bi("Neck"), 1]];
@@ -398,6 +446,81 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   // the chin hangs in front of and below where the neck enters.
   trunk.push(neckTop, ...cap(neckTop.c, X, Z, Y, neckTop.radii, 0.03, [[bi("Head"), 1]], MAT.skin, 3));
   b.tube(trunk);
+
+  // Fabric thickness shown at every open edge: the tube starts inside the
+  // garment, turns out at the hem, and continues up the outside.
+  const LIP = 0.0025;
+  if (layered) {
+    // The top: his stringer hangs looser toward its hem; her cropped top
+    // hugs. Both follow the trunk's own silhouette (bust and lats included)
+    // a few millimetres out, and the neckline and straps are cut from the
+    // fabric by the cloth mask.
+    const hemU = female ? 0.5 - spec.topCover : -0.46;
+    // Loose, but not by much: the sweep charges every millimetre of slack
+    // against the pads a seated or lying figure rests on.
+    const gapAt = (u: number) => (female ? 0.004 : 0.005 + Math.max(0, -0.1 - u) * 0.015);
+    // Fabric inside a deltoid is cut away too: the shell's shoulder rings
+    // reach into the delts, and a strap poking out of one read as a patch.
+    const deltR = spec.delt * spec.style.shoulders + 0.004;
+    const clearDelts = (c: THREE.Vector3, radii: number[], base?: (k: number) => number) => (k: number) => {
+      const t = (k / N) * Math.PI * 2;
+      const px = c.x + radii[k]! * Math.cos(t), pz = c.z + radii[k]! * Math.sin(t);
+      let clear = Infinity;
+      for (const s of [1, -1]) clear = Math.min(clear, Math.hypot(px - s * L.shoulderHalf, c.y - (shoulderY - 0.006), pz) - deltR);
+      return Math.min(base ? base(k) : 1, clear * 40);
+    };
+    // The neckline and armholes, cut by where each vertex sits across the
+    // body: from `neckFrom` up, the fabric narrows to a strap band between
+    // `strapIn` and `strapOut` of the midline -- so the front and back
+    // panels scoop toward the straps, the armholes open outside them, and
+    // the straps cross the shoulder medial to the deltoids.
+    const strapIn = 0.022, strapOut = female ? 0.056 : 0.047;
+    const panelCloth = (t: number, c: THREE.Vector3, radii: number[]) => (k: number) => {
+      const th = (k / N) * Math.PI * 2;
+      const ax = Math.abs(c.x + radii[k]! * Math.cos(th));
+      const s = Math.min(1, Math.max(0, t));
+      const xMin = strapIn * s;
+      const xMax = radii[0]! + (strapOut - radii[0]!) * s;
+      return Math.min(ax - xMin, xMax - ax) * 40;
+    };
+    const shell = (u: number, gap: number) => {
+      const c = new THREE.Vector3(0, trunkY(u), 0);
+      const radii = ellipseRadii(W(u) + gap, D(u) + gap, trunkBulges(u));
+      const base = u >= neckFrom ? panelCloth((u - neckFrom) / (0.5 - neckFrom), c, radii) : undefined;
+      return ring(c, X, Z, radii, trunkBones(u), MAT.topShell, u > 0.3 ? clearDelts(c, radii, base) : base);
+    };
+    const top: Ring[] = [];
+    top.push(shell(hemU + 0.012, gapAt(hemU) - LIP));
+    top.push(shell(hemU, gapAt(hemU) - LIP));
+    top.push(shell(hemU, gapAt(hemU) + LIP));
+    for (const u of trunkUs) if (u > hemU + 0.005) top.push(shell(u, gapAt(u)));
+    for (const [dy, kw, kd] of dome) {
+      const c = new THREE.Vector3(0, shoulderY + dy, 0);
+      const radii = ellipseRadii(W(0.5) * kw + 0.005, D(0.5) * kd + 0.005);
+      top.push(ring(c, X, Z, radii, topBones, MAT.topShell, clearDelts(c, radii, panelCloth(1, c, radii))));
+    }
+    b.tube(top);
+
+    // The legwear's pelvis: his shorts from under the shirt's hem, her
+    // leggings from a waistband at the waist, down over the seat to where
+    // the legs' own shells take over.
+    const waistU = female ? -0.36 : -0.41;
+    const legGap = female ? 0.003 : 0.004;
+    const pelvis: Ring[] = [];
+    const pshell = (u: number, gap: number) =>
+      ring(new THREE.Vector3(0, trunkY(u), 0), X, Z, ellipseRadii(W(u) + gap, D(u) + gap, trunkBulges(u)), trunkBones(u), MAT.legShell);
+    if (female) {
+      pelvis.push(pshell(waistU + 0.012, legGap - LIP));
+      pelvis.push(pshell(waistU, legGap - LIP));
+      pelvis.push(pshell(waistU, legGap + LIP));
+    } else pelvis.push(pshell(waistU, legGap));
+    for (const u of trunkUs) if (u < waistU - 0.005) pelvis.push(pshell(u, legGap));
+    for (const [drop, k] of pelvisDrops) {
+      const bulges = trunkBulges(-0.5).map((bg) => ({ ...bg, amp: bg.amp * k }));
+      pelvis.push(ring(new THREE.Vector3(0, hipY - drop, 0), X, Z, ellipseRadii(W(-0.5) * k + legGap, D(-0.5) * k + legGap, bulges), pelvisBones, MAT.legShell));
+    }
+    b.tube(pelvis);
+  }
 
   // Head: a sculpted skull rather than an egg. Each ring is the larger of
   // the egg and the jaw ellipsoid the face used to carry as a separate
@@ -471,8 +594,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       return [[up, w], [lo, 1 - w]];
     };
     const hemY = kneeY + 0.03;
-    const legwearBelow = female ? -Infinity : hemY;
-    const thighMat = (y: number) => (y >= legwearBelow ? MAT.legwear : MAT.skin);
+    // Under a layered garment the leg is skin; otherwise the legwear is
+    // painted on the thigh (and, for her leggings, the whole leg).
+    const legWear = layered ? MAT.skin : MAT.legwear;
     const thighR = (t: number) => {
       // t: 0 at the hip, 1 at the knee. Quads sweep out a little below the
       // hip, then taper to the knee.
@@ -489,17 +613,18 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr + extra, rr + extra, quad > 0.0005 ? [{ at: front, amp: quad, width: 1.1 }] : []), legBones(y), mat);
     };
     rings.push(thighRing(hipY + 0.03, thighA * 0.96, MAT.legwear));
-    for (const t of [0, 0.12, 0.25, 0.4, 0.55, 0.7]) rings.push(thighRing(hipY - t * L.thigh, thighR(t), MAT.legwear));
-    if (!female) {
+    rings.push(thighRing(hipY, thighR(0), MAT.legwear));
+    for (const t of [0.12, 0.25, 0.4, 0.55, 0.7]) rings.push(thighRing(hipY - t * L.thigh, thighR(t), legWear));
+    const tHem = (hipY - hemY) / L.thigh;
+    if (!female && !layered) {
       // The shorts' hem: cloth standing a little proud, then skin.
-      const tHem = (hipY - hemY) / L.thigh;
       rings.push(thighRing(hemY + 0.004, thighR(tHem), MAT.legwear, 0.004));
       rings.push(thighRing(hemY, thighR(tHem), MAT.legwear, 0.004));
       rings.push(thighRing(hemY - 0.002, thighR(tHem), MAT.skin));
     } else {
-      rings.push(thighRing(hemY, thighR((hipY - hemY) / L.thigh), MAT.legwear));
+      rings.push(thighRing(hemY, thighR(tHem), legWear));
     }
-    const kneeMat = female ? MAT.legwear : MAT.skin;
+    const kneeMat = female && !layered ? MAT.legwear : MAT.skin;
     rings.push(thighRing(kneeY + 0.012, thighB * 1.02, kneeMat));
     rings.push(ring(new THREE.Vector3(x, kneeY, 0), X, Z, ellipseRadii(thighB * 1.04, thighB * 1.1), legBones(kneeY), kneeMat));
     rings.push(ring(new THREE.Vector3(x, kneeY - 0.012, 0), X, Z, ellipseRadii(shinA * 1.0, shinA * 1.06), legBones(kneeY - 0.012), kneeMat));
@@ -518,6 +643,37 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // through the floor when the shin leaned.
     rings.push(ankle, ...cap(ankle.c, X, Z, new THREE.Vector3(0, -1, 0), ankle.radii, 0.005, [[lo, 1]], kneeMat, 2));
     b.tube(rings);
+
+    if (layered) {
+      // The leg's garment shell: his shorts flare from the hip to an open
+      // hem above the knee; her leggings hug the whole leg to the ankle.
+      const shellRing = (y: number, rr: number, gap: number) => {
+        const t = (hipY - y) / L.thigh;
+        const quad = 0.09 * def * rr * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
+        return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr + gap, rr + gap, quad > 0.0005 ? [{ at: front, amp: quad, width: 1.1 }] : []), legBones(y), MAT.legShell);
+      };
+      const leg: Ring[] = [];
+      leg.push(shellRing(hipY + 0.03, thighA * 0.96, 0.004));
+      if (!female) {
+        for (const t of [0, 0.12, 0.25, 0.4, 0.55, 0.7]) leg.push(shellRing(hipY - t * L.thigh, thighR(t), 0.004 + 0.006 * t));
+        const g = 0.004 + 0.006 * tHem;
+        leg.push(shellRing(hemY, thighR(tHem), g + LIP));
+        leg.push(shellRing(hemY, thighR(tHem), g - LIP));
+        leg.push(shellRing(hemY + 0.012, thighR(tHem), g - LIP));
+      } else {
+        for (const t of [0, 0.12, 0.25, 0.4, 0.55, 0.7]) leg.push(shellRing(hipY - t * L.thigh, thighR(t), 0.003));
+        leg.push(shellRing(hemY, thighR(tHem), 0.003));
+        leg.push(shellRing(kneeY + 0.012, thighB * 1.02, 0.003));
+        leg.push(ring(new THREE.Vector3(x, kneeY, 0), X, Z, ellipseRadii(thighB * 1.04 + 0.003, thighB * 1.1 + 0.003), legBones(kneeY), MAT.legShell));
+        leg.push(ring(new THREE.Vector3(x, kneeY - 0.012, 0), X, Z, ellipseRadii(shinA + 0.003, shinA * 1.06 + 0.003), legBones(kneeY - 0.012), MAT.legShell));
+        for (const t of [0.12, 0.3, 0.45, 0.6, 0.8, 0.93]) {
+          const y = kneeY - t * L.shin;
+          leg.push(ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(shinR(t) * 0.96 + 0.003, shinR(t) * 1.08 + 0.003, [{ at: back, amp: 0.004 * def * Math.exp(-Math.pow((t - 0.3) / 0.25, 2)), width: 1.2 }]), legBones(y), MAT.legShell));
+        }
+        leg.push(ring(new THREE.Vector3(x, ankleY + 0.004, 0), X, Z, ellipseRadii(shinB + 0.003, shinB * 1.05 + 0.003), [[lo, 1]], MAT.legShell));
+      }
+      b.tube(leg);
+    }
   }
 
   // Arms: the deltoid cap inside the trunk, out along the arm to the wrist
@@ -625,8 +781,17 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   }
 
   const geometry = b.geometry();
-  const mesh = new THREE.SkinnedMesh(geometry, [mats.skin, mats.top, mats.legwear, mats.band, necklineMaterial(mats.skin, mats.top)]);
+  const mesh = new THREE.SkinnedMesh(geometry, [
+    mats.skin,
+    mats.top,
+    mats.legwear,
+    mats.band,
+    necklineMaterial(mats.skin, mats.top),
+    shellMaterial(mats.top),
+    shellMaterial(mats.legwear),
+  ]);
   mesh.castShadow = true;
+  mesh.customDepthMaterial = shadowMaterial();
   mesh.frustumCulled = false;
   const skeleton = new THREE.Skeleton(bones);
   const root = new THREE.Group();
