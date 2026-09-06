@@ -72,7 +72,8 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   // How far the figure actually travels. A movement whose extremes barely
   // differ is showing a partial range, which is the complaint that started
   // this rebuild. Holds are allowed to be still.
-  const HOLDS = new Set(["plank", "sidePlank", "wallSit", "carry", "quadruped", "hollowHold"]);
+  // `idle` is the profile screen's resting figure, not an exercise.
+  const HOLDS = new Set(["plank", "sidePlank", "wallSit", "carry", "quadruped", "hollowHold", "idle"]);
   const travel = Math.max(
     ...frames[0].segments.map((s, i) => {
       const t = frames[frames.length - 1].segments[i];

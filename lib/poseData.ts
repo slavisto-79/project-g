@@ -173,6 +173,19 @@ export const exercisePoses = {
     "neutral",
   ),
 
+  // Not an exercise: the figure at rest, for the profile screen where the
+  // person looks at the build the app has made of them. Standing easy, arms
+  // hanging, with a breath's worth of sway so it reads as alive rather than
+  // frozen -- a hold, not a movement, as far as the range check is concerned.
+  idle: pose(
+    "side",
+    [
+      stand({ x: 0.500, y: 0.494 }, 2, sideArms(176, 178), 1),
+      stand({ x: 0.502, y: 0.497 }, 4, sideArms(181, 183), 2),
+    ],
+    [{ kind: "floor" }],
+  ),
+
   // Bodyweight: arms reach forward as the counterbalance.
   bodyweightSquat: pose(
     "side",

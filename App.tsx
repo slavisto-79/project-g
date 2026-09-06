@@ -17,10 +17,12 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  type StyleProp,
   Text,
   TextInput,
   useWindowDimensions,
   View,
+  type ViewStyle,
 } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
@@ -1286,6 +1288,7 @@ function InterviewScreen({
 
 function ProfileScreen({
   profile,
+  completedWorkouts,
   onUpdateProfile,
   onBack,
   session,
@@ -1296,6 +1299,8 @@ function ProfileScreen({
   trialEndsAtLabel,
 }: {
   profile: Record<string, string>;
+  // Sessions finished so far; the figure below has grown with them.
+  completedWorkouts: number;
   onUpdateProfile: (id: string, value: string) => void;
   onBack: () => void;
   session: { email: string } | null;
@@ -1309,6 +1314,11 @@ function ProfileScreen({
   const [draftValue, setDraftValue] = useState<string>("");
   const [draftNote, setDraftNote] = useState<string>("");
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  // The figure the app has built of this person (see lib/avatar.ts): their
+  // sex, their build from height and weight, and how trained they are -- the
+  // answers plus every session they have finished. Memoised because it is
+  // the viewer's rebuild key; it changes the moment an answer below does.
+  const avatar = useMemo(() => avatarFromProfile(profile, completedWorkouts), [profile, completedWorkouts]);
   // Two-tap confirm for a destructive action -- first tap arms it, second
   // (within a few seconds) actually resets. Auto-disarms so a stray second
   // tap much later, after forgetting it was armed, can't trigger it.
@@ -1571,6 +1581,40 @@ function ProfileScreen({
                 ? `${trialDaysLeft} DAY${trialDaysLeft === 1 ? "" : "S"} LEFT · ENDS ${trialEndsAtLabel}`
                 : `YOUR TRIAL ENDED ${trialEndsAtLabel}`}
             </Text>
+          </View>
+        ) : null}
+
+        {/* The person, as the app sees them: the same figure that demos every
+            exercise, standing at rest. It is built from the answers below
+            (sex, height and weight, training background, goal) and from the
+            sessions they have finished, so it changes as they do -- the
+            point is that they are looking at themselves, not at a model. */}
+        {Platform.OS === "web" ? (
+          <View style={styles.profileAvatarCard}>
+            <Figure3DStage
+              pose={exercisePoses.idle}
+              implement={undefined}
+              avatar={avatar}
+              title="Your figure"
+              expandLabel="Expand your figure"
+              style={styles.profileAvatarStage}
+            />
+            <View style={styles.profileAvatarCaption}>
+              <Text style={styles.sectionEyebrow}>YOUR FIGURE</Text>
+              <Text style={styles.profileAvatarText}>
+                {[
+                  profile.sex === "female" ? "Woman" : profile.sex === "male" ? "Man" : null,
+                  profile.height ? `${profile.height} cm` : null,
+                  profile.weight ? `${profile.weight} kg` : null,
+                  `${completedWorkouts} session${completedWorkouts === 1 ? "" : "s"} done`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </Text>
+              <Text style={styles.profileAvatarNote}>
+                Built from your profile. It changes as your weight, your training and your session count do.
+              </Text>
+            </View>
           </View>
         ) : null}
 
@@ -6970,65 +7014,83 @@ function PoseFigure3DWeb({
   );
 }
 
-function ExerciseCueCard({ exercise, avatar }: { exercise: WorkoutExercise; avatar: AvatarBuild }) {
+// A 3D figure on a card that opens fullscreen: the slow orbit in the card,
+// and on tap the same movement with the camera handed to the user -- drag to
+// rotate, scroll or pinch to zoom. Shared by the exercise demo and the
+// profile's own avatar. Web only.
+function Figure3DStage({
+  pose,
+  implement,
+  avatar,
+  title,
+  expandLabel,
+  style,
+}: {
+  pose: ExercisePose;
+  implement: ViewerImplement;
+  avatar: AvatarBuild;
+  title: string;
+  expandLabel: string;
+  style: StyleProp<ViewStyle>;
+}) {
   const [expanded, setExpanded] = useState(false);
   // The fullscreen title bar lies over the stage; its measured height goes
   // to the viewer so the figure is framed below it -- a lunge's head sat
   // under the title on a narrow phone.
   const [headerHeight, setHeaderHeight] = useState(0);
   return (
+    <>
+      <Pressable style={style} onPress={() => setExpanded(true)} accessibilityRole="button" accessibilityLabel={expandLabel}>
+        <PoseFigure3DWeb pose={pose} implement={implement} interactive={false} avatar={avatar} />
+        {/* The rotate affordance is a real chip, not a whisper in the
+            corner -- people should see the feature the moment the first
+            exercise appears. */}
+        <View style={styles.poseExpandHint} pointerEvents="none">
+          <Text style={styles.poseExpandHintIcon}>⟳</Text>
+          <Text style={styles.poseExpandHintText}>TAP TO ROTATE</Text>
+        </View>
+      </Pressable>
+      {/* animationType="none": the fade is JS-driven on web and starves
+          next to two WebGL canvases -- it sat at 11% opacity. */}
+      <Modal visible={expanded} transparent animationType="none" onRequestClose={() => setExpanded(false)}>
+        <View style={styles.poseModalBackdrop}>
+          <View style={styles.poseModalStage}>
+            <PoseFigure3DWeb pose={pose} implement={implement} interactive avatar={avatar} topInset={headerHeight} />
+          </View>
+          <View
+            style={styles.poseModalHeader}
+            pointerEvents="box-none"
+            onLayout={(event) => setHeaderHeight(Math.round(event.nativeEvent.layout.height))}
+          >
+            {/* flex 1 so a long hint wraps instead of shoving the close
+                button off the right edge of a narrow screen. */}
+            <View style={styles.poseModalTitles}>
+              <Text style={styles.poseModalName}>{title}</Text>
+              <Text style={styles.poseModalHint}>DRAG TO ROTATE · PINCH OR SCROLL TO ZOOM</Text>
+            </View>
+            <Pressable style={styles.poseModalClose} onPress={() => setExpanded(false)} accessibilityRole="button">
+              <Text style={styles.poseModalCloseText}>✕</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
+}
+
+function ExerciseCueCard({ exercise, avatar }: { exercise: WorkoutExercise; avatar: AvatarBuild }) {
+  return (
     <View style={styles.cueCard}>
       {exercise.pose ? (
         Platform.OS === "web" ? (
-          <>
-            <Pressable
-              style={styles.cueCardFigure}
-              onPress={() => setExpanded(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Expand the exercise demo"
-            >
-              <PoseFigure3DWeb pose={exercise.pose} implement={exercise.demoImplement ?? exercise.implement} interactive={false} avatar={avatar} />
-              {/* The rotate affordance is a real chip, not a whisper in the
-                  corner -- people should see the feature the moment the
-                  first exercise appears. */}
-              <View style={styles.poseExpandHint} pointerEvents="none">
-                <Text style={styles.poseExpandHintIcon}>⟳</Text>
-                <Text style={styles.poseExpandHintText}>TAP TO ROTATE</Text>
-              </View>
-            </Pressable>
-            {/* Fullscreen: the same movement with the camera handed to the
-                user -- drag to rotate, scroll or pinch to zoom. */}
-            {/* animationType="none": the fade is JS-driven on web and starves
-                next to two WebGL canvases -- it sat at 11% opacity. */}
-            <Modal visible={expanded} transparent animationType="none" onRequestClose={() => setExpanded(false)}>
-              <View style={styles.poseModalBackdrop}>
-                <View style={styles.poseModalStage}>
-                  <PoseFigure3DWeb
-                    pose={exercise.pose}
-                    implement={exercise.demoImplement ?? exercise.implement}
-                    interactive
-                    avatar={avatar}
-                    topInset={headerHeight}
-                  />
-                </View>
-                <View
-                  style={styles.poseModalHeader}
-                  pointerEvents="box-none"
-                  onLayout={(event) => setHeaderHeight(Math.round(event.nativeEvent.layout.height))}
-                >
-                  {/* flex 1 so a long hint wraps instead of shoving the close
-                      button off the right edge of a narrow screen. */}
-                  <View style={styles.poseModalTitles}>
-                    <Text style={styles.poseModalName}>{exercise.name}</Text>
-                    <Text style={styles.poseModalHint}>DRAG TO ROTATE · PINCH OR SCROLL TO ZOOM</Text>
-                  </View>
-                  <Pressable style={styles.poseModalClose} onPress={() => setExpanded(false)} accessibilityRole="button">
-                    <Text style={styles.poseModalCloseText}>✕</Text>
-                  </Pressable>
-                </View>
-              </View>
-            </Modal>
-          </>
+          <Figure3DStage
+            pose={exercise.pose}
+            implement={exercise.demoImplement ?? exercise.implement}
+            avatar={avatar}
+            title={exercise.name}
+            expandLabel="Expand the exercise demo"
+            style={styles.cueCardFigure}
+          />
         ) : (
           <View style={styles.cueCardFigure}>
             <PoseFigure pose={exercise.pose} />
@@ -7074,6 +7136,7 @@ function ActiveWorkoutScreen({
   onExit,
   onViewProgress,
   profile,
+  completedWorkouts,
   exerciseProgress,
   onUpdateExerciseProgress,
   onCompleteWorkout,
@@ -7089,6 +7152,8 @@ function ActiveWorkoutScreen({
   onExit: () => void;
   onViewProgress: () => void;
   profile: Record<string, string>;
+  // Sessions finished so far: the demo figure has grown with them.
+  completedWorkouts: number;
   exerciseProgress: Record<string, ExerciseProgress>;
   onUpdateExerciseProgress: (name: string, next: ExerciseProgress) => void;
   onCompleteWorkout: (entry: WorkoutHistoryEntry) => void;
@@ -7098,7 +7163,7 @@ function ActiveWorkoutScreen({
   const baseExercises = exerciseList;
   // The demo figure is built to this person; memoised so the viewer is not
   // rebuilt on every render (it is an effect dependency).
-  const avatar = useMemo(() => avatarFromProfile(profile), [profile]);
+  const avatar = useMemo(() => avatarFromProfile(profile, completedWorkouts), [profile, completedWorkouts]);
   const targetSetCount = setCountForProfile(profile, adjustment, isDeload, checkIn);
   // Honour the time the user said they have. This replaces a flat "keep three
   // exercises" for the coach's time adjustment: the budget is the same 30
@@ -9155,6 +9220,7 @@ export default function App() {
         {screen === "profile" && (
           <ProfileScreen
             profile={profile}
+            completedWorkouts={workoutHistory.length}
             onUpdateProfile={(id, value) => setProfile((current) => ({ ...current, [id]: value }))}
             onBack={() => setScreen("dashboard")}
             session={session}
@@ -9259,6 +9325,7 @@ export default function App() {
             adjustment={coachAdjustment}
             checkIn={dailyCheckIn}
             profile={profile}
+            completedWorkouts={workoutHistory.length}
             exerciseProgress={exerciseProgress}
             onUpdateExerciseProgress={(name, next) =>
               setExerciseProgress((current) => ({ ...current, [name]: next }))
@@ -10706,6 +10773,20 @@ const buildStyles = () =>
   // The demo fills the whole stage width -- boxing it into a centered square
   // wasted half the screen on anything wider than a phone.
   cueCardFigure: { alignSelf: "stretch", flex: 1, minHeight: 220, marginBottom: 8 },
+  // The profile's own figure: a stage tall enough for a standing body to
+  // read, the caption under it in the card's own voice.
+  profileAvatarCard: {
+    backgroundColor: "#0E100E",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#242824",
+    overflow: "hidden",
+    marginBottom: 18,
+  },
+  profileAvatarStage: { alignSelf: "stretch", height: 300 },
+  profileAvatarCaption: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14 },
+  profileAvatarText: { color: colors.text, fontSize: 15, fontWeight: "800", marginTop: 6 },
+  profileAvatarNote: { color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 6 },
   pose3dHost: { ...StyleSheet.absoluteFillObject },
   // Shown over the host until the viewer draws its first frame.
   pose3dPlaceholder: {
