@@ -96,10 +96,13 @@ const TRAP_HANDLE_RISE = 0.06;
 // current toned-athletic ideal (curviness and a waist under half the height
 // read as fit; bulk does not), never the bodybuilder. She wears a matching
 // sage set: cropped top and full leggings, hair in a sleek bun.
+// Thighs and hips were 1.02 and 1.22 of the reference; on the skinned body
+// that read as legs too big for her trunk (the user's review), so both
+// came down.
 const FEMALE = {
-  hips: 1.22,
+  hips: 1.12,
   waist: 0.82,
-  thigh: 1.02,
+  thigh: 0.9,
   arm: 0.92,
   // Glute lobes on the back of the pelvis, as a fraction of the full size.
   glute: 0.7,
