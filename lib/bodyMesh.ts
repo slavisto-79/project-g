@@ -39,7 +39,10 @@ export type BodyStyle = {
 // available through `layered`) cut the stringer's straps and armholes into
 // ragged patches over the deltoids and hung its hem in a point, and the
 // user's review was "изглеждат отвратително".
-export const BODY_STYLE_DEFAULT: BodyStyle = { definition: 1, shoulders: 1.18, chest: 1.08, layered: false };
+// Chest and shoulders came down from 1.08 / 1.18 after the user's review
+// ("твърде му е широк гръдния кош"): at 1.08 the trunk was 20cm across on
+// an 85cm figure, a 43cm chest on a real man.
+export const BODY_STYLE_DEFAULT: BodyStyle = { definition: 1, shoulders: 1.08, chest: 1.03, layered: false };
 
 export type BodyMaterials = {
   skin: THREE.MeshStandardMaterial;
@@ -489,7 +492,21 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
 
   // --- Rings --------------------------------------------------------------
   const b = new Builder();
-  const W = (u: number) => profileAt(spec.trunkProfile, u) * 1.45 * spec.trunkW * (u > 0 ? spec.style.chest : 1);
+  // The pelvis flares from the waist out to the thighs' outer edge: the
+  // lathe profile alone left the hips narrower than the two thighs under
+  // them, and the legs read as tubes bolted under a box.
+  // The thigh is oval at the top -- narrower across than deep -- so the
+  // hips are the joints plus that narrower half-width, not two round
+  // tubes side by side (which made a skirt of the shorts).
+  const THIGH_LAT = 0.78;
+  const hipW = L.hipHalf + spec.taper.thigh[1] * THIGH_LAT + (female ? 0.004 : 0);
+  const W = (u: number) => {
+    const base = profileAt(spec.trunkProfile, u) * 1.45 * spec.trunkW * (u > 0 ? spec.style.chest : 1);
+    if (u >= -0.28) return base;
+    const s = Math.min(1, (-0.28 - u) / 0.22);
+    const flare = s * s * (3 - 2 * s);
+    return base + (Math.max(base, hipW) - base) * flare;
+  };
   const D = (u: number) => profileAt(spec.trunkProfile, u) * 0.9 * spec.trunkD;
   const trunkY = (u: number) => hipY + (u + 0.5) * L.spine;
   const trunkBones = (u: number): [number, number][] => {
@@ -545,10 +562,13 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       const spread = female ? 0.48 : 0.5;
       out.push({ at: front - spread, amp, width: 0.75 }, { at: front + spread, amp, width: 0.75 });
     }
-    // Her glutes, on the back of the pelvis.
-    if (female) {
-      const gluteF = Math.exp(-Math.pow((u + 0.46) / 0.16, 2));
-      if (gluteF > 0.05) out.push({ at: back - 0.58, amp: 0.013 * gluteF, width: 0.85 }, { at: back + 0.58, amp: 0.013 * gluteF, width: 0.85 });
+    // Glutes on both builds, two lobes either side of the midline low on the
+    // pelvis; the seat's lowest part is on the cap rings below the hip line
+    // (u < -0.5), which take the same bulge undiminished.
+    const gluteF = Math.exp(-Math.pow((Math.max(u, -0.5) + 0.47) / 0.14, 2));
+    if (gluteF > 0.05) {
+      const amp = (female ? 0.022 : 0.016) * gluteF;
+      out.push({ at: back - 0.55, amp, width: 0.8 }, { at: back + 0.55, amp, width: 0.8 });
     }
     // Lats: a little width high on the back, with definition.
     const latF = Math.exp(-Math.pow((u - 0.2) / 0.2, 2));
@@ -564,10 +584,13 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   // only place it shows is the crotch between the shells, and skin there
   // read as a gap in the shorts.
   const legMat = MAT.legwear;
-  const pelvisDrops = [[0.045, 0.5], [0.032, 0.8], [0.018, 0.93], [0.006, 0.99]] as const;
-  for (const [drop, k] of pelvisDrops) {
-    const bulges = trunkBulges(-0.5).map((bg) => ({ ...bg, amp: bg.amp * k }));
-    trunk.push(ring(new THREE.Vector3(0, hipY - drop, 0), X, Z, ellipseRadii(W(-0.5) * k, D(-0.5) * k, bulges), pelvisBones, legMat));
+  // The seat under the hip line: the width shrinks to the crotch between the
+  // thighs while the depth (and the glutes on it) holds, so the seat is
+  // round where a real one is and the crotch stays a crotch.
+  const pelvisDrops = [[0.048, 0.42, 0.55], [0.036, 0.62, 0.8], [0.022, 0.85, 0.95], [0.008, 0.97, 1]] as const;
+  for (const [drop, kw, kd] of pelvisDrops) {
+    const bulges = trunkBulges(-0.5).map((bg) => ({ ...bg, amp: bg.amp * (bg.at < 0 ? kd : kw) }));
+    trunk.push(ring(new THREE.Vector3(0, hipY - drop, 0), X, Z, ellipseRadii(W(-0.5) * kw, D(-0.5) * kd, bulges), pelvisBones, legMat));
   }
   const trunkUs = [-0.5, -0.44, -0.42, -0.41, -0.36, -0.35, -0.3, -0.22, -0.12, -0.05, -0.04, 0.02, 0.1, 0.18, 0.26, 0.34, 0.42, 0.5];
   // The breath lives in the rib cage: nothing below the waist, everything
@@ -749,7 +772,16 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const thighRing = (y: number, rr: number, mat: number, extra = 0) => {
       const t = (hipY - y) / L.thigh;
       const quad = 0.09 * legDef * rr * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
-      return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr + extra, rr + extra, quad > 0.0005 ? [{ at: front, amp: quad, width: 1.1 }] : []), legBones(y), mat);
+      const bulges: Bulge[] = quad > 0.0005 ? [{ at: front, amp: quad, width: 1.1 }] : [];
+      // The glute continues onto the top of the thigh and fades by a fifth
+      // of the way down: the fold between seat and hamstring.
+      const seat = (female ? 0.012 : 0.009) * Math.max(0, 1 - Math.max(t, 0) / 0.22);
+      if (seat > 0.0005) bulges.push({ at: back, amp: seat, width: 1.0 });
+      // Oval at the hip, round by the knee.
+      const tt = Math.min(1, Math.max(0, t));
+      const lat = THIGH_LAT + (1 - THIGH_LAT) * tt;
+      const dep = 1.1 - 0.1 * tt;
+      return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr * lat + extra, rr * dep + extra, bulges), legBones(y), mat);
     };
     rings.push(thighRing(hipY + 0.03, thighA * 0.96, MAT.legwear));
     rings.push(thighRing(hipY, thighR(0), MAT.legwear));
@@ -789,7 +821,10 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       const shellRing = (y: number, rr: number, gap: number) => {
         const t = (hipY - y) / L.thigh;
         const quad = 0.09 * legDef * rr * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
-        return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr + gap, rr + gap, quad > 0.0005 ? [{ at: front, amp: quad, width: 1.1 }] : []), legBones(y), MAT.legShell);
+        const tt = Math.min(1, Math.max(0, t));
+        const lat = THIGH_LAT + (1 - THIGH_LAT) * tt;
+        const dep = 1.1 - 0.1 * tt;
+        return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(rr * lat + gap, rr * dep + gap, quad > 0.0005 ? [{ at: front, amp: quad, width: 1.1 }] : []), legBones(y), MAT.legShell);
       };
       const leg: Ring[] = [];
       leg.push(shellRing(hipY + 0.03, thighA * 0.96, 0.004));
