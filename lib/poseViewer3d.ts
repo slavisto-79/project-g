@@ -121,6 +121,40 @@ const MALE = {
 const SEGS = 32;
 const SPHERE_W = 28;
 const SPHERE_H = 20;
+
+// The trunk's silhouette, turned on a lathe: [radius, y] from the pelvis
+// (y -0.5) to the shoulders (y 0.5), in the unit height update() scales to
+// the spine's length. A waist narrowest a little above the hips, a rib cage
+// widening to the chest and rounding off under the shoulders. `chest` and
+// `waist` are the two taper radii for the build.
+function trunkProfile(chest: number, waist: number): [number, number][] {
+  return [
+    [waist * 0.96, -0.5],
+    [waist, -0.34],
+    [waist * 1.04, -0.12],
+    [chest * 0.94, 0.14],
+    [chest, 0.34],
+    [chest * 0.97, 0.5],
+  ];
+}
+
+// The same profile from `hemY` up, a little wider, for something worn over
+// the trunk: the cropped top has to follow the chest's swell or the skin
+// shows through it in a band.
+function wornProfile(chest: number, waist: number, hemY: number, ease: number): [number, number][] {
+  const base = trunkProfile(chest, waist);
+  const radiusAt = (y: number): number => {
+    for (let i = 1; i < base.length; i++) {
+      const [r0, y0] = base[i - 1]!;
+      const [r1, y1] = base[i]!;
+      if (y <= y1) return r0 + ((r1 - r0) * (y - y0)) / (y1 - y0);
+    }
+    return base[base.length - 1]![0];
+  };
+  const out: [number, number][] = [[radiusAt(hemY) * ease, hemY]];
+  for (const [r, y] of base) if (y > hemY) out.push([r * ease, y]);
+  return out;
+}
 const AXIS_X = new THREE.Vector3(1, 0, 0);
 // A landmine's hinge sits this far above the floor, on a short post.
 const LANDMINE_HINGE = 0.06;
@@ -522,20 +556,7 @@ export class PoseViewer3D {
       // limb cylinders have, so update() scales it the same way.
       const cylinder = taper
         ? bone.part === "spine"
-          ? new THREE.Mesh(
-              new THREE.LatheGeometry(
-                [
-                  [taper[1] * 0.96, -0.5],
-                  [taper[1], -0.34],
-                  [taper[1] * 1.04, -0.12],
-                  [taper[0] * 0.94, 0.14],
-                  [taper[0], 0.34],
-                  [taper[0] * 0.97, 0.5],
-                ].map(([r, y]) => new THREE.Vector2(r, y)),
-                SEGS,
-              ),
-              wear.body,
-            )
+          ? new THREE.Mesh(new THREE.LatheGeometry(trunkProfile(taper[0], taper[1]).map(([r, y]) => new THREE.Vector2(r, y)), SEGS), wear.body)
           : new THREE.Mesh(new THREE.CylinderGeometry(taper[0], taper[1], 1, SEGS, 1, true), wear.body)
         : new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 1, SEGS, 1, true), wear.body);
       // The deltoid: a shoulder cap a shade wider than the upper arm it sits
@@ -575,11 +596,17 @@ export class PoseViewer3D {
       // sized a hair over the trunk's own taper so it sits on the skin rather
       // than in it; the waist shows below it. update() places both along the
       // spine bone.
+      // The top is the trunk's own lathe profile from the hem up, 4% wider,
+      // so it hugs the chest's swell instead of cutting a cone across it --
+      // as a cone it left a band of skin showing through under the straps.
       const spineTaper = TAPER.spine!;
-      const chestR = spineTaper[0] * chest * 1.05;
-      const waistR = spineTaper[1] * waist;
-      const hemR = (waistR + (spineTaper[0] * chest - waistR) * (1 - FEMALE.topCover)) * 1.05;
-      this.cropTop = new THREE.Mesh(new THREE.CylinderGeometry(chestR, hemR, 1, SEGS, 1, true), this.setFemale);
+      this.cropTop = new THREE.Mesh(
+        new THREE.LatheGeometry(
+          wornProfile(spineTaper[0] * chest, spineTaper[1] * waist, 0.5 - FEMALE.topCover, 1.04).map(([r, y]) => new THREE.Vector2(r, y)),
+          SEGS,
+        ),
+        this.setFemale,
+      );
       this.scene.add(this.cropTop);
       for (let i = 0; i < 2; i++) {
         const lobe = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H), this.setFemale);
@@ -1586,9 +1613,10 @@ export class PoseViewer3D {
       bone.capA.position.copy(pa);
       bone.capB.position.copy(pb);
       if (bone.part === "spine" && this.cropTop) {
-        const cover = FEMALE.topCover;
-        this.cropTop.position.copy(pa).addScaledVector(dir, len * (1 - cover / 2));
-        this.cropTop.scale.set(1.45 * this.trunkW, len * cover, 0.9 * this.trunkD);
+        // Same frame as the trunk: the top's lathe is cut in the trunk's
+        // own unit height, so it takes the trunk's position and scale.
+        this.cropTop.position.copy(bone.cylinder.position);
+        this.cropTop.scale.copy(bone.cylinder.scale);
         this.cropTop.quaternion.copy(bone.cylinder.quaternion);
       }
     }
