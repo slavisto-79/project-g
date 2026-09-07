@@ -718,26 +718,54 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   };
   const front = Math.PI / 2;
   const back = -Math.PI / 2;
+  const smooth01 = (x: number) => {
+    const t = Math.min(1, Math.max(0, x));
+    return t * t * (3 - 2 * t);
+  };
   const trunkBulges = (u: number): Bulge[] => {
     const out: Bulge[] = [];
-    // Chest: her bust, his pectorals -- either side of the midline, peaking
-    // a little above the middle of the trunk and fading out above and below.
-    const chestF = Math.exp(-Math.pow((u - 0.26) / 0.13, 2));
-    if (chestF > 0.05) {
-      // His pectorals stay modest: a prone figure rests its chest on a pad
-      // or the floor, and every millimetre here is a millimetre sunk in.
-      // His pectorals are two plates either side of a sternal groove; a
-      // prone figure rests on them, so they stay within a centimetre.
-      const amp = female ? 0.015 * chestF : 0.011 * def * chestF;
-      const spread = female ? 0.48 : 0.42;
-      out.push({ at: front - spread, amp, width: 0.7 }, { at: front + spread, amp, width: 0.7 });
-      if (!female) out.push({ at: front, amp: -0.004 * def * chestF, width: 0.2 });
+    if (female) {
+      // Her bust: two lobes either side of the midline, peaking a little
+      // above the middle of the trunk and fading out above and below.
+      const chestF = Math.exp(-Math.pow((u - 0.26) / 0.13, 2));
+      if (chestF > 0.05) {
+        const amp = 0.015 * chestF;
+        out.push({ at: front - 0.48, amp, width: 0.75 }, { at: front + 0.48, amp, width: 0.75 });
+      }
+    } else {
+      // His pectorals: a slab either side of the sternum, held full from
+      // the nipple line up and cut off SHARPLY at the bottom -- that lower
+      // border is the line that reads as a chest, and a symmetric bell in
+      // u (what this was) has no bottom edge at all. They stay within a
+      // centimetre: a prone figure rests its chest on a pad.
+      const pecF = smooth01((u - 0.15) / 0.07) * (1 - smooth01((u - 0.33) / 0.12));
+      if (pecF > 0.02) {
+        const amp = 0.013 * def * pecF;
+        out.push({ at: front - 0.42, amp, width: 0.72 }, { at: front + 0.42, amp, width: 0.72 });
+        out.push({ at: front, amp: -0.004 * def * pecF, width: 0.2 });
+      }
+      // The line down the middle of the abdomen.
+      const absF = Math.exp(-Math.pow((u + 0.02) / 0.14, 2));
+      if (absF > 0.05) out.push({ at: front, amp: -0.0035 * def * absF, width: 0.17 });
     }
     // (The glutes are not a lobe here: they are the eggs in seatOutline.)
-    // Lats: the width high on the back that makes the V from the shoulders
-    // to the waist, with definition.
-    const latF = Math.exp(-Math.pow((u - 0.2) / 0.22, 2));
-    if (!female && def > 0) out.push({ at: 0, amp: 0.014 * def * latF, width: 1.0 }, { at: Math.PI, amp: 0.014 * def * latF, width: 1.0 });
+    // The back: the lats carry width at the SIDES -- the V from the
+    // armpits down to the waist -- and their own mass on the back either
+    // side of the spine, with the spinal furrow between them. A single
+    // lateral lobe (what this was) widened the trunk but left the back a
+    // smooth arc. Hers are the same shapes at a third of the relief.
+    const backDef = female ? 0.35 : def;
+    if (backDef > 0) {
+      const latF = smooth01((u + 0.02) / 0.2) * (1 - smooth01((u - 0.34) / 0.14));
+      if (latF > 0.02) {
+        const wide = 0.012 * backDef * latF;
+        out.push({ at: 0, amp: wide, width: 1.0 }, { at: Math.PI, amp: wide, width: 1.0 });
+        const mass = 0.009 * backDef * latF;
+        out.push({ at: back - 0.9, amp: mass, width: 1.0 }, { at: back + 0.9, amp: mass, width: 1.0 });
+      }
+      const furrowF = smooth01((u + 0.05) / 0.15) * (1 - smooth01((u - 0.4) / 0.12));
+      if (furrowF > 0.02) out.push({ at: back, amp: -0.005 * backDef * furrowF, width: 0.22 });
+    }
     return out;
   };
 
@@ -919,7 +947,13 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   trunk.push(seatRing(SEAT_DROP + 0.014, 0.94, 0.3));
   trunk.push(seatRing(SEAT_DROP + 0.008, 0.97, 0.68));
   for (const drop of [...seatDrops].reverse()) trunk.push(seatRing(drop));
-  const trunkUs = [-0.5, -0.47, -0.44, -0.42, -0.41, -0.38, -0.36, -0.35, -0.3, -0.22, -0.12, -0.05, -0.04, 0.02, 0.1, 0.18, 0.26, 0.34, 0.42, 0.5];
+  // Dense through the chest and back: the pectorals' lower border and the
+  // lats' taper are the shapes the eye reads there, and 2cm rings turned
+  // both into facets.
+  const trunkUs = [
+    -0.5, -0.47, -0.44, -0.42, -0.41, -0.38, -0.36, -0.35, -0.3, -0.26, -0.22, -0.17, -0.12, -0.08, -0.05, -0.04,
+    0.02, 0.06, 0.1, 0.14, 0.18, 0.22, 0.26, 0.3, 0.34, 0.38, 0.42, 0.46, 0.5,
+  ];
   // The trunk's lower rings run through the seat's union; above it the
   // lathe profile alone.
   const lowRadii = (u: number, gap: number): number[] =>
