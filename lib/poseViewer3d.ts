@@ -1112,8 +1112,12 @@ export class PoseViewer3D {
     // the mirror, and a neutral grip turns the whole hand (and its dumbbell)
     // ninety degrees into a hammer hold. Empty-handed it is a closed fist.
     for (let side = 0; side < 2; side++) {
+      // Empty-handed there is nothing to draw here: the figure's own hand
+      // is on the end of its arm. The 24mm ball this used to add is from
+      // the capsule era, and it sat ON the skinned hand -- measured at the
+      // hand bone, dead centre -- so the palm read as a blob with five
+      // stubs coming out of it, whatever shape the hand actually had.
       const fist = gripping ? this.grippingHand(pose.grip, side as 0 | 1) : new THREE.Group();
-      if (!gripping) fist.add(new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 8), this.skin));
       this.scene.add(fist);
       this.fists.push(fist);
     }
