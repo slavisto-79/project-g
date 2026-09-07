@@ -831,6 +831,23 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       // cover: below them it is the lumbar dip, the deepest point of the
       // back in profile, and a back that goes flat there reads as a plank
       // from the side.
+      // The upper back, behind the shoulder girdle. Above the lats this
+      // was a plain ellipse -- a smooth board between two arms. It gets
+      // the trapezius as one sheet across the top, the shoulder blades
+      // under it either side of the spine, and the teres group filling
+      // the corner toward each armpit.
+      const trapF = smooth01((u - 0.28) / 0.14);
+      if (trapF > 0.02) out.push({ at: back, amp: 0.007 * backDef * trapF, width: 1.7 });
+      const scapF = smooth01((u - 0.16) / 0.12) * (1 - smooth01((u - 0.42) / 0.1));
+      if (scapF > 0.02) {
+        const amp = 0.006 * backDef * scapF;
+        out.push({ at: back - 0.55, amp, width: 0.5 }, { at: back + 0.55, amp, width: 0.5 });
+      }
+      const teresF = smooth01((u - 0.22) / 0.12) * (1 - smooth01((u - 0.42) / 0.12));
+      if (teresF > 0.02) {
+        const amp = 0.006 * backDef * teresF;
+        out.push({ at: back - 1.05, amp, width: 0.6 }, { at: back + 1.05, amp, width: 0.6 });
+      }
       const furrowF = smooth01((u + 0.3) / 0.14) * (1 - smooth01((u - 0.4) / 0.12));
       if (furrowF > 0.02) out.push({ at: back, amp: -0.005 * backDef * furrowF * (1 - 0.3 * cloth), width: 0.24 });
       // The erectors: the two columns either side of that furrow, standing
@@ -1088,26 +1105,87 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   const Rx = L.headR * 1.18 * 0.95, Ry = L.headR * 1.18 * 1.06, Rz = L.headR * 1.18 * 0.98;
   const topBones: [number, number][] = [[bi("Spine2"), 1]];
   const domeMat = layered ? MAT.skin : MAT.neck;
-  const dome = [[0.012, 0.78, 0.86], [0.026, 0.55, 0.68], [0.04, 0.4, 0.55]] as const;
+  // The nape: the trapezius climbs the back of the neck as two ridges
+  // either side of the nuchal furrow, thickest where it meets the
+  // shoulders and gone by the skull. A neck that is a plain cone has no
+  // back at all, which is what this was. `f` is how strong it is here.
+  const neckDef = female ? def * 0.45 : def;
+  const napeBulges = (f: number): Bulge[] => {
+    if (f <= 0.02 || neckDef <= 0) return [];
+    const a = 0.16 * neckA * neckDef * f;
+    return [
+      { at: back - 0.42, amp: a, width: 0.75 },
+      { at: back + 0.42, amp: a, width: 0.75 },
+      { at: back, amp: -0.45 * a, width: 0.3 },
+    ];
+  };
+  const dome = [[0.012, 0.78, 0.86, 0.55], [0.026, 0.55, 0.68, 0.75], [0.04, 0.4, 0.55, 0.95]] as const;
   // The tee's crew neck: fabric up to a collar line a little lower in front
   // than behind, cut through the dome's faces by the cloth mask.
   const collar = (c: THREE.Vector3) => (k: number) => {
     const th = (k / N) * Math.PI * 2;
     return (shoulderY + 0.04 - 0.008 * Math.sin(th) - c.y) * 40;
   };
-  for (const [dy, kw, kd] of dome) {
+  for (const [dy, kw, kd, nf] of dome) {
     const c = new THREE.Vector3(0, shoulderY + dy, 0);
-    const radii = ellipseRadii(W(0.5) * kw, D(0.5) * kd);
+    const radii = ellipseRadii(W(0.5) * kw, D(0.5) * kd, napeBulges(nf));
     const d = ring(c, X, Z, radii, topBones, domeMat, layered ? undefined : tee ? collar(c) : clearDelts(c, radii, panelCloth(1, c, radii)));
     d.breath = 0.4;
     trunk.push(d);
   }
-  trunk.push(ring(new THREE.Vector3(0, shoulderY + 0.05, 0), X, Z, ellipseRadii(Math.max(W(0.5) * 0.3, neckA * 1.25), Math.max(D(0.5) * 0.42, neckA * 1.15)), [[bi("Spine2"), 0.6], [bi("Neck"), 0.4]], MAT.skin));
-  // Neck, on up into the head.
+  // Neck, on up into the head. It carries the nape behind, the two
+  // sternocleidomastoid cords in front and, on him, the larynx.
+  //
+  // The visible neck is the loft between the ring that leaves the traps
+  // (+0.05) and the one that meets the skull (+0.068) -- under 4cm, and
+  // everything above +0.068 is the head's own cap inside a millimetre or
+  // two. Measured on the mesh after putting six rings between +0.068 and
+  // the skull: all six landed in a band 1.2mm tall. Rings go between the
+  // two ends of the LOFT, and their radii interpolate the loft's own, so
+  // the neck's silhouette is the one that was there before.
   const neckBones: [number, number][] = [[bi("Neck"), 1]];
-  trunk.push(ring(new THREE.Vector3(0, shoulderY + 0.068, 0), X, Z, ellipseRadii(neckA * 1.05, neckA * 1.02), neckBones, MAT.skin));
-  trunk.push(ring(new THREE.Vector3(0, (shoulderY + 0.068 + headY - Ry * 0.78) / 2, 0), X, Z, ellipseRadii(neckA * 0.95, neckA * 0.97), neckBones, MAT.skin));
-  const neckTop = ring(new THREE.Vector3(0, headY - Ry * 0.78, 0), X, Z, ellipseRadii(neckB * 1.02, neckB * 1.05), [[bi("Neck"), 0.5], [bi("Head"), 0.5]], MAT.skin);
+  const neckBulges = (t: number): Bulge[] => {
+    // Everything dies away before the skull, or it pokes out of the head.
+    const live = 1 - smooth01((t - 0.75) / 0.25);
+    const out: Bulge[] = [...napeBulges(live * (1 - smooth01((t - 0.2) / 0.65)))];
+    if (neckDef <= 0 || live <= 0.02) return out;
+    // The sternocleidomastoid runs from behind the ear down to the notch
+    // between the collarbones, so it SWEEPS toward the front as it
+    // descends. Two straight vertical ridges read as a pipe, not a neck.
+    const scmF = smooth01((t - 0.08) / 0.22) * live;
+    if (scmF > 0.02) {
+      const off = 0.42 + 0.5 * t;
+      const amp = 0.13 * neckA * neckDef * scmF;
+      out.push({ at: front - off, amp, width: 0.55 }, { at: front + off, amp, width: 0.55 });
+    }
+    if (!female) {
+      const lar = 0.09 * neckA * def * live * Math.exp(-Math.pow((t - 0.5) / 0.2, 2));
+      if (lar > 0.0002) out.push({ at: front, amp: lar, width: 0.4 });
+    }
+    return out;
+  };
+  const neckY0 = shoulderY + 0.05, neckY1 = shoulderY + 0.068;
+  const baseW = Math.max(W(0.5) * 0.3, neckA * 1.25), baseD = Math.max(D(0.5) * 0.42, neckA * 1.15);
+  const neckRad = (t: number): [number, number] => [
+    baseW + (neckA * 1.05 - baseW) * t,
+    baseD + (neckA * 1.02 - baseD) * t,
+  ];
+  // Five rings up the loft, not two: the cords sweep across the neck and
+  // the nape dies out along it, and neither is a shape two rings hold.
+  const neckTs = [0, 0.25, 0.5, 0.75, 1];
+  for (let i = 0; i < neckTs.length; i++) {
+    const t = neckTs[i]!;
+    const [rw, rd] = neckRad(t);
+    // The loft used to blend from 0.6 Spine2 at its foot to all Neck at
+    // its head across the faces between two rings. Rings inside it have
+    // to carry that same blend, or the neck hinges off its own base.
+    const share = 0.6 * Math.max(0, 1 - t / 0.75);
+    const bones: [number, number][] = share > 0.001 ? [[bi("Spine2"), share], [bi("Neck"), 1 - share]] : neckBones;
+    trunk.push(ring(new THREE.Vector3(0, neckY0 + (neckY1 - neckY0) * t, 0), X, Z, ellipseRadii(rw, rd, neckBulges(t)), bones, MAT.skin));
+  }
+  const skullY = headY - Ry * 0.78;
+  trunk.push(ring(new THREE.Vector3(0, (neckY1 + skullY) / 2, 0), X, Z, ellipseRadii(neckA * 0.95, neckA * 0.97, neckBulges(1)), neckBones, MAT.skin));
+  const neckTop = ring(new THREE.Vector3(0, skullY, 0), X, Z, ellipseRadii(neckB * 1.02, neckB * 1.05), [[bi("Neck"), 0.5], [bi("Head"), 0.5]], MAT.skin);
   // The neck ends inside the head, which is its own closed shape below:
   // the chin hangs in front of and below where the neck enters.
   trunk.push(neckTop, ...cap(neckTop.c, X, Z, Y, neckTop.radii, 0.03, [[bi("Head"), 1]], MAT.skin, 3));
@@ -1138,9 +1216,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     top.push(shell(hemU, gapAt(hemU) - LIP));
     top.push(shell(hemU, gapAt(hemU) + LIP));
     for (const u of trunkUs) if (u > hemU + 0.005) top.push(shell(u, gapAt(u)));
-    for (const [dy, kw, kd] of dome) {
+    for (const [dy, kw, kd, nf] of dome) {
       const c = new THREE.Vector3(0, shoulderY + dy, 0);
-      const radii = ellipseRadii(W(0.5) * kw + 0.005, D(0.5) * kd + 0.005);
+      const radii = ellipseRadii(W(0.5) * kw + 0.005, D(0.5) * kd + 0.005, napeBulges(nf));
       const d = ring(c, X, Z, radii, topBones, MAT.topShell, clearDelts(c, radii, panelCloth(1, c, radii)));
       d.breath = 0.4;
       top.push(d);
@@ -1382,8 +1460,16 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       // fading along the arm, with the underside cut away; a constant-
       // radius sphere for the first 25mm and then the bare arm left a hard
       // rim where the cap stopped.
-      const dl = Math.max(0.12 * uaA, delt - uaA) * Math.exp(-Math.pow(t / 0.3, 2));
-      if (dl > 0.0004) out.push({ at: 0, amp: dl, width: 2.1 });
+      const dl = 0.9 * Math.max(0.12 * uaA, delt - uaA) * Math.exp(-Math.pow(t / 0.3, 2));
+      if (dl > 0.0004) {
+        out.push({ at: 0, amp: dl, width: 2.1 });
+        // Its three heads stand out of that cap: the REAR one is what a
+        // shoulder shows from behind, and a single smooth dome there read
+        // as a ball on the arm. The cap itself is 10% lower to pay for
+        // them, so the shoulder is no wider than before -- only shaped.
+        out.push({ at: back + 0.72, amp: 0.3 * dl, width: 0.75 });
+        out.push({ at: front - 0.72, amp: 0.22 * dl, width: 0.75 });
+      }
       const pit = 0.2 * r * Math.exp(-Math.pow(t / 0.22, 2));
       if (pit > 0.0004) out.push({ at: Math.PI, amp: -pit, width: 1.1 });
       const bic = 0.15 * armDef * r * Math.exp(-Math.pow((t - 0.52) / 0.24, 2));
