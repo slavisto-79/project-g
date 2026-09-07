@@ -1471,21 +1471,28 @@ export class PoseViewer3D {
       // the loaded-bar silhouette everyone recognises.
       const sleeve = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.16, 12), this.chrome));
       sleeve.position.x = side * (length / 2 - 0.08);
+      // The inner collar -- the shoulder the plates are pushed back against.
       const collar = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.016, 14), this.graphite));
       collar.position.x = side * (length / 2 - 0.165);
+      // The plates sit at the OUTER end of the sleeve, with a clamp outside
+      // them and about 4cm of bare sleeve past that. They used to sit at the
+      // inner end, which left 11cm of chrome sticking out beyond the load --
+      // it read as a bolt through the middle of the plates.
       const big = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.028, 26), this.iron));
-      big.position.x = side * (length / 2 - 0.14);
+      big.position.x = side * (length / 2 - 0.115);
       // A lighter rim ring so the plate reads as a plate with depth, not a
       // black blob.
       const rim = this.alongX(new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.006, 8, 26), this.ironRim));
       rim.rotation.y = Math.PI / 2;
       rim.rotation.z = 0;
-      rim.position.x = side * (length / 2 - 0.14);
+      rim.position.x = side * (length / 2 - 0.115);
       const small = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.024, 22), this.iron));
-      small.position.x = side * (length / 2 - 0.11);
+      small.position.x = side * (length / 2 - 0.086);
       const hub = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.032, 14), this.ironRim));
-      hub.position.x = side * (length / 2 - 0.125);
-      group.add(sleeve, collar, big, rim, small, hub);
+      hub.position.x = side * (length / 2 - 0.1);
+      const clamp = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.02, 14), this.graphite));
+      clamp.position.x = side * (length / 2 - 0.052);
+      group.add(sleeve, collar, big, rim, small, hub, clamp);
     }
     return group;
   }
@@ -1588,9 +1595,21 @@ export class PoseViewer3D {
     group.add(this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.15, 10), this.chrome)));
     for (const side of [-1, 1]) {
       // Six-sided heads: the hex profile is what says "dumbbell" at a glance.
-      const head = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.05, 6), this.iron));
+      // Each head is the flat and a chamfer either side of it -- as one plain
+      // block it read as a brick on the end of a rod.
+      // alongX turns the cylinder's +Y end to -X, so rTop is the -X face and
+      // rBottom the +X one; each chamfer's WIDE end has to face the head.
+      const wideAtPlusX: [number, number] = [0.036, 0.05];
+      const wideAtMinusX: [number, number] = [0.05, 0.036];
+      const head = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.042, 6), this.iron));
       head.position.x = side * 0.072;
-      group.add(head);
+      const [ia, ib] = side > 0 ? wideAtPlusX : wideAtMinusX;
+      const inner = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(ia, ib, 0.012, 6), this.ironRim));
+      inner.position.x = side * 0.045;
+      const [oa, ob] = side > 0 ? wideAtMinusX : wideAtPlusX;
+      const outer = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(oa, ob, 0.012, 6), this.ironRim));
+      outer.position.x = side * 0.099;
+      group.add(head, inner, outer);
     }
     return group;
   }
