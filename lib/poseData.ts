@@ -184,11 +184,13 @@ export const exercisePoses = {
   // person looks at the build the app has made of them. Standing easy, arms
   // hanging, with a breath's worth of sway so it reads as alive rather than
   // frozen -- a hold, not a movement, as far as the range check is concerned.
+  // Chest up (the trunk a degree off vertical, the head level) and the arms
+  // hanging a little away from the body, the way a broad back carries them.
   idle: pose(
     "side",
     [
-      stand({ x: 0.500, y: 0.494 }, 2, sideArms(176, 178), 1),
-      stand({ x: 0.502, y: 0.497 }, 4, sideArms(181, 183), 2),
+      stand({ x: 0.500, y: 0.494 }, 1, wide(sideArms(176, 178), 0.03), 0),
+      stand({ x: 0.502, y: 0.497 }, 3, wide(sideArms(181, 183), 0.03), 1),
     ],
     [{ kind: "floor" }],
   ),
