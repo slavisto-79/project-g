@@ -655,13 +655,20 @@ export class PoseViewer3D {
   // sole's underside sits where the old foot capsule's did (0.0124 below the
   // bone), so planted feet still meet the floor disc.
   private sole = new THREE.MeshStandardMaterial({ color: 0xe9e7e0, roughness: 0.7, metalness: 0.02 });
+  // The shoe's upper and its heel trim: the kit's own colours, but drawn on
+  // both sides, so the inside of the ankle opening is a surface and not a
+  // hole. They cannot be the shared kit materials, which the shorts use.
+  private shoeUpper = new THREE.MeshStandardMaterial({ color: 0xc8ff32, roughness: 0.5, metalness: 0.05, side: THREE.DoubleSide });
+  private shoeTrim = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
   // The shoe is lofted from cross-sections along its length -- a sole that
   // narrows at the arch and widens at the ball, an upper that stands tall at
   // the heel collar and slopes down over the toes -- instead of the stack of
   // rounded boxes it was, which read as a brick under the foot.
   private sneaker(): THREE.Group {
     const shoe = new THREE.Group();
-    const L = 0.104;
+    // 25cm long against 10.6cm wide. At 21cm it was as long as it was wide
+    // and a half, which is a clog; a 180cm man's shoe is 28 x 10.
+    const L = 0.125;
     const bottom = -0.0124;
     const soleTop = bottom + 0.013;
     // Plan half-width and upper height along the shoe, heel (-1) to toe (1).
@@ -670,7 +677,12 @@ export class PoseViewer3D {
       return sample(pts, t);
     };
     const upperHeight = (t: number): number => {
-      const pts: [number, number][] = [[-1, 0.012], [-0.85, 0.03], [-0.5, 0.027], [-0.1, 0.023], [0.35, 0.017], [0.75, 0.011], [0.93, 0.007], [1, 0.003]];
+      // The upper RISES around the ankle -- that IS the collar. Tried first
+      // as a separate ring above the shoe and it read as a black anklet
+      // floating over a slipper: the upper is a closed dome, so a rim above
+      // it has nothing to sit on. Raising the dome instead lets the shin
+      // come out through the top, which is what a running shoe does.
+      const pts: [number, number][] = [[-1, 0.016], [-0.85, 0.028], [-0.6, 0.031], [-0.35, 0.027], [-0.1, 0.022], [0.35, 0.017], [0.75, 0.011], [0.93, 0.007], [1, 0.003]];
       return sample(pts, t);
     };
     const ts: number[] = [];
@@ -685,20 +697,36 @@ export class PoseViewer3D {
     shoe.add(new THREE.Mesh(loft(slab(bottom, bottom + 0.004, 0.0015)), this.rubber));
     shoe.add(new THREE.Mesh(loft(slab(bottom + 0.0035, soleTop, 0.0015)), this.sole));
     // Upper: a D-section rising from the sole, in the accent colour.
-    const upperSections = (from: number, to: number, grow: number) =>
+    const upperSections = (from: number, to: number, grow: (t: number) => number) =>
       ts
         .filter((t) => t >= from && t <= to)
-        .map((t) => dSection(halfWidth(t) + grow, soleTop - 0.002, upperHeight(t) + grow, zOf(t), 12));
-    shoe.add(new THREE.Mesh(loft(upperSections(-1, 1, 0)), this.lime));
-    // Heel counter: the same upper over the back of the shoe, a shade proud,
-    // in the dark trim.
-    shoe.add(new THREE.Mesh(loft(upperSections(-1, -0.5, 0.0012)), this.shorts));
-    // Three laces across the instep.
-    for (const t of [-0.3, -0.08, 0.14]) {
-      const lace = new THREE.Mesh(new THREE.BoxGeometry(halfWidth(t) * 1.1, 0.0025, 0.0035), this.shorts);
-      lace.position.set(0, soleTop + upperHeight(t) - 0.0005, zOf(t));
-      shoe.add(lace);
+        .map((t) => dSection(halfWidth(t) + grow(t), soleTop - 0.002, upperHeight(t) + grow(t), zOf(t), 12));
+    // The upper is ONE surface, with its back bands drawn in the dark trim:
+    // the heel counter used to be a second loft laid over the first, and two
+    // surfaces a millimetre apart print a jagged speckled seam wherever they
+    // cross, plus the loft's own end cap standing proud as a black outline
+    // down the side of the shoe. Groups on one geometry cannot do either.
+    const upperSecs = upperSections(-1, 1, () => 0);
+    const upperGeo = loft(upperSecs);
+    const perBand = upperSecs[0]!.length * 6;
+    // Which bands are dark. ts steps by 0.125: 0-2 is the heel counter, and
+    // 4 and 6 are the two overlays across the instep, which is where the
+    // laces were. Those were three floating boxes -- a straight bar cannot
+    // follow a dome, so its ends hung in the air either side of the shoe.
+    const dark = (i: number) => i < 2 || i === 4 || i === 6;
+    upperGeo.clearGroups();
+    const bands = upperSecs.length - 1;
+    let runStart = 0;
+    for (let i = 1; i <= bands; i++) {
+      if (i < bands && dark(i) === dark(runStart)) continue;
+      upperGeo.addGroup(runStart * perBand, (i - runStart) * perBand, dark(runStart) ? 1 : 0);
+      runStart = i;
     }
+    upperGeo.addGroup(bands * perBand, upperGeo.getIndex()!.count - bands * perBand, 0);
+    // Double-sided: the ankle opening is wider than the shin, and through
+    // the gap either side you were looking at culled back faces -- a black
+    // void inside the shoe.
+    shoe.add(new THREE.Mesh(upperGeo, [this.shoeUpper, this.shoeTrim]));
     return shoe;
   }
 
@@ -737,7 +765,10 @@ export class PoseViewer3D {
     const tone = female ? Math.max(0, Math.min(1, (muscle - 1) / 0.3)) : 0;
     // Her kit carries the app's pink accent (shoes, wristbands, hair tie)
     // where his carries the lime -- the same swap the interface makes.
-    if (female) this.lime.color.setHex(0xff5fa8);
+    if (female) {
+      this.lime.color.setHex(0xff5fa8);
+      this.shoeUpper.color.setHex(0xff5fa8);
+    }
     // Depth grows less than width: bench pads sit a fixed BODY_HALF below the
     // spine line, and a deeper trunk would sink into them (at the heaviest
     // build it is 1.2cm into a 5.5cm pad, which reads as padding giving way).
