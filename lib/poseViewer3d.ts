@@ -153,9 +153,11 @@ function trunkProfile(chest: number, waist: number): [number, number][] {
     [waist * 0.96, -0.5],
     [waist, -0.34],
     [waist * 1.04, -0.12],
-    [chest * 0.94, 0.14],
+    [chest * 0.96, 0.14],
     [chest, 0.34],
-    [chest * 0.97, 0.5],
+    // Full to the shoulder line: the upper chest is the widest part of an
+    // athletic trunk, not a rounded-off top.
+    [chest, 0.5],
   ];
 }
 
@@ -790,7 +792,7 @@ export class PoseViewer3D {
     // was a ball twice the arm's width.
     // A real deltoid caps the arm by a centimetre or two, no more: 0.033 is
     // the upper arm's top plus that (0.040 was a ball half again the arm).
-    const deltR = female ? 0.028 : 0.033 * Math.sqrt(muscle) * MALE.delt;
+    const deltR = female ? 0.026 : 0.033 * Math.sqrt(muscle) * MALE.delt;
     this.seatExtra = Math.max(0, RADII.thigh * (buildScale("thigh") - 1));
     // Strain shows only on a rep that travels: the profile's idle sway
     // keeps a neutral face.

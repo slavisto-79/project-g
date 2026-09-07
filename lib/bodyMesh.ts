@@ -616,14 +616,18 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     if (chestF > 0.05) {
       // His pectorals stay modest: a prone figure rests its chest on a pad
       // or the floor, and every millimetre here is a millimetre sunk in.
-      const amp = female ? 0.015 * chestF : 0.008 * def * chestF;
-      const spread = female ? 0.48 : 0.5;
-      out.push({ at: front - spread, amp, width: 0.75 }, { at: front + spread, amp, width: 0.75 });
+      // His pectorals are two plates either side of a sternal groove; a
+      // prone figure rests on them, so they stay within a centimetre.
+      const amp = female ? 0.015 * chestF : 0.011 * def * chestF;
+      const spread = female ? 0.48 : 0.42;
+      out.push({ at: front - spread, amp, width: 0.7 }, { at: front + spread, amp, width: 0.7 });
+      if (!female) out.push({ at: front, amp: -0.004 * def * chestF, width: 0.2 });
     }
     // (The glutes are not a lobe here: they are the eggs in seatOutline.)
-    // Lats: a little width high on the back, with definition.
-    const latF = Math.exp(-Math.pow((u - 0.2) / 0.2, 2));
-    if (!female && def > 0) out.push({ at: 0, amp: 0.009 * def * latF, width: 0.9 }, { at: Math.PI, amp: 0.009 * def * latF, width: 0.9 });
+    // Lats: the width high on the back that makes the V from the shoulders
+    // to the waist, with definition.
+    const latF = Math.exp(-Math.pow((u - 0.2) / 0.22, 2));
+    if (!female && def > 0) out.push({ at: 0, amp: 0.014 * def * latF, width: 1.0 }, { at: Math.PI, amp: 0.014 * def * latF, width: 1.0 });
     return out;
   };
 
@@ -847,7 +851,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   const Rx = L.headR * 1.18 * 0.95, Ry = L.headR * 1.18 * 1.06, Rz = L.headR * 1.18 * 0.98;
   const topBones: [number, number][] = [[bi("Spine2"), 1]];
   const domeMat = layered ? MAT.skin : MAT.neck;
-  const dome = [[0.015, 0.93, 0.94], [0.03, 0.8, 0.84], [0.045, 0.6, 0.68]] as const;
+  const dome = [[0.015, 0.96, 0.94], [0.03, 0.84, 0.84], [0.045, 0.64, 0.68]] as const;
   // The tee's crew neck: fabric up to a collar line a little lower in front
   // than behind, cut through the dome's faces by the cloth mask.
   const collar = (c: THREE.Vector3) => (k: number) => {

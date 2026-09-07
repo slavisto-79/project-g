@@ -109,7 +109,10 @@ const P = {
   headRadius: 0.048,
   neck: 0.038,
   spine: 0.245,
-  shoulderHalf: 0.072,
+  // Shoulder joints 34cm apart on a 180cm man (0.072 was 29cm: narrow
+  // shoulders, which read as a small upper body whatever the chest did).
+  // Hands are walked from the shoulders, so every arm moves out with them.
+  shoulderHalf: 0.084,
   hipHalf: 0.048,
   upperArm: 0.152,
   forearm: 0.138,
