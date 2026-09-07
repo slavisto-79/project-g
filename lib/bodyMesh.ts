@@ -1536,8 +1536,12 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     rings.push(armRing(at(wristD - 0.03), faB * 1.08, faB * 1.08, [[fore, 1]]));
     rings.push(armRing(at(wristD - 0.028), bandR + 0.003, bandR + 0.003, [[fore, 1]], MAT.band));
     rings.push(armRing(at(wristD - 0.008), bandR + 0.003, bandR + 0.003, [[fore, 1]], MAT.band));
-    rings.push(armRing(at(wristD - 0.006), faB * 1.02, faB * 1.02, [[fore, 0.85], [hand, 0.15]]));
-    const wrist = armRing(at(wristD), faB * 0.95, faB * 1.05, [[fore, 0.5], [hand, 0.5]]);
+    // The wrist is FLAT: about 5.7cm across and 3.5cm through, not the
+    // round section the forearm ends in. The bump on its back-and-pinky
+    // corner is the head of the ulna, the one landmark a wrist has.
+    rings.push(armRing(at(wristD - 0.006), faB * 0.94, faB * 1.1, [[fore, 0.85], [hand, 0.15]]));
+    const ulna: Bulge[] = [{ at: -0.85, amp: 0.1 * faB, width: 0.7 }];
+    const wrist = armRing(at(wristD), faB * 0.8, faB * 1.18, [[fore, 0.5], [hand, 0.5]], MAT.skin, ulna);
     rings.push(wrist);
     if (spec.gripping) {
       rings.push(...cap(wrist.c, Y, Z, dir, wrist.radii, 0.006, [[hand, 1]], MAT.skin, 2));
@@ -1547,38 +1551,92 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       // fingers droop a little and the outer ones are shorter, so a hand on
       // the floor or held out reads as a hand, not a paddle.
       const hb: [number, number][] = [[hand, 1]];
-      const palmEnd = L.hand * 0.55;
-      const halfW = spec.hand * 1.8;
-      rings.push(armRing(at(wristD + 0.008), spec.hand * 0.85, spec.hand * 1.5, [[fore, 0.15], [hand, 0.85]]));
-      rings.push(armRing(at(wristD + palmEnd * 0.5), spec.hand * 0.75, halfW, hb));
-      const palm = armRing(at(wristD + palmEnd), spec.hand * 0.62, halfW * 0.98, hb);
-      rings.push(palm, ...cap(palm.c, Y, Z, dir, palm.radii, 0.006, hb, MAT.skin, 2));
+      // The hand bone runs from the wrist to the MIDDLE KNUCKLE, so it is
+      // the palm's own length and the fingers reach another 82% of it
+      // beyond. The palm used to stop at 55% of the bone and the fingers
+      // were crammed into the remaining 45%, which is why the hand read as
+      // a wide paddle with five stubs: 11cm across, 10cm long, 5cm thick.
+      // It is 8.7 x 19cm and 3cm thick on a 180cm man.
+      const palmEnd = L.hand;
+      const halfW = spec.hand * 1.42;
+      const palmT = spec.hand * 0.5;
+      // The two pads that make a palm a palm instead of a plate: the
+      // thenar at the thumb's root and the hypothenar along the pinky's
+      // edge, both on the PALM side, plus the knuckles standing on the
+      // BACK at the far end. (Angle 0 is +Y, the back of a palm-down hand;
+      // PI is the palm; PI/2 is the thumb side.)
+      const palmBulges = (t: number): Bulge[] => {
+        const out: Bulge[] = [];
+        const thenar = 0.34 * palmT * Math.exp(-Math.pow((t - 0.45) / 0.4, 2));
+        if (thenar > 0.0002) out.push({ at: Math.PI - 0.62, amp: thenar, width: 0.9 });
+        const hypo = 0.26 * palmT * Math.exp(-Math.pow((t - 0.55) / 0.45, 2));
+        if (hypo > 0.0002) out.push({ at: Math.PI + 0.55, amp: hypo, width: 0.8 });
+        const knuck = 0.3 * palmT * smooth01((t - 0.62) / 0.38);
+        if (knuck > 0.0002) out.push({ at: 0, amp: knuck, width: 1.5 });
+        return out;
+      };
+      const palmRing = (t: number, ru: number, rv: number, bones = hb) =>
+        armRing(at(wristD + palmEnd * t), ru, rv, bones, MAT.skin, palmBulges(t));
+      rings.push(palmRing(0.06, spec.hand * 0.52, spec.hand * 0.98, [[fore, 0.15], [hand, 0.85]]));
+      rings.push(palmRing(0.3, palmT * 1.02, halfW * 0.88));
+      rings.push(palmRing(0.62, palmT * 1.04, halfW));
+      rings.push(palmRing(0.87, palmT * 1.0, halfW * 0.99));
+      // The knuckle line is a curve with webbing between the fingers, not
+      // a square corner: the last ring draws in and the cap that closes it
+      // is as long as the hand is thick.
+      const palm = palmRing(1, palmT * 0.9, halfW * 0.93);
+      rings.push(palm, ...cap(palm.c, Y, Z, dir, palm.radii, palmT * 0.8, hb, MAT.skin, 3));
       b.tube(rings);
-      // A finger: a thin tube from `from` to `to`, rounded at the tip.
-      const finger = (from: THREE.Vector3, to: THREE.Vector3, r0: number, r1: number) => {
-        const axis = to.clone().sub(from).normalize();
-        const v = new THREE.Vector3().crossVectors(Y, axis).normalize();
+      // A finger: a tapered tube along a curved path -- a quadratic through
+      // `ctrl` -- so a hand at rest curls and the thumb bends at its own
+      // knuckle instead of being two straight tubes butted end to end. The
+      // frame is rebuilt at every ring, or a bent tube shears along it.
+      const finger = (from: THREE.Vector3, ctrl: THREE.Vector3, to: THREE.Vector3, r0: number, r1: number) => {
+        const along = (t: number) => from.clone().lerp(ctrl, t).lerp(ctrl.clone().lerp(to, t), t);
+        const frameAt = (t: number) => {
+          const p = along(t);
+          const axis = along(Math.min(1, t + 0.03)).sub(along(Math.max(0, t - 0.03))).normalize();
+          const v = new THREE.Vector3().crossVectors(Y, axis).normalize();
+          return { p, axis, u: new THREE.Vector3().crossVectors(axis, v).normalize(), v };
+        };
         const fr: Ring[] = [];
-        for (const [t, r] of [[0, r0], [0.5, (r0 + r1) / 2], [1, r1]] as const) {
-          fr.push(ring(from.clone().lerp(to, t), Y, v, ellipseRadii(r * 0.9, r), hb, MAT.skin));
+        for (const t of [0, 0.26, 0.52, 0.78, 1]) {
+          const f = frameAt(t);
+          const r = r0 + (r1 - r0) * t;
+          fr.push(ring(f.p, f.u, f.v, ellipseRadii(r * 0.92, r), hb, MAT.skin));
         }
-        fr.push(...cap(to, Y, v, axis, ellipseRadii(r1 * 0.9, r1), r1 * 0.9, hb, MAT.skin, 2));
+        const e = frameAt(1);
+        fr.push(...cap(e.p, e.u, e.v, e.axis, ellipseRadii(r1 * 0.92, r1), r1 * 0.85, hb, MAT.skin, 2));
         b.tube(fr);
       };
-      const fingerLen = L.hand - palmEnd;
-      const fr0 = spec.hand * 0.32, fr1 = spec.hand * 0.26;
-      [-0.72, -0.24, 0.24, 0.72].forEach((k, i) => {
-        const z = k * halfW;
-        const reach = i === 1 || i === 2 ? 1 : 0.88;
-        const root = new THREE.Vector3(x0 + s * (wristD + palmEnd - 0.006), shoulderY, z);
-        const tipP = new THREE.Vector3(x0 + s * (wristD + palmEnd + fingerLen * reach), shoulderY - fingerLen * 0.18, z * 1.04);
-        finger(root, tipP, fr0, fr1);
-      });
-      // The thumb leaves the palm's forward edge near the wrist and angles
-      // out ahead of the fingers.
-      const thumbRoot = new THREE.Vector3(x0 + s * (wristD + palmEnd * 0.25), shoulderY - spec.hand * 0.1, halfW * 0.75);
-      const thumbTip = new THREE.Vector3(x0 + s * (wristD + palmEnd * 0.85), shoulderY - spec.hand * 0.2, halfW * 1.45);
-      finger(thumbRoot, thumbTip, spec.hand * 0.36, spec.hand * 0.28);
+      // Index, middle, ring, little: their lengths, their thicknesses and
+      // how far each knuckle sits BACK from the middle one. All four used
+      // one knuckle line, two lengths and one radius, which is what made
+      // them read as a fork.
+      const digits = [
+        { z: 0.66, len: 0.93, rad: 0.98, back: 0.06 },
+        { z: 0.23, len: 1.0, rad: 1.0, back: 0 },
+        { z: -0.19, len: 0.95, rad: 0.93, back: 0.05 },
+        { z: -0.62, len: 0.76, rad: 0.79, back: 0.15 },
+      ];
+      const fingerLen = L.hand * 0.82;
+      const fr0 = spec.hand * 0.29, fr1 = spec.hand * 0.245;
+      for (const d of digits) {
+        const z = d.z * halfW;
+        const root = new THREE.Vector3(x0 + s * (wristD + palmEnd - L.hand * d.back), shoulderY, z);
+        const reach = fingerLen * d.len;
+        const tipP = new THREE.Vector3(root.x + s * reach, shoulderY - reach * 0.3, z * 0.9);
+        const ctrl = root.clone().lerp(tipP, 0.5);
+        ctrl.y -= reach * 0.16;
+        finger(root, ctrl, tipP, fr0 * d.rad, fr1 * d.rad);
+      }
+      // The thumb leaves the palm's thumb-side edge near the wrist and
+      // bends out ahead of the fingers, its own knuckle the control point
+      // of the curve.
+      const thumbRoot = new THREE.Vector3(x0 + s * (wristD + L.hand * 0.16), shoulderY - palmT * 0.35, halfW * 0.66);
+      const thumbKnee = new THREE.Vector3(x0 + s * (wristD + L.hand * 0.66), shoulderY - palmT * 0.95, halfW * 1.24);
+      const thumbTip = new THREE.Vector3(x0 + s * (wristD + L.hand * 1.02), shoulderY - palmT * 1.5, halfW * 1.24);
+      finger(thumbRoot, thumbKnee, thumbTip, spec.hand * 0.37, spec.hand * 0.26);
       continue;
     }
     b.tube(rings);
