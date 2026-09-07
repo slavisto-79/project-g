@@ -536,7 +536,10 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   // The thigh is oval at the top -- narrower across than deep -- so the
   // hips are the joints plus that narrower half-width, not two round
   // tubes side by side (which made a skirt of the shorts).
-  const THIGH_LAT = 0.78;
+  // His thighs sit a little narrower across, which is what brings his
+  // pelvis in a few millimetres a side (the user asked for a slightly
+  // narrower pelvis on the male only); hers keep their width.
+  const THIGH_LAT = female ? 0.78 : 0.72;
   const hipW = L.hipHalf + spec.taper.thigh[1] * THIGH_LAT + (female ? 0.004 : 0);
   // The thigh's cross-section at `t` (0 at the hip joint, 1 at the knee):
   // base radius with the quad sweep, oval at the top and round by the knee.
