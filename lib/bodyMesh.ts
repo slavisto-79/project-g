@@ -722,8 +722,24 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const t = Math.min(1, Math.max(0, x));
     return t * t * (3 - 2 * t);
   };
+  // How much fabric there is over a ring. A garment spans ACROSS the fine
+  // grooves of the body and only follows its broad masses, so the same
+  // abdomen carries its full relief on bare skin and a hint of it under a
+  // tee. Without this the six-pack is printed on the cotton, which is what
+  // body paint looks like, not a shirt. (Under `layered` the trunk itself
+  // is the skin and the clothes are separate shells.)
+  const clothAt = (u: number): number => {
+    if (layered) return 0;
+    // His tee runs the whole trunk down to the shorts: all of it is fabric.
+    if (!female) return 1;
+    // Hers is a cropped top over shorts, so the midriff between the hem and
+    // the waistband is bare -- the lower abdomen and the flanks.
+    const shorts = 1 - smooth01((u + 0.36) / 0.04);
+    return Math.max(shorts, smooth01((u - (0.5 - spec.topCover) + 0.02) / 0.04));
+  };
   const trunkBulges = (u: number): Bulge[] => {
     const out: Bulge[] = [];
+    const cloth = clothAt(u);
     if (female) {
       // Her bust: two lobes either side of the midline, peaking a little
       // above the middle of the trunk and fading out above and below.
@@ -744,9 +760,57 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
         out.push({ at: front - 0.42, amp, width: 0.72 }, { at: front + 0.42, amp, width: 0.72 });
         out.push({ at: front, amp: -0.004 * def * pecF, width: 0.2 });
       }
-      // The line down the middle of the abdomen.
-      const absF = Math.exp(-Math.pow((u + 0.02) / 0.14, 2));
-      if (absF > 0.05) out.push({ at: front, amp: -0.0035 * def * absF, width: 0.17 });
+      // The serratus on the lower ribs, between the pectoral's outer bottom
+      // corner and the lat. Small, and only under the ribs it belongs to.
+      const serrF = smooth01((u - 0.04) / 0.08) * (1 - smooth01((u - 0.2) / 0.08));
+      if (serrF > 0.02) {
+        const amp = 0.0025 * def * serrF * (0.6 + 0.4 * Math.cos((2 * Math.PI * u) / 0.08)) * (1 - 0.5 * cloth);
+        out.push({ at: front - 1.15, amp, width: 0.6 }, { at: front + 1.15, amp, width: 0.6 });
+      }
+    }
+    // The abdomen and the waist, on both. Landmarks along u, which runs
+    // -0.5 at the hip line to 0.5 at the shoulders over about 50cm: the
+    // pubis near -0.34, the navel -0.08, the bottom of the sternum 0.12.
+    // Hers are the same shapes at 40% -- a flat, toned midriff, not a
+    // trained one -- and her cropped top leaves exactly the part that
+    // shows them: the lower abdomen and the flanks.
+    const absDef = female ? def * 0.55 : def;
+    if (absDef > 0) {
+      // The rectus: two columns either side of the midline from the pubis
+      // up to the ribs, with the linea alba sunk between them. The columns
+      // are what stands proud; the groove is what makes them read as two.
+      // It runs from the pubis all the way up under the sternum: stopping
+      // it at the navel left room for a single crease across the belly,
+      // which reads as a fold in the shirt and not as an abdomen.
+      const rectF = smooth01((u + 0.3) / 0.12) * (1 - smooth01((u - 0.13) / 0.09));
+      if (rectF > 0.02) {
+        // The tendinous intersections cross them ABOVE the navel only --
+        // below it the muscle is one long segment, which is why a lean
+        // abdomen has a six-pack and not an eight-pack. ~6.5cm apart.
+        const seg = 0.5 + 0.5 * Math.cos((2 * Math.PI * (u - 0.085)) / 0.13);
+        const cross = smooth01((u + 0.03) / 0.06) * (1 - 0.3 * cloth);
+        // The columns are kept OFF the midline and narrow. Wide ones reach
+        // across it and fill the groove between them back in -- measured on
+        // the mesh, a pair at 0.22 and width 0.45 put back 53% of their own
+        // height at x = 0 and cancelled the linea alba exactly.
+        const amp = 0.007 * absDef * rectF * (1 - 0.1 * cloth) * (1 - 0.55 * cross * (1 - seg));
+        out.push({ at: front - 0.2, amp, width: 0.38 }, { at: front + 0.2, amp, width: 0.38 });
+        out.push({ at: front, amp: -0.0045 * absDef * rectF * (1 - 0.3 * cloth), width: 0.24 });
+      }
+      // The navel. One vertex wide and three rings tall, which at 28
+      // vertices around the trunk is about as small as this surface can
+      // hold a shape -- roughly a real navel's footprint anyway.
+      const navelF = Math.exp(-Math.pow(u / 0.055, 2));
+      if (navelF > 0.05) out.push({ at: front, amp: -0.0045 * navelF * (1 - 0.9 * cloth), width: 0.22 });
+      // The obliques: the slab down each flank from the lowest ribs to the
+      // crest of the pelvis, in front of the lats and below them -- it
+      // fades out as they fade in, so the side of the trunk is one line
+      // from the armpit to the hip.
+      const oblF = smooth01((u + 0.3) / 0.12) * (1 - smooth01((u - 0.08) / 0.12));
+      if (oblF > 0.02) {
+        const amp = 0.006 * absDef * oblF * (1 - 0.1 * cloth);
+        out.push({ at: front - 1.05, amp, width: 0.62 }, { at: front + 1.05, amp, width: 0.62 });
+      }
     }
     // (The glutes are not a lobe here: they are the eggs in seatOutline.)
     // The back: the lats carry width at the SIDES -- the V from the
@@ -763,8 +827,19 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
         const mass = 0.009 * backDef * latF;
         out.push({ at: back - 0.9, amp: mass, width: 1.0 }, { at: back + 0.9, amp: mass, width: 1.0 });
       }
-      const furrowF = smooth01((u + 0.05) / 0.15) * (1 - smooth01((u - 0.4) / 0.12));
-      if (furrowF > 0.02) out.push({ at: back, amp: -0.005 * backDef * furrowF, width: 0.22 });
+      // The furrow now runs the WHOLE back, not just the part the lats
+      // cover: below them it is the lumbar dip, the deepest point of the
+      // back in profile, and a back that goes flat there reads as a plank
+      // from the side.
+      const furrowF = smooth01((u + 0.3) / 0.14) * (1 - smooth01((u - 0.4) / 0.12));
+      if (furrowF > 0.02) out.push({ at: back, amp: -0.005 * backDef * furrowF * (1 - 0.3 * cloth), width: 0.24 });
+      // The erectors: the two columns either side of that furrow, standing
+      // out most across the small of the back where the lats have gone.
+      const erecF = smooth01((u + 0.32) / 0.12) * (1 - smooth01((u - 0.18) / 0.2));
+      if (erecF > 0.02) {
+        const amp = 0.005 * backDef * erecF * (1 - 0.1 * cloth);
+        out.push({ at: back - 0.3, amp, width: 0.5 }, { at: back + 0.3, amp, width: 0.5 });
+      }
     }
     return out;
   };
@@ -950,9 +1025,13 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   // Dense through the chest and back: the pectorals' lower border and the
   // lats' taper are the shapes the eye reads there, and 2cm rings turned
   // both into facets.
+  // Denser again through the abdomen and the waist: the intersections
+  // across the rectus are 6.5cm apart, so 2cm rings sampled them as a
+  // wobble instead of steps, and the navel fell between two of them.
   const trunkUs = [
-    -0.5, -0.47, -0.44, -0.42, -0.41, -0.38, -0.36, -0.35, -0.3, -0.26, -0.22, -0.17, -0.12, -0.08, -0.05, -0.04,
-    0.02, 0.06, 0.1, 0.14, 0.18, 0.22, 0.26, 0.3, 0.34, 0.38, 0.42, 0.46, 0.5,
+    -0.5, -0.47, -0.44, -0.42, -0.41, -0.38, -0.36, -0.35, -0.33, -0.31, -0.29, -0.27, -0.25, -0.23, -0.21, -0.19,
+    -0.17, -0.15, -0.13, -0.11, -0.09, -0.07, -0.05, -0.04, -0.02, 0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16,
+    0.18, 0.22, 0.26, 0.3, 0.34, 0.38, 0.42, 0.46, 0.5,
   ];
   // The trunk's lower rings run through the seat's union; above it the
   // lathe profile alone.
