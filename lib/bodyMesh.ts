@@ -1053,6 +1053,14 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   trunk.push(seatRing(SEAT_DROP + 0.018, 0.9, 0.05));
   trunk.push(seatRing(SEAT_DROP + 0.014, 0.94, 0.3));
   trunk.push(seatRing(SEAT_DROP + 0.008, 0.97, 0.68));
+  // These stay at FULL width, and tucking them in is a trap: on the outer
+  // side the seat's outline at the junction already equals the thigh's own
+  // oval exactly (the glutes have faded to nothing by then and the pelvis
+  // has shrunk to the crotch), so drawing them in only lifts the thigh out
+  // of the seat and makes the step worse. The step that IS there comes from
+  // the crotch bridge, on the inner and front sides, where the seat is
+  // wider than one thigh; closing it needs the thigh's first rings to take
+  // the seat's outline along their own rays, not their own ellipse.
   for (const drop of [...seatDrops].reverse()) trunk.push(seatRing(drop));
   // Dense through the chest and back: the pectorals' lower border and the
   // lats' taper are the shapes the eye reads there, and 2cm rings turned
@@ -1098,12 +1106,17 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     return Math.min(ax - xMin, xMax - ax) * 40;
   };
   for (const u of trunkUs) {
-    // A raised edge where cloth ends: the waistband and the top's hem (his
-    // shirt hangs over the shorts, so its own lower edge stays flat).
+    // A raised edge where cloth ends: the waistband, and the top's hem where
+    // it hangs over what is under it. His tee and his shorts are the same
+    // black -- the user asked for exactly that -- so the ONLY thing that can
+    // say where one ends and the other begins is this step. Without it the
+    // two read as a single black bodysuit.
     const { mat, cloth } = trunkMat(u);
     const band = trunkBand(u);
-    const edge = band !== trunkBand(u - 0.011) || band !== trunkBand(u + 0.011);
-    const lip = !layered && edge && band !== MAT.skin && !(band === MAT.top && !female) ? 0.003 : 0;
+    const below = trunkBand(u - 0.011);
+    const edge = band !== below || band !== trunkBand(u + 0.011);
+    const hem = band === MAT.top && below === MAT.legwear;
+    const lip = !layered && edge && band !== MAT.skin && (female || band !== MAT.top || hem) ? (hem ? 0.0045 : 0.003) : 0;
     const c = new THREE.Vector3(0, trunkY(u), 0);
     const radii = lowRadii(u, lip);
     const cut = mat === MAT.neck ? clearDelts(c, radii, panelCloth((u - neckFrom) / (0.5 - neckFrom), c, radii)) : cloth;
