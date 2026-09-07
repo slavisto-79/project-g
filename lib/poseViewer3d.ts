@@ -108,7 +108,8 @@ const FEMALE = {
   hips: 1.12,
   waist: 0.82,
   thigh: 0.9,
-  arm: 0.92,
+  // Her arm: 27cm round on a 60kg woman against his 33 -- 0.82 of his.
+  arm: 0.82,
   // Glute lobes on the back of the pelvis, as a fraction of the full size.
   glute: 0.7,
   // How much of the trunk, from the shoulders down, the cropped top covers.
@@ -132,7 +133,9 @@ const MALE = {
   // "прекалил с мускулите". The cap is now a smaller, flatter shoulder that
   // grows with training, not a bodybuilder's.
   delt: 1.0,
-  arm: 1.06,
+  // The reference arm is already an athlete's; training grows it via
+  // `muscle`, not a multiplier on top.
+  arm: 1.0,
 } as const;
 // Geometry resolution. The old 12- and 16-segment meshes shaded as facets,
 // which is most of what made the figure read as blocks rather than a body.
@@ -763,13 +766,20 @@ export class PoseViewer3D {
     // shoulder into elbow into wrist, trapezius-thick neck base. TAPER maps
     // part -> [radius at b, radius at a]: the geometry's TOP is +Y, which
     // update() aims at the bone's b end.
+    // Sized to a real athlete: the skeleton stands 0.88 tall for 180cm, so a
+    // centimetre of the man is 0.0049 here, and these are the girths of a
+    // lean 75kg man at BMI 22.5 -- upper arm 33cm, forearm 27, neck 38,
+    // chest 98, thigh 56, calf 37 -- before the build and training scale
+    // them. The old values drew a 180/80 man at two times the arm, half
+    // again the calf and shoulders of that (the user: "изглежда като
+    // огромен здравеняк 110 кг").
     const TAPER: Partial<Record<string, [number, number]>> = {
-      spine: [0.058, 0.042],
-      neck: [0.019, 0.028],
-      upperArm: [0.026, 0.035],
-      forearm: [0.02, 0.028],
-      thigh: [0.032, 0.048],
-      shin: [0.019, 0.034],
+      spine: [0.052, 0.04],
+      neck: [0.019, 0.027],
+      upperArm: [0.023, 0.029],
+      forearm: [0.014, 0.024],
+      thigh: [0.03, 0.045],
+      shin: [0.017, 0.031],
       // The girdle's bar is slim so the neck shows above it; its end caps
       // are the deltoids and get their own size below.
       shoulders: [0.03, 0.03],
@@ -778,7 +788,9 @@ export class PoseViewer3D {
     // on, growing gently with training. Half a power on `muscle`, and no
     // multiplier beyond the build's: at the old 0.8 power and x1.18 it
     // was a ball twice the arm's width.
-    const deltR = female ? 0.036 : 0.040 * Math.sqrt(muscle) * MALE.delt;
+    // A real deltoid caps the arm by a centimetre or two, no more: 0.033 is
+    // the upper arm's top plus that (0.040 was a ball half again the arm).
+    const deltR = female ? 0.028 : 0.033 * Math.sqrt(muscle) * MALE.delt;
     this.seatExtra = Math.max(0, RADII.thigh * (buildScale("thigh") - 1));
     // Strain shows only on a rep that travels: the profile's idle sway
     // keeps a neutral face.
