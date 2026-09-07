@@ -398,7 +398,10 @@ export function skullProfile(headR: number, female: boolean): (yr: number) => nu
       // His chin stands out a little more: a defined jaw and chin are the
       // face the fitness look is after.
       const chin = (female ? 0.02 : 0.04) * g(yr, -0.62, 0.15) * lobe(front, 0.55);
-      const brow = 0.025 * g(yr, 0.5, 0.12) * lobe(front, 1.0);
+      // The brow ridge sits BEHIND the drawn brows, at 36% of the way down
+      // the face from the crown. It was at yr 0.5, a fifth of a head above
+      // them, so it read as a ridge across the forehead instead.
+      const brow = 0.025 * g(yr, 0.3, 0.13) * lobe(front, 1.0);
       r += R * (cheek + occiput + temples + chin + brow);
       out.push(Math.max(r, 0.01 * R));
     }

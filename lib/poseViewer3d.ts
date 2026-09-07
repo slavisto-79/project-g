@@ -1001,33 +1001,51 @@ export class PoseViewer3D {
     // The jaw: an ellipsoid low on the skull that squares the lower face and
     // gives it a chin. His is broader; hers narrower and softer.
     this.jawBlob = blob(this.skin, female ? 0.64 : 0.72, female ? 0.5 : 0.52, female ? 0.66 : 0.7, 0, female ? -0.4 : -0.42, female ? 0.06 : 0.08);
-    // Ears, either side, just behind the midline.
-    for (const side of [-1, 1]) blob(this.skin, 0.1, 0.17, 0.06, side * 0.87, 0.05, 0.02);
+    // WHERE EVERY FEATURE GOES. The skull runs from yr +0.95 at the crown
+    // to -0.94 at the chin, so the face is 1.89R tall, and the canon puts
+    // the brow 36% of the way down it, the eyes at 47%, the base of the
+    // nose at 67% and the mouth line at 76%. Every feature here used to sit
+    // higher than that -- the eyes a tenth of a head too high, the nose
+    // ending level with the cheekbones -- which left a long blank upper lip
+    // and read as features stuck on a ball.
+    // Ears run from the brow line down to the base of the nose.
+    for (const side of [-1, 1]) {
+      const ear = blob(this.skin, 0.055, 0.23, 0.085, side * 0.86, -0.03, -0.02);
+      ear.rotation.z = side * -0.1;
+    }
     // Eyes: a white, an iris standing proud of it, and an upper lid of skin
     // hooding the top -- his lids sit lower for the set look, hers open.
+    // They are set INTO the sockets: at z 0.84 the whites stood proud of
+    // the skull, which is what made them read as googly eyes.
     for (const side of [-1, 1]) {
-      const x = side * 0.34;
-      blob(this.sclera, 0.13, female ? 0.1 : 0.085, 0.08, x, 0.16, 0.84);
-      blob(this.iris, 0.062, 0.062, 0.05, x, 0.16, 0.905);
+      const x = side * 0.27;
+      // The white is barely taller than the iris: at 0.092 against 0.056 a
+      // crescent of sclera showed UNDER it, which reads as looking up.
+      blob(this.sclera, 0.105, female ? 0.076 : 0.068, 0.072, x, 0.062, 0.795);
+      blob(this.iris, 0.058, 0.058, 0.045, x, 0.058, 0.85);
       const lid = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H, 0, Math.PI * 2, 0, Math.PI * (female ? 0.4 : 0.44)), this.skin);
-      lid.scale.set(0.145 * R, (female ? 0.115 : 0.1) * R, 0.09 * R);
-      lid.position.set(x * R, R * (female ? 0.165 : 0.16), R * 0.84);
+      lid.scale.set(0.128 * R, (female ? 0.105 : 0.092) * R, 0.082 * R);
+      lid.position.set(x * R, R * (female ? 0.068 : 0.062), R * 0.8);
       this.face.add(lid);
       this.lids.push(lid);
     }
     this.faceR = R;
-    // Nose: a bridge running down from between the brows to a tip, with a
-    // nostril bulge either side of the tip.
-    const bridge = blob(this.skin, 0.07, 0.22, 0.07, 0, 0.03, 0.9);
-    bridge.rotation.x = -0.35;
-    blob(this.skin, female ? 0.07 : 0.085, female ? 0.065 : 0.08, female ? 0.07 : 0.085, 0, -0.14, female ? 0.97 : 0.99);
-    for (const side of [-1, 1]) blob(this.skin, 0.05, 0.04, 0.05, side * (female ? 0.07 : 0.08), -0.17, 0.93);
+    // Nose: a root sunk between the brows, a bridge, a tip and a wing
+    // either side. It was one long thin cone standing 22% of the head's
+    // radius off a bald face, with two balls bolted to it.
+    // ONE bridge from the brow line down to the tip, tilted so its top
+    // sinks back between the brows. A root, a bridge and a tip at three
+    // different depths came out as three balls stacked in a column.
+    const bridge = blob(this.skin, female ? 0.058 : 0.064, 0.16, 0.072, 0, -0.05, 0.872);
+    bridge.rotation.x = -0.16;
+    blob(this.skin, female ? 0.076 : 0.086, female ? 0.07 : 0.078, female ? 0.08 : 0.088, 0, -0.25, female ? 0.918 : 0.926);
+    for (const side of [-1, 1]) blob(this.skin, 0.05, 0.044, 0.05, side * (female ? 0.075 : 0.083), -0.285, 0.884);
     // Mouth: an upper and a fuller lower lip with the line between them.
     const lipMat = female ? this.lips : this.lipsMale;
-    const mouthW = female ? 0.17 : 0.2;
-    this.lipsMeshes.push(blob(lipMat, mouthW, 0.026, 0.05, 0, -0.4, 0.86));
-    this.lipsMeshes.push(blob(lipMat, mouthW * 0.92, 0.036, 0.055, 0, -0.455, 0.855));
-    this.mouthLine = blob(this.iron, mouthW * 0.9, 0.007, 0.03, 0, -0.427, 0.895);
+    const mouthW = female ? 0.16 : 0.185;
+    this.lipsMeshes.push(blob(lipMat, mouthW, 0.028, 0.048, 0, -0.46, 0.855));
+    this.lipsMeshes.push(blob(lipMat, mouthW * 0.93, 0.036, 0.052, 0, -0.517, 0.85));
+    this.mouthLine = blob(this.iron, mouthW * 0.9, 0.006, 0.03, 0, -0.488, 0.888);
     // The head, all in the face's frame so it turns with the figure.
     if (female) {
       // Hair pulled back into a sleek high bun, with the forehead open (no
@@ -1110,7 +1128,7 @@ export class PoseViewer3D {
     // (the old ones were drawn down and in -- a scowl); hers thin, higher
     // and nearly level, with just the outer end lifted.
     for (const side of [-1, 1]) {
-      const brow = blob(female ? this.hairFemale : this.hair, female ? 0.15 : 0.17, female ? 0.02 : 0.026, 0.035, side * 0.33, female ? 0.37 : 0.36, 0.86);
+      const brow = blob(female ? this.hairFemale : this.hair, female ? 0.14 : 0.16, female ? 0.02 : 0.025, 0.034, side * 0.27, female ? 0.29 : 0.28, 0.865);
       brow.rotation.z = side * (female ? 0.12 : 0.14);
       this.brows.push(brow);
     }
@@ -1131,7 +1149,7 @@ export class PoseViewer3D {
       shadow.scale.set(0.69 * R, 0.53 * R, 0.72 * R);
       shadow.position.set(0, -0.42 * R, 0.08 * R);
       this.face.add(shadow);
-      blob(this.stubble, 0.17, 0.03, 0.03, 0, -0.33, 0.9);
+      blob(this.stubble, 0.16, 0.03, 0.03, 0, -0.395, 0.885);
     }
     // No headband: the user found the hoop on the head distracting, so the
     // lime stays on the wrists and shoes only.
