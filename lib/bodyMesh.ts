@@ -1001,6 +1001,27 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     }
     return { radii };
   };
+  // How far from `a` a ray leaves the seat's outline at this height. The
+  // outline is a closed polygon around the MIDLINE, so a ray fired from a
+  // thigh's own centre crosses it once: outward, a few millimetres away on
+  // the seat's own surface; inward, all the way across the body. The caller
+  // throws the second sort out by distance.
+  const outlineHit = (radii: number[], ax: number, dx: number, dz: number): number => {
+    let best = Infinity;
+    for (let k = 0; k < N; k++) {
+      const a0 = (k / N) * Math.PI * 2, a1 = ((k + 1) / N) * Math.PI * 2;
+      const r0 = radii[k]!, r1 = radii[(k + 1) % N]!;
+      const p0x = r0 * Math.cos(a0), p0z = r0 * Math.sin(a0);
+      const ex = r1 * Math.cos(a1) - p0x, ez = r1 * Math.sin(a1) - p0z;
+      const den = dx * ez - dz * ex;
+      if (Math.abs(den) < 1e-12) continue;
+      const wx = p0x - ax, wz = p0z;
+      const t = (wx * ez - wz * ex) / den;
+      const u = (wx * dz - wz * dx) / den;
+      if (t > 1e-9 && u >= 0 && u <= 1 && t < best) best = t;
+    }
+    return best === Infinity ? 0 : best;
+  };
   // Who owns a vertex around the seat: the thighs by how far down the seat
   // it sits (`f`, 0 at the hip joints, 1 at the fold), the pelvis for the
   // rest. The thighs' part is split between the LEFT and RIGHT leg by the
@@ -1336,6 +1357,25 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       if (sh.quad > 0.0005) bulges.push({ at: front, amp: sh.quad, width: 0.85 });
       if ((sh.sweep ?? 0) > 0.0005) bulges.push({ at: outer, amp: sh.sweep!, width: 0.8 });
       const out = ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(sh.ru + extra, sh.rv + extra, bulges), legBones(y), mat);
+      // Where the thigh leaves the seat, its ring takes the SEAT's outline
+      // along its OWN rays instead of its own ellipse. The seat's outline
+      // there is the union of both thighs, the glutes and the crotch
+      // bridge, so on the inner and front sides it is wider than one
+      // thigh's ellipse -- and the seat hung over the leg as a
+      // square-cornered panel, a mini-skirt over the shorts. Faded out over
+      // the 5cm below the fold, and only taken where the crossing is close:
+      // a ray fired inward leaves the outline on the far side of the body,
+      // and pulling the thigh out to THAT would swallow the crotch.
+      const seatF = Math.min(1, Math.max(0, 1 - (hipY - y - SEAT_DROP) / 0.05));
+      if (seatF > 0.01) {
+        const outline = seatOutline(y).radii;
+        for (let k = 0; k < N; k++) {
+          const th = (k / N) * Math.PI * 2;
+          const own = out.radii[k]!;
+          const hit = outlineHit(outline, x, Math.cos(th), Math.sin(th));
+          if (hit > own && hit < own * 1.8) out.radii[k] = own + (hit - own) * seatF;
+        }
+      }
       // The top of the thigh shares its inner side with the other leg the
       // way the seat's crotch does, fading out over 7cm below the fold, so
       // the thigh's first ring owns its vertices exactly as the seat's last
