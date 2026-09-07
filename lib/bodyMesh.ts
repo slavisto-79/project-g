@@ -637,7 +637,12 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // back of the thigh stays plain: it is what rests on every seat.
     const quad = 0.11 * legDef * base * Math.exp(-Math.pow((t - 0.42) / 0.24, 2));
     const sweep = 0.12 * legDef * base * Math.exp(-Math.pow((t - 0.58) / 0.22, 2));
-    return { ru: base * (THIGH_LAT + (1 - THIGH_LAT) * tt), rv: base * (1.1 - 0.1 * tt), quad, sweep };
+    // The thigh is flattened across at the hip (or the shorts read as a
+    // skirt) and rounds out toward the knee. It rounds out FASTER than
+    // straight now, so the thigh carries its real width against the calf
+    // in a front view; the hip stays where it is (the curve is still 0 at
+    // t = 0, and hipW is built from that end).
+    return { ru: base * (THIGH_LAT + (1 - THIGH_LAT) * Math.pow(tt, 0.7)), rv: base * (1.1 - 0.1 * tt), quad, sweep };
   };
   // How far below the hip joints the seat runs before the thighs take over.
   const SEAT_DROP = 0.072;
@@ -1155,13 +1160,19 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // where an even swell down the middle read as a soft tube.
     const shinR = (t: number) => {
       const base = shinA + (shinB - shinA) * t;
-      const calf = 1 + (0.07 + 0.16 * legDef) * Math.exp(-Math.pow((t - 0.26) / 0.18, 2));
+      // 0.07 + 0.16 x def put 48cm of calf under a 56cm thigh; a real one
+      // is 37, and the shape has to come from the two heads at the back,
+      // not from inflating the whole shin.
+      const calf = 1 + (0.05 + 0.08 * legDef) * Math.exp(-Math.pow((t - 0.26) / 0.18, 2));
       return base * calf;
     };
     // The gastrocnemius has two heads at the back, the inner one fuller and
     // hanging a little lower than the outer.
     const medial = back - s * 0.34, lateral = back + s * 0.34;
-    for (const t of [0.1, 0.2, 0.3, 0.42, 0.55, 0.7, 0.85, 0.94]) {
+    // Starting at 0.16: the knee's own rings run to 24mm below the joint,
+    // and a shin ring inside that (t 0.1 = 21mm) folded the tube back on
+    // itself -- a hard band across the top of the calf.
+    for (const t of [0.16, 0.26, 0.36, 0.48, 0.62, 0.76, 0.88, 0.95]) {
       const y = kneeY - t * L.shin;
       const r = shinR(t);
       const heads: Bulge[] = [
@@ -1286,14 +1297,17 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // front-upper quarter in a T-pose), and the wrist is bone.
     const faR = (t: number) => faA + (faB - faA) * t;
     const faBulges = (t: number): Bulge[] => {
-      const amp = 0.17 * armDef * faR(t) * Math.exp(-Math.pow((t - 0.2) / 0.24, 2));
+      const amp = 0.09 * armDef * faR(t) * Math.exp(-Math.pow((t - 0.18) / 0.24, 2));
       if (amp <= 0.0004) return [];
       return [
         { at: front - 0.45, amp, width: 1.25 },
         { at: back + 0.5, amp: amp * 0.55, width: 1.05 },
       ];
     };
-    for (const t of [0.12, 0.24, 0.36, 0.5, 0.65, 0.8]) {
+    // Starting at 0.18: the elbow's own rings run 20mm past the joint, and
+    // a forearm ring inside that (t 0.12 = 17mm) folded the tube back --
+    // the seam that crossed the forearm below the elbow.
+    for (const t of [0.18, 0.3, 0.42, 0.55, 0.68, 0.82]) {
       rings.push(armRing(at(L.upperArm + t * L.forearm), faR(t), faR(t) * 1.02, [[fore, 1]], MAT.skin, faBulges(t)));
     }
     // Wristband: a raised ring of the accent colour just above the wrist.
