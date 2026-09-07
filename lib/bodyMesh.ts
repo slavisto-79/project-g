@@ -798,7 +798,10 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const h = Math.max(SEAT_BLEND - Math.abs(a - b), 0) / SEAT_BLEND;
     return Math.max(a, b) + h * h * SEAT_BLEND * 0.25;
   };
-  const seatOutline = (y: number): { radii: number[] } => {
+  // `bridge` scales the ellipse that spans the crotch between the two
+  // thighs (1 = the full bridge). The rings that close the seat under the
+  // fold draw it in to nothing; see the cap below.
+  const seatOutline = (y: number, bridge = 1): { radii: number[] } => {
     const dy = y - hipY;
     const u = -0.5 + dy / L.spine;
     const below = dy < 0;
@@ -806,8 +809,8 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const { ru: a, rv: bb, quad, sweep } = thighShape(Math.max(0, -dy) / L.thigh);
     const fade = Math.min(1, Math.max(0, dy / 0.03));
     const thighF = below ? 1 : 1 - fade * fade * (3 - 2 * fade);
-    const baseW = below ? hipW + (0.012 - hipW) * f * f : W(u);
-    const baseD = below ? D(-0.5) * (1 - 0.55 * f) : D(u);
+    const baseW = below ? (hipW + (0.012 - hipW) * f * f) * bridge : W(u);
+    const baseD = below ? D(-0.5) * (1 - 0.55 * f) * bridge : D(u);
     const e = gluteE(dy);
     const gA = GLUTE.rx * e, gB = GLUTE.rz * e;
     const radii: number[] = [];
@@ -889,9 +892,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     if (f < 1) out.push([hipsBone, 1 - f]);
     return out;
   };
-  const seatRing = (drop: number, tuck = 1): Ring => {
+  const seatRing = (drop: number, tuck = 1, bridge = 1): Ring => {
     const f = Math.min(1, drop / SEAT_DROP);
-    const { radii } = seatOutline(hipY - drop);
+    const { radii } = seatOutline(hipY - drop, bridge);
     const out = ring(new THREE.Vector3(0, hipY - drop, 0), X, Z, radii.map((r) => r * tuck), pelvisBones, legMat);
     out.bonesAt = (k) => {
       const th = (k / N) * Math.PI * 2;
@@ -901,10 +904,15 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   };
   // Dense through the seat, so the eggs' curve is a curve and not facets.
   const seatDrops = [0.006, 0.014, 0.024, 0.034, 0.044, 0.052, 0.06, 0.066, SEAT_DROP];
-  // The seat's lowest ring tucks a hair inside the thighs, below where they
+  // The seat's lowest rings tuck a hair inside the thighs, below where they
   // start, so the join is the thighs' own edge and not two coincident
-  // surfaces shading differently.
-  trunk.push(seatRing(SEAT_DROP + 0.008, 0.985));
+  // surfaces shading differently. The last three also draw the crotch
+  // bridge in to nothing, so the tube CLOSES under the thighs instead of
+  // ending in a rim hanging between them -- that rim read as a hard shelf
+  // across the crotch in any close-up from the front.
+  trunk.push(seatRing(SEAT_DROP + 0.018, 0.9, 0.05));
+  trunk.push(seatRing(SEAT_DROP + 0.014, 0.94, 0.3));
+  trunk.push(seatRing(SEAT_DROP + 0.008, 0.97, 0.68));
   for (const drop of [...seatDrops].reverse()) trunk.push(seatRing(drop));
   const trunkUs = [-0.5, -0.47, -0.44, -0.42, -0.41, -0.38, -0.36, -0.35, -0.3, -0.22, -0.12, -0.05, -0.04, 0.02, 0.1, 0.18, 0.26, 0.34, 0.42, 0.5];
   // The trunk's lower rings run through the seat's union; above it the
