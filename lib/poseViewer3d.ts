@@ -787,9 +787,13 @@ export class PoseViewer3D {
       spine: [0.052, 0.04],
       neck: [0.019, 0.027],
       upperArm: [0.023, 0.029],
-      forearm: [0.014, 0.024],
+      // The forearm's top was 0.024 -- as wide as the upper arm's elbow
+      // end, so the arm read as one tube; a real one is 27cm round there
+      // against a 33cm upper arm. Likewise the shin's top: 0.031 drew a
+      // 40cm calf under a 56cm thigh.
+      forearm: [0.014, 0.02],
       thigh: [0.03, 0.045],
-      shin: [0.017, 0.031],
+      shin: [0.017, 0.028],
       // The girdle's bar is slim so the neck shows above it; its end caps
       // are the deltoids and get their own size below.
       shoulders: [0.03, 0.03],
