@@ -626,12 +626,18 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   // base radius with the quad sweep, oval at the top and round by the knee.
   // Shared by the seat, which is cut to the thighs' own outline.
   const legDef = female ? def * 0.5 : def;
-  const thighShape = (t: number): { ru: number; rv: number; quad: number } => {
+  const thighShape = (t: number): { ru: number; rv: number; quad: number; sweep: number } => {
     const [thighB, thighA] = spec.taper.thigh;
     const tt = Math.min(1, Math.max(0, t));
     const base = (thighA + (thighB - thighA) * t) * (1 + 0.03 * def * Math.exp(-Math.pow((t - 0.35) / 0.3, 2)));
-    const quad = 0.09 * legDef * base * Math.exp(-Math.pow((t - 0.35) / 0.3, 2));
-    return { ru: base * (THIGH_LAT + (1 - THIGH_LAT) * tt), rv: base * (1.1 - 0.1 * tt), quad };
+    // Two shapes make a thigh read as trained rather than as a tapered
+    // tube: the quadriceps down the FRONT, and the vastus lateralis
+    // sweeping out of the OUTER side lower down. Both are lobes, not a
+    // radial swell -- a swell just makes the tube fatter and softer. The
+    // back of the thigh stays plain: it is what rests on every seat.
+    const quad = 0.11 * legDef * base * Math.exp(-Math.pow((t - 0.42) / 0.24, 2));
+    const sweep = 0.12 * legDef * base * Math.exp(-Math.pow((t - 0.58) / 0.22, 2));
+    return { ru: base * (THIGH_LAT + (1 - THIGH_LAT) * tt), rv: base * (1.1 - 0.1 * tt), quad, sweep };
   };
   // How far below the hip joints the seat runs before the thighs take over.
   const SEAT_DROP = 0.072;
@@ -797,7 +803,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const u = -0.5 + dy / L.spine;
     const below = dy < 0;
     const f = below ? Math.min(1, -dy / SEAT_DROP) : 0;
-    const { ru: a, rv: bb, quad } = thighShape(Math.max(0, -dy) / L.thigh);
+    const { ru: a, rv: bb, quad, sweep } = thighShape(Math.max(0, -dy) / L.thigh);
     const fade = Math.min(1, Math.max(0, dy / 0.03));
     const thighF = below ? 1 : 1 - fade * fade * (3 - 2 * fade);
     const baseW = below ? hipW + (0.012 - hipW) * f * f : W(u);
@@ -815,16 +821,20 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       for (const sx of [L.hipHalf, -L.hipHalf]) {
         let hit = ellipseHit(c, s, sx, 0, a, bb);
         if (hit <= 0) continue;
-        // The thigh's own quad lobe, on the front of that thigh.
-        if (quad > 0.0005) {
-          const local = Math.atan2(hit * s, hit * c - sx);
-          let d = Math.abs(local - front);
+        // That thigh's own muscle lobes, by the angle around ITS centre:
+        // the quadriceps on its front, the vastus lateralis on its outer
+        // side (the same shapes the leg's own rings carry, so the seat and
+        // the thigh meet without a step).
+        const local = Math.atan2(hit * s, hit * c - sx);
+        const lobe = (at: number, amp: number, width: number) => {
+          if (amp <= 0.0005) return 0;
+          let d = Math.abs(local - at);
           d = Math.min(d, Math.PI * 2 - d);
-          if (d < 1.1) {
-            const g = 0.5 + 0.5 * Math.cos((d / 1.1) * Math.PI);
-            hit += quad * g * g;
-          }
-        }
+          if (d >= width) return 0;
+          const g = 0.5 + 0.5 * Math.cos((d / width) * Math.PI);
+          return amp * g * g;
+        };
+        hit += lobe(front, quad, 0.85) + lobe(sx > 0 ? 0 : Math.PI, sweep, 0.8);
         if (hit <= r) continue;
         hit = r + (hit - r) * thighF;
         if (hit > best) {
@@ -1086,10 +1096,13 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // The quadriceps is a lobe on the FRONT of the thigh: the back of the
     // thigh is what rests on seats and pads, and a round bulge there sank
     // 5mm into every seat in the sweep.
-    const thighRing = (y: number, mat: number, extra = 0, shape?: { ru: number; rv: number; quad: number }) => {
+    const outer = s > 0 ? 0 : Math.PI;
+    const thighRing = (y: number, mat: number, extra = 0, shape?: { ru: number; rv: number; quad: number; sweep?: number }) => {
       const t = (hipY - y) / L.thigh;
       const sh = shape ?? thighShape(t);
-      const bulges: Bulge[] = sh.quad > 0.0005 ? [{ at: front, amp: sh.quad, width: 1.1 }] : [];
+      const bulges: Bulge[] = [];
+      if (sh.quad > 0.0005) bulges.push({ at: front, amp: sh.quad, width: 0.85 });
+      if ((sh.sweep ?? 0) > 0.0005) bulges.push({ at: outer, amp: sh.sweep!, width: 0.8 });
       const out = ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(sh.ru + extra, sh.rv + extra, bulges), legBones(y), mat);
       // The top of the thigh shares its inner side with the other leg the
       // way the seat's crotch does, fading out over 7cm below the fold, so
@@ -1109,7 +1122,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const tSeat = SEAT_DROP / L.thigh;
     rings.push(thighRing(hipY - SEAT_DROP, MAT.legwear));
     rings.push(thighRing(hipY - SEAT_DROP - 0.03, legWear));
-    for (const t of [0.3, 0.42, 0.55, 0.7]) if (t > tSeat + 0.03 / L.thigh + 0.04) rings.push(thighRing(hipY - t * L.thigh, legWear));
+    // Dense enough down the thigh that the quadriceps and the outer sweep
+    // are curves and not two facets.
+    for (const t of [0.55, 0.63, 0.71, 0.79]) if (t > tSeat + 0.03 / L.thigh + 0.04) rings.push(thighRing(hipY - t * L.thigh, legWear));
     const tHem = (hipY - hemY) / L.thigh;
     if (!female && !layered) {
       // The shorts' hem: cloth standing a little proud, then skin.
@@ -1127,15 +1142,25 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     rings.push(ring(new THREE.Vector3(x, kneeY, 0), X, Z, ellipseRadii(thighB * 1.04, thighB * 1.08, [{ at: front, amp: 0.004, width: 1.0 }]), legBones(kneeY), kneeMat));
     rings.push(ring(new THREE.Vector3(x, kneeY - 0.012, 0), X, Z, ellipseRadii(shinA * 1.02, shinA * 1.06), legBones(kneeY - 0.012), kneeMat));
     rings.push(ring(new THREE.Vector3(x, kneeY - 0.024, 0), X, Z, ellipseRadii(shinA * 1.0, shinA * 1.04), legBones(kneeY - 0.024), kneeMat));
+    // The calf belly sits HIGH -- the top third of the shin -- and drops
+    // away to a bony ankle; that contrast is what reads as a trained leg,
+    // where an even swell down the middle read as a soft tube.
     const shinR = (t: number) => {
       const base = shinA + (shinB - shinA) * t;
-      const calf = 1 + (0.06 + 0.12 * legDef) * Math.exp(-Math.pow((t - 0.3) / 0.22, 2));
+      const calf = 1 + (0.07 + 0.16 * legDef) * Math.exp(-Math.pow((t - 0.26) / 0.18, 2));
       return base * calf;
     };
-    for (const t of [0.12, 0.3, 0.45, 0.6, 0.8, 0.93]) {
+    // The gastrocnemius has two heads at the back, the inner one fuller and
+    // hanging a little lower than the outer.
+    const medial = back - s * 0.34, lateral = back + s * 0.34;
+    for (const t of [0.1, 0.2, 0.3, 0.42, 0.55, 0.7, 0.85, 0.94]) {
       const y = kneeY - t * L.shin;
-      // The calf sits at the back: the bulge is deeper than it is wide.
-      rings.push(ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(shinR(t) * 0.96, shinR(t) * 1.08, [{ at: back, amp: 0.004 * legDef * Math.exp(-Math.pow((t - 0.3) / 0.25, 2)), width: 1.2 }]), legBones(y), kneeMat));
+      const r = shinR(t);
+      const heads: Bulge[] = [
+        { at: medial, amp: 0.075 * legDef * r * Math.exp(-Math.pow((t - 0.32) / 0.2, 2)), width: 0.95 },
+        { at: lateral, amp: 0.055 * legDef * r * Math.exp(-Math.pow((t - 0.24) / 0.18, 2)), width: 0.85 },
+      ];
+      rings.push(ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(r * 0.95, r * 1.06, heads), legBones(y), kneeMat));
     }
     const ankle = ring(new THREE.Vector3(x, ankleY, 0), X, Z, ellipseRadii(shinB, shinB * 1.05), [[lo, 1]], kneeMat);
     // A short cap: the shin ends inside the sneaker, and a longer one poked
@@ -1149,7 +1174,10 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
       const shellRing = (y: number, gap: number) => {
         const t = (hipY - y) / L.thigh;
         const sh = thighShape(t);
-        return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(sh.ru + gap, sh.rv + gap, sh.quad > 0.0005 ? [{ at: front, amp: sh.quad, width: 1.1 }] : []), legBones(y), MAT.legShell);
+        const shb: Bulge[] = [];
+        if (sh.quad > 0.0005) shb.push({ at: front, amp: sh.quad, width: 0.85 });
+        if (sh.sweep > 0.0005) shb.push({ at: outer, amp: sh.sweep, width: 0.8 });
+        return ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(sh.ru + gap, sh.rv + gap, shb), legBones(y), MAT.legShell);
       };
       const leg: Ring[] = [];
       leg.push(shellRing(hipY - SEAT_DROP, 0.004));
@@ -1202,23 +1230,33 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     rings.push(...capRings);
     rings.push(armRing(at(0), delt, delt, [[clav, 0.5], [arm, 0.5]], armMat(0)));
     rings.push(armRing(at(0.025), delt * 0.99, delt * 0.99, [[clav, 0.15], [arm, 0.85]], armMat(0.025)));
-    const uaR = (t: number) => {
-      const base = uaA + (uaB - uaA) * t;
-      const biceps = 1 + 0.1 * def * Math.exp(-Math.pow((t - 0.45) / 0.25, 2));
-      return base * biceps;
+    // An arm reads as trained through WHERE its mass sits, not how thick
+    // the tube is: the biceps a short belly on the front, peaking past the
+    // middle, and the triceps a longer one behind it, both dropping away
+    // into a bony elbow. Hers carries the same shapes at a lower relief.
+    const armDef = female ? def * 0.6 : def;
+    const uaR = (t: number) => uaA + (uaB - uaA) * t;
+    const uaBulges = (t: number): Bulge[] => {
+      const r = uaR(t);
+      const out: Bulge[] = [];
+      const bic = 0.15 * armDef * r * Math.exp(-Math.pow((t - 0.52) / 0.24, 2));
+      const tri = 0.13 * armDef * r * Math.exp(-Math.pow((t - 0.4) / 0.3, 2));
+      if (bic > 0.0004) out.push({ at: front, amp: bic, width: 1.0 });
+      if (tri > 0.0004) out.push({ at: back, amp: tri, width: 1.15 });
+      return out;
     };
     let hemmed = !tee;
-    for (const t of [0.3, 0.45, 0.6, 0.78]) {
+    for (const t of [0.22, 0.34, 0.46, 0.58, 0.7, 0.82]) {
       const d = t * L.upperArm;
       if (!hemmed && d > sleeveD) {
-        const rh = uaR(sleeveD / L.upperArm);
-        rings.push(armRing(at(sleeveD), rh + 0.003, rh * 1.05 + 0.003, [[arm, 1]], MAT.top));
-        rings.push(armRing(at(sleeveD + 0.002), rh, rh * 1.05, [[arm, 1]], MAT.skin));
+        const ts = sleeveD / L.upperArm;
+        const rh = uaR(ts);
+        rings.push(armRing(at(sleeveD), rh + 0.003, rh * 1.05 + 0.003, [[arm, 1]], MAT.top, uaBulges(ts)));
+        rings.push(armRing(at(sleeveD + 0.002), rh, rh * 1.05, [[arm, 1]], MAT.skin, uaBulges(ts)));
         hemmed = true;
       }
       const r = uaR(t);
-      // The biceps sits in front, the triceps behind: a little depth.
-      rings.push(armRing(at(d), r, r * 1.05, [[arm, 1]], armMat(d)));
+      rings.push(armRing(at(d), r, r * 1.05, [[arm, 1]], armMat(d), uaBulges(t)));
     }
     // The elbow rides its helper bone the way the knee does (see legBones).
     const elbow = bi(`${side}ElbowCap`);
@@ -1236,12 +1274,20 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     rings.push(armRing(at(L.upperArm), uaB * 1.04, uaB * 1.0, elbowBones(L.upperArm)));
     rings.push(armRing(at(L.upperArm + 0.01), (uaB * 1.02 + faA) / 2, (uaB + faA * 0.98) / 2, elbowBones(L.upperArm + 0.01)));
     rings.push(armRing(at(L.upperArm + 0.02), faA * 1.0, faA * 0.98, elbowBones(L.upperArm + 0.02)));
-    const faR = (t: number) => {
-      const base = faA + (faB - faA) * t;
-      const belly = 1 + 0.08 * def * Math.exp(-Math.pow((t - 0.28) / 0.25, 2));
-      return base * belly;
+    // The forearm's mass is all in its top third, on the thumb side (the
+    // front-upper quarter in a T-pose), and the wrist is bone.
+    const faR = (t: number) => faA + (faB - faA) * t;
+    const faBulges = (t: number): Bulge[] => {
+      const amp = 0.17 * armDef * faR(t) * Math.exp(-Math.pow((t - 0.2) / 0.24, 2));
+      if (amp <= 0.0004) return [];
+      return [
+        { at: front - 0.45, amp, width: 1.25 },
+        { at: back + 0.5, amp: amp * 0.55, width: 1.05 },
+      ];
     };
-    for (const t of [0.2, 0.35, 0.55, 0.75]) rings.push(armRing(at(L.upperArm + t * L.forearm), faR(t), faR(t) * 1.02, [[fore, 1]]));
+    for (const t of [0.12, 0.24, 0.36, 0.5, 0.65, 0.8]) {
+      rings.push(armRing(at(L.upperArm + t * L.forearm), faR(t), faR(t) * 1.02, [[fore, 1]], MAT.skin, faBulges(t)));
+    }
     // Wristband: a raised ring of the accent colour just above the wrist.
     const wristD = L.upperArm + L.forearm;
     const bandR = faB * 1.08;
