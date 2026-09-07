@@ -127,7 +127,10 @@ const FEMALE = {
 const MALE = {
   // 1.12 read as a barrel on the skinned body (the user: too wide a chest).
   chest: 1.04,
-  waist: 0.9,
+  // 0.9 drew a 21cm waist under a 33cm chest (the user: "талията не трябва
+  // да е чак толкова тънка спрямо краката"); 1.03 is 24cm -- still well
+  // inside the chest, no longer a wasp.
+  waist: 1.03,
   // The delts were 1.18 here on top of a 0.046 sphere: at the reference
   // build that was a 12cm ball on each shoulder, and the user's review was
   // "прекалил с мускулите". The cap is now a smaller, flatter shoulder that
