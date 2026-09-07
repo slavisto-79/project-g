@@ -847,14 +847,16 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     body.breath = breathAt(u);
     trunk.push(body);
   }
-  // Shoulders to neck: the traps, a dome as tall as the mannequin's was
-  // (its trunk cap was a 6cm sphere), so the neck reads as a neck and not
-  // a stalk. The straps run over it.
+  // Shoulders to neck: the traps, a slope from the shoulder line in to the
+  // neck's base -- not a dome. The user, against a photo: "Прекалено му е
+  // масивен трапеца"; the old rings held 96/84/64% of the shoulders' width
+  // 1.5/3/4.5cm up, a mound the neck sat on. Now 78/55/40% at 1.2/2.6/4cm,
+  // with the neck base at 5cm. The straps and the collar run over it.
   const neckA = spec.taper.neck[1], neckB = spec.taper.neck[0];
   const Rx = L.headR * 1.18 * 0.95, Ry = L.headR * 1.18 * 1.06, Rz = L.headR * 1.18 * 0.98;
   const topBones: [number, number][] = [[bi("Spine2"), 1]];
   const domeMat = layered ? MAT.skin : MAT.neck;
-  const dome = [[0.015, 0.96, 0.94], [0.03, 0.84, 0.84], [0.045, 0.64, 0.68]] as const;
+  const dome = [[0.012, 0.78, 0.86], [0.026, 0.55, 0.68], [0.04, 0.4, 0.55]] as const;
   // The tee's crew neck: fabric up to a collar line a little lower in front
   // than behind, cut through the dome's faces by the cloth mask.
   const collar = (c: THREE.Vector3) => (k: number) => {
@@ -868,7 +870,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     d.breath = 0.4;
     trunk.push(d);
   }
-  trunk.push(ring(new THREE.Vector3(0, shoulderY + 0.058, 0), X, Z, ellipseRadii(Math.max(W(0.5) * 0.38, neckA * 1.3), Math.max(D(0.5) * 0.5, neckA * 1.2)), [[bi("Spine2"), 0.6], [bi("Neck"), 0.4]], MAT.skin));
+  trunk.push(ring(new THREE.Vector3(0, shoulderY + 0.05, 0), X, Z, ellipseRadii(Math.max(W(0.5) * 0.3, neckA * 1.25), Math.max(D(0.5) * 0.42, neckA * 1.15)), [[bi("Spine2"), 0.6], [bi("Neck"), 0.4]], MAT.skin));
   // Neck, on up into the head.
   const neckBones: [number, number][] = [[bi("Neck"), 1]];
   trunk.push(ring(new THREE.Vector3(0, shoulderY + 0.068, 0), X, Z, ellipseRadii(neckA * 1.05, neckA * 1.02), neckBones, MAT.skin));
