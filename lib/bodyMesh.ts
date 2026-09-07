@@ -1244,11 +1244,15 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // hem standing a little proud, then skin.
     const sleeveD = 0.42 * L.upperArm;
     const armMat = (d: number) => (tee && d <= sleeveD ? MAT.top : MAT.skin);
-    // The deltoid: rounded over the shoulder, staying with the trunk.
-    const capRings = cap(at(0), Y, Z, dir.clone().negate(), ellipseRadii(delt, delt), 0.032, [[clav, 1]], armMat(0), 4).reverse();
-    rings.push(...capRings);
-    rings.push(armRing(at(0), delt, delt, [[clav, 0.5], [arm, 0.5]], armMat(0)));
-    rings.push(armRing(at(0.025), delt * 0.99, delt * 0.99, [[clav, 0.15], [arm, 0.85]], armMat(0.025)));
+    // The bones the rings near the joint ride: the clavicle's half at the
+    // joint line, all the arm's by 45mm down it. A ring that jumped from
+    // half the clavicle to all the arm inside a centimetre creased when
+    // the arm went overhead.
+    const armBones = (d: number): [number, number][] => {
+      const k = Math.min(1, Math.max(0, d / 0.045));
+      const w = k * k * (3 - 2 * k);
+      return w >= 1 ? [[arm, 1]] : [[clav, (1 - w) * 0.5], [arm, 1 - (1 - w) * 0.5]];
+    };
     // An arm reads as trained through WHERE its mass sits, not how thick
     // the tube is: the biceps a short belly on the front, peaking past the
     // middle, and the triceps a longer one behind it, both dropping away
@@ -1258,24 +1262,41 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const uaBulges = (t: number): Bulge[] => {
       const r = uaR(t);
       const out: Bulge[] = [];
+      // The deltoid is not a ball sitting on the shoulder: it caps the
+      // joint, wraps the front and the back, and dies away into the arm a
+      // third of the way down -- and there is NONE underneath, where the
+      // armpit is. So it is a lobe over the top of the arm's own rings,
+      // fading along the arm, with the underside cut away; a constant-
+      // radius sphere for the first 25mm and then the bare arm left a hard
+      // rim where the cap stopped.
+      const dl = Math.max(0.12 * uaA, delt - uaA) * Math.exp(-Math.pow(t / 0.3, 2));
+      if (dl > 0.0004) out.push({ at: 0, amp: dl, width: 2.1 });
+      const pit = 0.2 * r * Math.exp(-Math.pow(t / 0.22, 2));
+      if (pit > 0.0004) out.push({ at: Math.PI, amp: -pit, width: 1.1 });
       const bic = 0.15 * armDef * r * Math.exp(-Math.pow((t - 0.52) / 0.24, 2));
       const tri = 0.13 * armDef * r * Math.exp(-Math.pow((t - 0.4) / 0.3, 2));
       if (bic > 0.0004) out.push({ at: front, amp: bic, width: 1.0 });
       if (tri > 0.0004) out.push({ at: back, amp: tri, width: 1.15 });
       return out;
     };
+    // The shoulder's own section, deltoid and all: the cap over the joint
+    // takes it too, so the cap and the arm are one surface.
+    const shoulderRadii = ellipseRadii(uaR(0), uaR(0) * 1.05, uaBulges(0));
+    rings.push(...cap(at(0), Y, Z, dir.clone().negate(), shoulderRadii, 0.03, [[clav, 1]], armMat(0), 4).reverse());
+    rings.push(ring(at(0), Y, Z, shoulderRadii, armBones(0), armMat(0)));
     let hemmed = !tee;
-    for (const t of [0.22, 0.34, 0.46, 0.58, 0.7, 0.82]) {
+    // Dense over the deltoid, where the section changes fastest.
+    for (const t of [0.08, 0.16, 0.25, 0.35, 0.46, 0.58, 0.7, 0.82]) {
       const d = t * L.upperArm;
       if (!hemmed && d > sleeveD) {
         const ts = sleeveD / L.upperArm;
         const rh = uaR(ts);
-        rings.push(armRing(at(sleeveD), rh + 0.003, rh * 1.05 + 0.003, [[arm, 1]], MAT.top, uaBulges(ts)));
-        rings.push(armRing(at(sleeveD + 0.002), rh, rh * 1.05, [[arm, 1]], MAT.skin, uaBulges(ts)));
+        rings.push(armRing(at(sleeveD), rh + 0.003, rh * 1.05 + 0.003, armBones(sleeveD), MAT.top, uaBulges(ts)));
+        rings.push(armRing(at(sleeveD + 0.002), rh, rh * 1.05, armBones(sleeveD), MAT.skin, uaBulges(ts)));
         hemmed = true;
       }
       const r = uaR(t);
-      rings.push(armRing(at(d), r, r * 1.05, [[arm, 1]], armMat(d), uaBulges(t)));
+      rings.push(armRing(at(d), r, r * 1.05, armBones(d), armMat(d), uaBulges(t)));
     }
     // The elbow rides its helper bone the way the knee does (see legBones).
     const elbow = bi(`${side}ElbowCap`);
