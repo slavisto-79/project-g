@@ -637,6 +637,14 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
   const SEAT_DROP = 0.072;
   const W = (u: number) => {
     const base = profileAt(spec.trunkProfile, u) * 1.45 * spec.trunkW * (u > 0 ? spec.style.chest : 1);
+    // His waist is as wide as his pelvis (the user: "Талията и тазът на
+    // мъжа трябва да са еднакво широки"): from the pelvis up to the lower
+    // ribs the trunk is never narrower than hipW, whatever the build, and
+    // the chest takes over above. Hers keeps the hourglass.
+    if (!female && u < 0.2) {
+      const k = u <= -0.05 ? 1 : 1 - Math.pow((u + 0.05) / 0.25, 2) * (3 - (2 * (u + 0.05)) / 0.25);
+      if (base < hipW * k) return hipW * k;
+    }
     if (u >= -0.28) return base;
     const s = Math.min(1, (-0.28 - u) / 0.22);
     const flare = s * s * (3 - 2 * s);
