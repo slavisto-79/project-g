@@ -444,8 +444,12 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
     // противоестествено"); every point over the brows stays above 0.48R.
     const frontLine = style === "crop" ? 0.52 : style === "warrior" ? 0.53 : 0.54;
     const pts: [number, number][] = female
-      ? [[0, 0.56], [0.6, 0.5], [1.05, 0.3], [1.5, 0.16], [2.0, -0.12], [2.5, -0.3], [Math.PI, -0.34]]
-      : [[0, frontLine], [0.55, frontLine - 0.03], [0.85, 0.42], [1.1, 0.24], [1.5, 0.0], [2.0, -0.14], [2.5, -0.24], [Math.PI, -0.27]];
+      // The line runs down PAST the ears to the nape on both. It used to
+      // stop at -0.27 on him and -0.34 on her, which is level with the top
+      // of the ears, so the hair ended in a straight line across the back
+      // of the head and left a bald band above the neck.
+      ? [[0, 0.56], [0.6, 0.5], [1.05, 0.28], [1.5, 0.02], [1.9, -0.28], [2.4, -0.52], [Math.PI, -0.62]]
+      : [[0, frontLine], [0.55, frontLine - 0.03], [0.85, 0.35], [1.25, -0.06], [1.6, -0.26], [2.1, -0.47], [2.6, -0.58], [Math.PI, -0.6]];
     for (let i = 1; i < pts.length; i++) {
       const [x0, y0] = pts[i - 1]!, [x1, y1] = pts[i]!;
       if (d <= x1) return y0 + ((y1 - y0) * (d - x0)) / (x1 - x0);
@@ -456,7 +460,10 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
   const thickness = (yr: number, t: number): number => {
     let d = Math.abs(t - front);
     d = Math.min(d, Math.PI * 2 - d);
-    const top = Math.min(1, Math.max(0, (yr - 0.25) / 0.4)); // 0 at the sides, 1 on top
+    // 0 low on the sides, 1 on the crown. It used to reach 0 only at yr
+    // 0.25, most of the way UP the head, so everything below that got the
+    // bare minimum thickness and the sides read as bald skin.
+    const top = Math.min(1, Math.max(0, (yr + 0.1) / 0.5));
     if (female) {
       // Sleek and combed back, but hair, not paint: fine grooves run from
       // the hairline over the crown toward the tie (the strands), and the
@@ -469,7 +476,7 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
     if (side < -Math.PI) side += Math.PI * 2;
     if (style === "buzz") {
       // A buzz over a soft fade: short and even, a whisper of grain.
-      return 0.01 + 0.014 * top + 0.003 * top * Math.sin(t * 13 + yr * 7);
+      return 0.014 + 0.012 * top + 0.003 * top * Math.sin(t * 13 + yr * 7);
     }
     if (style === "warrior") {
       // Short sides, and on top heavy textured layers standing up and a
@@ -477,7 +484,7 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
       const lift = 0.15 * Math.pow(top, 1.3);
       const forward = d < 1.2 ? 0.04 * (1 - d / 1.2) * top : 0;
       const spikes = top * (0.028 * Math.sin(t * 11 + yr * 5) + 0.016 * Math.sin(t * 19 - yr * 13 + 1));
-      return 0.014 + lift + forward + spikes;
+      return 0.02 + lift + forward + spikes;
     }
     // The textured crop over a low fade: tight at the sides and back; full
     // on top, brought forward into a short fringe, broken into tufts by two
@@ -488,7 +495,7 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
     // and not a smooth cap.
     const grain = top * 0.004 * Math.sin(t * 29 + yr * 19);
     const parting = 0.045 * top * Math.exp(-Math.pow((side - 0.5) / 0.14, 2));
-    return 0.012 + 0.075 * top + fringe + tufts + grain - parting;
+    return 0.022 + 0.065 * top + fringe + tufts + grain - parting;
   };
   // The fade: at his sides and back the hair thins over a fifth of the head
   // above the hairline (the top keeps its short feather so the fringe stays
@@ -508,7 +515,7 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
     if (female || style === "buzz") return 0;
     let d = Math.abs(t - front);
     d = Math.min(d, Math.PI * 2 - d);
-    const top = Math.min(1, Math.max(0, (yr - 0.25) / 0.4));
+    const top = Math.min(1, Math.max(0, (yr + 0.1) / 0.5));
     return top * top * Math.max(0, 1 - d / 1.3);
   };
   const lag: number[] = [];
@@ -517,7 +524,9 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
   // Dense where the hairline runs, so its diagonal over the temple is a
   // clean line and not a staircase of whole quads.
   const ys: number[] = [];
-  for (let y = -0.45; y <= 0.6; y += 0.05) ys.push(+y.toFixed(3));
+  // Down to -0.72, where the neck enters the skull: at -0.45 there was no
+  // ring left to carry the hairline once it reached the nape.
+  for (let y = -0.72; y <= 0.6; y += 0.05) ys.push(+y.toFixed(3));
   ys.push(0.68, 0.76, 0.83, 0.89, 0.94, 0.97);
   for (const yr of ys) {
     const base = skull(yr);
@@ -543,10 +552,13 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
     }
     rings.push(ring(new THREE.Vector3(0, yr * R, 0), X, Z, radii, [[0, 1]], MAT.topShell, (k) => mask[k]!));
   }
-  // Close the crown.
+  // Close the crown a little above the last ring, not level with it and not
+  // far above it: level, the closing cone is flat enough to catch the light
+  // as a star from directly overhead; at 1.045R it is a 52 degree cone on a
+  // ring of 0.097R and the head grows a point.
   const crown = skull(0.97).map((r) => r * 0.02);
-  rings.push(ring(new THREE.Vector3(0, 0.99 * R, 0), X, Z, crown, [[0, 1]], MAT.topShell, () => 1));
-  for (let k = 0; k < N; k++) lag.push(lagAt(0.99, (k / N) * Math.PI * 2));
+  rings.push(ring(new THREE.Vector3(0, 1.005 * R, 0), X, Z, crown, [[0, 1]], MAT.topShell, () => 1));
+  for (let k = 0; k < N; k++) lag.push(lagAt(1.005, (k / N) * Math.PI * 2));
   b.tube(rings);
   const geometry = b.geometry();
   geometry.deleteAttribute("skinIndex");
