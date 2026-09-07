@@ -641,9 +641,16 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // мъжа трябва да са еднакво широки"): from the pelvis up to the lower
     // ribs the trunk is never narrower than hipW, whatever the build, and
     // the chest takes over above. Hers keeps the hourglass.
-    if (!female && u < 0.2) {
-      const k = u <= -0.05 ? 1 : 1 - Math.pow((u + 0.05) / 0.25, 2) * (3 - (2 * (u + 0.05)) / 0.25);
-      if (base < hipW * k) return hipW * k;
+    // From there the width runs up to the chest's on one smooth S-curve
+    // (a floor that held the pelvis width flat to the lower ribs and then
+    // let the chest jump out left a ridge across the abdomen -- the user:
+    // "прехода от гръден кош към корем да изглежда натурално").
+    if (!female && u < 0.34) {
+      const top = profileAt(spec.trunkProfile, 0.34) * 1.45 * spec.trunkW * spec.style.chest;
+      const s = Math.min(1, Math.max(0, (u + 0.1) / 0.44));
+      const k = s * s * (3 - 2 * s);
+      const smooth = hipW + (top - hipW) * k;
+      if (base < smooth) return smooth;
     }
     if (u >= -0.28) return base;
     const s = Math.min(1, (-0.28 - u) / 0.22);
