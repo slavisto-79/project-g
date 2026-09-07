@@ -106,7 +106,10 @@ const TRAP_HANDLE_RISE = 0.06;
 const FEMALE_HAIR: "bun" | "tail" = "bun";
 const FEMALE = {
   hips: 1.12,
-  waist: 0.82,
+  // 0.82 drew a 15cm waist on a 168/60 woman (a real one is ~24); 0.95 is
+  // 18cm -- still an hourglass against her hips, no longer a wasp (the
+  // user: "малко по-широка, но не прекалявай").
+  waist: 0.95,
   thigh: 0.9,
   // Her arm: 27cm round on a 60kg woman against his 33 -- 0.82 of his.
   arm: 0.82,
@@ -762,7 +765,7 @@ export class PoseViewer3D {
     // chest; the chest (taper[0]) grows with weight and, for a man, with
     // muscle. The female waist starts narrower against her wider hips (the
     // hourglass) and tightens further as she trains.
-    const waist = (1 + (t > 0 ? 1.1 : 0.5) * t) * (female ? FEMALE.waist - 0.08 * tone : MALE.waist);
+    const waist = (1 + (t > 0 ? 1.1 : 0.5) * t) * (female ? FEMALE.waist - 0.05 * tone : MALE.waist);
     const chest = (1 + 0.25 * t) * (female ? 1 : Math.pow(muscle, 0.3) * MALE.chest);
     // The trunk is a rib cage, not a tube: wider at the chest than at the
     // waist (the bone runs pelvis -> shoulders, so the taper widens upward),
