@@ -166,6 +166,29 @@ function shellMaterial(base: THREE.Material): THREE.Material {
   return m;
 }
 
+// Hair over a fade: the shell material with the hair's colour blending into
+// the skin's over `span` units of the per-vertex `cloth` value above the
+// hairline (cloth is 20 per R of height, so span 4 is a fade a fifth of the
+// head tall) -- the hair clipped shorter and shorter toward the line, skin
+// showing through. A flat dark shell with a hard edge read as a cap.
+function fadeMaterial(base: THREE.Material, skin: THREE.Color, span: number): THREE.Material {
+  const m = shellMaterial(base) as THREE.MeshStandardMaterial;
+  const inner = m.onBeforeCompile;
+  m.onBeforeCompile = (shader, renderer) => {
+    inner(shader, renderer);
+    shader.uniforms.uSkin = { value: skin };
+    shader.uniforms.uSpan = { value: span };
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", "#include <common>\nuniform vec3 uSkin;\nuniform float uSpan;")
+      .replace(
+        "#include <color_fragment>",
+        "#include <color_fragment>\nfloat fadeT = smoothstep(0.0, uSpan, vCloth);\ndiffuseColor.rgb = mix(uSkin, diffuseColor.rgb, 0.25 + 0.75 * fadeT);",
+      );
+  };
+  m.customProgramCacheKey = () => "hair-fade";
+  return m;
+}
+
 // The shadow pass with the same cut: without it a scooped neckline still
 // threw the shadow of a whole shirt.
 function shadowMaterial(): THREE.MeshDepthMaterial {
@@ -397,7 +420,10 @@ export function skullProfile(headR: number, female: boolean): (yr: number) => nu
 // heavily textured layers standing up on top over short sides.
 export type MaleHair = "crop" | "buzz" | "warrior";
 
-export function buildHair(headR: number, female: boolean, material: THREE.Material, style: MaleHair = "crop"): THREE.Mesh {
+// `fade`: his skin colour, for the fade at the sides and back -- the hair
+// thins to nothing and its colour blends into the skin over the last fifth
+// of the head above the hairline; without it the shell read as a cap.
+export function buildHair(headR: number, female: boolean, material: THREE.Material, style: MaleHair = "crop", fade?: THREE.Color): THREE.Mesh {
   const R = headR * 1.3;
   const skull = skullProfile(headR, female);
   const front = Math.PI / 2;
@@ -455,9 +481,23 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
     // crossing ripples, with a parting combed in on one side.
     const fringe = d < 1.1 ? 0.06 * (1 - d / 1.1) * Math.pow(top, 1.4) : 0;
     const tufts = top * (0.014 * Math.sin(t * 9 + yr * 6) + 0.008 * Math.sin(t * 17 - yr * 11 + 1));
+    // Finer grain across the top -- the clipped ends -- so it reads as hair
+    // and not a smooth cap.
+    const grain = top * 0.004 * Math.sin(t * 29 + yr * 19);
     const parting = 0.045 * top * Math.exp(-Math.pow((side - 0.5) / 0.14, 2));
-    return 0.014 + 0.075 * top + fringe + tufts - parting;
+    return 0.012 + 0.075 * top + fringe + tufts + grain - parting;
   };
+  // The fade: at his sides and back the hair thins over a fifth of the head
+  // above the hairline (the top keeps its short feather so the fringe stays
+  // full to its edge), and the line itself is a little ragged, the way
+  // clipped hair meets skin.
+  const featherLen = (t: number): number => {
+    if (female) return 0.12;
+    let d = Math.abs(t - front);
+    d = Math.min(d, Math.PI * 2 - d);
+    return d < 0.7 ? 0.12 : 0.12 + 0.1 * Math.min(1, (d - 0.7) / 0.5);
+  };
+  const ragged = (t: number): number => (female ? 0 : 0.008 * Math.sin(t * 23 + 1) + 0.005 * Math.sin(t * 41));
   // How much of the head's motion the hair at a vertex lags behind (the
   // viewer sways it): his quiff, nothing on her sleek shell (her bun and
   // wisps are the viewer's own).
@@ -482,16 +522,20 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
     const mask: number[] = [];
     for (let k = 0; k < N; k++) {
       const t = (k / N) * Math.PI * 2;
-      const line = hairline(t);
+      const line = hairline(t) + ragged(t);
       // Feather the thickness to nothing over the last bit above the
       // hairline, so the edge lies flush with the skin. Below it the shell
       // stays a hair ABOVE the skull (the mask removes it): tucked inside,
       // the surface crossed the skull between two rings and the hairline
       // showed as a staircase along the temples.
       const above = yr - line;
-      const feather = Math.min(1, Math.max(0, above / 0.12));
+      const feather = Math.min(1, Math.max(0, above / featherLen(t)));
       radii.push(base[k]! + R * Math.max(0.006, above > 0 ? thickness(yr, t) * feather : 0));
-      mask.push(above * 20);
+      // The mask reaches the fade material's full span (4.4) where the
+      // thickness reaches full, so the colour fades over the same height
+      // as the hair thins: short at the front (a crisp fringe), long at
+      // the sides and back.
+      mask.push((above * 4.4) / featherLen(t));
       lag.push(above > 0 ? lagAt(yr, t) * feather : 0);
     }
     rings.push(ring(new THREE.Vector3(0, yr * R, 0), X, Z, radii, [[0, 1]], MAT.topShell, (k) => mask[k]!));
@@ -504,7 +548,7 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
   const geometry = b.geometry();
   geometry.deleteAttribute("skinIndex");
   geometry.deleteAttribute("skinWeight");
-  const mesh = new THREE.Mesh(geometry, shellMaterial(material));
+  const mesh = new THREE.Mesh(geometry, fade ? fadeMaterial(material, fade, 4.4) : shellMaterial(material));
   mesh.castShadow = true;
   // The rest positions and the per-vertex lag, for the viewer's sway.
   const position = geometry.getAttribute("position") as THREE.BufferAttribute;

@@ -596,7 +596,7 @@ export class PoseViewer3D {
   // kit.
   private skin = new THREE.MeshStandardMaterial({ color: 0xc79b74, roughness: 0.48, metalness: 0 });
   // A little sheen, so the crop's tufts and parting catch the light.
-  private hair = new THREE.MeshStandardMaterial({ color: 0x1a1712, roughness: 0.58 });
+  private hair = new THREE.MeshStandardMaterial({ color: 0x1a1712, roughness: 0.66 });
   // Stubble is shadow on the skin, not hair: a skin-dark tone, tight to it.
   // Heavy stubble (the 5mm the attractiveness studies keep picking): a
   // shadow a few shades under the skin, not the brown of a beard.
@@ -1067,7 +1067,7 @@ export class PoseViewer3D {
       // The textured crop over a low fade -- the user's pick from a live
       // three-way mockup (crop / buzz fade / warrior cut), and the most
       // requested men's cut three years running.
-      this.hairShell = buildHair(first.head.r, false, this.hair, "crop");
+      this.hairShell = buildHair(first.head.r, false, this.hair, "crop", this.skin.color);
       this.face.add(this.hairShell);
       this.hairSway = new Spring(0.3, 0.9, R * 0.1);
     }
