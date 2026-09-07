@@ -329,7 +329,11 @@ function profileAt(profile: [number, number][], y: number): number {
 export function skullProfile(headR: number, female: boolean): (yr: number) => number[] {
   const R = headR * 1.3;
   const Rx = headR * 1.18 * 0.95, Ry = headR * 1.18 * 1.06, Rz = headR * 1.18 * 0.98;
-  const jaw = female ? { a: 0.64, b: 0.5, c: 0.66, cy: -0.4, cz: 0.06 } : { a: 0.72, b: 0.52, c: 0.7, cy: -0.42, cz: 0.08 };
+  // His jaw: narrower than the egg below the cheekbones, so the lower face
+  // is the jaw ellipsoid's own shape -- corners at the angle of the jaw,
+  // a defined chin -- rather than the egg's roundness (the user: fix the
+  // physiognomy; the fitness face is lean and angular, not chubby).
+  const jaw = female ? { a: 0.64, b: 0.5, c: 0.66, cy: -0.4, cz: 0.06 } : { a: 0.66, b: 0.5, c: 0.66, cy: -0.42, cz: 0.08 };
   const g = (y: number, c: number, w: number) => Math.exp(-Math.pow((y - c) / w, 2));
   const front = Math.PI / 2;
   const back = -Math.PI / 2;
@@ -340,7 +344,13 @@ export function skullProfile(headR: number, female: boolean): (yr: number) => nu
     for (let k = 0; k < N; k++) {
       const t = (k / N) * Math.PI * 2;
       const c = Math.cos(t), s = Math.sin(t);
-      const egg = eggK > 0 ? ((Rx * Rz) / Math.sqrt(Rz * Rz * c * c + Rx * Rx * s * s)) * eggK : 0;
+      let egg = eggK > 0 ? ((Rx * Rz) / Math.sqrt(Rz * Rz * c * c + Rx * Rx * s * s)) * eggK : 0;
+      // His egg tapers below the cheekbones, handing the lower face to the
+      // jaw ellipsoid.
+      if (!female && yr < -0.1) {
+        const l = Math.min(1, (-0.1 - yr) / 0.5);
+        egg *= 1 - 0.14 * l * l * (3 - 2 * l);
+      }
       // The jaw ellipsoid along this ray from the ring's centre.
       let jawR = 0;
       const dy = (yr - jaw.cy) / jaw.b;
@@ -362,7 +372,9 @@ export function skullProfile(headR: number, female: boolean): (yr: number) => nu
       const cheek = (female ? 0.028 : 0.035) * g(yr, -0.08, 0.16) * (lobe(front - 0.85, 0.6) + lobe(front + 0.85, 0.6));
       const occiput = 0.05 * g(yr, 0.15, 0.35) * lobe(back, 1.3);
       const temples = -0.025 * g(yr, 0.35, 0.25) * (lobe(0, 0.7) + lobe(Math.PI, 0.7));
-      const chin = (female ? 0.02 : 0.03) * g(yr, -0.62, 0.14) * lobe(front, 0.5);
+      // His chin stands out a little more: a defined jaw and chin are the
+      // face the fitness look is after.
+      const chin = (female ? 0.02 : 0.04) * g(yr, -0.62, 0.15) * lobe(front, 0.55);
       const brow = 0.025 * g(yr, 0.5, 0.12) * lobe(front, 1.0);
       r += R * (cheek + occiput + temples + chin + brow);
       out.push(Math.max(r, 0.01 * R));
@@ -380,7 +392,12 @@ export function skullProfile(headR: number, female: boolean): (yr: number) => nu
 // back, with the forehead open and the ears clear (the bun is the
 // viewer's). Returns a plain mesh for the face group; the cut is the
 // same per-vertex mask the garments use.
-export function buildHair(headR: number, female: boolean, material: THREE.Material): THREE.Mesh {
+// His cut: the textured crop over a low fade (the most requested men's cut
+// three years running), a buzz over a soft fade, or the warrior cut --
+// heavily textured layers standing up on top over short sides.
+export type MaleHair = "crop" | "buzz" | "warrior";
+
+export function buildHair(headR: number, female: boolean, material: THREE.Material, style: MaleHair = "crop"): THREE.Mesh {
   const R = headR * 1.3;
   const skull = skullProfile(headR, female);
   const front = Math.PI / 2;
@@ -390,10 +407,16 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
     let d = Math.abs(t - front);
     d = Math.min(d, Math.PI * 2 - d); // 0 at the front, PI at the back
     // The nape line runs nearly level: a point there read as a widow's
-    // peak at the back of the neck.
+    // peak at the back of the neck. The crop's fringe brings his front
+    // hairline a little lower than the buzz's.
+    // His temples dip only a little: the brows sit at 0.36R and reach
+    // 0.41R at their lifted outer ends, and a hairline dipping to 0.44R
+    // over them put the brow's tip into the hair (the user: "невъзможно и
+    // противоестествено"); every point over the brows stays above 0.48R.
+    const frontLine = style === "crop" ? 0.52 : style === "warrior" ? 0.53 : 0.54;
     const pts: [number, number][] = female
       ? [[0, 0.56], [0.6, 0.5], [1.05, 0.3], [1.5, 0.16], [2.0, -0.12], [2.5, -0.3], [Math.PI, -0.34]]
-      : [[0, 0.54], [0.55, 0.47], [1.0, 0.22], [1.5, 0.0], [2.0, -0.14], [2.5, -0.24], [Math.PI, -0.27]];
+      : [[0, frontLine], [0.55, frontLine - 0.03], [0.85, 0.42], [1.1, 0.24], [1.5, 0.0], [2.0, -0.14], [2.5, -0.24], [Math.PI, -0.27]];
     for (let i = 1; i < pts.length; i++) {
       const [x0, y0] = pts[i - 1]!, [x1, y1] = pts[i]!;
       if (d <= x1) return y0 + ((y1 - y0) * (d - x0)) / (x1 - x0);
@@ -412,22 +435,34 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
       const strands = 0.007 * Math.sin(t * 18 + yr * 1.5) * (0.5 + 0.5 * top);
       return 0.045 + 0.035 * top * top + strands;
     }
-    // The fade: tight at the sides and back; the crop full on top, rising
-    // into a quiff at the front, broken into tufts by two crossing ripples,
-    // with a parting combed in on one side.
-    const quiff = d < 1.1 ? 0.075 * (1 - d / 1.1) * Math.pow(top, 1.4) : 0;
-    const tufts = top * (0.014 * Math.sin(t * 9 + yr * 6) + 0.008 * Math.sin(t * 17 - yr * 11 + 1));
     let side = t - front;
     if (side > Math.PI) side -= Math.PI * 2;
     if (side < -Math.PI) side += Math.PI * 2;
-    const parting = 0.05 * top * Math.exp(-Math.pow((side - 0.5) / 0.14, 2));
-    return 0.016 + 0.085 * top + quiff + tufts - parting;
+    if (style === "buzz") {
+      // A buzz over a soft fade: short and even, a whisper of grain.
+      return 0.01 + 0.014 * top + 0.003 * top * Math.sin(t * 13 + yr * 7);
+    }
+    if (style === "warrior") {
+      // Short sides, and on top heavy textured layers standing up and a
+      // little forward, spiked by two crossing ripples.
+      const lift = 0.15 * Math.pow(top, 1.3);
+      const forward = d < 1.2 ? 0.04 * (1 - d / 1.2) * top : 0;
+      const spikes = top * (0.028 * Math.sin(t * 11 + yr * 5) + 0.016 * Math.sin(t * 19 - yr * 13 + 1));
+      return 0.014 + lift + forward + spikes;
+    }
+    // The textured crop over a low fade: tight at the sides and back; full
+    // on top, brought forward into a short fringe, broken into tufts by two
+    // crossing ripples, with a parting combed in on one side.
+    const fringe = d < 1.1 ? 0.06 * (1 - d / 1.1) * Math.pow(top, 1.4) : 0;
+    const tufts = top * (0.014 * Math.sin(t * 9 + yr * 6) + 0.008 * Math.sin(t * 17 - yr * 11 + 1));
+    const parting = 0.045 * top * Math.exp(-Math.pow((side - 0.5) / 0.14, 2));
+    return 0.014 + 0.075 * top + fringe + tufts - parting;
   };
   // How much of the head's motion the hair at a vertex lags behind (the
   // viewer sways it): his quiff, nothing on her sleek shell (her bun and
   // wisps are the viewer's own).
   const lagAt = (yr: number, t: number): number => {
-    if (female) return 0;
+    if (female || style === "buzz") return 0;
     let d = Math.abs(t - front);
     d = Math.min(d, Math.PI * 2 - d);
     const top = Math.min(1, Math.max(0, (yr - 0.25) / 0.4));
@@ -449,11 +484,13 @@ export function buildHair(headR: number, female: boolean, material: THREE.Materi
       const t = (k / N) * Math.PI * 2;
       const line = hairline(t);
       // Feather the thickness to nothing over the last bit above the
-      // hairline, so the edge lies flush with the skin; below it the shell
-      // tucks a hair inside the skull and the mask removes it.
+      // hairline, so the edge lies flush with the skin. Below it the shell
+      // stays a hair ABOVE the skull (the mask removes it): tucked inside,
+      // the surface crossed the skull between two rings and the hairline
+      // showed as a staircase along the temples.
       const above = yr - line;
       const feather = Math.min(1, Math.max(0, above / 0.12));
-      radii.push(base[k]! + R * (above > 0 ? thickness(yr, t) * feather : -0.01));
+      radii.push(base[k]! + R * Math.max(0.006, above > 0 ? thickness(yr, t) * feather : 0));
       mask.push(above * 20);
       lag.push(above > 0 ? lagAt(yr, t) * feather : 0);
     }
