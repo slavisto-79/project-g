@@ -1363,13 +1363,35 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     // Starting at 0.16: the knee's own rings run to 24mm below the joint,
     // and a shin ring inside that (t 0.1 = 21mm) folded the tube back on
     // itself -- a hard band across the top of the calf.
-    for (const t of [0.16, 0.26, 0.36, 0.48, 0.62, 0.76, 0.88, 0.95]) {
+    // Which way round the ring the inner side of THIS leg lies: `front +
+    // s * PI / 2` is the side facing the other leg, on both.
+    const inward = (a: number) => front + s * a;
+    // The lower leg's own shapes, on top of the two calf heads. A shin is
+    // not a cone: it has a bone up the front you can feel, the tibialis
+    // beside it, and a tendon at the back that pulls the whole section in
+    // to a flat cord above the heel. That last one is the shape the eye
+    // reads from the side, and without it the calf just faded out.
+    for (const t of [0.16, 0.26, 0.36, 0.48, 0.62, 0.72, 0.8, 0.88, 0.95]) {
       const y = kneeY - t * L.shin;
       const r = shinR(t);
       const heads: Bulge[] = [
         { at: medial, amp: 0.075 * legDef * r * Math.exp(-Math.pow((t - 0.32) / 0.2, 2)), width: 0.95 },
         { at: lateral, amp: 0.055 * legDef * r * Math.exp(-Math.pow((t - 0.24) / 0.18, 2)), width: 0.85 },
       ];
+      // The crest of the tibia, a hair off the midline toward the inside.
+      heads.push({ at: inward(0.16), amp: 0.045 * r * smooth01((t - 0.05) / 0.2), width: 0.34 });
+      // The tibialis anterior, outside the crest and highest on the shin.
+      const tib = 0.055 * legDef * r * Math.exp(-Math.pow((t - 0.34) / 0.26, 2));
+      if (tib > 0.0002) heads.push({ at: inward(-0.6), amp: tib, width: 0.8 });
+      // The Achilles: the back draws IN to a cord above the heel.
+      const ach = 0.13 * r * smooth01((t - 0.55) / 0.32);
+      if (ach > 0.0002) heads.push({ at: back, amp: -ach, width: 1.15 });
+      // The two ankle bones: the inner one higher and forward, the outer
+      // lower and further back.
+      const mal = 0.11 * r * Math.exp(-Math.pow((t - 0.9) / 0.09, 2));
+      const lat = 0.1 * r * Math.exp(-Math.pow((t - 0.96) / 0.08, 2));
+      if (mal > 0.0002) heads.push({ at: inward(1.25), amp: mal, width: 0.55 });
+      if (lat > 0.0002) heads.push({ at: inward(-1.75), amp: lat, width: 0.5 });
       rings.push(ring(new THREE.Vector3(x, y, 0), X, Z, ellipseRadii(r * 0.95, r * 1.06, heads), legBones(y), kneeMat));
     }
     const ankle = ring(new THREE.Vector3(x, ankleY, 0), X, Z, ellipseRadii(shinB, shinB * 1.05), [[lo, 1]], kneeMat);
