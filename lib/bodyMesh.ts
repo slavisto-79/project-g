@@ -42,7 +42,7 @@ export type BodyStyle = {
 // Chest and shoulders came down from 1.08 / 1.18 after the user's review
 // ("твърде му е широк гръдния кош"): at 1.08 the trunk was 20cm across on
 // an 85cm figure, a 43cm chest on a real man.
-export const BODY_STYLE_DEFAULT: BodyStyle = { definition: 1, shoulders: 1.08, chest: 1.03, layered: false };
+export const BODY_STYLE_DEFAULT: BodyStyle = { definition: 1, shoulders: 1.0, chest: 1.0, layered: false };
 
 export type BodyMaterials = {
   skin: THREE.MeshStandardMaterial;
@@ -558,7 +558,9 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     const flare = s * s * (3 - 2 * s);
     return base + (Math.max(base, hipW) - base) * flare;
   };
-  const D = (u: number) => profileAt(spec.trunkProfile, u) * 0.9 * spec.trunkD;
+  // Depth at 1.0 of the profile (was 0.9 of a wider one): the chest is
+  // narrower now, and the same depth keeps a lying back on its bench pad.
+  const D = (u: number) => profileAt(spec.trunkProfile, u) * 1.0 * spec.trunkD;
   const trunkY = (u: number) => hipY + (u + 0.5) * L.spine;
   const trunkBones = (u: number): [number, number][] => {
     // Blend along the stacked spine bones, which all take the trunk's
@@ -1022,7 +1024,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     rings.push(ring(new THREE.Vector3(x, kneeY - 0.024, 0), X, Z, ellipseRadii(shinA * 1.0, shinA * 1.04), legBones(kneeY - 0.024), kneeMat));
     const shinR = (t: number) => {
       const base = shinA + (shinB - shinA) * t;
-      const calf = 1 + (0.08 + 0.2 * legDef) * Math.exp(-Math.pow((t - 0.3) / 0.22, 2));
+      const calf = 1 + (0.06 + 0.12 * legDef) * Math.exp(-Math.pow((t - 0.3) / 0.22, 2));
       return base * calf;
     };
     for (const t of [0.12, 0.3, 0.45, 0.6, 0.8, 0.93]) {
@@ -1097,7 +1099,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     rings.push(armRing(at(0.025), delt * 0.99, delt * 0.99, [[clav, 0.15], [arm, 0.85]], armMat(0.025)));
     const uaR = (t: number) => {
       const base = uaA + (uaB - uaA) * t;
-      const biceps = 1 + 0.18 * def * Math.exp(-Math.pow((t - 0.45) / 0.25, 2));
+      const biceps = 1 + 0.1 * def * Math.exp(-Math.pow((t - 0.45) / 0.25, 2));
       return base * biceps;
     };
     let hemmed = !tee;
@@ -1131,7 +1133,7 @@ export function buildBody(spec: BodySpec, mats: BodyMaterials): Body {
     rings.push(armRing(at(L.upperArm + 0.02), faA * 1.0, faA * 0.98, elbowBones(L.upperArm + 0.02)));
     const faR = (t: number) => {
       const base = faA + (faB - faA) * t;
-      const belly = 1 + 0.12 * def * Math.exp(-Math.pow((t - 0.28) / 0.25, 2));
+      const belly = 1 + 0.08 * def * Math.exp(-Math.pow((t - 0.28) / 0.25, 2));
       return base * belly;
     };
     for (const t of [0.2, 0.35, 0.55, 0.75]) rings.push(armRing(at(L.upperArm + t * L.forearm), faR(t), faR(t) * 1.02, [[fore, 1]]));
