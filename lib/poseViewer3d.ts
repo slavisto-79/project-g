@@ -598,7 +598,9 @@ export class PoseViewer3D {
   // A little sheen, so the crop's tufts and parting catch the light.
   private hair = new THREE.MeshStandardMaterial({ color: 0x1a1712, roughness: 0.58 });
   // Stubble is shadow on the skin, not hair: a skin-dark tone, tight to it.
-  private stubble = new THREE.MeshStandardMaterial({ color: 0x6e5240, roughness: 0.85 });
+  // Heavy stubble (the 5mm the attractiveness studies keep picking): a
+  // shadow a few shades under the skin, not the brown of a beard.
+  private stubble = new THREE.MeshStandardMaterial({ color: 0x9a7056, roughness: 0.85 });
   private shirt = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.72, metalness: 0 });
   private shorts = new THREE.MeshStandardMaterial({ color: 0x181b1a, roughness: 0.85, metalness: 0 });
   private lime = new THREE.MeshStandardMaterial({ color: 0xc8ff32, roughness: 0.5, metalness: 0.05 });
@@ -972,7 +974,7 @@ export class PoseViewer3D {
       const x = side * 0.34;
       blob(this.sclera, 0.13, female ? 0.1 : 0.085, 0.08, x, 0.16, 0.84);
       blob(this.iris, 0.062, 0.062, 0.05, x, 0.16, 0.905);
-      const lid = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H, 0, Math.PI * 2, 0, Math.PI * (female ? 0.4 : 0.5)), this.skin);
+      const lid = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H, 0, Math.PI * 2, 0, Math.PI * (female ? 0.4 : 0.44)), this.skin);
       lid.scale.set(0.145 * R, (female ? 0.115 : 0.1) * R, 0.09 * R);
       lid.position.set(x * R, R * (female ? 0.165 : 0.16), R * 0.84);
       this.face.add(lid);
@@ -1062,15 +1064,19 @@ export class PoseViewer3D {
       // A lofted shell over the skull (lib/bodyMesh.ts): a fade at the sides
       // and back, the crop full on top rising into a quiff, tufts and a
       // parting; the quiff lags the head on a spring (stepHair).
-      this.hairShell = buildHair(first.head.r, false, this.hair);
+      // The textured crop over a low fade -- the user's pick from a live
+      // three-way mockup (crop / buzz fade / warrior cut), and the most
+      // requested men's cut three years running.
+      this.hairShell = buildHair(first.head.r, false, this.hair, "crop");
       this.face.add(this.hairShell);
       this.hairSway = new Spring(0.3, 0.9, R * 0.1);
     }
-    // Brows: his angled in and down over the eyes; hers thin, higher and
-    // nearly level, with just the outer end lifted.
+    // Brows: his straight and a touch angled, set a little above the eyes
+    // (the old ones were drawn down and in -- a scowl); hers thin, higher
+    // and nearly level, with just the outer end lifted.
     for (const side of [-1, 1]) {
-      const brow = blob(female ? this.hairFemale : this.hair, female ? 0.15 : 0.16, female ? 0.02 : 0.032, 0.035, side * 0.33, female ? 0.37 : 0.34, 0.86);
-      brow.rotation.z = side * (female ? 0.12 : 0.3);
+      const brow = blob(female ? this.hairFemale : this.hair, female ? 0.15 : 0.17, female ? 0.02 : 0.026, 0.035, side * 0.33, female ? 0.37 : 0.36, 0.86);
+      brow.rotation.z = side * (female ? 0.12 : 0.14);
       this.brows.push(brow);
     }
     // Rest positions, scales and angles the effort expression works from.
@@ -1083,8 +1089,11 @@ export class PoseViewer3D {
       // beard. SphereGeometry's phi runs around Y with the face at PI/2, so
       // the shell covers the front and sides and stops at the cheekbones;
       // the moustache shadow is a flattened blob on the upper lip.
-      const shadow = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H, Math.PI * 0.05, Math.PI * 0.9, Math.PI * 0.42, Math.PI * 0.58), this.stubble);
-      shadow.scale.set(0.73 * R, 0.53 * R, 0.71 * R);
+      // Sized to the leaner jaw (skullProfile), and starting lower on the
+      // cheek so it reads as stubble along the jaw, not a band across the
+      // face.
+      const shadow = new THREE.Mesh(new THREE.SphereGeometry(1, SPHERE_W, SPHERE_H, Math.PI * 0.05, Math.PI * 0.9, Math.PI * 0.47, Math.PI * 0.53), this.stubble);
+      shadow.scale.set(0.69 * R, 0.53 * R, 0.72 * R);
       shadow.position.set(0, -0.42 * R, 0.08 * R);
       this.face.add(shadow);
       blob(this.stubble, 0.17, 0.03, 0.03, 0, -0.33, 0.9);
