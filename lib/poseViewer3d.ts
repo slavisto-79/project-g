@@ -127,8 +127,9 @@ const FEMALE = {
 // These multiply the reference radii; training progress (`muscle`) still
 // grows the shoulders, arms, chest and neck on top of them.
 const MALE = {
-  // 1.12 read as a barrel on the skinned body (the user: too wide a chest).
-  chest: 1.04,
+  // 1.12 read as a barrel on the skinned body (the user: too wide a chest);
+  // 1.08 is the touch wider they asked for later.
+  chest: 1.08,
   // 0.9 drew a 21cm waist under a 33cm chest (the user: "талията не трябва
   // да е чак толкова тънка спрямо краката"); 1.03 is 24cm -- still well
   // inside the chest, no longer a wasp.
