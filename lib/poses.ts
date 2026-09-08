@@ -45,7 +45,10 @@ export type PoseProp =
   // splayed from one fitting to BOTH hands; "d" is a stirrup handle, one per
   // cable, on the hand that cable runs to. Both are drawn from the HANDS,
   // never from the prop centre, which a side view puts on the midline.
-  | { kind: "cable"; x: number; y: number; ax: number; ay: number; rope?: boolean; handle?: "rope" | "d" }
+  // band: a resistance band rather than a steel cable -- the anchor is a
+  // point in the world (under a foot, behind a bench, over a bar), not a
+  // machine standing in front, and the value names the joint it pulls on.
+  | { kind: "cable"; x: number; y: number; ax: number; ay: number; rope?: boolean; handle?: "rope" | "d"; band?: string }
   // A ground line. Side views are hard to read without one -- a bent-over
   // figure and a lying one are the same jumble of sticks until you can see
   // which way is down and where the body is relative to the floor.
@@ -93,7 +96,7 @@ export type PoseProp3D =
   // body, height its diameter, and it is held up by its arm, not the floor.
   | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3; across?: boolean; lever?: boolean; sled?: boolean }
   // center is the grip (where the cable ends), anchor the pulley.
-  | { kind: "cable"; center: Vec3; anchor: Vec3; rope?: boolean; handle?: "rope" | "d" }
+  | { kind: "cable"; center: Vec3; anchor: Vec3; rope?: boolean; handle?: "rope" | "d"; band?: string }
   | { kind: "floor"; y: number; mat?: boolean };
 
 export type PoseFrame3D = {
@@ -406,10 +409,13 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
       // Face on, the machine stands IN FRONT of the figure (the figure faces
       // +Z); the authored anchor only says how high and how far to the side.
       // The cable ends where the hand actually is, depth included.
-      const anchor: Vec3 = view === "front" ? [(prop.ax - 0.5) * ASPECT, 1 - prop.ay, 0.45] : point(prop.ax, prop.ay);
+      // A machine stands in front of a face-on figure; a band does not -- it's
+      // anchored under a foot or behind a bench, in the body's own plane.
+      const anchor: Vec3 =
+        view === "front" && !prop.band ? [(prop.ax - 0.5) * ASPECT, 1 - prop.ay, 0.45] : point(prop.ax, prop.ay);
       const centre = point(prop.x, prop.y);
       if (view === "front") centre[2] = heldDepth(prop.x, prop.y);
-      return { kind: "cable" as const, center: centre, anchor, ...(prop.rope ? { rope: true } : {}), ...(prop.handle ? { handle: prop.handle } : {}) };
+      return { kind: "cable" as const, center: centre, anchor, ...(prop.rope ? { rope: true } : {}), ...(prop.handle ? { handle: prop.handle } : {}), ...(prop.band ? { band: prop.band } : {}) };
     }
     return {
       kind: "slab" as const,
@@ -432,7 +438,7 @@ type PropSpec =
   | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean }
   // anchor: the pulley, in authored coordinates (a high pulley sits above the
   // frame's top edge, which is fine -- it only has to be off the figure).
-  | { kind: "cable"; at: string; anchor: Point; rope?: boolean; handle?: "rope" | "d" }
+  | { kind: "cable"; at: string; anchor: Point; rope?: boolean; handle?: "rope" | "d"; band?: boolean }
   // Placed under the lowest point of the figure, so it sits where the ground
   // is. Pin it with `y` when the body leaves the ground: otherwise the floor
   // rises with the jump, which reads as the world moving, not the athlete.
@@ -449,7 +455,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
     if (spec.kind === "cable") {
       const grip = joints[spec.at];
       if (!grip) throw new Error(`pose: cable anchored to unknown joint "${spec.at}"`);
-      drawn.push({ kind: "cable", x: grip.x, y: grip.y, ax: spec.anchor.x, ay: spec.anchor.y, ...(spec.rope ? { rope: true } : {}), ...(spec.handle ? { handle: spec.handle } : {}) });
+      drawn.push({ kind: "cable", x: grip.x, y: grip.y, ax: spec.anchor.x, ay: spec.anchor.y, ...(spec.rope ? { rope: true } : {}), ...(spec.handle ? { handle: spec.handle } : {}), ...(spec.band ? { band: spec.at } : {}) });
       continue;
     }
     if (spec.kind === "bell" && spec.each) {

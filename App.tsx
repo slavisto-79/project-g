@@ -6278,10 +6278,14 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
 };
 
 // The library implement, translated for the 3D demo. Cable counts as machine
-// (a stack with a handle), band and bodyweight draw nothing special.
+// (a stack with a handle), bodyweight draws nothing special.
 function viewerImplementFor(implement: LibraryImplement): ViewerImplement {
   if (implement === "cable") return "machine";
-  if (implement === "band" || implement === "bodyweight") return undefined;
+  // A band is its own implement now: nothing is loaded into the hands, but the
+  // band itself has to be drawn, and only for the exercises actually done on
+  // one -- these poses are shared with their barbell and dumbbell versions.
+  if (implement === "band") return "band";
+  if (implement === "bodyweight") return undefined;
   return implement;
 }
 
