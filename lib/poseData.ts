@@ -1349,6 +1349,77 @@ export const exercisePoses = {
     -1,
   ),
 
+  // Hip extension against a low pulley, standing on one leg with the hands on
+  // the machine for balance. The cuff is on the ankle, so the cable ends at
+  // the ankle rather than at a hand.
+  cableKickback: pose(
+    "side",
+    // The start has the heel already off the floor with the knee folded --
+    // at a true standing start the checker reads two planted feet and calls
+    // the free leg a stance knee out of sync with the other.
+    ([[172, 214], [198, 210], [226, 229]] as const).map(([up, low]) => {
+      const pelvis = { x: 0.5, y: 0.494 };
+      const torso = 12;
+      return {
+        pelvis,
+        torso,
+        neck: torso - 6,
+        // Both hands on the upright in front: this is a balance movement and
+        // the hands are what makes that read.
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.63, y: 0.50 }, { x: 0.616, y: 0.508 }], FORWARD),
+        // The working leg is the NEAR one so nothing hides it; the far leg is
+        // solved to the floor and holds the whole body up.
+        legs: [{ upper: up, lower: low, end: low - 92 }, plantedLegs(pelvis, torso, "side", FEET, FORWARD)[1]!],
+      };
+    }),
+    [
+      { kind: "floor" },
+      { kind: "cable", at: "ankle0", anchor: { x: 0.867, y: 0.928 } },
+    ],
+    "neutral",
+  ),
+
+  // Standing hip abduction on a loop band: the band goes under the standing
+  // foot and round the working ankle, so it is anchored on the other ankle and
+  // stretches as the leg travels.
+  hipAbduction: pose(
+    "front",
+    ([180, 163, 146] as const).map((up) => {
+      const pelvis = { x: 0.5, y: 0.494 };
+      return {
+        pelvis,
+        torso: 0,
+        arms: bothArms(168, 170),
+        legs: [{ upper: up, lower: up - 1 }, plantedLegs(pelvis, 0, "front", FEET_FRONT, OUT)[1]!],
+      };
+    }),
+    [
+      { kind: "floor" },
+      { kind: "cable", at: "ankle0", anchorAt: "ankle1", band: true },
+    ],
+    "neutral",
+  ),
+
+  // Stepping sideways in a half squat with a loop band round both ankles: the
+  // band runs ankle to ankle and both ends move, which is the whole exercise.
+  bandedLateralWalk: pose(
+    "front",
+    ([0.535, 0.600, 0.665] as const).map((outerFoot) => {
+      const pelvis = { x: 0.5, y: 0.530 };
+      return {
+        pelvis,
+        torso: 6,
+        arms: bothArms(158, 128),
+        legs: plantedLegs(pelvis, 6, "front", [{ x: outerFoot, y: FLOOR }, { x: 0.435, y: FLOOR }], OUT),
+      };
+    }),
+    [
+      { kind: "floor" },
+      { kind: "cable", at: "ankle0", anchorAt: "ankle1", band: true },
+    ],
+    "neutral",
+  ),
+
   // Quarter-squat stance, arms pumping alternately -- the ropes themselves
   // cannot be drawn, but the wave rhythm can.
   battleRopes: pose(
