@@ -1917,17 +1917,37 @@ export class PoseViewer3D {
     return group;
   }
 
-  // Origin at the grip point: the ball hangs below the hand, the way a
-  // kettlebell actually hangs.
+  // A 16kg kettlebell, hung from the hand: the origin is the TOP of the
+  // handle, because the origin is where the hand is. The old one put the arc
+  // of the handle ABOVE the hand and the ball 8cm below it, with nothing
+  // joining the two -- a wire ring floating over a sphere.
+  //
+  // Real proportions: a 19cm bell, a 15cm handle opening, 26cm from the top of
+  // the handle to the base it stands on.
   private kettlebell(): THREE.Group {
     const group = new THREE.Group();
-    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.011, 10, 18, Math.PI), this.graphite);
+    // A two-hand handle, 17cm across: the widest a kettlebell really comes,
+    // because the poses that hold one two-handed are side views and a side
+    // view spreads the hands to the width of the shoulder girdle.
+    const R = 0.045;
+    const ball = 0.05;
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(R, 0.0085, 10, 24, Math.PI), this.ironRim);
+    handle.position.y = -R;
     group.add(handle);
-    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.062, 18, 14), this.iron);
-    // Slightly squashed, with a flattened base implied by sitting low.
-    ball.scale.y = 0.92;
-    ball.position.y = -0.08;
-    group.add(ball);
+    // The horns: a handle does not end in mid-air, it thickens into the bell.
+    for (const side of [-1, 1]) {
+      const horn = new THREE.Mesh(new THREE.CylinderGeometry(0.0085, 0.016, 0.034, 10), this.iron);
+      horn.position.set(side * R * 0.94, -R - 0.012, 0);
+      horn.rotation.z = side * 0.34;
+      group.add(horn);
+    }
+    const bell = new THREE.Mesh(new THREE.SphereGeometry(ball, 20, 16), this.iron);
+    bell.scale.y = 0.94;
+    bell.position.y = -R - 0.04;
+    // A kettlebell stands on a flat base, which is why it can be set down.
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(ball * 0.6, ball * 0.6, 0.007, 20), this.iron);
+    base.position.y = -R - 0.04 - ball * 0.94 + 0.0035;
+    group.add(bell, base);
     return group;
   }
 
