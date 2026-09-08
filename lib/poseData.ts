@@ -447,7 +447,12 @@ export const exercisePoses = {
     // Floor, past the knee, the extension, the catch, and standing. Showing
     // only the first and last is what made the old version a deadlift.
     ([[0.570, 96], [0.548, 60], [0.516, 16], [0.500, 4], [0.500, 356]] as const).map(([x, torso], i) => {
-      const pelvis = { x, y: [0.552, 0.538, 0.518, 0.556, 0.494][i]! };
+      // The start is a lift FROM THE FLOOR: the load has to rest on it, not
+      // cut into it. Measured at the old height, the hands sat 7.7cm above the
+      // floor -- a plated bar there buries 4.3cm of plate in the podium and a
+      // kettlebell 6cm of bell. The hips start higher, which is a clean's
+      // start anyway: hips above the knees, shoulders over the bar.
+      const pelvis = { x, y: [0.497, 0.538, 0.518, 0.556, 0.494][i]! };
       return {
         pelvis,
         torso,
