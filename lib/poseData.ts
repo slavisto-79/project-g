@@ -436,11 +436,16 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso > 30 ? torso - 16 : torso,
-        arms: [{ upper: 180, lower: 180 }, { upper: 180, lower: 180 }] as [Limb, Limb],
-        // Hip-width inside the hex, feet parallel: 30cm between the ankles.
+        // The hands hang OUTSIDE the legs, on the hex handles: 0.19 out
+        // (72cm apart, at the wide end of a real bar's 63-71cm) against
+        // knees at 0.083 -- at the default 0.112 the forearms and the
+        // handles both ran through the knees of the widened stance, seen
+        // face on; at 0.18 the forearm passed the thigh by 5mm.
+        arms: [{ upper: 180, lower: 180, spread: 0.078 }, { upper: 180, lower: 180, spread: 0.078 }] as [Limb, Limb],
+        // Hip-width inside the hex, feet parallel: 24cm between the ankles.
         legs: plantedLegs(pelvis, torso, "side", [{ x: 0.548, y: FLOOR }, { x: 0.515, y: FLOOR }], FORWARD).map((leg) => ({
           ...leg,
-          spread: 0.1,
+          spread: 0.07,
         })) as [Limb, Limb],
       };
     }),

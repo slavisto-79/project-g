@@ -1718,7 +1718,11 @@ export class PoseViewer3D {
   // Origin at the hands' midpoint. The handles are raised above the frame
   // the way the high handles on a real bar are, and the sleeves run out
   // from the frame's side apexes with the plates on them.
-  private trapBar(): THREE.Group {
+  // `hx` is the handles' half-spacing -- the hands' own x, so the grips are
+  // in the fists whatever the pose spreads them to (a real bar's are ~63cm
+  // apart, 0.166 here). Drawn at a fixed 0.1 they ran through the knees of
+  // any stance wider than the hips.
+  private trapBar(hx = 0.1): THREE.Group {
     const group = new THREE.Group();
     const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
     const tube = (a: THREE.Vector3, b: THREE.Vector3, r: number, material: THREE.Material) => {
@@ -1730,7 +1734,6 @@ export class PoseViewer3D {
       return mesh;
     };
     const frameY = -TRAP_HANDLE_RISE;
-    const hx = 0.1;
     const hz = 0.13;
     const apex = 0.29;
     const corners = [V(hx, frameY, hz), V(apex, frameY, 0), V(hx, frameY, -hz), V(-hx, frameY, -hz), V(-apex, frameY, 0), V(-hx, frameY, hz)];
@@ -2379,7 +2382,10 @@ export class PoseViewer3D {
         }
         let mesh: THREE.Group;
         if (prop.hex) {
-          mesh = this.trapBar();
+          // The handles are wherever the hands are: a hex bar's grips sit
+          // OUTSIDE the legs, and a stance inside the frame has to fit
+          // between them.
+          mesh = this.trapBar(Math.abs(this.frames[0]!.hands[0]![0]));
         } else if (implement === "kettlebell" && prop.plates) {
           // The named case: a kettlebell swing is authored on the hinge, and a
           // hinge holds a bar. Swap the object, keep the movement.
