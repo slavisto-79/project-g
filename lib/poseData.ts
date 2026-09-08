@@ -414,20 +414,42 @@ export const exercisePoses = {
   // handles travel straight up the mid-foot. The bottom hand height is the
   // bar's own -- plate radius plus the raised handles above the floor -- so
   // the plates rest on the ground at the start of the pull.
+  // Authored from a reference clip (two reps, camera square on the lifter's
+  // right side): the arms hang STRAIGHT AND VERTICAL the whole rep -- they
+  // are ropes from the shoulders, so the hands are not solved to a point,
+  // they hang 180/180 and the trunk angle is what puts them over the
+  // mid-foot (z 0.076, where the hex handles are). At the bottom the hips
+  // sit well above the knees: shin 12 forward, thigh 24 below level, knee
+  // 102 -- and the trunk 50, which is then also what brings the hand down
+  // to the handle (shoulder 0.529 - arm 0.290 = 0.239 above the floor:
+  // plate radius plus the raised handle, plates ON the ground). Hip height
+  // 0.437 -> 0.375 -> 0.302 above the ankle. The standing frame carries the
+  // pelvis 4cm forward so the bar hangs a centimetre behind the mid-foot,
+  // against the thighs, instead of 5cm behind it. The old bottom solved the
+  // hands to a fixed x and let the trunk overtake them: elbows bent to 142
+  // and the hands 11 degrees behind the shoulders, at a hip 16 below level.
   trapBarDeadlift: pose(
     "side",
-    ([[0.500, 0.494, 6, 0.540], [0.473, 0.580, 28, 0.650], [0.447, 0.670, 45, 0.766]] as const).map(([px, py, torso, hy]) => {
+    ([[0.527, 0.494, 6], [0.452, 0.555, 37], [0.429, 0.628, 50]] as const).map(([px, py, torso]) => {
       const pelvis = { x: px, y: py };
       return {
         pelvis,
         torso,
         neck: torso > 30 ? torso - 16 : torso,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.54, y: hy }, { x: 0.54, y: hy }], BACK),
-        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.548, y: FLOOR }, { x: 0.515, y: FLOOR }], FORWARD),
+        arms: [{ upper: 180, lower: 180 }, { upper: 180, lower: 180 }] as [Limb, Limb],
+        // Hip-width inside the hex, feet parallel: 30cm between the ankles.
+        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.548, y: FLOOR }, { x: 0.515, y: FLOOR }], FORWARD).map((leg) => ({
+          ...leg,
+          spread: 0.1,
+        })) as [Limb, Limb],
       };
     }),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17, hex: true }],
     "neutral",
+    1,
+    // The clip's timing -- lowered to the floor, a beat on the floor, pulled,
+    // a beat standing -- and its camera, square on the right side.
+    { tempo: { down: 700, bottom: 650, up: 550, top: 500 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
   goodMorning: pose(
