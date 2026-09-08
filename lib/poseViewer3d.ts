@@ -1308,6 +1308,14 @@ export class PoseViewer3D {
     pulley.rotation.z = Math.PI / 2;
     pulley.position.set(0, anchor.y, 0);
     g.add(arm, pulley);
+    // The bracket the wheel turns in: two chrome cheeks either side of it.
+    // Bare, the cable ran into the middle of a solid disc hanging off a box.
+    for (const s of [-1, 1]) {
+      const cheek = new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.046, 0.006, 16), this.chrome);
+      cheek.rotation.z = Math.PI / 2;
+      cheek.position.set(s * 0.022, anchor.y, 0);
+      g.add(cheek);
+    }
     this.scene.add(g);
     const line = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 1, 8), this.cableMaterial);
     const feed = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 1, 8), this.cableMaterial);
@@ -1461,6 +1469,58 @@ export class PoseViewer3D {
   private alongX(mesh: THREE.Mesh): THREE.Mesh {
     mesh.rotation.z = Math.PI / 2;
     return mesh;
+  }
+
+  // The leg press's footplate: a steel plate in a frame, loaded, standing on
+  // a base beam. Drawn as a wall -- translucent grey, which is what a tall
+  // slab used to get -- it read as a ghost panel with the figure floating at
+  // it. `base` is the floor in the plate's own frame, if there is one.
+  private legPressSled(height: number, base: number | undefined): THREE.Group {
+    const g = new THREE.Group();
+    const w = 0.34;
+    // The plate itself stays see-through, the way the wall it used to be
+    // drawn as was: the camera looks along its face, so the feet press on
+    // the side away from us and a solid plate hides them. The FRAME is what
+    // makes it read as a machine, and that is solid.
+    g.add(
+      new THREE.Mesh(
+        new THREE.BoxGeometry(w, height, 0.05),
+        new THREE.MeshStandardMaterial({ color: 0x2a3136, roughness: 0.5, metalness: 0.5, transparent: true, opacity: 0.5 }),
+      ),
+    );
+    const top = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, 0.05, 0.07), this.iron);
+    top.position.y = height / 2 + 0.04;
+    g.add(top);
+    for (const s of [-1, 1]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.04, height + 0.06, 0.06), this.iron);
+      post.position.x = s * (w / 2 + 0.02);
+      g.add(post);
+      // A plate on a peg either side, DOWN at the base: a sled with nothing
+      // on it reads as a door. The pose is authored side-on, so anything out
+      // on x sits between the camera and the figure -- at foot height these
+      // discs covered the feet on the platform.
+      const at = new THREE.Vector3(s * (w / 2 + 0.06), -height * 0.4, 0);
+      const disc = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.026, 20), this.iron));
+      disc.position.copy(at);
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.005, 8, 20), this.ironRim);
+      rim.rotation.y = Math.PI / 2;
+      rim.position.copy(at);
+      const peg = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.08, 10), this.chrome));
+      peg.position.copy(at);
+      g.add(disc, rim, peg);
+    }
+    if (base !== undefined && -height / 2 - base > 0.02) {
+      const legH = -height / 2 - base;
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, 0.05, 0.34), this.graphite);
+      beam.position.set(0, base + 0.025, 0);
+      g.add(beam);
+      for (const s of [-1, 1]) {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.04, legH, 0.06), this.iron);
+        leg.position.set(s * (w / 2 + 0.02), base + legH / 2, 0);
+        g.add(leg);
+      }
+    }
+    return g;
   }
 
   private barbell(length: number): THREE.Group {
@@ -1720,7 +1780,15 @@ export class PoseViewer3D {
           continue;
         }
         // A tall slab is a wall; drawn solid it hides the figure for the part
-        // of the orbit where the camera passes behind it.
+        // of the orbit where the camera passes behind it. Only the wall-sit's
+        // is really a wall (0.62 tall, up at the shoulders); the leg press's
+        // is 0.34 and down at the ankles, and it is a steel plate to push.
+        if (prop.height > 0.3 && prop.height <= 0.5) {
+          const sled = this.legPressSled(prop.height, floorY === undefined ? undefined : floorY - prop.center[1]);
+          this.scene.add(sled);
+          this.held.push(this.anchored(sled, i, "slab"));
+          continue;
+        }
         const wall = prop.height > 0.3;
         const drop = floorY !== undefined && !wall ? prop.center[1] - floorY : 0;
         if (drop > 0.12 && floorY !== undefined) {
