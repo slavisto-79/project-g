@@ -785,7 +785,7 @@ export const exercisePoses = {
       // The rope handle sits BETWEEN the thighs; a bar prop would trip the
       // bar-through-leg rule that cannot see the gap between the legs.
       { kind: "bell", at: "grip", size: 0.06 },
-      { kind: "cable", at: "grip", anchor: { x: 0.06, y: 0.93 } },
+      { kind: "cable", at: "grip", anchor: { x: 0.06, y: 0.93 }, handle: "rope" },
     ],
     "neutral",
   ),
@@ -793,7 +793,7 @@ export const exercisePoses = {
   tricepsExtension: pose(
     "front",
     [100, 138, 174].map((forearm) => standFront(0.497, 0, bothArms(170, forearm))),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.16, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.5, y: 0.02 } }],
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.16, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.5, y: 0.02 }, handle: "rope" }],
   ),
 
   kickback: pose(
@@ -1017,7 +1017,7 @@ export const exercisePoses = {
         legs: plantedLegs(pelvis, torso, "front", [{ x: 0.612, y: FLOOR }, { x: 0.388, y: FLOOR }], OUT),
       };
     }),
-    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }, { kind: "cable", at: "grip", anchor: { x: 0.95, y: 0.08 } }],
+    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }, { kind: "cable", at: "grip", anchor: { x: 0.95, y: 0.08 }, handle: "rope" }],
   ),
 
   carry: pose(
@@ -1138,7 +1138,7 @@ export const exercisePoses = {
   facePull: pose(
     "side",
     ([[82, 84], [96, 50], [108, 4]] as const).map(([up, low]) => stand({ x: 0.5, y: 0.494 }, 6, sideArms(up, low), undefined, [{ x: 0.538, y: FLOOR }, { x: 0.515, y: FLOOR }])),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.10, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.92, y: 0.3 } }],
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.10, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.92, y: 0.3 }, handle: "rope" }],
   ),
 
   // Hinged over, arms sweeping from a hang up and back with soft elbows.
@@ -1257,7 +1257,7 @@ export const exercisePoses = {
     // It sits a quarter-frame ABOVE the authored frame (a 2.3m tower): at the
     // frame's top edge the cable reached a kneeling lifter's hands at barely
     // 30 degrees, and read as coming from ahead rather than from above.
-    [{ kind: "floor", mat: true }, { kind: "bar", at: "grip", length: 0.08, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.04, y: -0.25 } }],
+    [{ kind: "floor", mat: true }, { kind: "bar", at: "grip", length: 0.08, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.04, y: -0.25 }, handle: "rope" }],
   ),
 
   // Seated and leaned back, feet light: the hands sweep between chest height

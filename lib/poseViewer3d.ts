@@ -100,6 +100,11 @@ const MAT_WIDTH = 0.32;
 const ROPE_LINKS = 22;
 const ROPE_WAVES = 1.15;
 const ROPE_AMPLITUDE = 0.095;
+// How far up the cable a rope attachment's fitting hangs above the hands.
+// Measured: at 5.5cm the two ends were nearly collinear and the thing read as
+// one straight bar through the fitting; at 16cm they splay about 34 degrees,
+// which is the V that says "rope".
+const ROPE_HANDLE_DROP = 0.16;
 
 // The female build's proportions, chosen by the user from a live three-way
 // mockup ("lean and toned" over "curvy" and "balanced"): a light frame with a
@@ -1274,6 +1279,11 @@ export class PoseViewer3D {
   // stretched cylinder; a rope's whole point is that it is not straight, so
   // it is a chain of links, each stretched between two points on the curve.
   private ropes: { propIndex: number; side: number; links: THREE.Mesh[]; anchor: THREE.Vector3 }[] = [];
+  // A rope attachment on a cable: one fitting above the hands and two ends
+  // splayed down to them. It cannot be a rigid handle sitting at the hands'
+  // midpoint -- the whole shape of the thing is that the two ends go where
+  // the two hands go, and they move apart and together through the rep.
+  private ropeHandles: { propIndex: number; cableIndex: number; fitting: THREE.Group; ends: THREE.Mesh[]; knobs: THREE.Mesh[] }[] = [];
   private ropeMaterial = new THREE.MeshStandardMaterial({ color: 0x2f363a, roughness: 0.95, metalness: 0 });
 
   // Stretch a unit cylinder between two world points.
@@ -1312,6 +1322,30 @@ export class PoseViewer3D {
       this.scene.add(link);
     }
     this.ropes.push({ propIndex, side, links, anchor });
+  }
+
+  // The rope clipped to a cable: a snap hook, a crimped fitting, and two
+  // nylon ends with a rubber stopper on each. Every cable exercise was
+  // holding the same short steel bar -- a pushdown, a face pull, a cable
+  // crunch and a pull-through are all done on a rope, and a rope is what
+  // makes them look like themselves.
+  private cableRope(propIndex: number, cableIndex: number) {
+    const fitting = new THREE.Group();
+    const hook = new THREE.Mesh(new THREE.TorusGeometry(0.017, 0.005, 8, 16, Math.PI * 1.6), this.chrome);
+    hook.position.y = 0.036;
+    const eye = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.03, 10), this.chrome);
+    eye.position.y = 0.014;
+    const ferrule = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.014, 0.03, 12), this.graphite);
+    fitting.add(hook, eye, ferrule);
+    this.scene.add(fitting);
+    const ends: THREE.Mesh[] = [];
+    const knobs: THREE.Mesh[] = [];
+    for (let s = 0; s < 2; s++) {
+      ends.push(new THREE.Mesh(new THREE.CylinderGeometry(0.0075, 0.0075, 1, 8), this.ropeMaterial));
+      knobs.push(new THREE.Mesh(new THREE.CylinderGeometry(0.0155, 0.011, 0.032, 12), this.rubber));
+      this.scene.add(ends[s]!, knobs[s]!);
+    }
+    this.ropeHandles.push({ propIndex, cableIndex, fitting, ends, knobs });
   }
 
   // A push sled: two skids on the floor, two uprights, and a push bar across
@@ -1984,11 +2018,14 @@ export class PoseViewer3D {
           this.battleRope(prop, i, this.ropes.length);
           continue;
         }
-        // A medicine ball slam is authored on the cable woodchopper, and the
-        // slam was drawing the woodchopper's whole machine: a stack, a tower
-        // and a cable, standing beside a man throwing a ball at the ground.
-        // Nothing loaded with "other" runs off a stack.
-        if (implement === "other") continue;
+        // Only an exercise that actually runs off a stack gets the station.
+        // Three did not and were drawing one anyway, because they borrow a
+        // cable movement's pose: the Overhead Triceps Extension (a dumbbell)
+        // stood at a pushdown station, the Chest-Supported Row (a dumbbell)
+        // and the Band Row at a seated row's. And a medicine ball slam, which
+        // is authored on the cable woodchopper, threw its ball at the floor
+        // beside a full tower.
+        if (implement !== "machine") continue;
         const floor = first.props.find((p) => p.kind === "floor");
         this.cableMachine(prop, floor && floor.kind === "floor" ? floor.y : 0, i);
         continue;
@@ -2146,6 +2183,18 @@ export class PoseViewer3D {
         if (!wall && !prop.across) anchoredPad.userData.buildOffset = this.padOffset(prop);
         this.held.push(anchoredPad);
         continue;
+      }
+      // A handle authored at the grip, on a cable whose end fitting is a
+      // rope: the rope replaces it, whether it was authored as a bar (the
+      // pushdown, the face pull, the crunch) or as a bell (the pull-through,
+      // the chopper). Not when the exercise carries no machine at all -- a
+      // medicine ball slam is authored on the chopper and holds a ball.
+      if ((prop.kind === "bar" || prop.kind === "bell") && implement === "machine") {
+        const rope = first.props.findIndex((p) => p.kind === "cable" && p.handle === "rope");
+        if (rope >= 0) {
+          this.cableRope(i, rope);
+          continue;
+        }
       }
       if (prop.kind === "bar") {
         if (prop.plates && implement === undefined) continue;
@@ -2342,9 +2391,12 @@ export class PoseViewer3D {
           // like the column's clearance.
           box.expandByPoint(vec(prop.anchor).add(new THREE.Vector3(0.12, ROPE_AMPLITUDE, 0.12)));
           box.expandByPoint(vec(prop.anchor).add(new THREE.Vector3(-0.12, -0.08, -0.12)));
-        } else if (prop.kind === "cable") {
+        } else if (prop.kind === "cable" && this.cables.some((c) => c.propIndex === index)) {
           // The station's column stands behind the pulley and reaches the
           // floor; the fit has to hold all of it, not just the cable's end.
+          // Only when one was actually built: reserving a tower's room for a
+          // movement that draws no tower leaves the figure small beside a
+          // patch of nothing.
           box.expandByPoint(vec(prop.anchor).add(new THREE.Vector3(0.28, 0.2, 0.28)));
           box.expandByPoint(new THREE.Vector3(prop.anchor[0] - 0.28, 0.02, prop.anchor[2] - 0.28));
         } else if (prop.kind !== "floor") {
@@ -2784,12 +2836,43 @@ export class PoseViewer3D {
       }
     }
 
+    // The rope attachment: the fitting hangs a little way up the cable from
+    // the hands' midpoint, and an end runs from it to each hand and a stopper
+    // just past it. Drawn from the hands rather than from the prop's centre,
+    // which in a side view sits on the midline whatever the hands do.
+    for (const rope of this.ropeHandles) {
+      const pa = a.props[rope.propIndex]!;
+      const pb = b.props[rope.propIndex]!;
+      if (pa.kind === "floor" || pb.kind === "floor") continue;
+      const cable = a.props[rope.cableIndex]!;
+      if (cable.kind !== "cable") continue;
+      const grip = lerp3(pa.center, pb.center, f).add(jitter);
+      const up = vec(cable.anchor).sub(grip);
+      if (up.lengthSq() < 1e-6) up.set(0, 1, 0);
+      up.normalize();
+      const fit = grip.clone().addScaledVector(up, ROPE_HANDLE_DROP);
+      rope.fitting.position.copy(fit);
+      rope.fitting.quaternion.setFromUnitVectors(UP, up);
+      for (let s = 0; s < 2; s++) {
+        const hand = lerp3(a.hands[s as 0 | 1], b.hands[s as 0 | 1], f).add(jitter);
+        const run = hand.clone().sub(fit).normalize();
+        this.stretch(rope.ends[s]!, fit, hand.clone().addScaledVector(run, 0.02));
+        rope.knobs[s]!.position.copy(hand).addScaledVector(run, 0.038);
+        rope.knobs[s]!.quaternion.setFromUnitVectors(UP, run);
+      }
+    }
+
     for (const cable of this.cables) {
       const pa = a.props[cable.propIndex]!;
       const pb = b.props[cable.propIndex]!;
       if (pa.kind !== "cable" || pb.kind !== "cable") continue;
       const grip = lerp3(pa.center, pb.center, f);
-      this.stretch(cable.line, cable.anchor, grip);
+      // A rope attachment hangs off the end of the cable: the steel stops at
+      // its fitting, and the rope carries the rest of the way to the hands.
+      const end = pa.handle === "rope"
+        ? grip.clone().addScaledVector(vec(pa.anchor).sub(grip).normalize(), ROPE_HANDLE_DROP)
+        : grip;
+      this.stretch(cable.line, cable.anchor, end);
       const rise = Math.min(Math.max(grip.distanceTo(cable.anchor) - cable.rest, 0), 0.45);
       cable.mover.position.y = cable.mover.userData.baseY ?? (cable.mover.userData.baseY = cable.mover.position.y);
       cable.mover.position.y += rise;
