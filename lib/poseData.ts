@@ -512,6 +512,9 @@ export const exercisePoses = {
       { kind: "floor" },
       { kind: "slab", at: "pelvis", width: 0.58, height: 0.055, dx: -0.197, dy: 0.085 },
       { kind: "bar", at: "grip", length: 0.17 },
+      // Round the back and under the bench, when the press is done on a band.
+      { kind: "cable", at: "hand0", anchor: { x: 0.387, y: 0.78 }, band: true },
+      { kind: "cable", at: "hand1", anchor: { x: 0.387, y: 0.78 }, band: true },
     ],
   ),
 
@@ -704,7 +707,13 @@ export const exercisePoses = {
         legs: plantedLegs(pelvis, 0, "front", FEET_FRONT, OUT),
       };
     }),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.40 }],
+    [
+      { kind: "floor" },
+      { kind: "bar", at: "grip", length: 0.40 },
+      // Stood on, one band to each hand, when the press is done on a band.
+      { kind: "cable", at: "hand0", anchor: { x: 0.5, y: 0.94 }, band: true },
+      { kind: "cable", at: "hand1", anchor: { x: 0.5, y: 0.94 }, band: true },
+    ],
   ),
 
   lateralRaise: pose(
@@ -848,7 +857,7 @@ export const exercisePoses = {
       { kind: "floor" },
       { kind: "slab", at: "pelvis", width: 0.16, height: 0.055, dy: 0.075 },
       { kind: "bar", at: "grip", length: 0.10, plates: false },
-      { kind: "cable", at: "grip", anchor: { x: 0.88, y: 0.50 } },
+      { kind: "cable", at: "grip", anchor: { x: 0.88, y: 0.50 }, band: true },
     ],
   ),
 
@@ -878,7 +887,13 @@ export const exercisePoses = {
         legs: bothArms(174, 176),
       };
     }),
-    [{ kind: "bar", at: "grip", length: 0.44, plates: false }],
+    [
+      { kind: "bar", at: "grip", length: 0.44, plates: false },
+      // The assistance band: looped over the bar, a foot standing in it.
+      // Off the midline: a band looped over the bar hangs down the side of
+      // the body with a foot in it, not through the head.
+      { kind: "cable", at: "ankle0", anchor: { x: 0.633, y: 0.186 }, band: true },
+    ],
   ),
 
   invertedRow: pose(
@@ -911,7 +926,13 @@ export const exercisePoses = {
   curl: pose(
     "side",
     [178, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.494 }, 356, wide(sideArms(176, forearm)))),
-    [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
+    [
+      { kind: "floor" },
+      { kind: "bell", at: "hand0", each: true },
+      // Stood on: one band to each hand, off the floor under the feet.
+      { kind: "cable", at: "hand0", anchor: { x: 0.571, y: 0.938 }, band: true },
+      { kind: "cable", at: "hand1", anchor: { x: 0.571, y: 0.938 }, band: true },
+    ],
     "underhand",
   ),
 

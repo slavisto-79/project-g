@@ -24,7 +24,7 @@ import { Strand, Spring } from "./hair";
 
 // Matches the loadable implements the workout knows about; the viewer only
 // cares which family of equipment to draw.
-export type ViewerImplement = "dumbbell" | "kettlebell" | "barbell" | "machine" | "other" | undefined;
+export type ViewerImplement = "dumbbell" | "kettlebell" | "barbell" | "machine" | "other" | "band" | undefined;
 
 // His kit: tee and shorts in ONE black, at the user's direction ("абсолютно
 // еднакво черна"); the hem edge and the sleeves mark where one garment ends.
@@ -108,6 +108,12 @@ const ROPE_HANDLE_DROP = 0.16;
 // Where a D-handle's clip sits above the hand -- the cable ends there and
 // the strap carries the last 19cm to the grip.
 const D_HANDLE_RISE = 0.10;
+// How far out from the midline a band anchored on the midline is walked, at
+// most: it leaves under the hand that pulls it, so each side gets its own run.
+const BAND_REACH_MAX = 0.22;
+// And a little OUTSIDE it: a band anchored directly under its own hand runs
+// up through the upper arm on a press and through the shoulder on a bench.
+const BAND_CLEARANCE = 0.05;
 
 // The female build's proportions, chosen by the user from a live three-way
 // mockup ("lean and toned" over "curvy" and "balanced"): a light frame with a
@@ -774,7 +780,9 @@ export class PoseViewer3D {
         // on a cable -- a fly held its hands open round nothing.
         (p.kind === "slab" && !!p.sled) ||
         (p.kind === "cable" && p.handle === "d" && implement === "machine") ||
-        ((p.kind === "bell" || (p.kind === "bar" && p.plates)) && implement !== undefined),
+        ((p.kind === "bell" || (p.kind === "bar" && p.plates)) && implement !== undefined && implement !== "band") ||
+        // A band handle is closed on like any other handle.
+        (p.kind === "cable" && !!p.band && implement === "band"),
     );
     // The avatar's build, as per-part radius multipliers. `t` is how far the
     // build sits from the reference (negative = leaner). Legs thicken fastest
@@ -1295,6 +1303,14 @@ export class PoseViewer3D {
   // ordinary held props never are, because its strap follows the cable while
   // its grip stays across the hand.
   private dHandles: { cableIndex: number; side: 0 | 1; group: THREE.Group }[] = [];
+  // A resistance band: an elastic run from an anchor in the world to the joint
+  // it pulls on. `side` is the hand it ends at, or null when it ends somewhere
+  // else -- a foot standing in an assistance loop. A side view authors every
+  // prop on the midline, so the end comes from the hands, never the centre.
+  private bands: { propIndex: number; side: 0 | 1 | null; tube: THREE.Mesh; grip: THREE.Mesh | null }[] = [];
+  // Latex, and the one warm colour in a scene of cold greys: a black band on a
+  // near-black floor is a band nobody can see.
+  private bandMaterial = new THREE.MeshStandardMaterial({ color: 0x9a4b3a, roughness: 0.75, metalness: 0 });
   private ropeMaterial = new THREE.MeshStandardMaterial({ color: 0x2f363a, roughness: 0.95, metalness: 0 });
 
   // Stretch a unit cylinder between two world points.
@@ -1333,6 +1349,23 @@ export class PoseViewer3D {
       this.scene.add(link);
     }
     this.ropes.push({ propIndex, side, links, anchor });
+  }
+
+  // A resistance band. It is drawn like a cable and is nothing like one: a
+  // thick latex tube under tension, running from wherever it is anchored --
+  // under a foot, behind a bench, over a pull-up bar -- to the hand or the
+  // foot it pulls on. A handle only where a hand holds it, and only when the
+  // pose does not already draw one (a band row's handle is its bar prop).
+  private bandLine(prop: Extract<PoseProp3D, { kind: "cable" }>, propIndex: number, ownHandle: boolean) {
+    const side = prop.band === "hand0" ? 0 : prop.band === "hand1" ? 1 : null;
+    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 1, 9), this.bandMaterial);
+    this.scene.add(tube);
+    let grip: THREE.Mesh | null = null;
+    if (ownHandle && side !== null) {
+      grip = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.1, 12), this.rubber));
+      this.scene.add(grip);
+    }
+    this.bands.push({ propIndex, side, tube, grip });
   }
 
   // The other thing that clips to a cable: a D-handle. One per cable, on the
@@ -2024,6 +2057,9 @@ export class PoseViewer3D {
   // attachment point, the implement names the object.
   private buildProps(pose: ExercisePose, implement: ViewerImplement) {
     const first = this.frames[0]!;
+    // Nothing is loaded into the hands: bodyweight, or a band, whose load is
+    // the band itself.
+    const unloaded = implement === undefined || implement === "band";
 
     for (let i = 0; i < first.props.length; i++) {
       const prop = first.props[i]!;
@@ -2057,6 +2093,16 @@ export class PoseViewer3D {
         continue;
       }
       if (prop.kind === "cable") {
+        // Only for an exercise actually done on a band: the same pose serves
+        // the barbell bench press and the curl with dumbbells, and the seated
+        // row's anchor is a cable station for everyone else -- so this branch
+        // must not swallow the prop, only claim it when the band is real.
+        if (prop.band && implement === "band") {
+          const ownBar = first.props.some((p) => p.kind === "bar" && !p.plates);
+          this.bandLine(prop, i, !ownBar);
+          continue;
+        }
+        if (prop.band && implement === undefined) continue;
         if (prop.rope) {
           this.battleRope(prop, i, this.ropes.length);
           continue;
@@ -2241,7 +2287,7 @@ export class PoseViewer3D {
         }
       }
       if (prop.kind === "bar") {
-        if (prop.plates && implement === undefined) continue;
+        if (prop.plates && unloaded) continue;
         if (prop.dir) {
           // A landmine. The far end of a full-length bar sits in a sleeve on
           // a floor pivot ahead of the lifter and the hands cup the near end,
@@ -2297,7 +2343,9 @@ export class PoseViewer3D {
         this.held.push(this.anchored(mesh, i, "bar", perHand ? "hands" : "centre"));
         continue;
       }
-      if (prop.kind === "bell" && implement === undefined) continue;
+      // A band loads nothing INTO the hands -- what it loads is the band, and
+      // that is drawn from the cable prop. Weights stay off, as for bodyweight.
+      if (prop.kind === "bell" && unloaded) continue;
       // A barbell through both hands, when a barbell exercise runs on a
       // movement authored with per-hand weights (Barbell Curl on the curl).
       if (implement === "barbell") {
@@ -2903,6 +2951,29 @@ export class PoseViewer3D {
         this.stretch(rope.ends[s]!, fit, hand.clone().addScaledVector(run, 0.02));
         rope.knobs[s]!.position.copy(hand).addScaledVector(run, 0.038);
         rope.knobs[s]!.quaternion.setFromUnitVectors(UP, run);
+      }
+    }
+
+    // A band runs from its anchor to the joint it pulls on. Stood-on bands are
+    // authored on the midline (a side view has no other choice), so each one
+    // is walked out to under the foot on its own side -- otherwise both bands
+    // come out of one point between the feet.
+    for (const band of this.bands) {
+      const pa = a.props[band.propIndex]!;
+      const pb = b.props[band.propIndex]!;
+      if (pa.kind !== "cable" || pb.kind !== "cable") continue;
+      const end =
+        band.side === null ? lerp3(pa.center, pb.center, f) : lerp3(a.hands[band.side], b.hands[band.side], f);
+      end.add(jitter);
+      const anchor = vec(pa.anchor);
+      // Walked out under the hand it pulls: measured, a fixed half-stance ran
+      // the overhead press band up through the shin, because that stance is
+      // wider than the offset and the band was inboard of the leg.
+      if (band.side !== null && Math.abs(anchor.x) < 1e-6) anchor.x = Math.sign(end.x) * Math.min(Math.abs(end.x) + BAND_CLEARANCE, BAND_REACH_MAX);
+      this.stretch(band.tube, anchor, end);
+      if (band.grip) {
+        band.grip.position.copy(end);
+        band.grip.quaternion.identity();
       }
     }
 
