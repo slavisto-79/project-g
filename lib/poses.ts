@@ -177,7 +177,12 @@ function step(from: Point, angleDeg: number, length: number): Point {
 // the knee half as far) and `turn` yaws the foot about the vertical, toes
 // outward, in degrees -- a side view draws both feet on one line, and a
 // squat stands shoulder-width with the toes turned out.
-type Limb = { upper: number; lower: number; end?: number; spread?: number; turn?: number };
+// On an ARM, `flare` (degrees) swings the elbow outboard in the world build,
+// turning it about the shoulder-to-wrist line -- a bench press with the
+// elbows out at 45 degrees. Both bones keep their length and the wrist
+// stays exactly where the plane put it, so the bar and the 2D checks do not
+// move; a straight arm lies on the axis and is unchanged.
+type Limb = { upper: number; lower: number; end?: number; spread?: number; turn?: number; flare?: number };
 
 // How a movement is timed, in milliseconds: the way down, a pause at the
 // bottom, the way up, a pause at the top. Without one, every leg of the
@@ -349,6 +354,35 @@ function build3d(figure: Figure, view: View): { bones: PoseBone3D[]; head: { c: 
     const spread = arm.spread ?? 0;
     elbow[0] += out * (0.014 + spread / 2);
     wrist[0] += out * (0.028 + spread);
+    if (view === "side" && arm.flare) {
+      // Elbow swung out: the elbow turns about the line from the shoulder to
+      // the wrist, which is the one motion that keeps both bones their
+      // length and both ends where they are. Rodrigues, signed so the elbow
+      // goes OUTBOARD; a straight arm lies on the axis and does not move.
+      const s = shoulder[side]!;
+      const axis = [wrist[0] - s[0], wrist[1] - s[1], wrist[2] - s[2]];
+      const len = Math.hypot(axis[0]!, axis[1]!, axis[2]!) || 1;
+      const k = axis.map((c) => c / len) as Vec3;
+      const v: Vec3 = [elbow[0] - s[0], elbow[1] - s[1], elbow[2] - s[2]];
+      const turned = (theta: number): Vec3 => {
+        const c = Math.cos(theta);
+        const sn = Math.sin(theta);
+        const dot = k[0] * v[0] + k[1] * v[1] + k[2] * v[2];
+        const cross: Vec3 = [k[1] * v[2] - k[2] * v[1], k[2] * v[0] - k[0] * v[2], k[0] * v[1] - k[1] * v[0]];
+        return [
+          v[0] * c + cross[0] * sn + k[0] * dot * (1 - c),
+          v[1] * c + cross[1] * sn + k[1] * dot * (1 - c),
+          v[2] * c + cross[2] * sn + k[2] * dot * (1 - c),
+        ];
+      };
+      const rad = (arm.flare * Math.PI) / 180;
+      const a = turned(rad);
+      const b = turned(-rad);
+      const pick = out * a[0] >= out * b[0] ? a : b;
+      elbow[0] = s[0] + pick[0];
+      elbow[1] = s[1] + pick[1];
+      elbow[2] = s[2] + pick[2];
+    }
     // Face on, the authored arms have no depth, so hands that cross in front
     // of the trunk would sit INSIDE it; give them the depth a real arm has
     // there -- well forward at the centreline, a hair forward at the sides.
