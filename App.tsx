@@ -6420,6 +6420,15 @@ const GOAL_IMPLEMENT_BIAS: Record<string, Partial<Record<LibraryImplement, numbe
 // lift week after week, and a bench press that comes round every third session
 // progresses at a third of the rate. Accessory slots rotate freely, because
 // that is where staleness is actually felt.
+// How many sessions of a day a main lift is held before the next one in the
+// band comes up. The hold used to be the four-week block and nothing else, and
+// a gym push slot has nineteen exercises inside the band: at one per block the
+// nineteenth came round eighteen months in, and measured, the machine chest
+// press first appeared in week 28, the machine shoulder press in week 32. Both
+// clocks now count -- a new block brings a new lift, and so does every fourth
+// session of that day, which is four chances to add weight to it first.
+const SPINE_HOLD_SESSIONS = 4;
+
 // How far below the best a candidate may score and still be rotated to. This
 // is the real quality control: a worse exercise is not variety, it is a worse
 // exercise.
@@ -6583,7 +6592,7 @@ function buildProgramFromLibrary(
     const best = ranked[0];
     const isSpine = slotIndex < spineLength;
     const depth = isSpine ? spineDepth : null;
-    const rotationIndex = isSpine ? blockIndex : sessionIndex;
+    const rotationIndex = isSpine ? blockIndex + Math.floor(sessionIndex / SPINE_HOLD_SESSIONS) : sessionIndex;
     const inBand = best
       ? ranked.filter((candidate) => candidate.score >= best.score - scoreBand)
       : [];
