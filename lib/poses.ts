@@ -25,7 +25,9 @@ export type PoseSegment = { x1: number; y1: number; x2: number; y2: number; weig
 export type PoseProp =
   | { kind: "bar"; x: number; y: number; angle: number; length: number; plates: boolean; rails?: boolean; hex?: boolean }
   // both: held in both hands (authored at the grip), not a per-hand weight.
-  | { kind: "bell"; x: number; y: number; size: number; both?: boolean }
+  // wheel: an ab wheel -- a wheel on an axle with a handle out either side,
+  // not a weight at all; it is authored as a bell because it rides the hands.
+  | { kind: "bell"; x: number; y: number; size: number; both?: boolean; wheel?: boolean }
   // angle: an inclined bench -- the backrest runs along this authored
   // direction (same convention as a bar's angle) from the anchor, which is
   // then the hip joint rather than the pad's centre.
@@ -38,7 +40,9 @@ export type PoseProp =
   // A ground line. Side views are hard to read without one -- a bent-over
   // figure and a lying one are the same jumble of sticks until you can see
   // which way is down and where the body is relative to the floor.
-  | { kind: "floor"; y: number };
+  // mat: the movement is done ON the floor -- lying, kneeling or with the
+  // hands down -- so the ground carries an exercise mat under the figure.
+  | { kind: "floor"; y: number; mat?: boolean };
 
 export type PoseFrame = {
   segments: PoseSegment[];
@@ -72,7 +76,7 @@ export type PoseProp3D =
   // hex: a trap bar -- a hexagonal frame the lifter stands inside, handles at
   // the sides where the hands are; the plates sit outside the frame.
   | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean; dir?: Vec3; hex?: boolean }
-  | { kind: "bell"; center: Vec3; size: number; both?: boolean }
+  | { kind: "bell"; center: Vec3; size: number; both?: boolean; wheel?: boolean }
   // dir: an inclined bench's backrest direction; center is then the hip.
   // `across`: the bench stands crosswise to the figure (its length along x),
   // the way a bench is placed for hands or feet on its edge.
@@ -81,7 +85,7 @@ export type PoseProp3D =
   | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3; across?: boolean; lever?: boolean }
   // center is the grip (where the cable ends), anchor the pulley.
   | { kind: "cable"; center: Vec3; anchor: Vec3 }
-  | { kind: "floor"; y: number };
+  | { kind: "floor"; y: number; mat?: boolean };
 
 export type PoseFrame3D = {
   bones: PoseBone3D[];
@@ -359,7 +363,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
     return own ? own[2] : (hands[0][2] + hands[1][2]) / 2;
   };
   return props.map((prop) => {
-    if (prop.kind === "floor") return { kind: "floor" as const, y: 1 - prop.y };
+    if (prop.kind === "floor") return { kind: "floor" as const, y: 1 - prop.y, ...(prop.mat ? { mat: true } : {}) };
     if (prop.kind === "bar") {
       const centre = point(prop.x, prop.y);
       // In a front view the bar sits at the hands' depth, and never inside
@@ -387,7 +391,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
     if (prop.kind === "bell") {
       const centre = point(prop.x, prop.y);
       if (view === "front") centre[2] = heldDepth(prop.x, prop.y);
-      return { kind: "bell" as const, center: centre, size: prop.size, ...(prop.both ? { both: true } : {}) };
+      return { kind: "bell" as const, center: centre, size: prop.size, ...(prop.both ? { both: true } : {}), ...(prop.wheel ? { wheel: true } : {}) };
     }
     if (prop.kind === "cable") {
       // Face on, the machine stands IN FRONT of the figure (the figure faces
@@ -414,7 +418,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
 
 type PropSpec =
   | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean; hex?: boolean }
-  | { kind: "bell"; at: string; size?: number; each?: boolean }
+  | { kind: "bell"; at: string; size?: number; each?: boolean; wheel?: boolean }
   | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean; lever?: boolean }
   // anchor: the pulley, in authored coordinates (a high pulley sits above the
   // frame's top edge, which is fine -- it only has to be off the figure).
@@ -422,14 +426,14 @@ type PropSpec =
   // Placed under the lowest point of the figure, so it sits where the ground
   // is. Pin it with `y` when the body leaves the ground: otherwise the floor
   // rises with the jump, which reads as the world moving, not the athlete.
-  | { kind: "floor"; y?: number };
+  | { kind: "floor"; y?: number; mat?: boolean };
 
 function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments: PoseSegment[]): PoseProp[] {
   const drawn: PoseProp[] = [];
   const lowest = segments.reduce((low, s) => Math.max(low, s.y1, s.y2), 0);
   for (const spec of specs) {
     if (spec.kind === "floor") {
-      drawn.push({ kind: "floor", y: spec.y ?? lowest + 0.006 });
+      drawn.push({ kind: "floor", y: spec.y ?? lowest + 0.006, ...(spec.mat ? { mat: true } : {}) });
       continue;
     }
     if (spec.kind === "cable") {
@@ -458,7 +462,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
         ...(spec.hex ? { hex: true } : {}),
       });
     } else if (spec.kind === "bell") {
-      drawn.push({ kind: "bell", x: anchor.x, y: anchor.y, size: spec.size ?? 0.055, ...(spec.at === "grip" ? { both: true } : {}) });
+      drawn.push({ kind: "bell", x: anchor.x, y: anchor.y, size: spec.size ?? 0.055, ...(spec.at === "grip" ? { both: true } : {}), ...(spec.wheel ? { wheel: true } : {}) });
     } else {
       drawn.push({
         kind: "slab",
@@ -486,7 +490,7 @@ function pose(view: View, figures: Figure[], props: PropSpec[] = [], grip: GripS
   // moved, and measuring it from an ankle put it above the toes.
   const lowest = Math.max(...built.flatMap(({ segments }) => segments.flatMap((s) => [s.y1, s.y2]))) + 0.006;
   const grounded = props.map((spec) =>
-    spec.kind === "floor" && spec.y === undefined ? { kind: "floor" as const, y: lowest } : spec,
+    spec.kind === "floor" && spec.y === undefined ? { ...spec, kind: "floor" as const, y: lowest } : spec,
   );
   const frames = built.map(({ segments, head, joints }) => ({
     segments,

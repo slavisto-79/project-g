@@ -90,6 +90,10 @@ const SEAT_LENGTH = 0.16;
 const SEAT_OFFSET = -0.06;
 // How far a hex bar's handles stand above its frame (the plates' axle).
 const TRAP_HANDLE_RISE = 0.06;
+// An exercise mat: 180cm by 60cm. The figure stands 0.88-0.95 units tall for
+// 170-180cm, so a unit is about 1.9m and the mat is 0.95 by 0.32.
+const MAT_LENGTH = 0.95;
+const MAT_WIDTH = 0.32;
 
 // The female build's proportions, chosen by the user from a live three-way
 // mockup ("lean and toned" over "curvy" and "balanced"): a light frame with a
@@ -302,6 +306,7 @@ export class PoseViewer3D {
   private strands: { strand: Strand; root: THREE.Vector3; dir: THREE.Vector3; gravity: number; damping: number; stiffness: number }[] = [];
   private hairAt = 0;
   private floorDisc: THREE.Group | null = null;
+  private mat: THREE.Group | null = null;
   private spineIndex = -1;
   private neckIndex = -1;
   private facing: 1 | -1 = 1;
@@ -1220,6 +1225,14 @@ export class PoseViewer3D {
   // Vinyl: a little sheen, unlike the matte floor.
   private padMaterial = new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.55, metalness: 0.05 });
   private rubber = new THREE.MeshStandardMaterial({ color: 0x0b0d0c, roughness: 0.9 });
+  // Mat and medicine ball are both dead-matte foam rubber -- the one surface
+  // in the scene with no sheen at all. Measured against the floor (0x181c1a):
+  // a near-black mat vanished into the podium, so it is lifted well clear of
+  // it and keeps a lighter edge so its outline survives the shadow it lies in.
+  private matMaterial = new THREE.MeshStandardMaterial({ color: 0x2b3331, roughness: 0.98, metalness: 0 });
+  private matEdge = new THREE.MeshStandardMaterial({ color: 0x3d4744, roughness: 0.95, metalness: 0 });
+  private ballRubber = new THREE.MeshStandardMaterial({ color: 0x22282a, roughness: 0.95, metalness: 0 });
+  private ballSeam = new THREE.MeshStandardMaterial({ color: 0x39424a, roughness: 0.85, metalness: 0 });
 
   // --- Cable machines ------------------------------------------------------
 
@@ -1704,11 +1717,123 @@ export class PoseViewer3D {
     return group;
   }
 
+  // An 8kg slam ball is 23cm across and made of moulded rubber, not iron: the
+  // old ball was cast in the plate material with one thin ring around its
+  // equator, which put a chrome-ish highlight on a black sphere and read as a
+  // cannonball. This one is matte rubber with the two crossed seams a moulded
+  // ball actually has, sunk INTO the surface line rather than ringing it.
   private medicineBall(size: number): THREE.Group {
     const group = new THREE.Group();
-    const ball = new THREE.Mesh(new THREE.SphereGeometry(Math.max(size * 0.65, 0.06), 18, 14), this.iron);
-    const seam = new THREE.Mesh(new THREE.TorusGeometry(Math.max(size * 0.65, 0.06), 0.004, 6, 24), this.ironRim);
-    group.add(ball, seam);
+    const r = Math.max(size * 0.7, 0.06);
+    group.add(new THREE.Mesh(new THREE.SphereGeometry(r, 24, 18), this.ballRubber));
+    // Two great circles at right angles, each proud of the surface by a
+    // millimetre -- the moulding line, which is what says "rubber ball".
+    for (const turn of [0, Math.PI / 2]) {
+      const seam = new THREE.Mesh(new THREE.TorusGeometry(r * 0.999, 0.0028, 6, 30), this.ballSeam);
+      seam.rotation.y = turn;
+      group.add(seam);
+    }
+    // The flat panel a ball carries its weight on, top and bottom.
+    for (const side of [-1, 1]) {
+      const panel = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.3, r * 0.3, 0.004, 20), this.ballSeam);
+      panel.position.y = side * r * 0.955;
+      group.add(panel);
+    }
+    return group;
+  }
+
+  // An ab wheel: a wheel on an axle with a handle out either side. It was
+  // drawn as a medicine ball -- the pose anchors it like a held weight, and
+  // anything held in both hands that was not a bar became a ball.
+  // `gripHeight`: how far the hands ride above the floor. A wheel is the one
+  // held object whose size is not free -- it has to reach the ground from
+  // the hands that are on its axle, and drawn at a plate's diameter it rolled
+  // along 3.5cm above the floor. So the radius comes from the pose, and the
+  // axle is dropped by the depth of a curled hand below the wrist.
+  private abWheel(size: number, gripHeight: number): THREE.Group {
+    const group = new THREE.Group();
+    const inner = new THREE.Group();
+    const drop = 0.018;
+    const r = Math.min(Math.max(gripHeight - drop, Math.max(size * 1.15, 0.05)), 0.08);
+    inner.position.y = -(gripHeight - r);
+    group.add(inner);
+    // The wheel rolls along the floor, so its axis is the one across the body.
+    const tyre = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.038, 26), this.rubber));
+    const rim = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(r * 0.62, r * 0.62, 0.042, 20), this.graphite));
+    const axle = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.29, 10), this.chrome));
+    inner.add(tyre, rim, axle);
+    for (const side of [-1, 1]) {
+      const handle = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.076, 12), this.rubber));
+      handle.position.x = side * 0.104;
+      const cap = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.019, 0.019, 0.008, 12), this.graphite));
+      cap.position.x = side * 0.146;
+      inner.add(handle, cap);
+    }
+    return group;
+  }
+
+  // The exercise mat: 180cm by 60cm of 1cm foam, with the corners rounded the
+  // way a rolled mat's are. It is sized to the movement (a Russian twist does
+  // not need a full-length mat) and laid along the figure's own long axis,
+  // measured from the frames rather than assumed to run down z.
+  private exerciseMat(floorY: number): THREE.Group {
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    for (const frame of this.frames) {
+      for (const bone of frame.bones) {
+        for (const p of [bone.a, bone.b]) {
+          minX = Math.min(minX, p[0]); maxX = Math.max(maxX, p[0]);
+          minZ = Math.min(minZ, p[2]); maxZ = Math.max(maxZ, p[2]);
+        }
+      }
+    }
+    const alongZ = maxZ - minZ >= maxX - minX;
+    const span = alongZ ? maxZ - minZ : maxX - minX;
+    // The mat runs the length of the figure's own footprint, 105cm at the
+    // shortest and a real 180cm at the longest. It deliberately does not run
+    // PAST the figure: the card is framed on the widest thing in the scene,
+    // and measured, a mat 14cm longer than the body shrank the figure by 8%
+    // in a push-up and 17% in a handstand push-up to make room for the ends.
+    // Heels over the end of a mat is what a mat looks like anyway.
+    const len = Math.min(Math.max(span, 0.55), MAT_LENGTH);
+    const t = 0.006;
+    const half = { l: len / 2, w: MAT_WIDTH / 2 };
+    const round = 0.03;
+    const shape = new THREE.Shape();
+    shape.moveTo(-half.l + round, -half.w);
+    shape.lineTo(half.l - round, -half.w);
+    shape.quadraticCurveTo(half.l, -half.w, half.l, -half.w + round);
+    shape.lineTo(half.l, half.w - round);
+    shape.quadraticCurveTo(half.l, half.w, half.l - round, half.w);
+    shape.lineTo(-half.l + round, half.w);
+    shape.quadraticCurveTo(-half.l, half.w, -half.l, half.w - round);
+    shape.lineTo(-half.l, -half.w + round);
+    shape.quadraticCurveTo(-half.l, -half.w, -half.l + round, -half.w);
+    const pad = new THREE.Mesh(
+      new THREE.ExtrudeGeometry(shape, { depth: t, bevelEnabled: true, bevelThickness: 0.0015, bevelSize: 0.0015, bevelSegments: 2, curveSegments: 6 }),
+      this.matMaterial,
+    );
+    pad.rotation.x = -Math.PI / 2;
+    // The extrusion grows along +Z, which the flat rotation turns into +Y:
+    // the mat lies ON the floor rather than half sunk in it.
+    const group = new THREE.Group();
+    group.add(pad);
+    // A raised lip all the way round, so the mat keeps an outline in the
+    // shadow the figure casts over it.
+    const lip = new THREE.Mesh(
+      new THREE.ExtrudeGeometry(shape, { depth: 0.0012, bevelEnabled: true, bevelThickness: 0.001, bevelSize: 0.0022, bevelSegments: 1, curveSegments: 6 }),
+      this.matEdge,
+    );
+    lip.rotation.x = -Math.PI / 2;
+    lip.position.y = t;
+    group.add(lip);
+    group.rotation.y = alongZ ? Math.PI / 2 : 0;
+    group.position.set((minX + maxX) / 2, floorY + 0.0004, (minZ + maxZ) / 2);
+    for (const m of [pad, lip]) {
+      // The mat is ground: it takes the figure's shadow and casts none of
+      // its own (userData.floor is what the shadow pass reads).
+      m.receiveShadow = true;
+      m.userData.floor = true;
+    }
     return group;
   }
 
@@ -1744,9 +1869,18 @@ export class PoseViewer3D {
         floorGroup.scale.set(0.55, 1, 0.55);
         this.floorDisc = floorGroup;
         this.scene.add(floorGroup);
+        if (prop.mat) {
+          this.mat = this.exerciseMat(prop.y);
+          this.scene.add(this.mat);
+        }
         continue;
       }
       if (prop.kind === "cable") {
+        // A medicine ball slam is authored on the cable woodchopper, and the
+        // slam was drawing the woodchopper's whole machine: a stack, a tower
+        // and a cable, standing beside a man throwing a ball at the ground.
+        // Nothing loaded with "other" runs off a stack.
+        if (implement === "other") continue;
         const floor = first.props.find((p) => p.kind === "floor");
         this.cableMachine(prop, floor && floor.kind === "floor" ? floor.y : 0, i);
         continue;
@@ -1969,16 +2103,26 @@ export class PoseViewer3D {
       // cable stack. "Medicine Ball Slam" carries no loadable implement at
       // all, so this cannot lean on the implement alone.
       const bellCount = first.props.filter((p) => p.kind === "bell").length;
+      // A ball and a wheel are gripped on their own surface, not through a
+      // handle that runs on past the hand: the outboard shove that lets a
+      // dumbbell's bar pass through the fist opens a 9cm gap between two
+      // hands that are supposed to be holding one object between them.
+      // The exception is a goblet hold: a dumbbell or kettlebell cupped in
+      // both hands is still a hand weight, and its handle does run past them.
+      const twoHanded = !!prop.wheel || (bellCount === 1 && !!prop.both && implement !== "dumbbell" && implement !== "kettlebell");
+      const ground = first.props.find((p) => p.kind === "floor");
       let mesh =
-        implement === "kettlebell"
-          ? this.kettlebell()
-          : implement === "dumbbell"
-            ? this.dumbbell()
-            : bellCount === 1
-              ? implement === "machine"
-                ? this.plainBar(0.16)
-                : this.medicineBall(prop.size)
-              : this.dumbbell();
+        prop.wheel
+          ? this.abWheel(prop.size, prop.center[1] - (ground && ground.kind === "floor" ? ground.y : 0))
+          : implement === "kettlebell"
+            ? this.kettlebell()
+            : implement === "dumbbell"
+              ? this.dumbbell()
+              : bellCount === 1
+                ? implement === "machine"
+                  ? this.plainBar(0.16)
+                  : this.medicineBall(prop.size)
+                : this.dumbbell();
       // A goblet hold is one dumbbell authored at the grip -- held in BOTH
       // hands (a one-arm row's single bell is at the rowing hand and stays
       // a hand weight).
@@ -1994,7 +2138,7 @@ export class PoseViewer3D {
         mesh.rotation.y = Math.PI / 2;
       }
       this.scene.add(mesh);
-      this.fistOutboard = true;
+      if (!twoHanded) this.fistOutboard = true;
       this.held.push(this.anchored(mesh, i, "bell"));
     }
 
@@ -2079,6 +2223,10 @@ export class PoseViewer3D {
         }
       }
     }
+    // The mat is sized from the figure's own footprint, so it can reach a
+    // little past the body it lies under; a mat cut off by the card's edge
+    // looks like a fault in the floor.
+    if (this.mat) box.expandByObject(this.mat);
     box.getCenter(this.centre);
     const size = box.getSize(new THREE.Vector3());
     this.lyingScene = Math.max(size.x, size.z) > size.y * 1.45;
@@ -2114,6 +2262,16 @@ export class PoseViewer3D {
         this.floorDisc.position.set(this.centre.x, this.floorDisc.position.y, this.centre.z);
         for (const pivot of this.pivots.values()) {
           s = Math.max(s, Math.hypot(pivot.x - this.centre.x, pivot.z - this.centre.z) + 0.18);
+        }
+      }
+      // The mat is 180cm long and the podium is only as wide as the card
+      // needs: a plank's mat ran 8cm off the far edge and hung over the black.
+      // The podium grows to carry it, the way it grows for a landmine's base.
+      if (this.mat) {
+        const matBox = new THREE.Box3().setFromObject(this.mat);
+        const disc = this.floorDisc.position;
+        for (const x of [matBox.min.x, matBox.max.x]) {
+          for (const z of [matBox.min.z, matBox.max.z]) s = Math.max(s, Math.hypot(x - disc.x, z - disc.z) + 0.05);
         }
       }
       this.floorDisc.scale.set(s, 1, s);

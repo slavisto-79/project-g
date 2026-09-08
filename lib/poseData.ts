@@ -480,7 +480,7 @@ export const exercisePoses = {
         legs: (phase === 0 ? [planted[0]!, tucked] : [tucked, planted[1]!]) as [Limb, Limb],
       };
     }),
-    [{ kind: "floor" }],
+    [{ kind: "floor", mat: true }],
     "overhand",
     -1,
   ),
@@ -496,7 +496,7 @@ export const exercisePoses = {
         legs: [quadrupedFrame().legs[0]!, { upper: 96, lower: 92, end: 60 }],
       },
     ],
-    [{ kind: "floor" }],
+    [{ kind: "floor", mat: true }],
     "overhand",
     -1,
   ),
@@ -547,7 +547,7 @@ export const exercisePoses = {
     ([[0.485, 0.689, 292.3], [0.475, 0.728, 286.8], [0.467, 0.78, 279.8]] as const).map(([x, y, torso]) =>
       supported({ x, y }, torso, { x: 0.392, y: 0.855 }, { x: 0.767, y: 0.855 }),
     ),
-    [{ kind: "floor" }],
+    [{ kind: "floor", mat: true }],
     "overhand",
     -1,
   ),
@@ -612,7 +612,7 @@ export const exercisePoses = {
         legs: [{ upper: thigh, lower: 92, end: 100 }, { upper: thigh + 5, lower: 97, end: 105 }],
       };
     }),
-    [{ kind: "floor" }],
+    [{ kind: "floor", mat: true }],
     "overhand",
     -1,
   ),
@@ -625,7 +625,7 @@ export const exercisePoses = {
       { ...supported({ x: 0.565, y: 0.745 }, 272, { x: 0.392, y: 0.855 }, { x: 0.86, y: 0.87 }), neck: 300, arms: [{ upper: 185, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
       { ...supported({ x: 0.565, y: 0.748 }, 271, { x: 0.392, y: 0.855 }, { x: 0.86, y: 0.87 }), neck: 300, arms: [{ upper: 186, lower: 272, end: 272 }, { upper: 191, lower: 277, end: 277 }] },
     ],
-    [{ kind: "floor" }],
+    [{ kind: "floor", mat: true }],
     "overhand",
     -1,
   ),
@@ -642,7 +642,7 @@ export const exercisePoses = {
       { ...supported({ x: 0.565, y: 0.745 }, 272, { x: 0.392, y: 0.855 }, { x: 0.86, y: 0.87 }), neck: 300, arms: [{ upper: 185, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
       { ...supported({ x: 0.523, y: 0.752 }, 272, { x: 0.392, y: 0.855 }, { x: 0.82, y: 0.868 }, 150), neck: 300, arms: [{ upper: 207, lower: 272, end: 272 }, { upper: 212, lower: 277, end: 277 }] },
     ],
-    [{ kind: "floor" }],
+    [{ kind: "floor", mat: true }],
     "overhand",
     -1,
   ),
@@ -663,7 +663,7 @@ export const exercisePoses = {
       // I: the arm reaches forward in line with the body.
       { ...supported({ x: 0.64, y: 0.745 }, 272, { x: 0.467, y: 0.855 }, { x: 0.935, y: 0.87 }), neck: 300, arms: [{ upper: 272, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
     ],
-    [{ kind: "floor" }],
+    [{ kind: "floor", mat: true }],
     "overhand",
     -1,
   ),
@@ -959,7 +959,7 @@ export const exercisePoses = {
     ],
     // Pinned a thigh's radius under the leg line, where the belly and the
     // thighs actually rest: at 0.786 the trunk hung 5cm over the floor.
-    [{ kind: "floor", y: 0.733 }],
+    [{ kind: "floor", mat: true, y: 0.733 }],
     "overhand",
     -1,
   ),
@@ -975,7 +975,7 @@ export const exercisePoses = {
       { pelvis: { x: 0.5, y: 0.733 }, torso: 278, neck: 271, arms: sideArms(294, 298), legs: lyingLegs(78, 74, 24) },
       { pelvis: { x: 0.5, y: 0.731 }, torso: 282, neck: 274, arms: sideArms(312, 317), legs: lyingLegs(62, 56, 8) },
     ],
-    [{ kind: "floor", y: 0.792 }],
+    [{ kind: "floor", mat: true, y: 0.792 }],
   ),
 
   sidePlank: pose(
@@ -989,17 +989,34 @@ export const exercisePoses = {
       { pelvis: { x: 0.5, y: 0.665 }, torso: 286, neck: 286, arms: [{ upper: 180, lower: 266, end: 266 }, { upper: 10, lower: 6 }], legs: lyingLegs(107, 103, 17) },
       { pelvis: { x: 0.5, y: 0.688 }, torso: 289, neck: 289, arms: [{ upper: 180, lower: 266, end: 266 }, { upper: 10, lower: 6 }], legs: lyingLegs(104, 100, 14) },
     ],
-    [{ kind: "floor" }],
+    [{ kind: "floor", mat: true }],
   ),
 
+  // Both hands travel together on a diagonal; that diagonal is the exercise.
+  // They are authored as ONE pair of hands either side of what is held, not
+  // as two arms swinging on the same angles: parallel arms from shoulders
+  // 22cm apart leave the hands 39-51cm apart, and everything this movement
+  // holds -- a rope handle, a medicine ball -- is narrower than that. The
+  // ball floated between two hands that never touched it.
   woodchop: pose(
     "front",
-    [
-      { pelvis: { x: 0.5, y: 0.520 }, torso: 348, arms: [{ upper: 38, lower: 34 }, { upper: 44, lower: 40 }], legs: plantedLegs({ x: 0.5, y: 0.520 }, 348, "front", [{ x: 0.612, y: FLOOR }, { x: 0.388, y: FLOOR }], OUT) },
-      { pelvis: { x: 0.5, y: 0.555 }, torso: 0, arms: [{ upper: 126, lower: 122 }, { upper: 132, lower: 128 }], legs: plantedLegs({ x: 0.5, y: 0.555 }, 0, "front", [{ x: 0.612, y: FLOOR }, { x: 0.388, y: FLOOR }], OUT) },
-      // Both hands travel together on a diagonal; that diagonal is the exercise.
-      { pelvis: { x: 0.5, y: 0.585 }, torso: 12, arms: [{ upper: 214, lower: 210 }, { upper: 220, lower: 216 }], legs: plantedLegs({ x: 0.5, y: 0.585 }, 12, "front", [{ x: 0.612, y: FLOOR }, { x: 0.388, y: FLOOR }], OUT) },
-    ],
+    // The elbows stay pointed the same way through the whole sweep. Past
+    // the midline the hands are on the far side of the shoulders, so the
+    // bend that kept them out on the way down folds them the other way --
+    // the pose checker calls that the joint hinging backwards mid-rep.
+    ([
+      [{ x: 0.560, y: 0.115 }, 348, 0.520, OUT],
+      [{ x: 0.610, y: 0.470 }, 0, 0.555, OUT],
+      [{ x: 0.435, y: 0.560 }, 12, 0.585, DOWN],
+    ] as const).map(([hands, torso, py, elbows]) => {
+      const pelvis = { x: 0.5, y: py };
+      return {
+        pelvis,
+        torso,
+        arms: reachingArms(pelvis, torso, "front", grip(hands, 0.056, "front"), elbows),
+        legs: plantedLegs(pelvis, torso, "front", [{ x: 0.612, y: FLOOR }, { x: 0.388, y: FLOOR }], OUT),
+      };
+    }),
     [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }, { kind: "cable", at: "grip", anchor: { x: 0.95, y: 0.08 } }],
   ),
 
@@ -1086,7 +1103,7 @@ export const exercisePoses = {
     ([[0.578, 0.501, 246], [0.564, 0.515, 234], [0.544, 0.538, 222]] as const).map(([x, y, torso]) =>
       supported({ x, y }, torso, { x: 0.425, y: 0.872 }, { x: 0.745, y: 0.872 }, 118),
     ),
-    [{ kind: "floor" }],
+    [{ kind: "floor", mat: true }],
     "overhand",
     -1,
   ),
@@ -1105,7 +1122,7 @@ export const exercisePoses = {
         legs: [{ upper: 310, lower: 305, end: 308 }, { upper: 46, lower: 50, end: 48 }] as [Limb, Limb],
       };
     }),
-    [{ kind: "floor" }],
+    [{ kind: "floor", mat: true }],
     "overhand",
     -1,
   ),
@@ -1202,7 +1219,7 @@ export const exercisePoses = {
         legs: [{ upper: thigh, lower: 90, end: 98 }, { upper: thigh + 4, lower: 94, end: 102 }] as [Limb, Limb],
       };
     }),
-    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.045 }],
+    [{ kind: "floor", mat: true }, { kind: "bell", at: "grip", size: 0.045, wheel: true }],
     "overhand",
     -1,
   ),
@@ -1240,7 +1257,7 @@ export const exercisePoses = {
     // It sits a quarter-frame ABOVE the authored frame (a 2.3m tower): at the
     // frame's top edge the cable reached a kneeling lifter's hands at barely
     // 30 degrees, and read as coming from ahead rather than from above.
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.08, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.04, y: -0.25 } }],
+    [{ kind: "floor", mat: true }, { kind: "bar", at: "grip", length: 0.08, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.04, y: -0.25 } }],
   ),
 
   // Seated and leaned back, feet light: the hands sweep between chest height
@@ -1254,7 +1271,7 @@ export const exercisePoses = {
       arms: sideArms(up, low),
       legs: [{ upper: 305, lower: 235, end: 325 }, { upper: 310, lower: 240, end: 330 }] as [Limb, Limb],
     })),
-    [{ kind: "floor", y: 0.745 }],
+    [{ kind: "floor", mat: true, y: 0.745 }],
     "overhand",
     -1,
   ),
@@ -1276,7 +1293,7 @@ export const exercisePoses = {
         legs: (phase === 0 ? [tucked, long] : [{ ...long, upper: 68, lower: 66 }, { ...tucked, upper: 340 }]) as [Limb, Limb],
       };
     }),
-    [{ kind: "floor", y: 0.792 }],
+    [{ kind: "floor", mat: true, y: 0.792 }],
   ),
 
   // Jump, stand, crouch with the hands planted, plank -- played out and back,
@@ -1301,7 +1318,7 @@ export const exercisePoses = {
       })(),
       supported({ x: 0.485, y: 0.689 }, 292.3, { x: 0.392, y: 0.855 }, { x: 0.767, y: 0.855 }),
     ],
-    [{ kind: "floor", y: 0.936 }],
+    [{ kind: "floor", mat: true, y: 0.936 }],
     "overhand",
     -1,
   ),
