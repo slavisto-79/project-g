@@ -105,6 +105,9 @@ const ROPE_AMPLITUDE = 0.095;
 // one straight bar through the fitting; at 16cm they splay about 34 degrees,
 // which is the V that says "rope".
 const ROPE_HANDLE_DROP = 0.16;
+// Where a D-handle's clip sits above the hand -- the cable ends there and
+// the strap carries the last 19cm to the grip.
+const D_HANDLE_RISE = 0.10;
 
 // The female build's proportions, chosen by the user from a live three-way
 // mockup ("lean and toned" over "curvy" and "balanced"): a light frame with a
@@ -767,8 +770,10 @@ export class PoseViewer3D {
       (p) =>
         (p.kind === "bar" && !p.plates) ||
         // A sled's handles are as fixed as a pull-up bar: the hands close
-        // round them whatever the exercise is loaded with.
+        // round them whatever the exercise is loaded with. So is a D-handle
+        // on a cable -- a fly held its hands open round nothing.
         (p.kind === "slab" && !!p.sled) ||
+        (p.kind === "cable" && p.handle === "d" && implement === "machine") ||
         ((p.kind === "bell" || (p.kind === "bar" && p.plates)) && implement !== undefined),
     );
     // The avatar's build, as per-part radius multipliers. `t` is how far the
@@ -1284,6 +1289,12 @@ export class PoseViewer3D {
   // midpoint -- the whole shape of the thing is that the two ends go where
   // the two hands go, and they move apart and together through the rep.
   private ropeHandles: { propIndex: number; cableIndex: number; fitting: THREE.Group; ends: THREE.Mesh[]; knobs: THREE.Mesh[] }[] = [];
+  // A stirrup handle, one per cable: a grip bar in the fist with a strap
+  // rising off both its ends to the clip the cable ends at. It is a rigid
+  // object, so it is one group -- but it has to be TURNED every frame, which
+  // ordinary held props never are, because its strap follows the cable while
+  // its grip stays across the hand.
+  private dHandles: { cableIndex: number; side: 0 | 1; group: THREE.Group }[] = [];
   private ropeMaterial = new THREE.MeshStandardMaterial({ color: 0x2f363a, roughness: 0.95, metalness: 0 });
 
   // Stretch a unit cylinder between two world points.
@@ -1322,6 +1333,38 @@ export class PoseViewer3D {
       this.scene.add(link);
     }
     this.ropes.push({ propIndex, side, links, anchor });
+  }
+
+  // The other thing that clips to a cable: a D-handle. One per cable, on the
+  // hand that cable runs to. Built in a local frame with the grip along X --
+  // the axis a drawn fist curls around -- and the strap rising along +Y to
+  // the clip, so orienting it is a matter of aiming +Y up the cable while
+  // keeping X across the hand.
+  private dHandle(cableIndex: number, side: 0 | 1) {
+    const group = new THREE.Group();
+    const half = 0.037;
+    const rise = 0.082;
+    const grip = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, half * 2, 14), this.rubber));
+    const collar = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.012, 12), this.graphite));
+    collar.position.x = 0;
+    group.add(grip, collar);
+    // The strap: two legs from the ends of the grip up to the clip, so the
+    // handle reads as a D and not as a bar floating under a cable.
+    for (const s of [-1, 1]) {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, 1, 8), this.ropeMaterial);
+      this.stretch(leg, new THREE.Vector3(s * half, 0, 0), new THREE.Vector3(s * 0.014, rise, 0));
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.0155, 0.0155, 0.008, 12), this.chrome);
+      cap.rotation.z = Math.PI / 2;
+      cap.position.x = s * (half + 0.005);
+      group.add(leg, cap);
+    }
+    const clip = new THREE.Mesh(new THREE.TorusGeometry(0.015, 0.005, 8, 16), this.chrome);
+    clip.position.y = rise + 0.012;
+    const swivel = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.011, 0.026, 10), this.graphite);
+    swivel.position.y = rise;
+    group.add(clip, swivel);
+    this.scene.add(group);
+    this.dHandles.push({ cableIndex, side, group });
   }
 
   // The rope clipped to a cable: a snap hook, a crimped fitting, and two
@@ -2028,6 +2071,7 @@ export class PoseViewer3D {
         if (implement !== "machine") continue;
         const floor = first.props.find((p) => p.kind === "floor");
         this.cableMachine(prop, floor && floor.kind === "floor" ? floor.y : 0, i);
+        if (prop.handle === "d") this.dHandle(i, Math.min(this.dHandles.length, 1) as 0 | 1);
         continue;
       }
       if (prop.kind === "slab") {
@@ -2862,6 +2906,26 @@ export class PoseViewer3D {
       }
     }
 
+    // A D-handle sits in one hand with its strap up the cable. Aiming it is
+    // a basis, not a single rotation: +Y up the cable, and X kept as close to
+    // across-the-body as the aim allows, because that is the axis the fist is
+    // drawn curled around.
+    for (const d of this.dHandles) {
+      const pa = a.props[d.cableIndex]!;
+      const pb = b.props[d.cableIndex]!;
+      if (pa.kind !== "cable" || pb.kind !== "cable") continue;
+      const hand = lerp3(a.hands[d.side], b.hands[d.side], f).add(jitter);
+      const up = vec(pa.anchor).sub(hand);
+      if (up.lengthSq() < 1e-6) up.set(0, 1, 0);
+      up.normalize();
+      const across = new THREE.Vector3(1, 0, 0).addScaledVector(up, -up.x);
+      if (across.lengthSq() < 1e-4) across.set(0, 0, 1).addScaledVector(up, -up.z);
+      across.normalize();
+      const third = new THREE.Vector3().crossVectors(across, up).normalize();
+      d.group.position.copy(hand);
+      d.group.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(across, up, third));
+    }
+
     for (const cable of this.cables) {
       const pa = a.props[cable.propIndex]!;
       const pb = b.props[cable.propIndex]!;
@@ -2869,9 +2933,8 @@ export class PoseViewer3D {
       const grip = lerp3(pa.center, pb.center, f);
       // A rope attachment hangs off the end of the cable: the steel stops at
       // its fitting, and the rope carries the rest of the way to the hands.
-      const end = pa.handle === "rope"
-        ? grip.clone().addScaledVector(vec(pa.anchor).sub(grip).normalize(), ROPE_HANDLE_DROP)
-        : grip;
+      const drop = pa.handle === "rope" ? ROPE_HANDLE_DROP : pa.handle === "d" ? D_HANDLE_RISE : 0;
+      const end = drop > 0 ? grip.clone().addScaledVector(vec(pa.anchor).sub(grip).normalize(), drop) : grip;
       this.stretch(cable.line, cable.anchor, end);
       const rise = Math.min(Math.max(grip.distanceTo(cable.anchor) - cable.rest, 0), 0.45);
       cable.mover.position.y = cable.mover.userData.baseY ?? (cable.mover.userData.baseY = cable.mover.position.y);
