@@ -1783,6 +1783,29 @@ export class PoseViewer3D {
         // of the orbit where the camera passes behind it. Only the wall-sit's
         // is really a wall (0.62 tall, up at the shoulders); the leg press's
         // is 0.34 and down at the ankles, and it is a steel plate to push.
+        if (prop.lever) {
+          // A machine's padded roller against a limb -- the leg extension's
+          // shin pad. It rides the joint it is anchored to, so it gets no
+          // posts to the floor: every other pad in here is something the
+          // figure stands or sits on, and the generic build would have run
+          // legs down from a pad that is halfway up the air.
+          const roller = new THREE.Group();
+          const pad = new THREE.Mesh(new THREE.CylinderGeometry(prop.height / 2, prop.height / 2, prop.width, 16), this.padMaterial);
+          pad.rotation.z = Math.PI / 2;
+          roller.add(pad);
+          for (const s of [-1, 1]) {
+            const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.05, 10), this.chrome);
+            shaft.rotation.z = Math.PI / 2;
+            shaft.position.x = s * (prop.width / 2 + 0.02);
+            const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.014, 12), this.graphite);
+            cap.rotation.z = Math.PI / 2;
+            cap.position.x = s * (prop.width / 2 + 0.045);
+            roller.add(shaft, cap);
+          }
+          this.scene.add(roller);
+          this.held.push(this.anchored(roller, i, "slab"));
+          continue;
+        }
         if (prop.height > 0.3 && prop.height <= 0.5) {
           const sled = this.legPressSled(prop.height, floorY === undefined ? undefined : floorY - prop.center[1]);
           this.scene.add(sled);

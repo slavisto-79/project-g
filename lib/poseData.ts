@@ -279,7 +279,17 @@ export const exercisePoses = {
       arms: sideArms(150, 172),
       legs: sideLegs(92, shin, shin - 90),
     })),
-    [{ kind: "floor", y: 0.9 }, { kind: "slab", at: "pelvis", width: 0.22, height: 0.055, dy: 0.075 }],
+    [
+      { kind: "floor", y: 0.9 },
+      { kind: "slab", at: "pelvis", width: 0.22, height: 0.055, dy: 0.075 },
+      // The machine's shin pad: a padded roller riding the ankle, which is
+      // what the movement is actually pushing. Anchored to the joint, so it
+      // travels with the shin through the whole extension. The offset is
+      // straight UP rather than along the shin, and that is right at both
+      // ends of the range: with the shin hanging, up the shin IS up; with it
+      // extended, above the ankle is above the shin, where the pad presses.
+      { kind: "slab", at: "ankle0", width: 0.16, height: 0.05, dy: -0.045, lever: true },
+    ],
   ),
 
   legCurl: pose(
