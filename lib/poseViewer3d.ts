@@ -1378,15 +1378,24 @@ export class PoseViewer3D {
     // A real bench pad is about 30cm wide -- narrower than the trunk, which
     // overhangs it a little. The old 0.32 (66cm) was a table.
     g.add(this.pad(BENCH_PAD_WIDTH, prop.height, len));
-    const board = new THREE.Mesh(new THREE.BoxGeometry(BENCH_PAD_WIDTH - 0.02, 0.02, len - 0.04), this.iron);
+    // Every length below is an inset from the pad's own, and on a SHORT
+    // bench each of them used to run negative: the hip thrust's is 0.20
+    // long and the leg extension's seat 0.22, so `len - 0.24` gave the
+    // runner a depth of -0.04. A negative box is wound inside out -- its
+    // faces cull away and its normals point in -- and the two posts at
+    // +-(len/2 - 0.12) crossed over each other into a 4cm huddle in the
+    // middle of the bench instead of standing near its ends. Clamped to a
+    // fraction of the bench, and a bench too short for two posts gets one.
+    const board = new THREE.Mesh(new THREE.BoxGeometry(BENCH_PAD_WIDTH - 0.02, 0.02, Math.max(len - 0.04, len * 0.6)), this.iron);
     board.position.y = -prop.height / 2 - 0.01;
-    const spine = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, len - 0.16), this.graphite);
+    const spine = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, Math.max(len - 0.16, len * 0.42)), this.graphite);
     spine.position.y = -prop.height / 2 - 0.045;
-    const runner = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.035, len - 0.24), this.iron);
+    const runner = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.035, Math.max(len - 0.24, len * 0.34)), this.iron);
     runner.position.y = base + 0.05;
     g.add(board, spine, runner);
     const postTop = -prop.height / 2 - 0.07;
-    for (const z of [-(len / 2 - 0.12), len / 2 - 0.12]) {
+    const postZ = len / 2 - 0.12;
+    for (const z of postZ > 0.04 ? [-postZ, postZ] : [0]) {
       const post = new THREE.Mesh(new THREE.BoxGeometry(0.05, postTop - base - 0.035, 0.05), this.iron);
       post.position.set(0, (postTop + base + 0.035) / 2, z);
       const foot = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.035, 0.06), this.iron);
