@@ -577,9 +577,23 @@ export const exercisePoses = {
 
   // The bench ends at the hip joint: the thighs angle down to the floor from
   // there, and a pad running on past the hips is what they used to sink into.
+  // Authored from a reference clip (three reps, camera at the foot end, a
+  // little to the lifter's left): the bar locks out over the shoulder and
+  // comes down to the LOWER chest, 10cm toward the feet, to touch it -- the
+  // bottom bar height is the skinned chest surface under it (0.465 male,
+  // 0.461 female at that z) plus the bar's radius and a few millimetres. The
+  // old bottom stopped 4cm above the chest, 14cm toward the feet. Elbows
+  // flare to 45 degrees at the chest (the elbow turns about the shoulder-
+  // wrist line, see Limb.flare), grip 0.19 out (76cm apart, about 1.5
+  // shoulder widths), and the feet stand wide on the floor either side of
+  // the bench, pulled in under the knees for a 100-degree bend -- a right
+  // angle is out of reach with the hip 33cm above the floor and the foot on
+  // it.
   bench: pose(
     "side",
-    ([[0.397, 0.304], [0.450, 0.385], [0.505, 0.465]] as const).map(([barX, barY]) => bench(barX, barY)),
+    ([[0.397, 0.304, 20], [0.436, 0.410, 35], [0.475, 0.513, 45]] as const).map(([barX, barY, flare]) =>
+      bench(barX, barY, { flare, spread: 0.078, legSpread: 0.12, feetX: 0.640 }),
+    ),
     [
       { kind: "floor" },
       { kind: "slab", at: "pelvis", width: 0.58, height: 0.055, dx: -0.197, dy: 0.085 },
@@ -588,6 +602,11 @@ export const exercisePoses = {
       { kind: "cable", at: "hand0", anchor: { x: 0.387, y: 0.78 }, band: true },
       { kind: "cable", at: "hand1", anchor: { x: 0.387, y: 0.78 }, band: true },
     ],
+    "overhand",
+    1,
+    // The clip's timing: down, a touch on the chest, up, a beat locked out --
+    // and its camera, the foot end, 30 degrees round to the lifter's left.
+    { tempo: { down: 900, bottom: 150, up: 600, top: 350 }, camera: { azimuth: -0.5 } },
   ),
 
   inclinePress: pose(
@@ -1659,17 +1678,23 @@ function quadrupedFrame(): Figure {
 
 // Supine on a flat bench, head to the left, feet planted on the floor. The bar
 // height is the only thing that changes through the press.
-function bench(barX: number, barY: number): Figure {
+// `press` is the barbell bench's own shape, from its reference clip: elbows
+// flared out of the side plane, a wide grip, and the feet planted wide on
+// the floor either side of the bench with the knees near a right angle.
+function bench(barX: number, barY: number, press?: { flare: number; spread: number; legSpread: number; feetX: number }): Figure {
   const pelvis = { x: 0.560, y: 0.600 };
   const torso = 272;
+  const feetX = press?.feetX ?? 0.688;
+  // The far shoulder sits a shade lower in a side view, so the far hand
+  // gets its own target or the lockout frame is out of its reach.
+  const arms = reachingArms(pelvis, torso, "side", [{ x: barX, y: barY }, { x: barX - 0.016, y: barY }], BACK);
+  const legs = plantedLegs(pelvis, torso, "side", [{ x: feetX, y: FLOOR }, { x: feetX - 0.016, y: FLOOR }], FORWARD);
   return {
     pelvis,
     torso,
     neck: torso,
-    // The far shoulder sits a shade lower in a side view, so the far hand
-    // gets its own target or the lockout frame is out of its reach.
-    arms: reachingArms(pelvis, torso, "side", [{ x: barX, y: barY }, { x: barX - 0.016, y: barY }], BACK),
-    legs: plantedLegs(pelvis, torso, "side", [{ x: 0.688, y: FLOOR }, { x: 0.672, y: FLOOR }], FORWARD),
+    arms: press ? (arms.map((arm) => ({ ...arm, spread: press.spread, flare: press.flare })) as [Limb, Limb]) : arms,
+    legs: press ? (legs.map((leg) => ({ ...leg, spread: press.legSpread })) as [Limb, Limb]) : legs,
   };
 }
 

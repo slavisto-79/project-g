@@ -2307,10 +2307,13 @@ export class PoseViewer3D {
           // station and gets the rack; a short bench (hip thrust) or a
           // dumbbell/bodyweight movement does not.
           const bar = first.props.find((p) => p.kind === "bar" && p.plates);
-          const rack =
-            bar && bar.kind === "bar" && implement === "barbell" && prop.width >= 0.5
-              ? { cupY: bar.center[1], headward: (Math.sign(bar.center[2] - prop.center[2]) || -1) as 1 | -1 }
-              : undefined;
+          // The rack stands past the HEAD end: which way that is comes from
+          // the figure (head against pelvis), not from the bar against the
+          // pad's centre -- a pad long enough to carry the head has its
+          // centre beyond the racked bar, and that test put the uprights
+          // at the feet.
+          const headward = (Math.sign(first.head.c[2] - first.bones[0]!.a[2]) || -1) as 1 | -1;
+          const rack = bar && bar.kind === "bar" && implement === "barbell" && prop.width >= 0.5 ? { cupY: bar.center[1], headward } : undefined;
           const group = this.flatBench(prop, floorY, rack);
           // A bench the hands or feet rest on stands crosswise to the body:
           // its length runs along x, the edge under the wrists or the toes,
