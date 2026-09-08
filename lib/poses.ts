@@ -120,7 +120,16 @@ export type GripStyle = "overhand" | "underhand" | "neutral";
 // figure that faces +x, -1 for the mirror) -- rotating the spine a quarter
 // turn that way gives the ventral direction in ANY posture, which is what
 // orients the face and the chest.
-export type ExercisePose = { frames: PoseFrame[]; frames3d: PoseFrame3D[]; grip: GripStyle; facing: 1 | -1 };
+export type ExercisePose = {
+  frames: PoseFrame[];
+  frames3d: PoseFrame3D[];
+  grip: GripStyle;
+  facing: 1 | -1;
+  tempo?: Tempo;
+  // Where the camera starts, as the orbit angle in radians from straight in
+  // front of the figure (positive = round to the figure's right side).
+  camera?: { azimuth: number };
+};
 
 // The frame the renderer maps into. Only the ratio matters: horizontal lengths
 // are divided by it so a limb is the same length whichever way it points.
@@ -164,7 +173,16 @@ function step(from: Point, angleDeg: number, length: number): Point {
 // far outboard (the elbow half as far). A side view cannot draw a wide grip,
 // but a bar carried on the back is held wide, and the width is what keeps
 // the elbow open in 3D while the hand sits close to the neck in the plane.
-type Limb = { upper: number; lower: number; end?: number; spread?: number };
+// On a LEG, spread widens the stance the same way (the ankle moves outboard,
+// the knee half as far) and `turn` yaws the foot about the vertical, toes
+// outward, in degrees -- a side view draws both feet on one line, and a
+// squat stands shoulder-width with the toes turned out.
+type Limb = { upper: number; lower: number; end?: number; spread?: number; turn?: number };
+
+// How a movement is timed, in milliseconds: the way down, a pause at the
+// bottom, the way up, a pause at the top. Without one, every leg of the
+// movement takes PHASE_MS per key position and there are no pauses.
+export type Tempo = { down: number; bottom: number; up: number; top: number };
 
 type Figure = {
   // Centre of the hip line, which is where the whole figure hangs from.
@@ -351,12 +369,28 @@ function build3d(figure: Figure, view: View): { bones: PoseBone3D[]; head: { c: 
     const side = index as 0 | 1;
     const knee = walk(hip[side]!, leg.upper, P.thigh);
     const ankle = walk(knee, leg.lower, P.shin);
+    // A wider stance than the hips, in a side view: the ankle steps outboard
+    // by the spread and the knee tracks half-way, so the leg still reads as
+    // one line from hip to foot rather than a bend at the knee.
+    const out = side === 0 ? 1 : -1;
+    const stance = view === "side" ? leg.spread ?? 0 : 0;
+    knee[0] += out * (stance / 2);
+    ankle[0] += out * stance;
     const splay = view === "front" && side === 1 ? 90 : -90;
     const footAngle = leg.end ?? leg.lower + splay;
     bones.push({ part: "thigh", side, a: hip[side]!, b: knee });
     bones.push({ part: "shin", side, a: knee, b: ankle });
-    // Heel behind the ankle, toes in front: the foot is its own part.
-    bones.push({ part: "foot", side, a: walk(ankle, footAngle, -0.38 * P.foot), b: walk(ankle, footAngle, P.foot) });
+    // Heel behind the ankle, toes in front: the foot is its own part. Toes
+    // turned out yaw the foot about the vertical, each side away from the
+    // midline; the 2D drawing keeps the foot in its plane.
+    const yaw = view === "side" && leg.turn ? (out * leg.turn * Math.PI) / 180 : 0;
+    const foot = (length: number): Vec3 => {
+      const p = walk(ankle, footAngle, length);
+      if (!yaw) return p;
+      const dz = p[2] - ankle[2];
+      return [ankle[0] + Math.sin(yaw) * dz, p[1], ankle[2] + Math.cos(yaw) * dz];
+    };
+    bones.push({ part: "foot", side, a: foot(-0.38 * P.foot), b: foot(P.foot) });
   });
 
   return { bones, head: { c: headCentre, r: P.headRadius }, hands: [hands[0]!, hands[1]!] };
@@ -509,7 +543,14 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
 // Builds a movement from its key positions. Props are declared once and
 // re-anchored in every frame, so equipment cannot drift out of the hands and
 // adding a key position does not mean restating the barbell.
-function pose(view: View, figures: Figure[], props: PropSpec[] = [], grip: GripStyle = "overhand", facing: 1 | -1 = 1): ExercisePose {
+function pose(
+  view: View,
+  figures: Figure[],
+  props: PropSpec[] = [],
+  grip: GripStyle = "overhand",
+  facing: 1 | -1 = 1,
+  timing: { tempo?: Tempo; camera?: { azimuth: number } } = {},
+): ExercisePose {
   if (figures.length < 2) throw new Error("a movement needs at least two key positions");
   const built = figures.map((figure) => build(figure, view));
   // An unpinned floor goes under the lowest point the body reaches in ANY key
@@ -534,7 +575,7 @@ function pose(view: View, figures: Figure[], props: PropSpec[] = [], grip: GripS
     const world = build3d(figure, view);
     return { ...world, props: propsTo3d(frames[i]!.props, view, world.hands) };
   });
-  return { frames, frames3d, grip, facing };
+  return { frames, frames3d, grip, facing, ...timing };
 }
 
 // --- Authoring helpers ---------------------------------------------------
