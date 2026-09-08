@@ -1,4 +1,4 @@
-import type { MovementPattern } from "./exerciseLibrary";
+import { exerciseLibrary, type MovementPattern } from "./exerciseLibrary";
 
 // How a session is shaped: which split day it is, and which movement patterns
 // fill its slots. The exercises themselves come from lib/exerciseLibrary.ts;
@@ -106,6 +106,17 @@ const GOAL_ISOLATION_SLOTS: Record<string, number> = {
   health: 1,
 };
 
+// Which patterns can host an isolation slot is not a matter of taste: it is
+// whether the library has any single-joint work in that pattern. Read off the
+// library rather than listed by hand, so a new isolation exercise makes its
+// pattern a host without anyone remembering to come back here -- and so a
+// pattern that has none cannot be handed a slot it will silently fill with a
+// compound. `lunge` was on the hand-written list and has no isolation at all:
+// every lunge isolation slot fell back to a second compound lunge.
+const ISOLATION_HOSTS: ReadonlySet<MovementPattern> = new Set(
+  exerciseLibrary.filter((exercise) => exercise.isolation).map((exercise) => exercise.pattern),
+);
+
 export type SlotShape = { pattern: MovementPattern; isolation: boolean };
 
 function accessorySlots(shape: DayShape, goal: string | undefined): SlotShape[] {
@@ -123,19 +134,31 @@ function accessorySlots(shape: DayShape, goal: string | undefined): SlotShape[] 
     GOAL_ISOLATION_SLOTS[goal ?? ""] ?? 1,
     Math.max(0, shape.accessoryCount - 1),
   );
-  // Isolation goes last, where it belongs in the running order.
+  // Which accessories become isolation slots. Isolation still goes last in the
+  // running order (the return below); what is decided here is which PATTERN
+  // hosts it.
   //
-  // Any pattern with single-joint work in it can host an isolation slot --
-  // including squat and hinge, without which a leg day had nowhere to put a
-  // leg extension or a hamstring curl and they were unreachable. Carries and
-  // rotations are whole-body conditioning with no isolation to offer, so they
-  // keep their compound slots.
-  const isolationHosts: MovementPattern[] = ["push", "pull", "squat", "hinge", "lunge"];
-  const hostIndexes = patterns
+  // It used to take the last hosts in the list, and on a full-body day -- what
+  // everyone training three days a week or fewer gets, every session -- the
+  // accessories are push, pull, lunge, so the two isolation slots landed on
+  // pull and lunge. Push never got one. Push is the pattern that carries every
+  // chest and shoulder isolation in the library: the flyes, the lateral and
+  // front raises, the triceps work. None of it could appear in a full-body
+  // session, and the cable fly and cable lateral raise could not appear at all
+  // outside an upper or push day.
+  //
+  // Where a day has more hosts than slots, the slot goes to a pattern the day
+  // has NOT already hammered as a compound: a pull day that spines a row and
+  // accessorises pull and hinge puts its one isolation on the hinge, so the
+  // leg curls and glute work have a home. Only when the spine covers every
+  // host -- which is every full-body and upper day -- does it fall back to the
+  // goal's first preference, and that is where push finally gets one.
+  const hosts = patterns
     .map((pattern, index) => ({ pattern, index }))
-    .filter(({ pattern }) => isolationHosts.includes(pattern))
-    .map(({ index }) => index);
-  const isIsolation = new Set(isolationCount > 0 ? hostIndexes.slice(-isolationCount) : []);
+    .filter(({ pattern }) => ISOLATION_HOSTS.has(pattern));
+  const offSpine = hosts.filter(({ pattern }) => !shape.spine.includes(pattern));
+  const ranked = [...offSpine, ...hosts.filter((h) => !offSpine.includes(h))];
+  const isIsolation = new Set(isolationCount > 0 ? ranked.slice(0, isolationCount).map(({ index }) => index) : []);
 
   const compound = patterns.filter((_, index) => !isIsolation.has(index));
   const isolation = patterns.filter((_, index) => isIsolation.has(index));
