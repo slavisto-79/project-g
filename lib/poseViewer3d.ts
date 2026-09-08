@@ -313,6 +313,9 @@ export class PoseViewer3D {
   private hairAt = 0;
   private floorDisc: THREE.Group | null = null;
   private mat: THREE.Group | null = null;
+  // Where a push sled stands on the floor, so the podium can be grown to
+  // carry it: a sled off the podium reads as one sliding into the black.
+  private sledFoot: THREE.Vector3[] = [];
   private spineIndex = -1;
   private neckIndex = -1;
   private facing: 1 | -1 = 1;
@@ -758,6 +761,9 @@ export class PoseViewer3D {
     const gripping = first.props.some(
       (p) =>
         (p.kind === "bar" && !p.plates) ||
+        // A sled's handles are as fixed as a pull-up bar: the hands close
+        // round them whatever the exercise is loaded with.
+        (p.kind === "slab" && !!p.sled) ||
         ((p.kind === "bell" || (p.kind === "bar" && p.plates)) && implement !== undefined),
     );
     // The avatar's build, as per-part radius multipliers. `t` is how far the
@@ -1306,6 +1312,63 @@ export class PoseViewer3D {
       this.scene.add(link);
     }
     this.ropes.push({ propIndex, side, links, anchor });
+  }
+
+  // A push sled: two skids on the floor, two uprights, and a push bar across
+  // them that the hands close on -- a horizontal bar, not the uprights
+  // themselves, because a fist is drawn curled round an axis that runs across
+  // the body. Built in a local frame whose origin is the prop's anchor (the
+  // group is moved onto that anchor every frame), so the floor and the hands
+  // come in as offsets from it. It was a bench-pad post on a bench-pad slab
+  // -- upholstery, floating 2.6cm off the ground.
+  private pushSled(prop: Extract<PoseProp3D, { kind: "slab" }>, floorY: number, hands: [Vec3, Vec3]): THREE.Group {
+    const group = new THREE.Group();
+    const base = floorY - prop.center[1];
+    const postX = Math.max(Math.abs(hands[0][0] - prop.center[0]), 0.08);
+    const rail = 0.03;
+    const nose = prop.width;
+    // Skids: square tube under each upright, running from just behind the
+    // handles to the nose. They rest ON the floor -- the sled is the one
+    // thing in the scene that is pushed along it.
+    for (const side of [-1, 1]) {
+      const skid = new THREE.Mesh(new THREE.BoxGeometry(rail * 0.85, rail, nose + 0.08), this.iron);
+      skid.position.set(side * postX, base + rail / 2, nose / 2 - 0.04);
+      const upright = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.019, -base - rail, 12), this.ironRim);
+      upright.position.set(side * postX, (base + rail) / 2, 0);
+      group.add(skid, upright);
+    }
+    // The push bar, and a rubber sleeve on it where each hand closes.
+    const bar = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, postX * 2 + 0.09, 14), this.graphite));
+    group.add(bar);
+    for (const side of [-1, 1]) {
+      const sleeve = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.021, 0.021, 0.1, 14), this.rubber));
+      sleeve.position.x = side * postX;
+      const cap = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.021, 0.021, 0.01, 14), this.chrome));
+      cap.position.x = side * (postX + 0.045);
+      group.add(sleeve, cap);
+    }
+    // Cross members: one tying the uprights low down, one across the nose.
+    const brace = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, postX * 2, 10), this.iron));
+    brace.position.set(0, base + 0.075, 0);
+    const front = new THREE.Mesh(new THREE.BoxGeometry(postX * 2, rail * 0.8, rail), this.iron);
+    front.position.set(0, base + rail / 2, nose - 0.05);
+    group.add(brace, front);
+    // The loaded post at the nose, plates lying flat on its collar. Two 20kg
+    // plates is what a 40kg sled push is.
+    const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.24, 12), this.chrome);
+    sleeve.position.set(0, base + 0.12, nose - 0.05);
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.016, 14), this.graphite);
+    collar.position.set(0, base + rail + 0.008, nose - 0.05);
+    group.add(sleeve, collar);
+    for (const [k, r] of [[0, 0.115], [1, 0.105]] as const) {
+      const plate = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.028, 26), this.iron);
+      plate.position.set(0, base + rail + 0.03 + k * 0.03, nose - 0.05);
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(r, 0.006, 8, 26), this.ironRim);
+      rim.rotation.x = Math.PI / 2;
+      rim.position.copy(plate.position);
+      group.add(plate, rim);
+    }
+    return group;
   }
 
   // A cable station: a tall column on two posts with a weight stack riding
@@ -1933,6 +1996,17 @@ export class PoseViewer3D {
       if (prop.kind === "slab") {
         const floor = first.props.find((p) => p.kind === "floor");
         const floorY = floor && floor.kind === "floor" ? floor.y : undefined;
+        if (prop.sled) {
+          const sled = this.pushSled(prop, floorY ?? prop.center[1] - 0.3, first.hands);
+          this.scene.add(sled);
+          this.held.push(this.anchored(sled, i, "sled"));
+          for (const x of [-0.14, 0.14]) {
+            for (const z of [-0.06, prop.width + 0.06]) {
+              this.sledFoot.push(new THREE.Vector3(prop.center[0] + x, 0, prop.center[2] + z));
+            }
+          }
+          continue;
+        }
         if (prop.dir) {
           // An inclined bench, built around the HIP: a backrest pad running
           // up the authored direction, a flat seat under the hips, and a
@@ -2252,6 +2326,11 @@ export class PoseViewer3D {
         } else if (prop.kind === "bar") {
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(prop.length / 2, 0.11, 0)));
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(-prop.length / 2, -0.11, 0)));
+        } else if (prop.kind === "slab" && prop.sled) {
+          // A sled runs its whole length AHEAD of the handles, and its plates
+          // stand wider than its frame.
+          box.expandByPoint(vec(prop.center).add(new THREE.Vector3(0.13, prop.height + 0.04, prop.width + 0.05)));
+          box.expandByPoint(vec(prop.center).add(new THREE.Vector3(-0.13, -0.32, -0.06)));
         } else if (prop.kind === "slab" && prop.width >= 0.5 && !prop.dir) {
           // A full-length bench runs well past its centre, and a bench-press
           // station's rack uprights stand wider still, just past the head end.
@@ -2326,10 +2405,15 @@ export class PoseViewer3D {
         }
       }
       // Same for a battle rope's anchor: it is a plate lying ON the ground,
-      // and off the podium it read as one floating in the black.
+      // and off the podium it read as one floating in the black. And for a
+      // sled, which stands on the floor along its whole length.
       for (const rope of this.ropes) {
         const disc = this.floorDisc.position;
         s = Math.max(s, Math.hypot(rope.anchor.x - disc.x, rope.anchor.z - disc.z) + 0.16);
+      }
+      for (const foot of this.sledFoot) {
+        const disc = this.floorDisc.position;
+        s = Math.max(s, Math.hypot(foot.x - disc.x, foot.z - disc.z) + 0.04);
       }
       this.floorDisc.scale.set(s, 1, s);
     }
