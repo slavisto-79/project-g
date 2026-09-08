@@ -1240,6 +1240,7 @@ export class PoseViewer3D {
     mover: THREE.Group;
     machine: THREE.Group;
     capLocal: THREE.Vector3;
+    topLocal: THREE.Vector3;
     rest: number;
   }[] = [];
   private cableMaterial = new THREE.MeshStandardMaterial({ color: 0x23282c, roughness: 0.35, metalness: 0.8 });
@@ -1333,7 +1334,7 @@ export class PoseViewer3D {
       const p = frame.props[propIndex];
       if (p && p.kind === "cable") rest = Math.min(rest, vec(p.center).distanceTo(vec(p.anchor)));
     }
-    this.cables.push({ propIndex, anchor, line, feed, mover, machine: g, capLocal, rest });
+    this.cables.push({ propIndex, anchor, line, feed, mover, machine: g, capLocal, topLocal: new THREE.Vector3(0, top - 0.025, colZ), rest });
   }
 
   // A bench pad: a rounded vinyl slab, not a sharp box.
@@ -1986,6 +1987,26 @@ export class PoseViewer3D {
       this.scene.add(mesh);
       this.fistOutboard = true;
       this.held.push(this.anchored(mesh, i, "bell"));
+    }
+
+    // Two towers facing the figure from either side are ONE machine -- a
+    // crossover -- and a crossover is a single frame with a beam across the
+    // top. Built as two independent stations they read as two machines the
+    // figure happens to be standing between. Measured: the pair is already
+    // identical (26 meshes each, the same 0.69 x 1.12 x 0.74 box, mirrored
+    // in x); what they were missing was the thing that joins them.
+    if (this.cables.length === 2) {
+      const [c0, c1] = this.cables as [(typeof this.cables)[number], (typeof this.cables)[number]];
+      const level = Math.abs(c0.anchor.y - c1.anchor.y) < 0.1;
+      const apart = Math.abs(c0.anchor.x - c1.anchor.x) > 0.6;
+      if (level && apart) {
+        for (const m of [c0.machine, c1.machine]) m.updateWorldMatrix(true, false);
+        const a = c0.machine.localToWorld(c0.topLocal.clone());
+        const b = c1.machine.localToWorld(c1.topLocal.clone());
+        const beam = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1, 0.07), this.iron);
+        this.stretch(beam, a, b);
+        this.scene.add(beam);
+      }
     }
   }
 
