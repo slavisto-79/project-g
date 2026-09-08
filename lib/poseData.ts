@@ -1336,7 +1336,14 @@ export const exercisePoses = {
         legs: plantedLegs(pelvis, 18, "side", [{ x: 0.56, y: FLOOR }, { x: 0.53, y: FLOOR }], FORWARD),
       };
     }),
-    [{ kind: "floor" }],
+    // One rope per hand, and BOTH to the same anchor: battle ropes are one
+    // rope looped round a post, whose two ends the athlete holds. Without
+    // them the movement was a man shaking his fists at the floor.
+    [
+      { kind: "floor" },
+      { kind: "cable", at: "hand0", anchor: { x: 1.00, y: 0.905 }, rope: true },
+      { kind: "cable", at: "hand1", anchor: { x: 1.00, y: 0.905 }, rope: true },
+    ],
   ),
 
   // Low lean into the sled's posts, legs driving alternately -- one flat and

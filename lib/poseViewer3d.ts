@@ -94,6 +94,12 @@ const TRAP_HANDLE_RISE = 0.06;
 // 170-180cm, so a unit is about 1.9m and the mat is 0.95 by 0.32.
 const MAT_LENGTH = 0.95;
 const MAT_WIDTH = 0.32;
+// A battle rope's links, and the wave running down it: one full wave from
+// anchor to hand, an 18cm crest, and one pass per half rep so the wave leaves
+// the hand exactly as the hand turns over.
+const ROPE_LINKS = 22;
+const ROPE_WAVES = 1.15;
+const ROPE_AMPLITUDE = 0.095;
 
 // The female build's proportions, chosen by the user from a live three-way
 // mockup ("lean and toned" over "curvy" and "balanced"): a light frame with a
@@ -1257,6 +1263,12 @@ export class PoseViewer3D {
     rest: number;
   }[] = [];
   private cableMaterial = new THREE.MeshStandardMaterial({ color: 0x23282c, roughness: 0.35, metalness: 0.8 });
+  // A battle rope: a run of short links from a floor anchor to ONE hand, with
+  // a wave travelling down it. A cable is a straight line and can be one
+  // stretched cylinder; a rope's whole point is that it is not straight, so
+  // it is a chain of links, each stretched between two points on the curve.
+  private ropes: { propIndex: number; side: number; links: THREE.Mesh[]; anchor: THREE.Vector3 }[] = [];
+  private ropeMaterial = new THREE.MeshStandardMaterial({ color: 0x2f363a, roughness: 0.95, metalness: 0 });
 
   // Stretch a unit cylinder between two world points.
   private stretch(mesh: THREE.Mesh, from: THREE.Vector3, to: THREE.Vector3) {
@@ -1265,6 +1277,35 @@ export class PoseViewer3D {
     mesh.position.copy(from).addScaledVector(dir, 0.5);
     mesh.quaternion.setFromUnitVectors(UP, dir.divideScalar(len));
     mesh.scale.set(1, len, 1);
+  }
+
+  // A battle rope and the anchor it is looped around. Both ropes share the
+  // anchor -- they are the two ends of one rope round a post -- so only the
+  // first one builds it. 4cm of braided rope: thick enough to read as rope
+  // rather than as the 1.2cm cable next to it in the same scene.
+  private battleRope(prop: Extract<PoseProp3D, { kind: "cable" }>, propIndex: number, side: number) {
+    const anchor = vec(prop.anchor);
+    if (side === 0) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.032, 0.13, 14), this.graphite);
+      post.position.copy(anchor).setY(anchor.y - 0.02);
+      const plate = new THREE.Mesh(new RoundedBoxGeometry(0.2, 0.022, 0.2, 3, 0.008), this.iron);
+      plate.position.copy(anchor).setY(anchor.y - 0.075);
+      const collar = new THREE.Mesh(new THREE.TorusGeometry(0.036, 0.009, 8, 18), this.ironRim);
+      collar.rotation.x = Math.PI / 2;
+      collar.position.copy(anchor).setY(anchor.y + 0.03);
+      this.scene.add(post, plate, collar);
+    }
+    // The two halves leave the post on either side of it, not both out of a
+    // single point in its middle -- which is also what stops them sharing a
+    // vertex and flickering against each other for the first few links.
+    anchor.x += (side === 0 ? 1 : -1) * 0.035;
+    const links: THREE.Mesh[] = [];
+    for (let k = 0; k < ROPE_LINKS; k++) {
+      const link = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 1, 7), this.ropeMaterial);
+      links.push(link);
+      this.scene.add(link);
+    }
+    this.ropes.push({ propIndex, side, links, anchor });
   }
 
   // A cable station: a tall column on two posts with a weight stack riding
@@ -1876,6 +1917,10 @@ export class PoseViewer3D {
         continue;
       }
       if (prop.kind === "cable") {
+        if (prop.rope) {
+          this.battleRope(prop, i, this.ropes.length);
+          continue;
+        }
         // A medicine ball slam is authored on the cable woodchopper, and the
         // slam was drawing the woodchopper's whole machine: a stack, a tower
         // and a cable, standing beside a man throwing a ball at the ground.
@@ -2212,6 +2257,12 @@ export class PoseViewer3D {
           // station's rack uprights stand wider still, just past the head end.
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(0.4, 0.08, prop.width / 2 + 0.12)));
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(-0.4, -0.08, -(prop.width / 2 + 0.12))));
+        } else if (prop.kind === "cable" && prop.rope) {
+          // A rope's anchor is a plate on the floor, not a station: it needs
+          // its own footprint and the crest of the wave beside it, nothing
+          // like the column's clearance.
+          box.expandByPoint(vec(prop.anchor).add(new THREE.Vector3(0.12, ROPE_AMPLITUDE, 0.12)));
+          box.expandByPoint(vec(prop.anchor).add(new THREE.Vector3(-0.12, -0.08, -0.12)));
         } else if (prop.kind === "cable") {
           // The station's column stands behind the pulley and reaches the
           // floor; the fit has to hold all of it, not just the cable's end.
@@ -2273,6 +2324,12 @@ export class PoseViewer3D {
         for (const x of [matBox.min.x, matBox.max.x]) {
           for (const z of [matBox.min.z, matBox.max.z]) s = Math.max(s, Math.hypot(x - disc.x, z - disc.z) + 0.05);
         }
+      }
+      // Same for a battle rope's anchor: it is a plate lying ON the ground,
+      // and off the podium it read as one floating in the black.
+      for (const rope of this.ropes) {
+        const disc = this.floorDisc.position;
+        s = Math.max(s, Math.hypot(rope.anchor.x - disc.x, rope.anchor.z - disc.z) + 0.16);
       }
       this.floorDisc.scale.set(s, 1, s);
     }
@@ -2607,6 +2664,40 @@ export class PoseViewer3D {
       const end = lerp3(pa.center, pb.center, f);
       end.x = lev.side * 0.105;
       this.stretch(lev.arm, lev.pivot, end);
+    }
+
+    // The wave in a battle rope is the hand's own movement travelling away
+    // down it, so it is driven by the same clock as the arms and the two
+    // ropes run half a cycle apart, the way the two arms do. It has to die
+    // at both ends: the rope is fixed at the anchor and held at the hand.
+    for (const rope of this.ropes) {
+      const pa = a.props[rope.propIndex]!;
+      const pb = b.props[rope.propIndex]!;
+      if (pa.kind !== "cable" || pb.kind !== "cable") continue;
+      // Not the prop's centre: a side view authors everything on the midline
+      // (point() zeroes x), and the two hands are only pushed apart when the
+      // 3D frame is built. A rope drawn to the centre ended 11cm short of the
+      // fist that was supposed to be holding it.
+      const hand = lerp3(a.hands[rope.side as 0 | 1], b.hands[rope.side as 0 | 1], f).add(jitter);
+      const run = hand.clone().sub(rope.anchor);
+      const length = Math.max(run.length(), 1e-4);
+      // Vertical, but square to the rope: the crest of a wave stands off the
+      // rope's own line, not off the world's.
+      const perp = new THREE.Vector3(0, 1, 0).addScaledVector(run, -run.y / (length * length));
+      if (perp.lengthSq() < 1e-6) perp.set(0, 0, 1);
+      perp.normalize();
+      const phase = elapsed / (PHASE_MS * Math.max(this.frames.length - 1, 1)) + rope.side * 0.5;
+      const point = (u: number) => {
+        const swell = Math.pow(u, 1.3) * (1 - u) * 4 * ROPE_AMPLITUDE;
+        const wave = Math.sin(Math.PI * 2 * (ROPE_WAVES * (1 - u) + phase));
+        return rope.anchor.clone().addScaledVector(run, u).addScaledVector(perp, swell * wave);
+      };
+      let from = point(0);
+      for (let k = 0; k < rope.links.length; k++) {
+        const to = point((k + 1) / rope.links.length);
+        this.stretch(rope.links[k]!, from, to);
+        from = to;
+      }
     }
 
     for (const cable of this.cables) {
