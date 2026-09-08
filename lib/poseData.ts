@@ -1367,8 +1367,9 @@ export const exercisePoses = {
     }),
     [
       { kind: "floor" },
-      { kind: "slab", at: "hand0", dx: 0.032, dy: 0.02, width: 0.035, height: 0.26 },
-      { kind: "slab", at: "hand0", dx: 0.075, dy: 0.245, width: 0.16, height: 0.05 },
+      // The sled, built round the handles the hands are on: a post and a
+      // floating slab of bench upholstery was standing in for it.
+      { kind: "slab", at: "hand0", width: 0.44, height: 0.055, sled: true },
     ],
   ),
 
