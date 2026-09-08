@@ -6221,6 +6221,9 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Concentration Curl": "curl",
 
   "Cable Pull-Through": "cablePullThrough",
+  "Cable Kickback": "cableKickback",
+  "Standing Hip Abduction": "hipAbduction",
+  "Banded Lateral Walk": "bandedLateralWalk",
   "Back Extension": "hinge",
   "Hip Hinge Wall Touch": "hinge",
   "Single-Leg Romanian Deadlift": "singleLegHinge",

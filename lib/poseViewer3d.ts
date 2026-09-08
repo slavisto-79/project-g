@@ -114,6 +114,8 @@ const BAND_REACH_MAX = 0.22;
 // And a little OUTSIDE it: a band anchored directly under its own hand runs
 // up through the upper arm on a press and through the shoulder on a bench.
 const BAND_CLEARANCE = 0.05;
+// A loop band round the ankles rides just above the ankle bone.
+const BAND_ANKLE_LIFT = 0.035;
 
 // The female build's proportions, chosen by the user from a live three-way
 // mockup ("lean and toned" over "curvy" and "balanced"): a light frame with a
@@ -1311,6 +1313,9 @@ export class PoseViewer3D {
   // Latex, and the one warm colour in a scene of cold greys: a black band on a
   // near-black floor is a band nobody can see.
   private bandMaterial = new THREE.MeshStandardMaterial({ color: 0x9a4b3a, roughness: 0.75, metalness: 0 });
+  // The padded cuff a cable or a band ends in when it ends at an ankle, and
+  // the shin it wraps, so it can be turned to lie round the leg.
+  private cuffs: { propIndex: number; side: 0 | 1; group: THREE.Group }[] = [];
   private ropeMaterial = new THREE.MeshStandardMaterial({ color: 0x2f363a, roughness: 0.95, metalness: 0 });
 
   // Stretch a unit cylinder between two world points.
@@ -1349,6 +1354,39 @@ export class PoseViewer3D {
       this.scene.add(link);
     }
     this.ropes.push({ propIndex, side, links, anchor });
+  }
+
+  // Which joint a run ends at, when the prop says. A side view authors every
+  // prop on the midline, so the prop's own centre cannot be trusted to say
+  // where an ankle is -- and an ankle is where a cuff has to sit.
+  private ankleSide(end: string | undefined): 0 | 1 | null {
+    return end === "ankle0" ? 0 : end === "ankle1" ? 1 : null;
+  }
+
+  // Where that ankle is this frame. The foot bone runs ankle to toe, so its
+  // start IS the ankle.
+  private ankleAt(a: PoseFrame3D, b: PoseFrame3D, side: 0 | 1, f: number): THREE.Vector3 {
+    const fa = a.bones.find((bone) => bone.part === "foot" && bone.side === side);
+    const fb = b.bones.find((bone) => bone.part === "foot" && bone.side === side);
+    if (!fa || !fb) return lerp3(a.head.c, b.head.c, f);
+    return lerp3(fa.a, fb.a, f);
+  }
+
+  // The cuff itself: a padded strap round the ankle with a D-ring on it, which
+  // is what a cable or a band is actually attached to.
+  private ankleCuff(propIndex: number, side: 0 | 1) {
+    const group = new THREE.Group();
+    // Graphite, not the near-black rubber of a shoe: a black cuff on a black
+    // trainer is a cuff nobody can see.
+    const strap = new THREE.Mesh(new THREE.CylinderGeometry(0.037, 0.037, 0.038, 16), this.graphite);
+    const edge = new THREE.Mesh(new THREE.TorusGeometry(0.036, 0.004, 6, 18), this.ironRim);
+    edge.rotation.x = Math.PI / 2;
+    edge.position.y = 0.018;
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.013, 0.004, 6, 14), this.chrome);
+    ring.position.set(0, -0.006, 0.044);
+    group.add(strap, edge, ring);
+    this.scene.add(group);
+    this.cuffs.push({ propIndex, side, group });
   }
 
   // A resistance band. It is drawn like a cable and is nothing like one: a
@@ -2138,6 +2176,8 @@ export class PoseViewer3D {
         const floor = first.props.find((p) => p.kind === "floor");
         this.cableMachine(prop, floor && floor.kind === "floor" ? floor.y : 0, i);
         if (prop.handle === "d") this.dHandle(i, Math.min(this.dHandles.length, 1) as 0 | 1);
+        const ankle = this.ankleSide(prop.end);
+        if (ankle !== null) this.ankleCuff(i, ankle);
         continue;
       }
       if (prop.kind === "slab") {
@@ -2978,18 +3018,42 @@ export class PoseViewer3D {
     // authored on the midline (a side view has no other choice), so each one
     // is walked out to under the foot on its own side -- otherwise both bands
     // come out of one point between the feet.
+    // The cuff rides the ankle and lies round the shin, so it is turned to the
+    // shin's own direction rather than left standing upright.
+    for (const cuff of this.cuffs) {
+      const shinA = a.bones.find((bone) => bone.part === "shin" && bone.side === cuff.side);
+      const shinB = b.bones.find((bone) => bone.part === "shin" && bone.side === cuff.side);
+      if (!shinA || !shinB) continue;
+      const top = lerp3(shinA.a, shinB.a, f);
+      const ankle = lerp3(shinA.b, shinB.b, f).add(jitter);
+      const along = top.clone().sub(ankle);
+      if (along.lengthSq() < 1e-8) along.set(0, 1, 0);
+      cuff.group.position.copy(ankle).addScaledVector(along.clone().normalize(), 0.03);
+      cuff.group.quaternion.setFromUnitVectors(UP, along.normalize());
+    }
+
     for (const band of this.bands) {
       const pa = a.props[band.propIndex]!;
       const pb = b.props[band.propIndex]!;
       if (pa.kind !== "cable" || pb.kind !== "cable") continue;
+      const ankleEnd = this.ankleSide(pa.end);
       const end =
-        band.side === null ? lerp3(pa.center, pb.center, f) : lerp3(a.hands[band.side], b.hands[band.side], f);
+        ankleEnd !== null
+          ? this.ankleAt(a, b, ankleEnd, f)
+          : band.side === null
+            ? lerp3(pa.center, pb.center, f)
+            : lerp3(a.hands[band.side], b.hands[band.side], f);
       end.add(jitter);
-      const anchor = vec(pa.anchor);
+      // Lerped, not taken from one frame: a loop band round both ankles is
+      // anchored on the ankle that is not pulling, and that one moves too.
+      const anchor = lerp3(pa.anchor, pb.anchor, f);
       // Walked out under the hand it pulls: measured, a fixed half-stance ran
       // the overhead press band up through the shin, because that stance is
       // wider than the offset and the band was inboard of the leg.
       if (band.side !== null && Math.abs(anchor.x) < 1e-6) anchor.x = Math.sign(end.x) * Math.min(Math.abs(end.x) + BAND_CLEARANCE, BAND_REACH_MAX);
+      // A loop band sits just ABOVE the ankle bone, not on the shoe: drawn at
+      // the joint it read as a stick lying between two trainers.
+      if (ankleEnd !== null) { end.y += BAND_ANKLE_LIFT; anchor.y += BAND_ANKLE_LIFT; }
       this.stretch(band.tube, anchor, end);
       if (band.grip) {
         band.grip.position.copy(end);
@@ -3021,7 +3085,10 @@ export class PoseViewer3D {
       const pa = a.props[cable.propIndex]!;
       const pb = b.props[cable.propIndex]!;
       if (pa.kind !== "cable" || pb.kind !== "cable") continue;
-      const grip = lerp3(pa.center, pb.center, f);
+      // A cable that ends at an ankle ends at the ANKLE, not at the prop's
+      // centre -- a side view puts that on the midline, 4.8cm off the leg.
+      const ankle = this.ankleSide(pa.end);
+      const grip = ankle === null ? lerp3(pa.center, pb.center, f) : this.ankleAt(a, b, ankle, f);
       // A rope attachment hangs off the end of the cable: the steel stops at
       // its fitting, and the rope carries the rest of the way to the hands.
       const drop = pa.handle === "rope" ? ROPE_HANDLE_DROP : pa.handle === "d" ? D_HANDLE_RISE : 0;
