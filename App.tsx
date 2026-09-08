@@ -6261,8 +6261,8 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Side Plank": "sidePlank",
   "Copenhagen Plank": "sidePlank",
   "Cable Woodchopper": "woodchop",
-  "Medicine Ball Slam": "woodchop",
-  "Rotational Med Ball Throw": "woodchop",
+  "Medicine Ball Slam": "medBallSlam",
+  "Rotational Med Ball Throw": "medBallThrow",
   "Pallof Press": "woodchop",
 
   "Suitcase Carry": "carry",

@@ -1046,6 +1046,63 @@ export const exercisePoses = {
     [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }, { kind: "cable", at: "grip", anchor: { x: 0.95, y: 0.08 }, handle: "rope" }],
   ),
 
+  // A slam is not a chop. It goes straight up -- ball overhead, body fully
+  // extended -- and straight down, hips and knees folding together, to the
+  // ball on the floor between the feet. It was drawn on the woodchopper,
+  // which is a diagonal across the body with the hands 40cm apart. Side
+  // view, so the fold shows; the hands are pulled in with a negative spread,
+  // because the world build spreads a side view's hands to the shoulder
+  // girdle and a 23cm ball needs them 16cm apart, not 22.
+  medBallSlam: pose(
+    "side",
+    // Mid-rep the ball is out in front at chest height, arms still long: a
+    // target closer to the shoulder folded the elbows to 163 degrees.
+    ([[0.500, 0.494, 356, 0.58, 0.000], [0.520, 0.550, 40, 0.74, 0.54], [0.550, 0.620, 80, 0.72, 0.86]] as const).map(
+      ([x, y, torso, hx, hy]) => {
+        const pelvis = { x, y };
+        return {
+          pelvis,
+          torso,
+          neck: torso > 30 ? torso - 20 : torso,
+          arms: wide(reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: hx - 0.012, y: hy }], FORWARD), -0.03),
+          legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
+        };
+      },
+    ),
+    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }],
+    "neutral",
+  ),
+
+  // A rotational throw is horizontal: the ball loaded at one hip, driven
+  // across the body and released at chest height toward the other side.
+  // Face on, so the rotation reads, and one pair of hands either side of the
+  // ball as on the chopper.
+  medBallThrow: pose(
+    "front",
+    // The load sits at the hip with the elbows bent, not at arm's length below
+    // the shoulder: a hand 33cm under the shoulder cannot be reached by a
+    // 29cm arm, and the far hand has to cross the body to get there.
+    // The elbow's fold side is a world sign, and each arm's target crosses
+    // its own shoulder at a different frame -- the near arm at the middle,
+    // the far arm at the end -- so the bend is set per arm per frame, or the
+    // checker finds a joint hinging backwards mid-rep.
+    ([[{ x: 0.57, y: 0.50 }, 6, OUT], [{ x: 0.50, y: 0.48 }, 0, BACK], [{ x: 0.40, y: 0.48 }, 352, DOWN]] as const).map(
+      ([hands, torso, elbows]) => {
+        const pelvis = { x: 0.5, y: 0.500 };
+        return {
+          pelvis,
+          torso,
+          arms: reachingArms(pelvis, torso, "front", grip(hands, 0.056, "front"), elbows),
+          // A wide throwing stance, but not wider than the legs: at 0.60/0.40
+          // the far foot sat 7mm past a straight leg.
+          legs: plantedLegs(pelvis, torso, "front", [{ x: 0.585, y: FLOOR }, { x: 0.415, y: FLOOR }], OUT),
+        };
+      },
+    ),
+    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }],
+    "neutral",
+  ),
+
   carry: pose(
     "side",
     [
