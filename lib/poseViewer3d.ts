@@ -16,7 +16,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import type { ExercisePose, PoseFrame3D, PoseProp3D, Vec3 } from "./poses";
+import type { ExercisePose, PoseFrame3D, PoseProp3D, Tempo, Vec3 } from "./poses";
 import { REFERENCE_AVATAR, type AvatarBuild } from "./avatar";
 import { SkinnedFigure, type RigMap, type FigureSample } from "./skinnedFigure";
 import { buildBody, buildHair, BODY_STYLE_DEFAULT, type BodySpec, type BodyStyle } from "./bodyMesh";
@@ -56,6 +56,9 @@ const RADII = {
 } as const;
 
 const PHASE_MS = 1100;
+// The orbit angle the camera starts at: three-quarters on, the figure's right
+// side toward the viewer, its front turned about 50 degrees away.
+const DEFAULT_AZIMUTH = 0.9;
 // One breath, and how far the chest stands out at the top of it.
 const BREATH_MS = 3400;
 const BREATH_DEPTH = 0.004;
@@ -312,6 +315,11 @@ export class PoseViewer3D {
 
   private frames: PoseFrame3D[];
   private bones: BoneMeshes[] = [];
+  // The movement's own timing, when it has one; otherwise PHASE_MS per key
+  // position each way and no pauses.
+  private tempo?: Tempo;
+  // Where the camera starts on its orbit, radians from straight in front.
+  private azimuth = DEFAULT_AZIMUTH;
   private head!: THREE.Mesh;
   private fists: THREE.Group[] = [];
   // Sneakers replace the foot capsules; placed from the foot and shin bones.
@@ -425,6 +433,8 @@ export class PoseViewer3D {
   ) {
     this.host = host;
     this.frames = pose.frames3d;
+    this.tempo = pose.tempo;
+    this.azimuth = pose.camera?.azimuth ?? DEFAULT_AZIMUTH;
     this.interactive = options.interactive;
     this.reduceMotion = options.reduceMotion ?? false;
     this.onReady = options.onReady;
@@ -2673,9 +2683,9 @@ export class PoseViewer3D {
     }
     aimAt(this.orbitRadius);
     this.camera.position.set(
-      this.aim.x + this.orbitRadius * Math.sin(0.9),
+      this.aim.x + this.orbitRadius * Math.sin(this.azimuth),
       this.aim.y + extent * 0.1,
-      this.aim.z + this.orbitRadius * Math.cos(0.9),
+      this.aim.z + this.orbitRadius * Math.cos(this.azimuth),
     );
     this.camera.lookAt(this.aim);
   }
@@ -2728,11 +2738,20 @@ export class PoseViewer3D {
       // of the movement is the more informative half of most exercises.
       t = last;
     } else {
-      const cycle = PHASE_MS * last * 2;
-      const phase = (elapsed % cycle) / cycle; // 0..1 there and back
-      const forward = phase < 0.5 ? phase * 2 : 2 - phase * 2;
-      const eased = forward < 0.5 ? 2 * forward * forward : 1 - 2 * (1 - forward) * (1 - forward);
-      t = eased * last;
+      const ease = (forward: number) => (forward < 0.5 ? 2 * forward * forward : 1 - 2 * (1 - forward) * (1 - forward));
+      if (this.tempo) {
+        // Down, hold, up, hold -- each leg its own length, the holds landing
+        // exactly on the first and last key positions.
+        const { down, bottom, up, top } = this.tempo;
+        const at = elapsed % (down + bottom + up + top);
+        const forward = at < down ? at / down : at < down + bottom ? 1 : at < down + bottom + up ? 1 - (at - down - bottom) / up : 0;
+        t = ease(forward) * last;
+      } else {
+        const cycle = PHASE_MS * last * 2;
+        const phase = (elapsed % cycle) / cycle; // 0..1 there and back
+        const forward = phase < 0.5 ? phase * 2 : 2 - phase * 2;
+        t = ease(forward) * last;
+      }
     }
     const i = Math.min(Math.floor(t), last - 1);
     const f = t - i;
@@ -3111,7 +3130,7 @@ export class PoseViewer3D {
       // old arc started almost end-on, and a pike's feet filled the card.
       const az = this.lyingScene
         ? Math.PI / 2 + Math.sin(elapsed * 0.00045) * LYING_SWING
-        : 0.9 + elapsed * 0.00035;
+        : this.azimuth + elapsed * 0.00035;
       this.camera.position.set(
         this.aim.x + this.orbitRadius * Math.sin(az),
         this.camera.position.y,

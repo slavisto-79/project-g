@@ -58,9 +58,42 @@ function lyingLegs(upper: number, lower: number, end?: number): [Limb, Limb] {
 }
 
 // One squat descent, shared by every carry variant of it.
+// Authored from a reference clip of the lift (three reps, camera three-
+// quarters on): the hips sit back and down to PARALLEL -- the thigh level,
+// not below it -- with the shins 30 degrees forward so the knees stand over
+// the toes, the trunk 36 degrees forward at the bottom, and the hip height
+// dropping in even steps between the key positions (0.438 -> 0.361 -> 0.274
+// -> 0.182 above the ankle). Each frame's pelvis is solved from its shin and
+// thigh angles (shin 6/20/28/32, thigh 86/45/22/0 below level), and the
+// TRUNK angle from the bar: on the traps it sits 0.297·sin(torso) −
+// 0.03·cos(torso) − 0.018 ahead of the pelvis in the world, and a squat
+// keeps it over the mid-foot (z 0.056; the standing frame carries it 3.6cm
+// behind that, over the rear of the mid-foot, so the straight legs do not
+// lean). The old frames took the bar 11.5cm FORWARD over the rep -- from
+// 9cm behind the mid-foot to 2cm ahead -- because the hips sat back only
+// 6cm; they now sit back 11.8cm and the bar path is vertical from the
+// second frame down.
 const SQUAT_FRAMES = [
-  [0.500, 0.494, 2], [0.478, 0.578, 16], [0.454, 0.636, 30], [0.434, 0.690, 42],
+  [0.528, 0.492, 5], [0.466, 0.569, 27], [0.452, 0.656, 35], [0.449, 0.748, 36],
 ] as const;
+// The same clip's timing: a second down, a beat at the bottom, a second up,
+// and a longer beat standing before the next rep.
+const SQUAT_TEMPO = { down: 1000, bottom: 400, up: 1000, top: 700 };
+// And its camera: three-quarters on, the lifter's front turned 43 degrees
+// from the viewer (the bar's plates project to 0.73 of their spacing).
+const SQUAT_CAMERA = { azimuth: 0.75 };
+// A squat stands shoulder-width -- 40cm between the ankles -- with the toes
+// turned out 15 degrees, and the gaze stays forward: the neck opens as the
+// trunk leans so the head does not follow it down to the floor. Opened to
+// 0.4 of the lean, the back of the head met the bar on the traps at the
+// bottom (5mm into its envelope); 0.6 keeps the eyes up and the bar clear.
+function squatting(figure: Figure): Figure {
+  return {
+    ...figure,
+    neck: Math.round(figure.torso * 0.6),
+    legs: figure.legs.map((leg) => ({ ...leg, spread: 0.15, turn: 15 })) as [Limb, Limb],
+  };
+}
 
 // Hands gripping a bar that lies ACROSS THE TRAPS: the target sits on the
 // upper back -- a whisker above the top of the spine and behind it, in the
@@ -69,7 +102,9 @@ const SQUAT_FRAMES = [
 // fold past its range; the way out is the way a lifter actually does it: a
 // WIDE grip. `spread` carries the wrists 14cm outboard in the world build,
 // which opens the elbow to ~130 degrees while the bar stays on the back.
-function napeArms(pelvis: Point, torso: number): [Limb, Limb] {
+// `spread` is the grip's width beyond the girdle: 0.14 is the wide grip;
+// the back squat's reference clip holds it just outside the shoulders (0.10).
+function napeArms(pelvis: Point, torso: number, spread = 0.14): [Limb, Limb] {
   const top = spineTop(pelvis, torso);
   const rad = (torso * Math.PI) / 180;
   // Trunk axis and its forward perpendicular, in screen terms.
@@ -95,7 +130,7 @@ function napeArms(pelvis: Point, torso: number): [Limb, Limb] {
   // match): an echoed far arm drifted the grip midpoint 1.6cm back and
   // deeper as the arms folded, so the bar slid on the back through the rep.
   const [near, far] = reachingArms(pelvis, torso, "side", [nape, nape], FORWARD);
-  return [{ ...near, spread: 0.14 }, { ...far, spread: 0.14 }];
+  return [{ ...near, spread }, { ...far, spread }];
 }
 
 // Hands hugging a bell against the chest, elbows tucked down.
@@ -155,10 +190,13 @@ export const exercisePoses = {
 
   squat: pose(
     "side",
-    SQUAT_FRAMES.map(([x, y, torso]) => stand({ x, y }, torso, napeArms({ x, y }, torso))),
+    SQUAT_FRAMES.map(([x, y, torso]) => squatting(stand({ x, y }, torso, napeArms({ x, y }, torso, 0.10)))),
     // The bar is drawn at the grip, and the grip is ON the traps -- so the bar
     // visibly rides the upper back, where a back squat actually carries it.
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+    "overhand",
+    1,
+    { tempo: SQUAT_TEMPO, camera: SQUAT_CAMERA },
   ),
 
   // A front squat racks the bar on the front delts with high elbows -- the
@@ -175,9 +213,11 @@ export const exercisePoses = {
   // A goblet squat hugs the bell against the chest with both hands.
   gobletSquat: pose(
     "side",
-    SQUAT_FRAMES.map(([x, y, torso]) => stand({ x, y }, torso, chestArms({ x, y }, torso))),
+    SQUAT_FRAMES.map(([x, y, torso]) => squatting(stand({ x, y }, torso, chestArms({ x, y }, torso)))),
     [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.06 }],
     "neutral",
+    1,
+    { tempo: SQUAT_TEMPO, camera: SQUAT_CAMERA },
   ),
 
   // Not an exercise: the figure at rest, for the profile screen where the
