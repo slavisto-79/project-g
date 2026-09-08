@@ -41,10 +41,11 @@ export type PoseProp =
   // hands; the world build draws the whole machine around the anchor.
   // rope: a battle rope, not a cable -- it runs from a floor anchor to ONE
   // hand and it waves; the anchor carries no machine.
-  // handle: what is clipped to the end of the cable. A rope attachment is
-  // two ends splayed from one fitting, so it is drawn from the HANDS, not
-  // as a rigid handle sitting at their midpoint.
-  | { kind: "cable"; x: number; y: number; ax: number; ay: number; rope?: boolean; handle?: "rope" }
+  // handle: what is clipped to the end of the cable. "rope" is two ends
+  // splayed from one fitting to BOTH hands; "d" is a stirrup handle, one per
+  // cable, on the hand that cable runs to. Both are drawn from the HANDS,
+  // never from the prop centre, which a side view puts on the midline.
+  | { kind: "cable"; x: number; y: number; ax: number; ay: number; rope?: boolean; handle?: "rope" | "d" }
   // A ground line. Side views are hard to read without one -- a bent-over
   // figure and a lying one are the same jumble of sticks until you can see
   // which way is down and where the body is relative to the floor.
@@ -92,7 +93,7 @@ export type PoseProp3D =
   // body, height its diameter, and it is held up by its arm, not the floor.
   | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3; across?: boolean; lever?: boolean; sled?: boolean }
   // center is the grip (where the cable ends), anchor the pulley.
-  | { kind: "cable"; center: Vec3; anchor: Vec3; rope?: boolean; handle?: "rope" }
+  | { kind: "cable"; center: Vec3; anchor: Vec3; rope?: boolean; handle?: "rope" | "d" }
   | { kind: "floor"; y: number; mat?: boolean };
 
 export type PoseFrame3D = {
@@ -431,7 +432,7 @@ type PropSpec =
   | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean }
   // anchor: the pulley, in authored coordinates (a high pulley sits above the
   // frame's top edge, which is fine -- it only has to be off the figure).
-  | { kind: "cable"; at: string; anchor: Point; rope?: boolean; handle?: "rope" }
+  | { kind: "cable"; at: string; anchor: Point; rope?: boolean; handle?: "rope" | "d" }
   // Placed under the lowest point of the figure, so it sits where the ground
   // is. Pin it with `y` when the body leaves the ground: otherwise the floor
   // rises with the jump, which reads as the world moving, not the athlete.

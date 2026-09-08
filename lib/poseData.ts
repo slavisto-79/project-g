@@ -747,8 +747,8 @@ export const exercisePoses = {
     [96, 60, 24].map((arm) => standFront(0.497, 0, bothArms(arm, arm - 25))),
     [
       { kind: "floor" },
-      { kind: "cable", at: "hand0", anchor: { x: 0.95, y: 0.05 } },
-      { kind: "cable", at: "hand1", anchor: { x: 0.05, y: 0.05 } },
+      { kind: "cable", at: "hand0", anchor: { x: 0.95, y: 0.05 }, handle: "d" },
+      { kind: "cable", at: "hand1", anchor: { x: 0.05, y: 0.05 }, handle: "d" },
     ],
     "neutral",
   ),
@@ -758,8 +758,8 @@ export const exercisePoses = {
     [170, 131, 93].map((arm) => standFront(0.497, 0, bothArms(arm, arm + 14))),
     [
       { kind: "floor" },
-      { kind: "cable", at: "hand0", anchor: { x: 0.95, y: 0.92 } },
-      { kind: "cable", at: "hand1", anchor: { x: 0.05, y: 0.92 } },
+      { kind: "cable", at: "hand0", anchor: { x: 0.95, y: 0.92 }, handle: "d" },
+      { kind: "cable", at: "hand1", anchor: { x: 0.05, y: 0.92 }, handle: "d" },
     ],
     "neutral",
   ),
