@@ -1226,6 +1226,12 @@ export class PoseViewer3D {
   // One per cable prop: the two cable runs (pulley to hands, pulley down to
   // the stack) get re-stretched every frame, and the top of the weight stack
   // rises by however much cable the hands have pulled past the rest length.
+  // A machine's lever arm: a rigid link from a pivot fixed in the world to a
+  // roller that moves with a limb. It cannot be a child of the roller's group
+  // -- that group is translated, never rotated -- so the arm lives in the
+  // scene and is stretched between the two points every frame, the way a
+  // cable is.
+  private levers: { propIndex: number; arm: THREE.Mesh; pivot: THREE.Vector3; side: number }[] = [];
   private cables: {
     propIndex: number;
     anchor: THREE.Vector3;
@@ -1804,6 +1810,25 @@ export class PoseViewer3D {
           }
           this.scene.add(roller);
           this.held.push(this.anchored(roller, i, "slab"));
+          // The arm it swings on. Its pivot is the knee's axis, taken from
+          // the first frame and left there: the figure sits still through
+          // the movement, and a machine's pivot does not move anyway. One
+          // arm each side, outboard of the leg and inboard of the roller's
+          // end cap, plus a boss at the pivot so it hinges on something.
+          const knee = first.bones.find((bo) => bo.part === "thigh" && bo.side === 0);
+          if (knee) {
+            const ARM_X = 0.105;
+            for (const s of [-1, 1]) {
+              const pivot = new THREE.Vector3(s * ARM_X, knee.b[1], knee.b[2]);
+              const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 1, 10), this.iron);
+              this.scene.add(arm);
+              this.levers.push({ propIndex: i, arm, pivot, side: s });
+              const boss = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.03, 14), this.graphite);
+              boss.rotation.z = Math.PI / 2;
+              boss.position.copy(pivot);
+              this.scene.add(boss);
+            }
+          }
           continue;
         }
         if (prop.height > 0.3 && prop.height <= 0.5) {
@@ -2385,6 +2410,15 @@ export class PoseViewer3D {
         const pivot = (group.userData as { pivot?: THREE.Vector3 }).pivot;
         if (pivot) group.quaternion.setFromUnitVectors(AXIS_X, group.position.clone().sub(pivot).normalize());
       }
+    }
+
+    for (const lev of this.levers) {
+      const pa = a.props[lev.propIndex]!;
+      const pb = b.props[lev.propIndex]!;
+      if (pa.kind !== "slab" || pb.kind !== "slab") continue;
+      const end = lerp3(pa.center, pb.center, f);
+      end.x = lev.side * 0.105;
+      this.stretch(lev.arm, lev.pivot, end);
     }
 
     for (const cable of this.cables) {
