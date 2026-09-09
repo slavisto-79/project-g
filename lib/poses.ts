@@ -193,7 +193,10 @@ function step(from: Point, angleDeg: number, length: number): Point {
 // elbows out at 45 degrees. Both bones keep their length and the wrist
 // stays exactly where the plane put it, so the bar and the 2D checks do not
 // move; a straight arm lies on the axis and is unchanged.
-type Limb = { upper: number; lower: number; end?: number; spread?: number; turn?: number; flare?: number };
+// `abduct` (degrees) swings the whole arm outboard in the frontal plane about
+// the fore-aft axis through the shoulder -- a lying fly's arc, which a side
+// view has no other way to say. Both bones keep their length.
+type Limb = { upper: number; lower: number; end?: number; spread?: number; turn?: number; flare?: number; abduct?: number };
 
 // How a movement is timed, in milliseconds: the way down, a pause at the
 // bottom, the way up, a pause at the top. Without one, every leg of the
@@ -393,6 +396,24 @@ function build3d(figure: Figure, view: View): { bones: PoseBone3D[]; head: { c: 
       elbow[0] = s[0] + pick[0];
       elbow[1] = s[1] + pick[1];
       elbow[2] = s[2] + pick[2];
+    }
+    // Abduction: the whole arm swung outboard in the frontal plane, about the
+    // fore-aft axis through the shoulder. Both bones keep their length and
+    // the elbow's bend comes with them -- the one motion a side view has no
+    // way to say, and the whole of a fly. `spread` only slides the wrist
+    // sideways and would stretch the arm to reach a fly's bottom.
+    if (view === "side" && arm.abduct) {
+      const s = shoulder[side]!;
+      const rad = (arm.abduct * Math.PI) / 180;
+      const c = Math.cos(rad);
+      const sn = Math.sin(rad);
+      for (const joint of [elbow, wrist]) {
+        const dx = joint[0] - s[0];
+        const dy = joint[1] - s[1];
+        // Rotate about z: y (up) turns into x (outboard for this side).
+        joint[0] = s[0] + dx * c + out * dy * sn;
+        joint[1] = s[1] - out * dx * sn + dy * c;
+      }
     }
     // Face on, the authored arms have no depth, so hands that cross in front
     // of the trunk would sit INSIDE it; give them the depth a real arm has
