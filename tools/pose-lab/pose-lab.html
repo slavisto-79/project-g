@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Pose lab</title>
+<style>
+  body { margin: 0; background: #111; color: #cfe; font: 13px/1.4 system-ui, sans-serif; }
+  #log { padding: 8px; white-space: pre-wrap; }
+  canvas { display: block; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+</head>
+<body>
+<div id="log">pose lab</div>
+<canvas id="view" width="854" height="480"></canvas>
+<script>
+// MoveNet SinglePose Thunder on frames posted here by another window
+// (postMessage {t, dataUrl}) or fetched by name from the capture server.
+// Keypoints are stored per frame time; angles() reads the side facing the
+// camera and reports the sagittal angles the poses are authored in.
+const log = (s) => { document.getElementById("log").textContent += "\n" + s; };
+window.results = {};   // t -> { w, h, kp: [{name, x, y, score}] }
+window.frames = {};    // t -> Image
+let detector = null;
+async function ready() {
+  if (detector) return detector;
+  detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, {
+    modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER,
+  });
+  log("detector ready");
+  return detector;
+}
+window.ready = ready;
+async function analyzeImage(t, img) {
+  const det = await ready();
+  const poses = await det.estimatePoses(img, { flipHorizontal: false });
+  const kp = poses[0] ? poses[0].keypoints.map((k) => ({ name: k.name, x: k.x / img.width, y: k.y / img.height, score: k.score })) : [];
+  window.results[t] = { w: img.width, h: img.height, kp };
+  window.frames[t] = img;
+  return kp;
+}
+window.analyzeDataUrl = (t, dataUrl) =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = async () => resolve(await analyzeImage(t, img));
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+window.addEventListener("message", async (ev) => {
+  const d = ev.data || {};
+  if (d.type === "frame") {
+    try {
+      const kp = await window.analyzeDataUrl(d.t, d.dataUrl);
+      if (ev.source) ev.source.postMessage({ type: "done", t: d.t, n: kp.length }, "*");
+      log("frame " + d.t + " -> " + kp.length + " keypoints");
+    } catch (e) {
+      log("frame " + d.t + " failed: " + e.message);
+    }
+  }
+});
+// --- Angles -------------------------------------------------------------
+const deg = (r) => (r * 180) / Math.PI;
+function pick(kp, side, name) { return kp.find((k) => k.name === side + "_" + name); }
+// Which side faces the camera: the one whose keypoints score higher.
+function facing(kp) {
+  const s = (side) => ["shoulder", "hip", "knee", "ankle", "elbow", "wrist"].reduce((a, n) => a + (pick(kp, side, n)?.score || 0), 0);
+  return s("left") >= s("right") ? "left" : "right";
+}
+// Angle of the segment a->b from straight DOWN in image space (0 = hanging
+// down, 90 = pointing toward +x, 180 = up), and the interior joint angle.
+function dirDown(a, b) { return deg(Math.atan2(b.x - a.x, b.y - a.y)); }
+function interior(a, b, c) {
+  const v1 = [a.x - b.x, a.y - b.y], v2 = [c.x - b.x, c.y - b.y];
+  const d = v1[0] * v2[0] + v1[1] * v2[1];
+  const m = Math.hypot(...v1) * Math.hypot(...v2) || 1e-9;
+  return deg(Math.acos(Math.max(-1, Math.min(1, d / m))));
+}
+window.angles = function (t, sideOverride) {
+  const r = window.results[t];
+  if (!r) return null;
+  const kp = r.kp.map((k) => ({ ...k, x: k.x * r.w, y: k.y * r.h })); // pixels, so aspect is right
+  const side = sideOverride || facing(kp);
+  const S = pick(kp, side, "shoulder"), H = pick(kp, side, "hip"), K = pick(kp, side, "knee"), A = pick(kp, side, "ankle"), E = pick(kp, side, "elbow"), W = pick(kp, side, "wrist");
+  const ok = (p) => p && p.score > 0.3;
+  const out = { t, side, scores: Object.fromEntries([["shoulder", S], ["hip", H], ["knee", K], ["ankle", A], ["elbow", E], ["wrist", W]].map(([n, p]) => [n, p ? +p.score.toFixed(2) : null])) };
+  // Trunk lean from vertical: hip->shoulder measured from straight UP.
+  if (ok(S) && ok(H)) out.trunkFromVertical = +(180 - Math.abs(dirDown(H, S))).toFixed(1) * (dirDown(H, S) < 0 ? -1 : 1);
+  if (ok(H) && ok(K)) out.thighFromVertical = +dirDown(H, K).toFixed(1);
+  if (ok(K) && ok(A)) out.shinFromVertical = +dirDown(K, A).toFixed(1);
+  if (ok(H) && ok(K) && ok(A)) out.knee = +interior(H, K, A).toFixed(1);
+  if (ok(S) && ok(H) && ok(K)) out.hip = +interior(S, H, K).toFixed(1);
+  if (ok(S) && ok(E) && ok(W)) out.elbow = +interior(S, E, W).toFixed(1);
+  if (ok(S) && ok(E)) out.upperArmFromVertical = +dirDown(S, E).toFixed(1);
+  if (ok(E) && ok(W)) out.forearmFromVertical = +dirDown(E, W).toFixed(1);
+  if (ok(H)) out.hipY = +(H.y / r.h).toFixed(4);
+  if (ok(W)) out.wristY = +(W.y / r.h).toFixed(4);
+  return out;
+};
+window.table = (side) => Object.keys(window.results).map(Number).sort((a, b) => a - b).map((t) => window.angles(t, side));
+// Draw the skeleton over a frame, for a visual check.
+window.draw = function (t) {
+  const r = window.results[t], img = window.frames[t];
+  if (!r) return "no frame " + t;
+  const c = document.getElementById("view");
+  c.width = r.w; c.height = r.h;
+  const g = c.getContext("2d");
+  g.drawImage(img, 0, 0);
+  const kp = r.kp.map((k) => ({ ...k, x: k.x * r.w, y: k.y * r.h }));
+  const pairs = [["shoulder", "elbow"], ["elbow", "wrist"], ["shoulder", "hip"], ["hip", "knee"], ["knee", "ankle"]];
+  for (const side of ["left", "right"]) {
+    g.strokeStyle = side === "left" ? "#6f6" : "#f66";
+    g.lineWidth = 3;
+    for (const [a, b] of pairs) {
+      const p = pick(kp, side, a), q = pick(kp, side, b);
+      if (!p || !q || p.score < 0.3 || q.score < 0.3) continue;
+      g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(q.x, q.y); g.stroke();
+    }
+  }
+  g.strokeStyle = "#ff0";
+  const ls = pick(kp, "left", "shoulder"), rs = pick(kp, "right", "shoulder"), lh = pick(kp, "left", "hip"), rh = pick(kp, "right", "hip");
+  if (ls && rs) { g.beginPath(); g.moveTo(ls.x, ls.y); g.lineTo(rs.x, rs.y); g.stroke(); }
+  if (lh && rh) { g.beginPath(); g.moveTo(lh.x, lh.y); g.lineTo(rh.x, rh.y); g.stroke(); }
+  return c.toDataURL("image/png");
+};
+window.save = async (t, name) => {
+  const d = window.draw(t);
+  const res = await fetch("/save?name=" + encodeURIComponent(name), { method: "POST", body: d });
+  return res.status;
+};
+// Frames can also arrive in the URL fragment: youtube.com's CSP blocks every
+// request to localhost, but a navigation carries its fragment client-side,
+// so the YouTube page packs {clip, frames:[{t, b64}]} into location.hash and
+// sends the browser here. Nothing reaches a server; the model runs here.
+window.done = false;
+window.clip = null;
+async function fromHash() {
+  if (!location.hash || location.hash.length < 2) return;
+  try {
+    const payload = JSON.parse(decodeURIComponent(location.hash.slice(1)));
+    window.clip = payload.clip;
+    log("hash payload: " + payload.clip + ", " + payload.frames.length + " frames");
+    for (const f of payload.frames) {
+      const kp = await window.analyzeDataUrl(f.t, "data:image/jpeg;base64," + f.b64);
+      log("frame " + f.t + " -> " + kp.length + " keypoints");
+    }
+    log("all frames analysed");
+  } catch (e) {
+    log("hash payload failed: " + e.message);
+  }
+  window.done = true;
+}
+ready().then(fromHash).catch((e) => log("model failed: " + e.message));
+</script>
+</body>
+</html>
