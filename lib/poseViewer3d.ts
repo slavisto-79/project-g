@@ -2419,7 +2419,12 @@ export class PoseViewer3D {
         this.scene.add(mesh);
         const perHand = implement === "dumbbell" && prop.plates;
         if (perHand) this.fistOutboard = true;
-        this.held.push(this.anchored(mesh, i, "bar", perHand ? "hands" : "centre"));
+        const held = this.anchored(mesh, i, "bar", perHand ? "hands" : "centre");
+        // A kettlebell in both hands on a bar movement is a swing (or a
+        // kettlebell deadlift): it hangs in line with the arms, not
+        // plumb -- at the top of a swing that is horizontal.
+        if (implement === "kettlebell" && prop.plates) held.userData.swing = true;
+        this.held.push(held);
         continue;
       }
       // A band loads nothing INTO the hands -- what it loads is the band, and
@@ -2966,6 +2971,19 @@ export class PoseViewer3D {
         group.position.copy(lerp3(pa.center, pb.center, f));
         const buildOffset = (group.userData as { buildOffset?: THREE.Vector3 }).buildOffset;
         if (buildOffset) group.position.add(buildOffset);
+        // A swung kettlebell points away from the shoulders along the arms:
+        // its ball (local -Y) goes where shoulders -> grip points. Hanging
+        // under vertical arms that is straight down, as it was.
+        if ((group.userData as { swing?: boolean }).swing) {
+          const si = a.bones.findIndex((bone) => bone.part === "shoulders");
+          const sa = a.bones[si];
+          const sb = b.bones[si];
+          if (si >= 0 && sa && sb) {
+            const mid = lerp3(sa.a, sb.a, f).add(lerp3(sa.b, sb.b, f)).multiplyScalar(0.5);
+            const dir = group.position.clone().sub(mid);
+            if (dir.lengthSq() > 1e-6) group.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir.normalize());
+          }
+        }
         // A landmine bar is built along +X from its pivot end; aim it from
         // the pivot through the hands, so the pivot end never leaves the floor.
         const pivot = (group.userData as { pivot?: THREE.Vector3 }).pivot;
