@@ -1100,17 +1100,34 @@ export const exercisePoses = {
     -1,
   ),
 
+  // Forearm plank, from a reference clip measured with the pose lab (OPEX
+  // "Front Plank to Forearm Plank", rfPf3HCg2Ac, square side view; MoveNet
+  // on 25 frames at 0.5 s, the forearm phases at 2.5-3, 6-6.5 and 9.5-10 s).
+  // The clip: the forearm flat on the floor, the elbow at 78-80 with the
+  // upper arm leaning 6-10 degrees toward the head, the legs 18 degrees off
+  // the floor, the trunk 7 degrees DOWN toward the shoulders (hips 3cm above
+  // them), the knees 174-178. The same model reads the clip's straight-arm
+  // plank as a 24-degree pike, so the hip is authored ten degrees straighter
+  // than it measured: legs 14 degrees, hip 169, trunk 3 degrees up.
+  // Solved from the floor up: the forearm's radius (0.028) puts the elbow
+  // centre there, the upper arm (0.152) stands on it 7 degrees off plumb, so
+  // the shoulder is 0.178 up; the toes are tucked with the ankle 0.06 up, and
+  // the legs and trunk climb from there to the shoulder.
   plank: pose(
     "side",
     [
-      // Held on the forearms: the forearm lies ON the floor, the upper arm
-      // stands on the elbow, and the neck lifts the gaze forward.
-      { ...supported({ x: 0.565, y: 0.745 }, 272, { x: 0.392, y: 0.855 }, { x: 0.86, y: 0.87 }), neck: 300, arms: [{ upper: 185, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
-      { ...supported({ x: 0.565, y: 0.748 }, 271, { x: 0.392, y: 0.855 }, { x: 0.86, y: 0.87 }), neck: 300, arms: [{ upper: 186, lower: 272, end: 272 }, { upper: 191, lower: 277, end: 277 }] },
+      // A hold: the second key is a breath -- the hips sag 2mm, the gaze
+      // drops a little, the elbows and toes stay planted.
+      // Legs written out (a solved leg folds when its target is within a
+      // hair of full span): thigh 104, shin 106 -- the knee 2 degrees soft --
+      // and the foot 138 puts the toes on the floor with the ankle 5cm up.
+      { pelvis: { x: 0.5, y: 0.7636 }, torso: 273, neck: 295, arms: [{ upper: 173, lower: 270, end: 270 }, { upper: 173, lower: 270, end: 270 }], legs: lyingLegs(104, 106, 138) },
+      { pelvis: { x: 0.5, y: 0.7656 }, torso: 273.5, neck: 293, arms: [{ upper: 173, lower: 270, end: 270 }, { upper: 173, lower: 270, end: 270 }], legs: lyingLegs(104, 106, 138) },
     ],
     [{ kind: "floor", mat: true }],
     "overhand",
     -1,
+    { tempo: { down: 1600, bottom: 300, up: 1600, top: 300 }, camera: { azimuth: 0.9 } },
   ),
 
   // A forearm plank rocking forward and back over the planted elbows -- the
