@@ -473,6 +473,39 @@ export const exercisePoses = {
     { tempo: { down: 1250, bottom: 250, up: 850, top: 650 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
+  // Kettlebell swing, from a reference clip measured with the pose lab
+  // ("The Russian Kettlebell Swing", Onnit, side view, 9 swings in 14.3 s;
+  // MoveNet on 72 frames at 0.2 s): a 1.6 s cycle with no pause at the
+  // bottom -- ~0.6 s down, ~0.6 s up, ~0.4 s floating at the top. Top: the
+  // trunk 9-15 degrees BACK of vertical (hips driven through), knee 160-167,
+  // arms 70-80 degrees up from plumb with the bell at chest height, elbows
+  // soft. Bottom: a hinge with the trunk 76-91 from vertical, thigh 31-37
+  // back, knee 128-140 (shins forward), and the arms swung 50-65 degrees
+  // BEHIND plumb -- the bell between the legs. Authored from the joints:
+  // trunk -8/35/80, thigh back -3/20/33, shin 0/8/15, knee 177/152/132,
+  // arms 105-110 (up, elbows 5 degrees soft) / 175 / 235 (behind plumb).
+  // Stance a little wider than the shoulders (spread 0.12, 34cm between
+  // the ankles) so the bell passes between the thighs: the ball's 5cm
+  // radius plus a thigh's 4.1 leaves nothing at a hip-width stance, and
+  // at 0.09 it still grazed the thigh by 2mm on the way back. The viewer turns a kettlebell on a bar movement along the arms
+  // (userData.swing), so at the top it points forward, not down.
+  kettlebellSwing: pose(
+    "side",
+    ([[0.531, 0.490, -8, 183, 180, 105, 110], [0.492, 0.506, 35, 160, 188, 175, 175], [0.479, 0.534, 80, 147, 195, 235, 235]] as const).map(
+      ([x, y, torso, upper, lower, armUpper, armLower]) => ({
+        pelvis: { x, y },
+        torso,
+        neck: torso > 30 ? torso - 20 : torso,
+        arms: [{ upper: armUpper, lower: armLower }, { upper: armUpper, lower: armLower }] as [Limb, Limb],
+        legs: [{ upper, lower, end: 90, spread: 0.12 }, { upper, lower, end: 90, spread: 0.12 }] as [Limb, Limb],
+      }),
+    ),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+    "overhand",
+    1,
+    { tempo: { down: 600, bottom: 0, up: 600, top: 400 }, camera: { azimuth: Math.PI / 2 } },
+  ),
+
   // Standing inside a hex bar with the hands at the sides: the hips sit lower
   // and the torso stays more upright than a straight-bar hinge, and the
   // handles travel straight up the mid-foot. The bottom hand height is the
