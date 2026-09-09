@@ -185,6 +185,22 @@ function supported(pelvis: Point, torso: number, hands: Point, feet: Point, toes
   };
 }
 
+// A figure hanging from a bar: the shoulder fixed under the bar (the old
+// hanging raise's spine top), the pelvis walked down the trunk from it, the
+// arms plumb and a hand outside the shoulders, the feet relaxed off the shin.
+const HANG_SHOULDER: Point = { x: 0.4914, y: 0.3153 };
+function hangingFigure(torso: number, thigh: number, shin: number): Figure {
+  const rad = (torso * Math.PI) / 180;
+  const pelvis = { x: HANG_SHOULDER.x - (Math.sin(rad) * P.spine) / ASPECT, y: HANG_SHOULDER.y + Math.cos(rad) * P.spine };
+  return {
+    pelvis,
+    torso,
+    neck: 0,
+    arms: wide(sideArms(3, 2), 0.06),
+    legs: sideLegs(thigh, shin, shin - 60),
+  };
+}
+
 export const exercisePoses = {
   // --- Squat pattern -------------------------------------------------------
 
@@ -1613,15 +1629,41 @@ export const exercisePoses = {
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17, plates: false }],
   ),
 
+  // Hanging raises, from a reference clip measured with the pose lab (OPEX
+  // San Juan "Hanging Leg Raises", w0IDQ_05X34, three-quarter view, four
+  // reps in 12 s; MoveNet on 48 frames at 0.25 s). The clip: a dead hang
+  // with the legs plumb (thigh 1-5 off vertical, knee 175-180) and the trunk
+  // within 3 degrees of vertical; the knees BEND as the legs come up (knee
+  // ~125 with the thigh 60 off plumb, ~80 with the thigh past level) and the
+  // thighs finish 150-160 off plumb -- the knees at the chest -- with the
+  // trunk leaning back 6-10; a rep is a 1.1 s raise, a beat at the top, a
+  // 1.5 s lowering and 0.4 s hanging. The ankles scored under 0.5 through
+  // the raise, so the knee angles are read off the overlays, not the table.
+  // That is a knee raise, and it is what "Hanging Knee Raise" now shows
+  // (hangingKneeRaise, below). "Hanging Leg Raise" -- straight legs to hip
+  // height, its own cue -- keeps the clip's hang, trunk and tempo with the
+  // knees held at 177 and the thighs stopping level.
+  // The shoulder is FIXED under the bar and the pelvis walked down the trunk
+  // from it, so the hands (and the bar drawn at them) stay put as the trunk
+  // leans back.
   hangingRaise: pose(
     "side",
-    [[178, 179], [122, 152], [78, 148]].map(([thigh, shin]) => ({
-      pelvis: { x: 0.5, y: 0.560 },
-      torso: 357,
-      arms: sideArms(3, 2),
-      legs: sideLegs(thigh!, shin!, shin! - 60),
-    })),
-    [{ kind: "bar", at: "grip", length: 0.30, plates: false }],
+    ([[357, 178, 179], [354, 135, 138], [350, 92, 95]] as const).map(([torso, thigh, shin]) => hangingFigure(torso, thigh, shin)),
+    [{ kind: "bar", at: "grip", length: 0.44, plates: false }],
+    "overhand",
+    1,
+    { tempo: { down: 1100, bottom: 250, up: 1500, top: 400 }, camera: { azimuth: 0.9 } },
+  ),
+
+  hangingKneeRaise: pose(
+    "side",
+    // The shin hangs plumb until the thigh is level, then folds under as the
+    // knees come to the chest: knee 177 / 125 / 80 / 85.
+    ([[357, 178, 179], [355, 120, 175], [352, 70, 170], [350, 30, 125]] as const).map(([torso, thigh, shin]) => hangingFigure(torso, thigh, shin)),
+    [{ kind: "bar", at: "grip", length: 0.44, plates: false }],
+    "overhand",
+    1,
+    { tempo: { down: 1100, bottom: 250, up: 1500, top: 400 }, camera: { azimuth: 0.9 } },
   ),
 
   // Biceps curl, from a reference clip measured with the pose lab (OPEX "EZ
