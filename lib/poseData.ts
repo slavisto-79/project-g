@@ -1151,20 +1151,40 @@ export const exercisePoses = {
     -1,
   ),
 
+  // Dip, from a reference clip measured with the pose lab (OPEX "Weighted
+  // Dip", VNa0hX_y6Fk, three-quarter side view, four reps in 11 s; MoveNet on
+  // 69 frames at 0.25 s -- the belt changes nothing about the shape): at
+  // lockout the arms are straight (elbow 160-168) and lean 23-29 degrees
+  // back from the shoulders to the bars, the trunk 8-13 forward, the legs
+  // hanging straight (knee 175-180, thigh 3-6 back); at the bottom the
+  // elbows fold to 64-70 and rise above the shoulders, the shoulders drop to
+  // a hand above the bars with the trunk 14-17 forward; a rep is a 1.9 s
+  // descent, a touch, a 1.0 s press and a 0.5 s lockout. Authored from the
+  // SHOULDER over the fixed bars (9 / 7 / 8 cm ahead of the hands and 27 /
+  // 18 / 9 cm above them -- this figure's arm is a fifth longer than its
+  // trunk, the lifter's is not, so the lockout reach is scaled to keep the
+  // elbow at 165), the pelvis walked down the trunk (10 / 13 / 15). The old
+  // frames hung the pelvis from 0.526 to 0.685 under an 8-degree trunk with
+  // the shins tucked up behind, and had no tempo.
   dip: pose(
     "side",
-    [0.526, 0.605, 0.685].map((y) => {
-      const pelvis = { x: 0.5, y };
+    ([[10, 0.536, 0.543], [13, 0.537, 0.631], [15, 0.542, 0.719]] as const).map(([torso, x, y]) => {
+      const pelvis = { x, y };
       return {
         pelvis,
-        torso: 8,
-        neck: 6,
-        arms: reachingArms(pelvis, 8, "side", [{ x: 0.516, y: 0.572 }, { x: 0.500, y: 0.572 }], BACK),
-        legs: sideLegs(166, 252, 200),
+        torso,
+        neck: torso - 4,
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.516, y: 0.572 }, { x: 0.500, y: 0.572 }], BACK),
+        legs: sideLegs(184, 190, 150),
       };
     }),
-    [{ kind: "bar", at: "grip", length: 0.14, plates: false, rails: true }],
+    // A floor under the lowest point of the rep, so the station's uprights
+    // reach the ground the feet hang over instead of stopping at the
+    // lockout's toes.
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.14, plates: false, rails: true }],
     "neutral",
+    1,
+    { tempo: { down: 1900, bottom: 300, up: 1000, top: 500 }, camera: { azimuth: 0.9 } },
   ),
 
   fly: pose(

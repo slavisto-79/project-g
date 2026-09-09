@@ -52,8 +52,10 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
     if (floor) {
       const deepest = Math.max(...ys) - floor.y;
       if (deepest > 0.014) note(`${where}: sinks ${deepest.toFixed(3)} through the floor`);
-      // A seated machine holds the whole body off the floor on purpose.
-      if (-deepest > 0.16 && name !== "legExtension") note(`${where}: floats ${(-deepest).toFixed(3)} above the floor`);
+      // A seated machine holds the whole body off the floor on purpose, and
+      // a dip hangs from its bars -- its floor is there for the uprights to
+      // stand on, under the lowest point of the rep.
+      if (-deepest > 0.16 && name !== "legExtension" && name !== "dip") note(`${where}: floats ${(-deepest).toFixed(3)} above the floor`);
     }
   });
 
