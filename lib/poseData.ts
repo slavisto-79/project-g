@@ -1904,15 +1904,31 @@ export const exercisePoses = {
     "neutral",
   ),
 
+  // Loaded carry, from a reference clip measured with the pose lab (OPEX
+  // "Dumbbell Farmer's Carry", K4R8uc1x_OA, square side view, the lifter in
+  // frame for 2.6 s of walking; MoveNet on 14 frames at 0.2 s): the trunk
+  // upright (0-8 forward), the arms plumb (upper arm 0-7 off vertical, elbow
+  // 166-177), the dumbbells at the sides, and a real stride -- the thighs
+  // swing 20 degrees forward and 25 back with the knees at 163-175 -- at a
+  // step every 0.5 s. The old walk shuffled the legs 10 degrees either way
+  // on the default cycle.
+  // Authored in place (the world walks under the figure): the front foot
+  // flat on the floor at heel strike, the back foot on its toes; the middle
+  // key has both feet under the hips with the far knee soft. The renderer
+  // walks the keys and back, so one traversal is one step and the return
+  // is the next -- the legs' roles do not swap, which is why the middle key
+  // is kept symmetric enough to read either way.
   carry: pose(
     "side",
     [
-      { pelvis: { x: 0.5, y: 0.520 }, torso: 0, arms: wide(HANG), legs: [{ upper: 172, lower: 176, end: 86 }, { upper: 186, lower: 182, end: 92 }] },
-      { pelvis: { x: 0.5, y: 0.516 }, torso: 1, arms: wide(HANG), legs: [{ upper: 182, lower: 179, end: 89 }, { upper: 176, lower: 179, end: 89 }] },
-      { pelvis: { x: 0.5, y: 0.520 }, torso: 0, arms: wide(HANG), legs: [{ upper: 190, lower: 184, end: 94 }, { upper: 168, lower: 174, end: 84 }] },
+      { pelvis: { x: 0.5, y: 0.535 }, torso: 3, arms: wide(HANG), legs: [{ upper: 160, lower: 166, end: 80 }, { upper: 202, lower: 214, end: 140 }] },
+      { pelvis: { x: 0.5, y: 0.528 }, torso: 3, arms: wide(HANG), legs: [{ upper: 178, lower: 180, end: 90 }, { upper: 184, lower: 192, end: 100 }] },
+      { pelvis: { x: 0.5, y: 0.535 }, torso: 3, arms: wide(HANG), legs: [{ upper: 202, lower: 214, end: 140 }, { upper: 160, lower: 166, end: 80 }] },
     ],
     [{ kind: "floor", y: 0.972 }, { kind: "bell", at: "hand0", each: true }],
     "neutral",
+    1,
+    { tempo: { down: 500, bottom: 40, up: 500, top: 40 }, camera: { azimuth: 0.9 } },
   ),
 
   // --- The last seventeen: exercises that only had a written cue -----------
