@@ -409,6 +409,38 @@ export const exercisePoses = {
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
   ),
 
+  // Romanian deadlift, from a reference clip measured with the pose lab
+  // (BB RDL side view, 3 reps in 9.8 s; MoveNet on 40 frames): the trunk
+  // goes to 83-91 degrees from vertical at the bottom, the thigh 27-40
+  // degrees back, the shin stays vertical, the knee 150 (a soft bend that
+  // does not change), the bar ends just below the knee, and the tempo is a
+  // slow lower (~1.75 s), a touch at the bottom, a faster stand (~1.0 s).
+  // Authored from the joints: thigh back 4/12/20/25, shin 4/2/0/0, trunk
+  // 4/30/55/75 (the keypoint trunk reads high -- the shoulder point sits on
+  // the deltoid), arms as ropes: 10 degrees AHEAD of plumb standing (the bar
+  // hangs in front of the thighs, as the hinge's HANG_AHEAD -- plumb, the
+  // checker had it 7cm inside a heavy thigh), swinging to 13 degrees BEHIND
+  // plumb at the bottom (the lats keep the bar on the legs: plumb, it
+  // drifted 2cm past the toes). Hand at the bottom ~0.21 above the floor
+  // with the knee at 0.215, on the toe line; hip height 0.439 -> 0.419 (an
+  // RDL barely drops).
+  romanianDeadlift: pose(
+    "side",
+    ([[0.523, 0.491, 4, 176, 184, -10], [0.497, 0.495, 30, 168, 182, -4], [0.472, 0.504, 55, 160, 180, 6], [0.460, 0.511, 75, 155, 180, 13]] as const).map(
+      ([x, y, torso, upper, lower, armBack]) => ({
+        pelvis: { x, y },
+        torso,
+        neck: torso > 30 ? torso - 20 : torso,
+        arms: [{ upper: 180 + armBack, lower: 180 + armBack }, { upper: 180 + armBack, lower: 180 + armBack }] as [Limb, Limb],
+        legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
+      }),
+    ),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+    "overhand",
+    1,
+    { tempo: { down: 1700, bottom: 200, up: 1000, top: 300 }, camera: { azimuth: Math.PI / 2 } },
+  ),
+
   // Standing inside a hex bar with the hands at the sides: the hips sit lower
   // and the torso stays more upright than a straight-bar hinge, and the
   // handles travel straight up the mid-foot. The bottom hand height is the
