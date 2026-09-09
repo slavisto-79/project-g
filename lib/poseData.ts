@@ -596,7 +596,12 @@ export const exercisePoses = {
     ),
     [
       { kind: "floor" },
-      { kind: "slab", at: "pelvis", width: 0.58, height: 0.055, dx: -0.197, dy: 0.085 },
+      // From the hip joint (the thighs hang off the foot end, feet on the
+      // floor) to 4cm past the crown: the head lies at the END of the bench.
+      // At 0.58 the pad ran 16cm on past the head. The drawn pad is 4cm
+      // shorter than `width` (its ends are rounded off), and the rack is
+      // only built for a width of 0.5 or more -- 0.456 lost it.
+      { kind: "slab", at: "pelvis", width: 0.5, height: 0.055, dx: -0.154, dy: 0.085 },
       { kind: "bar", at: "grip", length: 0.17 },
       // Round the back and under the bench, when the press is done on a band.
       { kind: "cable", at: "hand0", anchor: { x: 0.387, y: 0.78 }, band: true },
@@ -627,7 +632,12 @@ export const exercisePoses = {
     })),
     [
       { kind: "floor" },
-      { kind: "slab", at: "pelvis", width: 0.58, height: 0.055, dx: -0.197, dy: 0.085 },
+      // From the hip joint (the thighs hang off the foot end, feet on the
+      // floor) to 4cm past the crown: the head lies at the END of the bench.
+      // At 0.58 the pad ran 16cm on past the head. The drawn pad is 4cm
+      // shorter than `width` (its ends are rounded off), and the rack is
+      // only built for a width of 0.5 or more -- 0.456 lost it.
+      { kind: "slab", at: "pelvis", width: 0.5, height: 0.055, dx: -0.154, dy: 0.085 },
       { kind: "bar", at: "grip", length: 0.14, plates: false },
     ],
   ),
