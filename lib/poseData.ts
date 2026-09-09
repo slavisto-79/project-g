@@ -16,7 +16,7 @@
 // and solved with `reach`, never as angles.
 
 import {
-  pose, bothArms, sideArms, sideLegs, plantedLegs, reachingArms, grip, spineTop, hipAt, along, reach, P, ASPECT,
+  pose, bothArms, sideArms, sideLegs, plantedLegs, reachingArms, grip, spineTop, hipAt, shoulderAt, along, reach, P, ASPECT,
   type ExercisePose, type Figure, type Limb, type Point,
 } from "./poses";
 
@@ -1285,21 +1285,50 @@ export const exercisePoses = {
 
   // --- Pulling -------------------------------------------------------------
 
+  // Bent-over row, from a reference clip measured with the pose lab (NASM
+  // "How to do a Barbell Bent Over Row Pronated", bm0_q9bR_HA, side view,
+  // three reps after a 6 s hinge down; MoveNet on 72 frames at 0.25 s): the
+  // trunk holds 53-67 degrees from vertical over soft knees (140-150, the
+  // thigh 20-37 back, the shin 4-10 forward); the arms hang plumb (upper arm
+  // 11-23 from vertical, elbow 160-172) and the pull takes the elbow to
+  // 73-86 from vertical -- past the line of the back -- with the forearm 20
+  // from vertical and the elbow at 72-87, the bar to the lower chest; a rep
+  // is a 0.7 s pull, a touch at the chest, a 0.8 s lowering and a beat
+  // hanging. Authored from the trunk: torso 60, knees from the pelvis
+  // (thigh 25 back, shin 8 forward), the hands solved to a point on the
+  // trunk's own frame -- `along` the trunk from the shoulder and `out` from
+  // its axis toward the belly -- so the bar finishes a chest's depth off
+  // the sternum instead of inside it. The old pose folded the trunk to 96
+  // (past horizontal) with the head up at 82 and no tempo.
   bentRow: pose(
     "side",
-    [0.838, 0.780, 0.722].map((barY) => {
-      const pelvis = { x: 0.558, y: 0.548 };
+    ([[0.14, 0.253], [0.16, 0.17], [0.18, 0.10]] as const).map(([along, out]) => {
+      const torso = 60;
+      const pelvis = { x: 0.480, y: 0.513 };
+      const rad = (torso * Math.PI) / 180;
+      // Trunk axis from the shoulder toward the hip, and the belly-side
+      // normal, in screen terms (x right = forward, y down).
+      const axis = { x: -Math.sin(rad), y: Math.cos(rad) };
+      const belly = { x: Math.cos(rad), y: Math.sin(rad) };
+      const targets = [0, 1].map((side) => {
+        const s = shoulderAt(pelvis, torso, side as 0 | 1, "side");
+        return { x: s.x + (along * axis.x + out * belly.x) / ASPECT, y: s.y + along * axis.y + out * belly.y };
+      }) as [Point, Point];
       return {
         pelvis,
-        torso: 96,
-        neck: 82,
-        // The hands hang under the shoulders, and the shoulders are to the
-        // RIGHT of the hips once the trunk is folded over that way.
-        arms: reachingArms(pelvis, 96, "side", [{ x: 0.712, y: barY }, { x: 0.696, y: barY }], BACK),
-        legs: plantedLegs(pelvis, 96, "side", FEET, FORWARD),
+        torso,
+        neck: 40,
+        arms: reachingArms(pelvis, torso, "side", targets, BACK),
+        legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
       };
     }),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+    "overhand",
+    1,
+    // Not a lying scene, whatever the two-metre bar does to the fit box: a
+    // full orbit from three-quarters, or the plates hide the trunk for half
+    // of a side-to-side swing.
+    { tempo: { down: 700, bottom: 250, up: 800, top: 300 }, camera: { azimuth: 1.0, lying: false } },
   ),
 
   seatedRow: pose(
