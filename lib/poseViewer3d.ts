@@ -342,6 +342,7 @@ export class PoseViewer3D {
   private sledFoot: THREE.Vector3[] = [];
   private spineIndex = -1;
   private neckIndex = -1;
+  private shouldersIndex = -1;
   private facing: 1 | -1 = 1;
   // Forearm bone indices per side, so the fists can roll with the wrist.
   private forearmIndex: [number, number] = [-1, -1];
@@ -353,6 +354,10 @@ export class PoseViewer3D {
   // the pose's camera says so itself.
   private lyingScene = false;
   private cameraLying: boolean | undefined;
+  // The orbit angle a lying scene's swing is centred on: broadside to the
+  // axis the figure lies along -- pi/2 for a body down Z (every side-view
+  // lying pose), 0 for one across X (a front-view side plank).
+  private lyingCentre = Math.PI / 2;
   // Hands shift outboard with their held weights, so the grip stays closed.
   private fistOutboard = false;
   private readonly interactive: boolean;
@@ -1036,6 +1041,7 @@ export class PoseViewer3D {
     // facing bit every frame.
     this.spineIndex = first.bones.findIndex((b) => b.part === "spine");
     this.neckIndex = first.bones.findIndex((b) => b.part === "neck");
+    this.shouldersIndex = first.bones.findIndex((b) => b.part === "shoulders");
     this.facing = pose.facing ?? 1;
     const R = first.head.r * 1.3;
     // Every feature is a scaled sphere -- the one primitive that shades like
@@ -2554,10 +2560,16 @@ export class PoseViewer3D {
 
   private fit() {
     const box = new THREE.Box3();
+    // The figure's own footprint, props aside: which axis the BODY lies along
+    // decides where a lying scene's swing is centred (a barbell across a
+    // lying figure must not turn its camera end-on).
+    const body = new THREE.Box3();
     for (const frame of this.frames) {
       for (const bone of frame.bones) {
         box.expandByPoint(vec(bone.a));
         box.expandByPoint(vec(bone.b));
+        body.expandByPoint(vec(bone.a));
+        body.expandByPoint(vec(bone.b));
       }
       box.expandByPoint(vec(frame.head.c).addScalar(frame.head.r * 1.4));
       box.expandByPoint(vec(frame.head.c).addScalar(-frame.head.r * 1.4));
@@ -2621,6 +2633,8 @@ export class PoseViewer3D {
     // props, and a two-metre barbell held by a bent-over figure makes the
     // scene "wider than tall" without anyone lying anywhere.
     this.lyingScene = this.cameraLying ?? Math.max(size.x, size.z) > size.y * 1.45;
+    const bodySize = body.getSize(new THREE.Vector3());
+    this.lyingCentre = bodySize.x > bodySize.z ? 0 : Math.PI / 2;
     const extent = Math.max(size.x, size.y, size.z);
     // Both axes must fit: the vertical field of view bounds the height, and
     // the horizontal one -- vertical times aspect -- bounds the width. On a
@@ -2697,7 +2711,7 @@ export class PoseViewer3D {
       hull.push({ p: vec(frame.head.c).addScaledVector(up, 0.03), r: frame.head.r * 1.25 });
     }
     const elevation = extent * 0.1;
-    const arc: [number, number] = this.lyingScene ? [Math.PI / 2 - LYING_SWING, Math.PI / 2 + LYING_SWING] : [0, Math.PI * 2];
+    const arc: [number, number] = this.lyingScene ? [this.lyingCentre - LYING_SWING, this.lyingCentre + LYING_SWING] : [0, Math.PI * 2];
     // A lying figure runs the width of the card, so its head ends up at a
     // side edge; it gets a little more air there.
     const inside = this.lyingScene ? FIT_INSIDE_LYING : FIT_INSIDE;
@@ -2897,9 +2911,16 @@ export class PoseViewer3D {
       const nB = lerp3(a.bones[this.neckIndex]!.b, b.bones[this.neckIndex]!.b, f);
       const up = nB.clone().sub(nA).normalize();
       this.head.position.addScaledVector(up, 0.03);
-      // The belly side: the spine turned a quarter turn about X, the way the
-      // movement's facing bit says.
-      const ventral = new THREE.Vector3(0, -this.facing * spineDir.z, this.facing * spineDir.y);
+      // The belly side: square to both the spine and the shoulder line, the
+      // way the movement's facing bit says. For a figure whose girdle spans X
+      // this is the spine turned a quarter turn about X (the old rule); for a
+      // front-view figure lying along X -- a side plank, girdle stacked up
+      // its Y -- that rule gave nothing at all, and this gives the camera
+      // side.
+      const gA = lerp3(a.bones[this.shouldersIndex]!.a, b.bones[this.shouldersIndex]!.a, f);
+      const gB = lerp3(a.bones[this.shouldersIndex]!.b, b.bones[this.shouldersIndex]!.b, f);
+      const ventral = new THREE.Vector3().crossVectors(spineDir, gB.sub(gA)).normalize().multiplyScalar(this.facing);
+      if (ventral.lengthSq() < 1e-6) ventral.set(0, -this.facing * spineDir.z, this.facing * spineDir.y);
       const fz = ventral.clone().sub(up.clone().multiplyScalar(ventral.dot(up))).normalize();
       const fx = new THREE.Vector3().crossVectors(up, fz).normalize();
       this.face.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(fx, up, fz));
@@ -3189,7 +3210,7 @@ export class PoseViewer3D {
       // the side view, never nearer than ~40 degrees to either end. The
       // old arc started almost end-on, and a pike's feet filled the card.
       const az = this.lyingScene
-        ? Math.PI / 2 + Math.sin(elapsed * 0.00045) * LYING_SWING
+        ? this.lyingCentre + Math.sin(elapsed * 0.00045) * LYING_SWING
         : this.azimuth + elapsed * 0.00035;
       this.camera.position.set(
         this.aim.x + this.orbitRadius * Math.sin(az),

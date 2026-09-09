@@ -1715,18 +1715,43 @@ export const exercisePoses = {
     [{ kind: "floor", mat: true, y: 0.792 }],
   ),
 
+  // Side plank, from a reference clip measured with the pose lab (OPEX "Side
+  // Plank", tbWPBOgju9g, the camera square on the front of the body; MoveNet
+  // on 13 frames at 0.5 s). The clip: one straight line from the stacked
+  // feet up to the shoulders, 12-19 degrees off the floor (the model reads
+  // the top side of the body at 12 and the bottom side at 19 -- the girdle
+  // widths seen edge-on), knees 174-178, the top arm straight up (elbow
+  // 174-179, 6-10 degrees off plumb), the support elbow under its shoulder
+  // with the forearm on the floor pointing at the camera.
+  // A FRONT view, lying along x: that is the one plane a side plank lives
+  // in -- the girdles stack vertically when the trunk runs along x, which a
+  // side view (girdles always across the depth axis) can never draw. The
+  // old pose was a side-view figure with its belly up and one arm raised.
+  // Solved from the floor up, both ends pinned: the bottom ankle 4cm up
+  // (a shoe on its side), the support elbow at the forearm's radius
+  // (0.028) with the upper arm plumb below the bottom shoulder -- which
+  // fixes the body's angle at 14.8 degrees (legs 104.8, trunk 284.8). The
+  // top leg is 2 degrees steeper so its foot lands on the bottom foot
+  // (7.5cm up); the support forearm is pitched 90 degrees out of the plane
+  // with `forward`.
   sidePlank: pose(
-    "side",
+    "front",
     [
-      // One forearm on the ground and the other arm reaching straight up: the
-      // asymmetry is what says "side" rather than "front".
-      // The hips lift by hinging over the planted feet: the legs steepen as
-      // the pelvis rises, so the feet stay on the floor (lifted with the
-      // legs at the same angle, the whole figure rose 6cm off it).
-      { pelvis: { x: 0.5, y: 0.665 }, torso: 286, neck: 286, arms: [{ upper: 180, lower: 266, end: 266 }, { upper: 10, lower: 6 }], legs: lyingLegs(107, 103, 17) },
-      { pelvis: { x: 0.5, y: 0.688 }, torso: 289, neck: 289, arms: [{ upper: 180, lower: 266, end: 266 }, { upper: 10, lower: 6 }], legs: lyingLegs(104, 100, 14) },
+      // A hold: the second key is a breath -- the hips sag 2mm and the
+      // trunk steepens the half-degree that keeps the elbow planted.
+      // The top arm is authored 7 degrees toward the head: the world build's
+      // splay carries the hand toward the feet (+x here) and the guessed
+      // depth a little forward, and plumb-in-the-plane came out 11 degrees
+      // off plumb in the world.
+      { pelvis: { x: 0.4744, y: 0.7312 }, torso: 284.8, neck: 286, arms: [{ upper: 353, lower: 353 }, { upper: 180, lower: 180, end: 180, forward: 90 }], legs: [{ upper: 106, lower: 109, end: 96 }, { upper: 103.8, lower: 105.8, end: 96 }] },
+      { pelvis: { x: 0.4744, y: 0.7332 }, torso: 285.25, neck: 286.5, arms: [{ upper: 353, lower: 353 }, { upper: 180, lower: 180, end: 180, forward: 90 }], legs: [{ upper: 106, lower: 109, end: 96 }, { upper: 103.8, lower: 105.8, end: 96 }] },
     ],
-    [{ kind: "floor", mat: true }],
+    [{ kind: "floor", mat: true, y: 0.93 }],
+    "overhand",
+    1,
+    // Said outright: the raised arm makes the scene as tall as it is long,
+    // and the renderer's own rule would have orbited a lying figure.
+    { tempo: { down: 1600, bottom: 300, up: 1600, top: 300 }, camera: { azimuth: 0, lying: true } },
   ),
 
   // Both hands travel together on a diagonal; that diagonal is the exercise.
