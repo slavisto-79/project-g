@@ -76,10 +76,14 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   // this rebuild. Holds are allowed to be still.
   // `idle` is the profile screen's resting figure, not an exercise.
   const HOLDS = new Set(["plank", "sidePlank", "wallSit", "carry", "quadruped", "hollowHold", "idle"]);
+  // Measured on the WORLD bones: a fly's whole range is a swing out of the
+  // authoring plane (`abduct`), which the flat segments cannot see.
+  const first3 = pose.frames3d[0].bones, last3 = pose.frames3d[pose.frames3d.length - 1].bones;
   const travel = Math.max(
-    ...frames[0].segments.map((s, i) => {
-      const t = frames[frames.length - 1].segments[i];
-      return Math.max(Math.hypot((t.x1 - s.x1) * ASPECT, t.y1 - s.y1), Math.hypot((t.x2 - s.x2) * ASPECT, t.y2 - s.y2));
+    ...first3.map((s, i) => {
+      const t = last3[i];
+      const d = (p, q) => Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]);
+      return Math.max(d(s.a, t.a), d(s.b, t.b));
     }),
   );
   // Calf raises genuinely travel less than anything else here; the seated
@@ -109,7 +113,8 @@ const STANDING_FRAMES = {
   hinge: 0, trapBarDeadlift: 0, singleLegHinge: 0, curl: 0, frontRaise: 0,
   // (pulldown sat down when it was authored from its clip; it is no longer a
   // standing frame.)
-  overheadPress: 0, lateralRaise: 0, fly: 0,
+  // (fly lay down on its bench when it was authored from its clip.)
+  overheadPress: 0, lateralRaise: 0,
   tricepsExtension: 0, jump: 0, lateralLunge: 0, clean: 4,
   straightArmPulldown: 0, facePull: 0, landminePress: 0, burpee: 1,
   cableCurl: 0, cableFly: 0, cableLateralRaise: 0, cablePullThrough: 0,

@@ -1187,11 +1187,37 @@ export const exercisePoses = {
     { tempo: { down: 1900, bottom: 300, up: 1000, top: 500 }, camera: { azimuth: 0.9 } },
   ),
 
+  // Dumbbell fly, from a reference clip measured with the pose lab (OPEX
+  // "Dumbbell Neutral Grip Fly", AVIBmE5iQrQ, seen from the head end, three
+  // reps in 11.5 s; MoveNet on 59 frames at 0.25 s): LYING on a bench, the
+  // arms start all but vertical over the chest with the elbows soft (150-165)
+  // and swing out in the frontal plane until the upper arms are level and the
+  // hands a little above them -- 26 cm out from the shoulder, elbows kept at
+  // 150; a rep is a 2.0 s lowering, a 0.4 s stretch, a 0.8 s squeeze together
+  // and a 0.7 s hold at the top. Authored on the bench with the arms explicit
+  // in the side plane (upper/forearm 355/10 -> 352/5 -> 350/345, elbow soft)
+  // and swung out with the new `abduct` (8 / 45 / 78 degrees), which is the
+  // motion a side view could not say. The old pose STOOD the figure up face
+  // on and swept the arms from level out to the sides up to overhead -- a
+  // lateral raise, not a fly. Two exercises share it (Dumbbell Fly, Pec
+  // Deck -- the pec deck is seated and still borrows this lying pose).
   fly: pose(
-    "front",
-    [96, 60, 24].map((arm) => standFront(0.497, 0, bothArms(arm, arm - 25))),
-    [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
+    "side",
+    // The elbow's bend lives in the side plane and swings out with the arm,
+    // so a soft elbow at the bottom tilts the forearm a little headward --
+    // the price of a fly on a side-authored figure.
+    ([[355, 10, 8], [352, 335, 45], [350, 325, 78]] as const).map(([upper, lower, abduct]) => ({
+      ...bench(0.397, 0.304),
+      arms: [{ upper, lower, abduct }, { upper: upper + 5, lower: lower + 5, abduct }] as [Limb, Limb],
+    })),
+    [
+      { kind: "floor" },
+      { kind: "slab", at: "pelvis", width: 0.5, height: 0.055, dx: -0.154, dy: 0.085 },
+      { kind: "bell", at: "hand0", each: true, size: 0.05 },
+    ],
     "neutral",
+    1,
+    { tempo: { down: 2000, bottom: 400, up: 800, top: 700 }, camera: { azimuth: 0.9 } },
   ),
 
   // --- Vertical push -------------------------------------------------------
