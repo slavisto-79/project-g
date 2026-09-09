@@ -985,18 +985,35 @@ export const exercisePoses = {
     ],
   ),
 
+  // Push-up, from a reference clip measured with the pose lab (OPEX "Push
+  // Up", Ql8PKKsDE70, side view, three reps in 4.8 s; MoveNet on 51 frames at
+  // 0.15 s): at lockout the trunk runs 4-9 degrees above level (the hips a
+  // touch higher still, hip angle 162-168), the elbows locked (169-175) with
+  // the hands a hand's breadth toward the feet from the shoulders (upper arm
+  // 12-14 back of plumb), the knees straight (172-178), the toes on the floor
+  // with the ankles 11 cm up; at the bottom the chest is on the floor, the
+  // trunk 3-9 degrees head-DOWN, the body a straight line (hip 172-179), the
+  // elbows swept back toward the feet; a rep is a 0.6 s descent, a touch, a
+  // 0.6 s press and a 0.3 s lockout. Authored from the SHOULDER: each key
+  // places it over the fixed hands (28.5 / 18 / 9 cm up; 4 / 8 / 8 cm toward
+  // the head -- a rigid body pivoting on its toes carries the shoulders
+  // forward as it sinks) and walks the pelvis back down the trunk (276 /
+  // 272 / 269); the toes stay put and the ankle hangs off them at 140 / 130 /
+  // 120 so the legs solve straight in every key. The old frames locked out
+  // 24 degrees above level and stopped 11 above it, and had no tempo.
   pushUp: pose(
     "side",
-    // A rigid plank pivoting on the toes: the pelvis sits ON the ankle-to-
-    // shoulder line and travels down with the body -- fixing it in place
-    // piked the hips the whole way through. Solved: lockout 24 degrees above
-    // the floor, chest grazing it at 11.
-    ([[0.485, 0.689, 292.3], [0.475, 0.728, 286.8], [0.467, 0.78, 279.8]] as const).map(([x, y, torso]) =>
-      supported({ x, y }, torso, { x: 0.392, y: 0.855 }, { x: 0.767, y: 0.855 }),
-    ),
+    ([[0.357, 0.570, 279, 140], [0.331, 0.675, 274, 130], [0.317, 0.765, 269, 120]] as const).map(([sx, sy, torso, end]) => {
+      const rad = (torso * Math.PI) / 180;
+      const pelvis = { x: sx - (Math.sin(rad) * P.spine) / ASPECT, y: sy + Math.cos(rad) * P.spine };
+      const toe = { x: 0.82, y: 0.86 };
+      const ankle = along(toe, end + 180, 0.069);
+      return supported(pelvis, torso, { x: 0.392, y: 0.855 }, ankle, end);
+    }),
     [{ kind: "floor", mat: true }],
     "overhand",
     -1,
+    { tempo: { down: 600, bottom: 150, up: 600, top: 300 } },
   ),
 
   // The same plank with the feet up on a bench. Derived from the flat frames:
