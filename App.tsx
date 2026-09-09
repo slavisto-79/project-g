@@ -6157,7 +6157,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Walking Lunge": "lunge",
   "Dumbbell Lunge": "lunge",
   "Barbell Walking Lunge": "lunge",
-  "Split Squat": "lunge",
+  "Split Squat": "splitSquatStatic",
 
   "Push-Up": "pushUp",
   "Diamond Push-Up": "pushUp",

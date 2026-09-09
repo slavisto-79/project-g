@@ -16,7 +16,7 @@
 // and solved with `reach`, never as angles.
 
 import {
-  pose, bothArms, sideArms, sideLegs, plantedLegs, reachingArms, grip, spineTop, hipAt, along, P,
+  pose, bothArms, sideArms, sideLegs, plantedLegs, reachingArms, grip, spineTop, hipAt, along, reach, P,
   type ExercisePose, type Figure, type Limb, type Point,
 } from "./poses";
 
@@ -313,6 +313,47 @@ export const exercisePoses = {
     "neutral",
     1,
     { tempo: { down: 1500, bottom: 200, up: 800, top: 300 }, camera: { azimuth: Math.PI / 2 } },
+  ),
+
+  // Split squat (both feet on the floor, the rear heel up), from a reference
+  // clip measured with the pose lab (OPEX "Split Squat", Py2Qeg-D5T0, side
+  // view, three reps in 11 s; MoveNet on 55 frames at 0.25 s): a LONG split
+  // -- standing, the front thigh is already 34 degrees from vertical with the
+  // shin leaning 18 back (knee 164) and the rear thigh 30 behind the hip
+  // (knee 156); at the bottom the front thigh is level (85 from vertical)
+  // over a near-vertical shin (knee 85), the rear knee folds to 82 just off
+  // the floor, the trunk goes from 10 to 16; hands behind the head; tempo a
+  // 1.4 s descent, a 0.25 s touch, a 0.75 s stand and a second standing.
+  // Authored from the front leg (explicit: thigh 34/59/85, shin 18 back / 2 /
+  // 10 forward), pelvis walked back from the planted front foot; the rear leg
+  // is solved to an ankle hung off a FIXED toe on the floor with the heel
+  // rising (foot 60/70/80 degrees off the floor) -- the figure's foot is
+  // 13cm ankle to toe, so the rear ankle cannot ride as high as the clip's
+  // and the rear knee bottoms out nearer 100 than 82. The old pose (shared
+  // `lunge`, still used by the lunges) kept the pelvis midway between the
+  // feet, both feet flat, the trunk at 4 throughout and the arms hanging.
+  splitSquatStatic: pose(
+    "side",
+    ([[10, 34, -18, 150], [15, 58, 2, 158], [16, 82, 8, 165]] as const).map(([torso, thigh, shinKneeFwd, rearFoot]) => {
+      const front: Limb = { upper: 180 - thigh, lower: 180 + shinKneeFwd, end: 90 };
+      const ankle = { x: 0.62, y: FLOOR };
+      const knee = along(ankle, front.lower + 180, P.shin);
+      const hip = along(knee, front.upper + 180, P.thigh);
+      const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      // The rear toe stays put; the ankle hangs off it at the foot's angle.
+      const toe = { x: 0.326, y: FLOOR + 0.02 };
+      const rearAnkle = along(toe, rearFoot + 180, 0.069);
+      const rear: Limb = { ...reach(hipAt(pelvis, torso, 1, "side"), rearAnkle, P.thigh, P.shin, -1), end: rearFoot };
+      // Hands behind the head, elbows swung out to the sides (the clip's
+      // prisoner position): the nape arms with the fists pulled in to the
+      // midline (a negative spread) and the elbow rotated outboard.
+      const arms = napeArms(pelvis, torso, -0.055).map((arm) => ({ ...arm, flare: 80 })) as [Limb, Limb];
+      return { pelvis, torso, neck: torso - 8, arms, legs: [front, rear] as [Limb, Limb] };
+    }),
+    [{ kind: "floor" }],
+    "neutral",
+    1,
+    { tempo: { down: 1400, bottom: 250, up: 750, top: 1000 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
   lunge: pose(
