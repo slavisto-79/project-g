@@ -506,6 +506,47 @@ export const exercisePoses = {
     { tempo: { down: 600, bottom: 0, up: 600, top: 400 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
+  // Sumo deadlift, from a reference clip measured with the pose lab (OPEX
+  // "Sumo Deadlift", three-quarter view, 4 reps in 16 s; MoveNet on 80
+  // frames at 0.2 s -- the plates hide the knees at the bottom, so the
+  // trunk and tempo are the solid numbers): the trunk is 52-62 degrees
+  // from vertical at the bottom (a sumo is far more upright than a
+  // conventional pull), 0-8 standing, and the tempo is a 0.7 s pull, a
+  // 1.2 s stand, a 1.0 s lower and 0.8 s with the bar on the floor.
+  // Authored from the joints: trunk 4/32/62, thigh back 2/35/70, shin
+  // 0/2/2 (vertical, as a sumo's are), knee 178/143/108 -- the hips drop
+  // this far because the mannequin's wide stance does not shorten the legs
+  // the way a real sumo stance does (the world build adds the spread
+  // outboard without taking it out of the height), and the hands still
+  // have to reach a bar whose plates rest on the floor: at the bottom the
+  // hand is 0.196 above the floor, the plates 2cm off it. Stance: leg
+  // spread 0.16 (42cm out each side), toes turned out 40. Arms as ropes,
+  // AHEAD of plumb throughout -- 13 standing (upright trunk, bar in front
+  // of a heavy thigh), 14 at the bottom: in the side plane the shins are on
+  // the midline and a plumb bar ran 4cm inside one; in the world the shins
+  // are 42cm out and the bar passes between them, on the toe line.
+  sumoDeadlift: pose(
+    "side",
+    ([[0.518, 0.490, 4, 178, 180, -13], [0.442, 0.531, 32, 145, 182, -8], [0.387, 0.638, 62, 110, 182, -14]] as const).map(
+      ([x, y, torso, upper, lower, armBack]) => ({
+        pelvis: { x, y },
+        torso,
+        neck: torso > 30 ? torso - 20 : torso,
+        // Hands INSIDE the knees, as a sumo grip is: spread -0.045 puts the
+        // fists 13cm apart; at the default 22cm the forearm ran 1.1cm into
+        // the thigh at the bottom, at 16cm it still touched.
+        arms: [{ upper: 180 + armBack, lower: 180 + armBack, spread: -0.045 }, { upper: 180 + armBack, lower: 180 + armBack, spread: -0.045 }] as [Limb, Limb],
+        legs: [{ upper, lower, end: 90, spread: 0.16, turn: 40 }, { upper, lower, end: 90, spread: 0.16, turn: 40 }] as [Limb, Limb],
+      }),
+    ),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+    "overhand",
+    1,
+    // The clip's tempo (the first key position is standing) and its
+    // three-quarter camera, which is what shows a sumo stance.
+    { tempo: { down: 1000, bottom: 800, up: 700, top: 1200 }, camera: { azimuth: 0.6 } },
+  ),
+
   // Standing inside a hex bar with the hands at the sides: the hips sit lower
   // and the torso stays more upright than a straight-bar hinge, and the
   // handles travel straight up the mid-foot. The bottom hand height is the
