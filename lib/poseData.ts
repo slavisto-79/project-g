@@ -1331,25 +1331,44 @@ export const exercisePoses = {
     { tempo: { down: 700, bottom: 250, up: 800, top: 300 }, camera: { azimuth: 1.0, lying: false } },
   ),
 
+  // Seated cable row, from a reference clip measured with the pose lab (OPEX
+  // "Seated Cable Row", 4ZbqM_gcgAI, side view, three reps in 9.5 s; MoveNet
+  // on 52 frames at 0.25 s): the trunk stays within 7 degrees of vertical
+  // the whole rep, the knees bent to 69-77 with the feet on a plate ahead
+  // and below the seat (the thigh 20 degrees above level, the shin plumb);
+  // extended, the upper arm reaches 63-67 forward of vertical with the
+  // forearm level (elbow 144-150); pulled, the upper arm is plumb (-4..+2)
+  // with the elbow at the ribs and the forearm rising 35 degrees to the
+  // handle at the navel (elbow 51-58); a rep is a 1.0 s pull, a 0.5 s hold,
+  // a 1.5 s release and a beat extended. Authored from the clip's angles:
+  // arms explicit 115/85 -> 150/70 -> 182/55, hands together on the V-handle
+  // (spread -0.06), legs explicit 70/178 with the feet on an upright plate,
+  // trunk 356. The old pose swung the trunk 6 -> -7 with the hands at chest
+  // height and the legs nearly straight, and had no tempo.
   seatedRow: pose(
     "side",
-    [0.600, 0.540, 0.480].map((handX) => {
+    ([[115, 85], [150, 70], [182, 55]] as const).map(([upper, lower]) => {
       const pelvis = { x: 0.42, y: 0.600 };
-      const torso = handX > 0.58 ? 6 : handX > 0.52 ? 0 : 353;
+      const torso = 356;
       return {
         pelvis,
         torso,
-        neck: torso,
-        arms: reachingArms(pelvis, torso, "side", [{ x: handX, y: 0.485 }, { x: handX - 0.016, y: 0.485 }], BACK),
-        legs: sideLegs(96, 168, 82),
+        neck: 0,
+        arms: sideArms(upper, lower).map((arm) => ({ ...arm, spread: -0.06 })) as [Limb, Limb],
+        legs: [{ upper: 70, lower: 178, end: 20 }, { upper: 70, lower: 178, end: 20 }] as [Limb, Limb],
       };
     }),
     [
       { kind: "floor" },
       { kind: "slab", at: "pelvis", width: 0.16, height: 0.055, dy: 0.075 },
+      // The footplate: an upright board just past the toes, on its own plinth.
+      { kind: "slab", at: "ankle0", dx: 0.04, dy: 0.03, width: 0.05, height: 0.25 },
       { kind: "bar", at: "grip", length: 0.10, plates: false },
-      { kind: "cable", at: "grip", anchor: { x: 0.88, y: 0.50 }, band: true },
+      { kind: "cable", at: "grip", anchor: { x: 0.88, y: 0.72 }, band: true },
     ],
+    "neutral",
+    1,
+    { tempo: { down: 1000, bottom: 500, up: 1500, top: 500 }, camera: { azimuth: 0.9, lying: false } },
   ),
 
   // Lat pulldown, from a reference clip measured with the pose lab (OPEX
