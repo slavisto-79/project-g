@@ -1195,11 +1195,23 @@ export const exercisePoses = {
     { tempo: { down: 1000, bottom: 400, up: 1100, top: 500 }, camera: { azimuth: 0.75 } },
   ),
 
+  // Lateral raise, from a reference clip measured with the pose lab (OPEX
+  // "Dumbbell Lateral Raise", 8aUc9snLOxU, face on -- the right view for a
+  // lift in the frontal plane -- five reps in 9 s; MoveNet on 61 frames at
+  // 0.2 s): at the bottom the arms hang 7-10 degrees out from the sides,
+  // straight (elbow 177-180); the raise takes the upper arm to 90-99 from
+  // vertical -- level or a shade above -- with the forearm 100-109, so the
+  // hands ride a little higher than the elbows (elbow 166-174); a rep is a
+  // 0.75 s raise, a touch at the top, a 1.2 s lowering and a beat at the
+  // bottom. Frames [upper, forearm] 172/172 -> 135/140 -> 88/100. The old
+  // frames stopped 3 degrees under level and had no tempo.
   lateralRaise: pose(
     "front",
-    [170, 131, 93].map((arm) => standFront(0.497, 0, bothArms(arm, arm + 14))),
+    ([[172, 172], [135, 140], [88, 100]] as const).map(([upper, lower]) => standFront(0.497, 0, bothArms(upper, lower))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
     "neutral",
+    1,
+    { tempo: { down: 750, bottom: 200, up: 1200, top: 300 } },
   ),
 
   frontRaise: pose(
