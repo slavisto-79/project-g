@@ -441,6 +441,38 @@ export const exercisePoses = {
     { tempo: { down: 1700, bottom: 200, up: 1000, top: 300 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
+  // Stiff-leg deadlift, from a reference clip measured with the pose lab
+  // ("BB Stiff Legged Deadlift", side view, 5 reps in 14.5 s; MoveNet on
+  // 59 frames): "semi-straight legs" -- the thigh goes 37-42 degrees back
+  // with the shin vertical, so the knee reads 134-143 at the bottom and
+  // 174-178 standing; the trunk reaches 80-86 from vertical; the bar ends
+  // at mid-shin; tempo a slow lower (~1.25 s), a beat at the bottom, a
+  // faster stand (~0.85 s) and a longer pause standing (~0.65 s). Authored
+  // from the joints: thigh back 3/15/28/40, shin 2/2/0/2, trunk 0/28/58/82,
+  // arms as ropes from 14 degrees ahead of plumb standing (the trunk is
+  // upright here, not 4 degrees back as the RDL's, so the bar needs more
+  // room in front of a heavy thigh) to 9 behind at the bottom (at 15 the
+  // bar sat 3cm inside a heavy shin; 9 puts it on the toe line). Hand at
+  // the bottom 0.135 above the floor -- mid-shin, 8cm below the knee, the
+  // plates 2cm off the ground; hip height 0.440 -> 0.387 -- the hips
+  // travel back 13cm, more than the RDL's 6.
+  stiffLegDeadlift: pose(
+    "side",
+    ([[0.520, 0.490, 0, 177, 182, -14], [0.490, 0.498, 28, 165, 182, -5], [0.453, 0.516, 58, 152, 180, 4], [0.432, 0.543, 82, 140, 182, 9]] as const).map(
+      ([x, y, torso, upper, lower, armBack]) => ({
+        pelvis: { x, y },
+        torso,
+        neck: torso > 30 ? torso - 20 : torso,
+        arms: [{ upper: 180 + armBack, lower: 180 + armBack }, { upper: 180 + armBack, lower: 180 + armBack }] as [Limb, Limb],
+        legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
+      }),
+    ),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+    "overhand",
+    1,
+    { tempo: { down: 1250, bottom: 250, up: 850, top: 650 }, camera: { azimuth: Math.PI / 2 } },
+  ),
+
   // Standing inside a hex bar with the hands at the sides: the hips sit lower
   // and the torso stays more upright than a straight-bar hinge, and the
   // handles travel straight up the mid-foot. The bottom hand height is the
