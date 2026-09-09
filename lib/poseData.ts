@@ -1504,9 +1504,22 @@ export const exercisePoses = {
     [{ kind: "bar", at: "grip", length: 0.30, plates: false }],
   ),
 
+  // Biceps curl, from a reference clip measured with the pose lab (OPEX "EZ
+  // Bar Curl", -gSM-kqNlUw, side view, three reps in 10 s; MoveNet on 64
+  // frames at 0.2 s): at the bottom the arms hang all but straight (upper
+  // arm 2-5 forward of plumb, forearm 12-14 forward, elbow 165-171), the bar
+  // just ahead of the thighs; the curl carries the elbows 13-19 degrees
+  // forward and folds the forearm to 160-171 from vertical (elbow 28-31) --
+  // the bar finishes at shoulder height, 6 cm ahead of the shoulder; the
+  // trunk stays within 5 degrees of vertical; a rep is a 1.1 s curl, a 0.3 s
+  // squeeze, a 1.5 s lowering and a beat at the bottom. Arms explicit
+  // 177/167 -> 172/95 -> 164/15 (elbow 170/103/31). The old pose curled the
+  // elbows only to 78 with the upper arm pinned at 4 forward, no tempo. Six
+  // exercises share it (Barbell, Dumbbell, Hammer, Band, Preacher and
+  // Concentration Curl).
   curl: pose(
     "side",
-    [178, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.494 }, 356, wide(sideArms(176, forearm)))),
+    ([[177, 167], [172, 95], [164, 15]] as const).map(([upper, lower]) => stand({ x: 0.5, y: 0.494 }, 358, wide(sideArms(upper, lower)))),
     [
       { kind: "floor" },
       { kind: "bell", at: "hand0", each: true },
@@ -1515,6 +1528,8 @@ export const exercisePoses = {
       { kind: "cable", at: "hand1", anchor: { x: 0.571, y: 0.938 }, band: true },
     ],
     "underhand",
+    1,
+    { tempo: { down: 1100, bottom: 300, up: 1500, top: 400 }, camera: { azimuth: 0.75 } },
   ),
 
   // A bodyweight curl on suspension rings: the body hangs straight as a
