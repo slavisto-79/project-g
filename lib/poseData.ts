@@ -199,6 +199,37 @@ export const exercisePoses = {
     { tempo: SQUAT_TEMPO, camera: SQUAT_CAMERA },
   ),
 
+  // Box squat, from a reference clip measured with the pose lab (Active
+  // Life "Box Squat Movement Demo", rMEPHwNhQfo, side view, three reps
+  // after a 7 s walk-out; MoveNet on 53 frames at 0.4 s): the lifter sits
+  // BACK onto a box a shade above knee height -- thigh 72-75 from vertical,
+  // shin 29-31 forward, knee 75-80, trunk 32-37 -- pauses on it about half a
+  // second, and stands (knee 171-176, trunk 5-8); a 1.5 s descent, a 0.8 s
+  // stand and 1.2 s standing. Authored from the joints like the front
+  // squat: thigh 3/40/73, shin 3/18/30, trunk 6/22/35, the pelvis walked
+  // back from the planted foot; bar on the traps, stance and gaze from
+  // squatting(). The box stands behind the heels with its top a seat's
+  // depth under the hip joint at the bottom. Box Squat used to share the
+  // back squat's pose, which goes 15 degrees deeper and has no box.
+  boxSquat: pose(
+    "side",
+    ([[6, 3, 3], [22, 40, 18], [35, 73, 30]] as const).map(([torso, thigh, shinFwd]) => {
+      const leg: Limb = { upper: 180 - thigh, lower: 180 + shinFwd, end: 90 };
+      const knee = along({ x: 0.535, y: FLOOR }, leg.lower + 180, P.shin);
+      const hip = along(knee, leg.upper + 180, P.thigh);
+      const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      return squatting({ pelvis, torso, arms: napeArms(pelvis, torso, 0.10), legs: [leg, { ...leg }] as [Limb, Limb] });
+    }),
+    [
+      { kind: "floor" },
+      { kind: "bar", at: "grip", length: 0.17 },
+      { kind: "slab", at: "ankle1", dx: -0.075, dy: -0.167, width: 0.2, height: 0.05 },
+    ],
+    "overhand",
+    1,
+    { tempo: { down: 1500, bottom: 500, up: 800, top: 1200 }, camera: SQUAT_CAMERA },
+  ),
+
   // A front squat racks the bar on the front delts with high elbows -- the
   // clean's catch -- and the trunk stays far more upright than a back squat,
   // which is the entire point of the front rack.
