@@ -1802,26 +1802,49 @@ export const exercisePoses = {
   // 22cm apart leave the hands 39-51cm apart, and everything this movement
   // holds -- a rope handle, a medicine ball -- is narrower than that. The
   // ball floated between two hands that never touched it.
+  // From a reference clip measured with the pose lab (OPEX "High to Low
+  // Cable Oblique Rotation", KnbgKcvOG_c, three-quarter view, three reps in
+  // 11 s; MoveNet on 46 frames at 0.25 s): the hands start AT the shoulder
+  // on the pulley's side with the elbows bent (85-115) -- not overhead --
+  // and finish beside the far hip with the arms straight (176-178), the
+  // trunk turning and leaning 8-13 degrees toward them and the hips dropping
+  // ~7 cm into a quarter squat (knees 145-155); a rep is a 1.0 s chop, a
+  // 0.75 s hold low, a 1.5 s return and 0.5 s at the shoulder. The old
+  // sweep began with the hands high over the head on straight arms and
+  // leaned the trunk AWAY from the hands at both ends.
+  // A front view cannot turn the trunk, so the far arm cannot be straight
+  // at the far hip: the low hands are set diagonal (the far hand higher) so
+  // the near arm locks out and the far one reaches 170.
   woodchop: pose(
     "front",
     // The elbows stay pointed the same way through the whole sweep. Past
     // the midline the hands are on the far side of the shoulders, so the
     // bend that kept them out on the way down folds them the other way --
     // the pose checker calls that the joint hinging backwards mid-rep.
+    // [near hand, far hand, trunk lean, pelvis height, elbows]
     ([
-      [{ x: 0.560, y: 0.115 }, 348, 0.520, OUT],
-      [{ x: 0.610, y: 0.470 }, 0, 0.555, OUT],
-      [{ x: 0.435, y: 0.560 }, 12, 0.585, DOWN],
-    ] as const).map(([hands, torso, py, elbows]) => {
+      // The stance is wide (feet 0.11 either side), so the knees bend fast
+      // as the pelvis drops: 2.7 cm of drop is a quarter squat here.
+      [{ x: 0.667, y: 0.150 }, { x: 0.593, y: 0.150 }, 5, 0.518, BACK],
+      [{ x: 0.560, y: 0.520 }, { x: 0.486, y: 0.520 }, 0, 0.530, BACK],
+      [{ x: 0.500, y: 0.575 }, { x: 0.425, y: 0.600 }, 352, 0.545, DOWN],
+    ] as const).map(([near, far, torso, py, elbows]) => {
       const pelvis = { x: 0.5, y: py };
       return {
         pelvis,
         torso,
-        arms: reachingArms(pelvis, torso, "front", grip(hands, 0.056, "front"), elbows),
+        arms: reachingArms(pelvis, torso, "front", [near, far], elbows),
         legs: plantedLegs(pelvis, torso, "front", [{ x: 0.612, y: FLOOR }, { x: 0.388, y: FLOOR }], OUT),
       };
     }),
-    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }, { kind: "cable", at: "grip", anchor: { x: 0.95, y: 0.08 }, handle: "rope" }],
+    // The station stands BESIDE the figure (depth 0.05, on the shoulder
+    // line), the way the clip's lifter stands sideways to it; the front-view
+    // default put it in front, where it hid the figure for a third of the
+    // orbit.
+    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }, { kind: "cable", at: "grip", anchor: { x: 0.95, y: 0.08 }, handle: "rope", depth: 0.05 }],
+    "overhand",
+    1,
+    { tempo: { down: 1000, bottom: 750, up: 1500, top: 500 }, camera: { azimuth: -0.5 } },
   ),
 
   // A slam is not a chop. It goes straight up -- ball overhead, body fully
