@@ -36,7 +36,9 @@ export type PoseProp =
   // sled: a push sled, built from the handles the anchor sits on. Width is
   // the frame's length ahead of them, height how far the uprights stand
   // above the grip; everything else comes from the hands and the floor.
-  | { kind: "slab"; x: number; y: number; width: number; height: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean }
+  // tilt: a tall plate (the leg press's platform) leaning back from vertical
+  // by this many degrees, its top away from the figure -- a 45-degree sled.
+  | { kind: "slab"; x: number; y: number; width: number; height: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number }
   // A cable running from a pulley (the anchor, fixed in the world) to the
   // hands; the world build draws the whole machine around the anchor.
   // rope: a battle rope, not a cable -- it runs from a floor anchor to ONE
@@ -97,7 +99,7 @@ export type PoseProp3D =
   // the way a bench is placed for hands or feet on its edge.
   // `lever`: a padded roller against a limb. Width is its length across the
   // body, height its diameter, and it is held up by its arm, not the floor.
-  | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3; across?: boolean; lever?: boolean; sled?: boolean }
+  | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number }
   // center is the grip (where the cable ends), anchor the pulley.
   | { kind: "cable"; center: Vec3; anchor: Vec3; rope?: boolean; handle?: "rope" | "d"; band?: string; end?: string }
   | { kind: "floor"; y: number; mat?: boolean };
@@ -499,6 +501,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
       ...(prop.across ? { across: true } : {}),
       ...(prop.lever ? { lever: true } : {}),
       ...(prop.sled ? { sled: true } : {}),
+      ...(prop.tilt !== undefined ? { tilt: prop.tilt } : {}),
     };
   });
 }
@@ -506,7 +509,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
 type PropSpec =
   | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean; hex?: boolean }
   | { kind: "bell"; at: string; size?: number; each?: boolean; wheel?: boolean }
-  | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean }
+  | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number }
   // anchor: the pulley, in authored coordinates (a high pulley sits above the
   // frame's top edge, which is fine -- it only has to be off the figure).
   // anchorAt: anchor the run on a JOINT instead of a fixed point -- a loop
@@ -568,6 +571,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
         ...(spec.across ? { across: true } : {}),
         ...(spec.lever ? { lever: true } : {}),
         ...(spec.sled ? { sled: true } : {}),
+        ...(spec.tilt !== undefined ? { tilt: spec.tilt } : {}),
       });
     }
   }

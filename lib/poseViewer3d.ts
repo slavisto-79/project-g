@@ -1769,14 +1769,21 @@ export class PoseViewer3D {
   // a base beam. Drawn as a wall -- translucent grey, which is what a tall
   // slab used to get -- it read as a ghost panel with the figure floating at
   // it. `base` is the floor in the plate's own frame, if there is one.
-  private legPressSled(height: number, base: number | undefined): THREE.Group {
+  // tilt: degrees the platform leans back from vertical, its top away from
+  // the figure (a 45-degree leg press). The plate, its frame and its
+  // plates all lean together; the rails then run from the plate's foot down
+  // the same slope to the floor, the way a sled's carriage rides its track.
+  private legPressSled(height: number, base: number | undefined, tilt = 0): THREE.Group {
     const g = new THREE.Group();
+    const plate = new THREE.Group();
+    plate.rotation.x = (tilt * Math.PI) / 180;
+    g.add(plate);
     const w = 0.34;
     // The plate itself stays see-through, the way the wall it used to be
     // drawn as was: the camera looks along its face, so the feet press on
     // the side away from us and a solid plate hides them. The FRAME is what
     // makes it read as a machine, and that is solid.
-    g.add(
+    plate.add(
       new THREE.Mesh(
         new THREE.BoxGeometry(w, height, 0.05),
         new THREE.MeshStandardMaterial({ color: 0x2a3136, roughness: 0.5, metalness: 0.5, transparent: true, opacity: 0.5 }),
@@ -1784,11 +1791,11 @@ export class PoseViewer3D {
     );
     const top = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, 0.05, 0.07), this.iron);
     top.position.y = height / 2 + 0.04;
-    g.add(top);
+    plate.add(top);
     for (const s of [-1, 1]) {
       const post = new THREE.Mesh(new THREE.BoxGeometry(0.04, height + 0.06, 0.06), this.iron);
       post.position.x = s * (w / 2 + 0.02);
-      g.add(post);
+      plate.add(post);
       // A plate on a peg either side, DOWN at the base: a sled with nothing
       // on it reads as a door. The pose is authored side-on, so anything out
       // on x sits between the camera and the figure -- at foot height these
@@ -1801,17 +1808,25 @@ export class PoseViewer3D {
       rim.position.copy(at);
       const peg = this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.08, 10), this.chrome));
       peg.position.copy(at);
-      g.add(disc, rim, peg);
+      plate.add(disc, rim, peg);
     }
-    if (base !== undefined && -height / 2 - base > 0.02) {
-      const legH = -height / 2 - base;
-      const beam = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, 0.05, 0.34), this.graphite);
-      beam.position.set(0, base + 0.025, 0);
-      g.add(beam);
-      for (const s of [-1, 1]) {
-        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.04, legH, 0.06), this.iron);
-        leg.position.set(s * (w / 2 + 0.02), base + legH / 2, 0);
-        g.add(leg);
+    if (base !== undefined) {
+      const rad = (tilt * Math.PI) / 180;
+      // The plate's foot, and the slope its rails run down.
+      const foot = new THREE.Vector3(0, -(height / 2) * Math.cos(rad), -(height / 2) * Math.sin(rad));
+      const down = new THREE.Vector3(0, -Math.cos(rad), -Math.sin(rad));
+      const run = (foot.y - base) / Math.cos(rad);
+      if (run > 0.02) {
+        const end = foot.clone().addScaledVector(down, run);
+        const beam = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, 0.05, 0.34), this.graphite);
+        beam.position.set(0, base + 0.025, end.z);
+        g.add(beam);
+        for (const s of [-1, 1]) {
+          const rail = new THREE.Mesh(new THREE.BoxGeometry(0.04, run, 0.06), this.iron);
+          rail.position.copy(foot).addScaledVector(down, run / 2).setX(s * (w / 2 + 0.02));
+          rail.rotation.x = rad;
+          g.add(rail);
+        }
       }
     }
     return g;
@@ -2295,7 +2310,7 @@ export class PoseViewer3D {
           continue;
         }
         if (prop.height > 0.3 && prop.height <= 0.5) {
-          const sled = this.legPressSled(prop.height, floorY === undefined ? undefined : floorY - prop.center[1]);
+          const sled = this.legPressSled(prop.height, floorY === undefined ? undefined : floorY - prop.center[1], prop.tilt ?? 0);
           this.scene.add(sled);
           this.held.push(this.anchored(sled, i, "slab"));
           continue;

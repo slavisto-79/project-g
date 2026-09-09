@@ -16,7 +16,7 @@
 // and solved with `reach`, never as angles.
 
 import {
-  pose, bothArms, sideArms, sideLegs, plantedLegs, reachingArms, grip, spineTop, hipAt, along, reach, P,
+  pose, bothArms, sideArms, sideLegs, plantedLegs, reachingArms, grip, spineTop, hipAt, along, reach, P, ASPECT,
   type ExercisePose, type Figure, type Limb, type Point,
 } from "./poses";
 
@@ -1541,27 +1541,45 @@ export const exercisePoses = {
     [{ kind: "floor" }],
   ),
 
-  // Reclined on the seat, pressing the platform away. The machine holds the
-  // body off the ground, so there is no floor line.
+  // 45-degree leg press, from a reference clip measured with the pose lab
+  // (OPEX "Leg Press Machine Press", B8KqmwdomoU, side view, four reps in
+  // 12 s; MoveNet on 41 frames at 0.3 s): the lifter lies on a backrest
+  // reclined to about 65 degrees, the feet on a platform inclined 45
+  // degrees; at lockout the legs point up the track nearly straight (knee
+  // 170-178), at the bottom the knees fold to 50-55 with the thighs over
+  // the chest; a rep is a 1.1 s press, a 0.4 s lockout, a 1.2 s lowering
+  // and a 0.4 s pause folded. The old pose was a SEATED press: backrest at
+  // 38, a vertical platform, the feet travelling level.
+  // The feet ride a 45-degree line from the hip (0.20 -> 0.31 -> 0.4365 of
+  // the frame out, the last within a percent of the leg's length, which
+  // draws it locked); the platform is anchored to the ankle and leans with
+  // the track. The
+  // machine holds the body off the ground, so there is no floor line.
   legPress: pose(
     "side",
-    ([[0.648, 0.564], [0.700, 0.548], [0.746, 0.536]] as const).map(([fx, fy]) => {
+    [0.20, 0.31, 0.4365].map((reach) => {
       const pelvis = { x: 0.46, y: 0.640 };
-      const torso = 322;
+      const torso = 295;
+      const hip = hipAt(pelvis, torso, 0, "side");
+      const foot = { x: hip.x + (reach * Math.SQRT1_2) / ASPECT, y: hip.y - reach * Math.SQRT1_2 };
       return {
         pelvis,
         torso,
         neck: torso + 20,
-        // Hands on the handles beside the seat: the arms hang outside the
-        // backrest, not through its edge.
-        arms: sideArms(196, 206).map((arm) => ({ ...arm, spread: 0.06 })) as [Limb, Limb],
-        legs: plantedLegs(pelvis, torso, "side", [{ x: fx, y: fy }, { x: fx - 0.014, y: fy + 0.012 }], FORWARD, [352, 357]),
+        // Hands on the handles beside the seat: the arms lie along the
+        // reclined trunk, outside the backrest, the fists at the hips.
+        arms: sideArms(112, 118).map((arm) => ({ ...arm, spread: 0.06 })) as [Limb, Limb],
+        // Feet flat on the platform: the soles lie along the 45-degree face.
+        legs: plantedLegs(pelvis, torso, "side", [foot, { x: foot.x - 0.014, y: foot.y + 0.012 }], FORWARD, [45, 50]),
       };
     }),
     [
-      { kind: "slab", at: "pelvis", width: 0.42, height: 0.055, angle: 322 },
-      { kind: "slab", at: "ankle0", dx: 0.055, width: 0.045, height: 0.34 },
+      { kind: "slab", at: "pelvis", width: 0.42, height: 0.055, angle: 295 },
+      { kind: "slab", at: "ankle0", dx: 0.012, dy: 0.018, width: 0.045, height: 0.34, tilt: 45 },
     ],
+    "overhand",
+    1,
+    { tempo: { down: 1100, bottom: 400, up: 1200, top: 400 }, camera: { azimuth: 1.2 } },
   ),
 
   // One end of a full-length bar sits in a pivot on the floor ahead; the hands
