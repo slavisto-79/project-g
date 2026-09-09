@@ -607,10 +607,22 @@ export const exercisePoses = {
     "neutral",
   ),
 
+  // Barbell hip thrust, from a reference clip measured with the pose lab
+  // ("Barbell Hip Thrust", TSz4XEoFSFw, shoulders on a bench, 5 reps in
+  // 14 s; MoveNet on 71 frames at 0.2 s): at the top the body is a line
+  // from the shoulders to the knees -- hip 166-178, the trunk 8 degrees
+  // above horizontal, shin vertical, knee ~110; at the bottom the hips
+  // drop to 15cm off the floor with the trunk 50 degrees above horizontal
+  // and the hip closed to ~110; tempo up ~0.8 s, ~0.6 s squeezed at the
+  // top, down ~1.0 s, ~0.4 s at the bottom. The SHOULDER stays put on the
+  // bench: each pelvis is solved from a fixed shoulder point (0.30, 0.452)
+  // and the trunk angle (320 / 300 / 278 -- 270 is horizontal, head to the
+  // left), where before the pelvis was fixed and the shoulder slid 2cm
+  // along the pad. Movement 5 of batch 1.
   hipThrust: pose(
     "side",
-    ([[0.575, 300], [0.505, 284], [0.435, 266]] as const).map(([y, torso]) => {
-      const pelvis = { x: 0.45, y };
+    ([[0.405, 0.640, 320], [0.4415, 0.5745, 300], [0.462, 0.486, 278]] as const).map(([x, y, torso]) => {
+      const pelvis = { x, y };
       return {
         pelvis,
         torso,
@@ -629,6 +641,11 @@ export const exercisePoses = {
       { kind: "slab", at: "shoulder", width: 0.20, height: 0.055, dx: -0.06, dy: 0.085 },
       { kind: "bar", at: "pelvis", dy: -0.048, length: 0.17 },
     ],
+    "overhand",
+    1,
+    // The first key position is the BOTTOM, so "down" here is the thrust
+    // up, "bottom" the squeeze at the top, "up" the lowering.
+    { tempo: { down: 800, bottom: 600, up: 1000, top: 400 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
   clean: pose(
