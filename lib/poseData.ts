@@ -1278,10 +1278,36 @@ export const exercisePoses = {
     "neutral",
   ),
 
+  // Triceps pushdown, from a reference clip measured with the pose lab (OPEX
+  // "Rope Cable Tricep Pushdown", y6EdXBdL75A, side view, five reps in
+  // 11.6 s; MoveNet on 73 frames at 0.2 s): the trunk leans 4-8 degrees
+  // toward the stack, the knees soft; at the top the elbows sit 8-14 degrees
+  // ahead of the trunk with the forearms folded to 120-125 from vertical
+  // (elbow 68-75), the hands 12 cm ahead of and 10 cm below the shoulders;
+  // the push locks the arms out straight down (upper arm 4-7 forward,
+  // forearm 12-17, elbow 170-175), the hands 6 cm ahead of the thighs; a rep
+  // is a 1.0 s push, a 0.4 s lockout, a 1.0 s release and a beat at the
+  // top. Authored SIDE-ON (the old pose was face on, elbows out at 170 with
+  // the forearm from 100 to 174), arms explicit 170/60 -> 174/110 -> 175/165
+  // (elbow 70/116/170), the hands a rope's width apart, the pulley above and
+  // ahead on a long arm so the station's base clears the toes. Two
+  // exercises share it (Triceps Pushdown, Overhead Triceps Extension).
   tricepsExtension: pose(
-    "front",
-    [100, 138, 174].map((forearm) => standFront(0.497, 0, bothArms(170, forearm))),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.16, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.5, y: 0.02 }, handle: "rope" }],
+    "side",
+    ([[170, 60], [174, 110], [175, 165]] as const).map(([upper, lower]) =>
+      stand({ x: 0.5, y: 0.494 }, 6, sideArms(upper, lower).map((arm) => ({ ...arm, spread: -0.01 })) as [Limb, Limb]),
+    ),
+    [
+      { kind: "floor" },
+      { kind: "bar", at: "grip", length: 0.16, plates: false },
+      // The pulley must stay AHEAD of the hands in every key: the station is
+      // built from the first frame's grip-to-anchor direction, and a pulley
+      // behind the folded hands would put the column through the figure.
+      { kind: "cable", at: "grip", anchor: { x: 0.66, y: 0.02 }, handle: "rope", arm: 0.42 },
+    ],
+    "neutral",
+    1,
+    { tempo: { down: 1000, bottom: 400, up: 1000, top: 200 }, camera: { azimuth: 0.9, lying: false } },
   ),
 
   kickback: pose(
