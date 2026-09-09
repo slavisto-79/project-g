@@ -6119,7 +6119,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Goblet Squat": "gobletSquat",
   "Heels-Elevated Goblet Squat": "gobletSquat",
   "Dumbbell Front Squat": "gobletSquat",
-  "Box Squat": "squat",
+  "Box Squat": "boxSquat",
   "Bodyweight Squat": "bodyweightSquat",
   "Hack Squat": "squat",
   "Smith Machine Squat": "squat",
