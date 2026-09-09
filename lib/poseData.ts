@@ -16,7 +16,7 @@
 // and solved with `reach`, never as angles.
 
 import {
-  pose, bothArms, sideArms, sideLegs, plantedLegs, reachingArms, grip, spineTop,
+  pose, bothArms, sideArms, sideLegs, plantedLegs, reachingArms, grip, spineTop, hipAt, along, P,
   type ExercisePose, type Figure, type Limb, type Point,
 } from "./poses";
 
@@ -270,17 +270,37 @@ export const exercisePoses = {
     [{ kind: "floor" }],
   ),
 
+  // Bulgarian split squat, from a reference clip measured with the pose lab
+  // ("Bulgarian Split Squat with Dumbbells", Fmjj7wFJWRE, side view, two
+  // reps after a 14 s setup; MoveNet on 99 frames at 0.2 s): the trunk
+  // leans to 20-23 degrees at the bottom (5-8 standing), the FRONT thigh
+  // goes to 70-76 degrees from vertical with the shin 25-27 forward and the
+  // knee at 78-84, the front leg is near vertical at the top (knee 168-173),
+  // and the tempo is a 1.5 s descent, a touch at the bottom, a 0.8 s stand
+  // and a short pause standing. Authored from the front leg's angles (thigh
+  // from vertical 8/43/70, shin 2/19/31, knee 170/118/79) with the pelvis
+  // walked back from the planted front foot -- solving the front leg to the
+  // foot cannot give a knee between 163 and 180 (two-link IK folds the last
+  // one percent of reach into seventeen degrees), and the clip stands at
+  // 168-173. The rear leg is solved to the box. The box foot sits at 0.42,
+  // not 0.372: with the hip over the front foot at the top a rear foot 34cm
+  // behind is out of the leg's reach (0.51 against 0.44). The old frames
+  // kept the pelvis midway between the feet and the trunk at 6 throughout.
   splitSquat: pose(
     "side",
-    [0.520, 0.588, 0.658].map((y) => {
-      const pelvis = { x: 0.49, y };
+    ([[6, 8, 2], [14, 43, 19], [22, 70, 31]] as const).map(([torso, thigh, shin]) => {
+      const front: Limb = { upper: 180 - thigh, lower: 180 + shin, end: 90 };
+      const ankle = { x: 0.60, y: FLOOR };
+      const knee = along(ankle, front.lower + 180, P.shin);
+      const hip = along(knee, front.upper + 180, P.thigh);
+      const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
       return {
         pelvis,
-        torso: 6,
+        torso,
+        neck: torso > 10 ? torso - 10 : torso,
         arms: HANG,
-        // Front foot flat, rear foot up on a box behind. Different heights, so
-        // the two legs are solved separately.
-        legs: plantedLegs(pelvis, 6, "side", [{ x: 0.60, y: FLOOR }, { x: 0.372, y: 0.868 }], FORWARD),
+        // Front foot flat on the floor, rear foot up on a box behind.
+        legs: [front, plantedLegs(pelvis, torso, "side", [ankle, { x: 0.42, y: 0.868 }], FORWARD)[1]] as [Limb, Limb],
       };
     }),
     [
@@ -291,6 +311,8 @@ export const exercisePoses = {
       { kind: "bell", at: "hand0", each: true },
     ],
     "neutral",
+    1,
+    { tempo: { down: 1500, bottom: 200, up: 800, top: 300 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
   lunge: pose(
