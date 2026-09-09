@@ -356,6 +356,47 @@ export const exercisePoses = {
     { tempo: { down: 1400, bottom: 250, up: 750, top: 1000 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
+  // Walking lunge, from a reference clip measured with the pose lab (OPEX
+  // "Walking Lunge", 6wZoPedlpok, side view, two steps in 6.4 s; MoveNet on
+  // 46 frames at 0.2 s): from feet together (knee 165-173, trunk 1-5) a
+  // 0.4 s step lands the front foot, a 0.8 s descent puts the front thigh
+  // level (84-88 from vertical) with the knee 25-29 past the ankle (knee
+  // 62-70), the rear knee just off the floor under the hip with the heel
+  // high, trunk 10; a 0.2 s touch, then 0.8 s up and through to feet
+  // together for 0.6 s. The figure cannot travel, so the step is drawn in
+  // place: feet together -> the front foot lands ahead -> the lunge, and the
+  // return retraces it. Front leg explicit (thigh 2/40/78, shin 2 fwd / 14
+  // back / 24 fwd), pelvis walked back from the front foot; rear leg solved
+  // to an ankle hung off a fixed toe with the heel rising (foot 50/80
+  // degrees off the floor); front thigh 78 rather than the clip's 86 so the
+  // rear knee's round clears the floor. Hands together at the chest, as the
+  // clip. `lunge` (the loaded lunges) is untouched.
+  walkingLunge: pose(
+    "side",
+    ([[2, 2, 2, 0.37, 0], [4, 40, -14, 0.62, 140], [10, 78, 24, 0.62, 170]] as const).map(([torso, thigh, shinKneeFwd, ankleX, rearFoot]) => {
+      const front: Limb = { upper: 180 - thigh, lower: 180 + shinKneeFwd, end: 90 };
+      const ankle = { x: ankleX, y: FLOOR };
+      const knee = along(ankle, front.lower + 180, P.shin);
+      const hip = along(knee, front.upper + 180, P.thigh);
+      const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      const rear: Limb = rearFoot
+        ? (() => {
+            const rearAnkle = along({ x: 0.389, y: FLOOR + 0.02 }, rearFoot + 180, 0.069);
+            return { ...reach(hipAt(pelvis, torso, 1, "side"), rearAnkle, P.thigh, P.shin, -1), end: rearFoot };
+          })()
+        : { upper: 178, lower: 182, end: 90 };
+      // Hands clasped in front of the chest: elbows tucked, forearms up and
+      // forward, fists pulled to the midline. (Forearms near vertical put the
+      // hands at the chin -- a prayer, not a clasp.)
+      const arms = sideArms(165, 45).map((arm) => ({ ...arm, spread: -0.06 })) as [Limb, Limb];
+      return { pelvis, torso, neck: torso > 6 ? torso - 6 : torso, arms, legs: [front, rear] as [Limb, Limb] };
+    }),
+    [{ kind: "floor" }],
+    "neutral",
+    1,
+    { tempo: { down: 1200, bottom: 200, up: 800, top: 600 }, camera: { azimuth: Math.PI / 2 } },
+  ),
+
   lunge: pose(
     "side",
     [0.545, 0.612, 0.680].map((y) => {

@@ -6154,7 +6154,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "T-Bar Row": "bentRow",
 
   "Bodyweight Reverse Lunge": "lunge",
-  "Walking Lunge": "lunge",
+  "Walking Lunge": "walkingLunge",
   "Dumbbell Lunge": "lunge",
   "Barbell Walking Lunge": "lunge",
   "Split Squat": "splitSquatStatic",
