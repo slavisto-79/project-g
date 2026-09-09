@@ -196,7 +196,11 @@ function step(from: Point, angleDeg: number, length: number): Point {
 // `abduct` (degrees) swings the whole arm outboard in the frontal plane about
 // the fore-aft axis through the shoulder -- a lying fly's arc, which a side
 // view has no other way to say. Both bones keep their length.
-type Limb = { upper: number; lower: number; end?: number; spread?: number; turn?: number; flare?: number; abduct?: number };
+// `forward` (degrees, front view) pitches the forearm out of the drawing
+// plane toward the belly, about the elbow -- a side plank's support forearm,
+// which lies on the floor pointing at the camera. The hand comes with it and
+// the bone keeps its length; an arm with `forward` gets no guessed depth.
+type Limb = { upper: number; lower: number; end?: number; spread?: number; turn?: number; flare?: number; abduct?: number; forward?: number };
 
 // How a movement is timed, in milliseconds: the way down, a pause at the
 // bottom, the way up, a pause at the top. Without one, every leg of the
@@ -259,12 +263,15 @@ function build(figure: Figure, view: View): { segments: PoseSegment[]; head: { x
     const side = index as 0 | 1;
     const from = shoulder[side]!;
     const elbow = step(from, arm.upper, P.upperArm);
-    const wrist = step(elbow, arm.lower, P.forearm);
+    // A forearm pitched out of the plane (`forward`) is drawn foreshortened,
+    // the way the projection would show it: at a right angle it is a point.
+    const flat = view === "front" && arm.forward ? Math.cos((arm.forward * Math.PI) / 180) : 1;
+    const wrist = step(elbow, arm.lower, P.forearm * flat);
     limb(from, elbow, side);
     limb(elbow, wrist, side);
     // The hand carries on from the forearm unless the pose says otherwise --
     // which it does for anything gripping a bar across the line of the arm.
-    limb(wrist, step(wrist, arm.end ?? arm.lower, P.hand), side);
+    limb(wrist, step(wrist, arm.end ?? arm.lower, P.hand * flat), side);
     wrists.push(wrist);
   });
 
@@ -313,7 +320,7 @@ function frontDepth(xWorld: number, aboveShoulder: number): number {
 // -- sagittal for a side view, frontal for a front view -- and the third axis
 // comes from the girdle widths, which is exactly the information a flat
 // projection had to throw away.
-function build3d(figure: Figure, view: View): { bones: PoseBone3D[]; head: { c: Vec3; r: number }; hands: [Vec3, Vec3] } {
+function build3d(figure: Figure, view: View, facing: 1 | -1 = 1): { bones: PoseBone3D[]; head: { c: Vec3; r: number }; hands: [Vec3, Vec3] } {
   // Authored screen x compressed horizontal lengths by ASPECT so they matched
   // the 2D frame; multiplying by ASPECT restores world proportions. Screen y
   // grows downward; world Y grows up.
@@ -418,13 +425,40 @@ function build3d(figure: Figure, view: View): { bones: PoseBone3D[]; head: { c: 
     // Face on, the authored arms have no depth, so hands that cross in front
     // of the trunk would sit INSIDE it; give them the depth a real arm has
     // there -- well forward at the centreline, a hair forward at the sides.
-    if (view === "front") {
+    if (view === "front" && !arm.forward) {
       const z = frontDepth(wrist[0], wrist[1] - shoulderMid[1]);
       elbow[2] += z / 2;
       wrist[2] += z;
     }
     // Walked from the already-shifted wrist, so it carries the splay with it.
-    const handTip = walk(wrist, arm.end ?? arm.lower, P.hand);
+    let handTip = walk(wrist, arm.end ?? arm.lower, P.hand);
+    if (view === "front" && arm.forward) {
+      // The forearm (and the hand on it) turned about the in-plane axis
+      // through the elbow that is square to the forearm, so the wrist swings
+      // out of the plane toward the belly (+z for facing 1), the bone its
+      // full length throughout. Rodrigues about that axis.
+      const d: Vec3 = [wrist[0] - elbow[0], wrist[1] - elbow[1], 0];
+      const dl = Math.hypot(d[0], d[1]) || 1;
+      const k: Vec3 = [-d[1] / dl, d[0] / dl, 0];
+      const theta = (-facing * arm.forward * Math.PI) / 180;
+      const c = Math.cos(theta);
+      const sn = Math.sin(theta);
+      const turn = (p: Vec3): Vec3 => {
+        const v: Vec3 = [p[0] - elbow[0], p[1] - elbow[1], p[2] - elbow[2]];
+        const dot = k[0] * v[0] + k[1] * v[1] + k[2] * v[2];
+        const cross: Vec3 = [k[1] * v[2] - k[2] * v[1], k[2] * v[0] - k[0] * v[2], k[0] * v[1] - k[1] * v[0]];
+        return [
+          elbow[0] + v[0] * c + cross[0] * sn + k[0] * dot * (1 - c),
+          elbow[1] + v[1] * c + cross[1] * sn + k[1] * dot * (1 - c),
+          elbow[2] + v[2] * c + cross[2] * sn + k[2] * dot * (1 - c),
+        ];
+      };
+      const w = turn(wrist);
+      handTip = turn(handTip);
+      wrist[0] = w[0];
+      wrist[1] = w[1];
+      wrist[2] = w[2];
+    }
     bones.push({ part: "upperArm", side, a: shoulder[side]!, b: elbow });
     bones.push({ part: "forearm", side, a: elbow, b: wrist });
     bones.push({ part: "hand", side, a: wrist, b: handTip });
@@ -647,7 +681,7 @@ function pose(
   // The world form is derived from the same figures and the already-resolved
   // props, so the two renderers can never disagree about the movement.
   const frames3d = figures.map((figure, i) => {
-    const world = build3d(figure, view);
+    const world = build3d(figure, view, facing);
     return { ...world, props: propsTo3d(frames[i]!.props, view, world.hands) };
   });
   return { frames, frames3d, grip, facing, ...timing };
