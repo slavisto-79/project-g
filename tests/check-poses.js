@@ -288,7 +288,13 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
         const clash = headR + BAR_RADIUS - dist;
         if (clash > 0) note(name + "[" + fi + "]: bar passes through the head by " + clash.toFixed(3));
       } else if (prop.kind === "cable") {
-        const clash = headR - segmentDistance(c, prop.anchor, prop.center);
+        // A cable that ends at a hand is drawn to the HAND, which the world
+        // build carries outboard of the girdle; a side view authors the prop
+        // centre on the midline, where a band from under the feet to a locked-
+        // out press would look as if it ran up through the face.
+        const hand = /^hand([01])$/.exec(prop.end || "");
+        const far = hand ? frame.hands[Number(hand[1])] : prop.center;
+        const clash = headR - segmentDistance(c, prop.anchor, far);
         if (clash > 0) note(name + "[" + fi + "]: cable passes through the head by " + clash.toFixed(3));
       }
     }
