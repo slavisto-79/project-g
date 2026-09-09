@@ -1140,24 +1140,42 @@ export const exercisePoses = {
 
   // --- Vertical push -------------------------------------------------------
 
+  // Overhead press, from a reference clip measured with the pose lab
+  // (TylerPath "How to Overhead Press Correctly", 0YYeELi896g, three-quarter
+  // side view, three reps between the cuts; MoveNet on 63 frames at 0.3 s):
+  // the bar starts racked on the upper chest with the wrists at shoulder
+  // height, the forearms vertical and the elbows 25-35 degrees ahead of the
+  // trunk (elbow 27-35); it passes in front of the face and locks out with
+  // the arms straight up (upper arm 176-179 from vertical, elbow 160-172)
+  // and the bar over the shoulders; the trunk leans back 5-10 degrees at the
+  // start and comes upright under the bar; a rep is a ~1.0 s press, a short
+  // lockout, a ~1.0 s lowering and a beat racked. Authored SIDE-ON now (the
+  // old pose was a front view with the elbows out to the sides and no lean),
+  // arms explicit -- 150/5, 95/0, 5/355 -- with the elbows flared 45 degrees
+  // outboard, which is where a press carries them, and the grip 6cm outside
+  // the shoulders. The head tips back a touch while the bar passes.
   overheadPress: pose(
-    "front",
-    [0.30, 0.115, -0.030].map((barY) => {
-      const pelvis = { x: 0.5, y: 0.497 };
+    "side",
+    ([[355, 150, 5, 350], [358, 95, 0, 352], [0, 5, 355, 0]] as const).map(([torso, upper, lower, neck]) => {
+      const pelvis = { x: 0.5, y: 0.492 };
       return {
         pelvis,
-        torso: 0,
-        arms: reachingArms(pelvis, 0, "front", grip({ x: 0.5, y: barY }, 0.12, "front"), DOWN),
-        legs: plantedLegs(pelvis, 0, "front", FEET_FRONT, OUT),
+        torso,
+        neck,
+        arms: sideArms(upper, lower).map((arm) => ({ ...arm, spread: 0.06, flare: 45 })) as [Limb, Limb],
+        legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
       };
     }),
     [
       { kind: "floor" },
       { kind: "bar", at: "grip", length: 0.40 },
       // Stood on, one band to each hand, when the press is done on a band.
-      { kind: "cable", at: "hand0", anchor: { x: 0.5, y: 0.94 }, band: true },
-      { kind: "cable", at: "hand1", anchor: { x: 0.5, y: 0.94 }, band: true },
+      { kind: "cable", at: "hand0", anchor: { x: 0.525, y: 0.94 }, band: true },
+      { kind: "cable", at: "hand1", anchor: { x: 0.525, y: 0.94 }, band: true },
     ],
+    "overhand",
+    1,
+    { tempo: { down: 1000, bottom: 400, up: 1100, top: 500 }, camera: { azimuth: 0.75 } },
   ),
 
   lateralRaise: pose(
