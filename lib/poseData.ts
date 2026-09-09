@@ -1366,25 +1366,46 @@ export const exercisePoses = {
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.44, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.5, y: -0.06 } }],
   ),
 
+  // Pull-up, from a reference clip measured with the pose lab (OPEX "Strict
+  // Pull Up", jgFel4wZl3I, side view, four reps in 8.6 s; MoveNet on 60
+  // frames at 0.2 s): a dead hang (elbow 165-180, trunk 3-5 from vertical,
+  // the legs 5-13 degrees behind the hips with the knees soft at 168-174)
+  // rising until the chin clears the bar -- the shoulder 5 cm under the bar
+  // and a hand's breadth behind it, the trunk arched to 15-18, the legs
+  // 10-15 back; a rep is a 1.1 s pull, a beat at the top, a 1.1 s lowering
+  // and a beat hanging. Authored SIDE-ON (the old pose was a front view: a
+  // straight body rising under the bar with no arch and no hollow), the
+  // shoulder placed under and behind the fixed bar each key and the pelvis
+  // walked down the trunk from it; the grip a hand outside the shoulders
+  // (spread 0.06). The assistance band hangs from the HAND -- the bar is on
+  // the midline in a side view, the hand is outboard of the girdle.
   pullUp: pose(
-    "front",
-    [0.710, 0.560, 0.428].map((pelvisY) => {
-      const pelvis = { x: 0.5, y: pelvisY };
+    "side",
+    // [trunk lean, shoulder below the bar, shoulder behind the bar, thigh, shin]
+    // -- the face passes BEHIND the bar on the way up, so the shoulder sits
+    // 10 cm back of it mid-pull and 8 cm at the top, where the chin is over.
+    ([[2, 0.290, 0.02, 185, 195], [8, 0.132, 0.10, 188, 198], [15, 0.026, 0.08, 192, 202]] as const).map(([torso, below, behind, upper, lower]) => {
+      const bar = { x: 0.512, y: 0.186 };
+      const shoulder = { x: bar.x - behind / ASPECT, y: bar.y + below };
+      const rad = (torso * Math.PI) / 180;
+      const pelvis = { x: shoulder.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x - (P.spine * Math.sin(rad)) / ASPECT, y: shoulder.y + P.spine * Math.cos(rad) };
       return {
         pelvis,
-        torso: 2,
+        torso,
+        neck: torso > 10 ? 350 : 0,
         // The bar is fixed; the body climbs to it.
-        arms: reachingArms(pelvis, 2, "front", grip({ x: 0.5, y: 0.186 }, 0.145, "front"), DOWN),
-        legs: bothArms(174, 176),
+        arms: reachingArms(pelvis, torso, "side", grip(bar, 0, "side"), FORWARD).map((arm) => ({ ...arm, spread: 0.06 })) as [Limb, Limb],
+        legs: [{ upper, lower, end: 150 }, { upper, lower, end: 150 }] as [Limb, Limb],
       };
     }),
     [
       { kind: "bar", at: "grip", length: 0.44, plates: false },
-      // The assistance band: looped over the bar, a foot standing in it.
-      // Off the midline: a band looped over the bar hangs down the side of
-      // the body with a foot in it, not through the head.
-      { kind: "cable", at: "ankle0", anchor: { x: 0.633, y: 0.186 }, band: true },
+      // The assistance band: looped over the bar by the hand, a foot in it.
+      { kind: "cable", at: "ankle0", anchorAt: "hand0", band: true },
     ],
+    "overhand",
+    1,
+    { tempo: { down: 1100, bottom: 200, up: 1100, top: 300 }, camera: { azimuth: 0.9 } },
   ),
 
   invertedRow: pose(
