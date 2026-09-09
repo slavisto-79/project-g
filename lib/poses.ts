@@ -53,7 +53,10 @@ export type PoseProp =
   // end: the joint the cable or band finishes at, carried through so the
   // renderer can put it on the actual ankle or hand. A side view authors
   // every prop on the midline, so the prop centre cannot say.
-  | { kind: "cable"; x: number; y: number; ax: number; ay: number; rope?: boolean; handle?: "rope" | "d"; band?: string; end?: string }
+  // anchorAt: the joint the anchor rides, when it is one (a band looped over
+  // a bar by the hand) -- the world build then anchors on the actual hand,
+  // outboard of the girdle, where a side view's midline cannot put it.
+  | { kind: "cable"; x: number; y: number; ax: number; ay: number; rope?: boolean; handle?: "rope" | "d"; band?: string; end?: string; anchorAt?: string }
   // A ground line. Side views are hard to read without one -- a bent-over
   // figure and a lying one are the same jumble of sticks until you can see
   // which way is down and where the body is relative to the floor.
@@ -487,8 +490,15 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
       // The cable ends where the hand actually is, depth included.
       // A machine stands in front of a face-on figure; a band does not -- it's
       // anchored under a foot or behind a bench, in the body's own plane.
-      const anchor: Vec3 =
-        view === "front" && !prop.band ? [(prop.ax - 0.5) * ASPECT, 1 - prop.ay, 0.45] : point(prop.ax, prop.ay);
+      // An anchor that rides a hand takes the hand's world position -- a side
+      // view puts every authored point on the midline, and a band looped over
+      // the bar by the hand hangs down the side of the body, not through it.
+      const handAnchor = /^hand([01])$/.exec(prop.anchorAt ?? "");
+      const anchor: Vec3 = handAnchor
+        ? hands[Number(handAnchor[1])]!
+        : view === "front" && !prop.band
+          ? [(prop.ax - 0.5) * ASPECT, 1 - prop.ay, 0.45]
+          : point(prop.ax, prop.ay);
       const centre = point(prop.x, prop.y);
       if (view === "front") centre[2] = heldDepth(prop.x, prop.y);
       return { kind: "cable" as const, center: centre, anchor, ...(prop.rope ? { rope: true } : {}), ...(prop.handle ? { handle: prop.handle } : {}), ...(prop.band ? { band: prop.band } : {}), ...(prop.end ? { end: prop.end } : {}) };
@@ -539,7 +549,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
       // ankles is anchored on the ankle that is not pulling.
       const from = spec.anchorAt ? joints[spec.anchorAt] : spec.anchor;
       if (!from) throw new Error(`pose: cable anchored to unknown joint "${spec.anchorAt ?? "(none)"}"`);
-      drawn.push({ kind: "cable", x: grip.x, y: grip.y, ax: from.x, ay: from.y, ...(spec.rope ? { rope: true } : {}), ...(spec.handle ? { handle: spec.handle } : {}), ...(spec.band ? { band: spec.at } : {}), end: spec.at });
+      drawn.push({ kind: "cable", x: grip.x, y: grip.y, ax: from.x, ay: from.y, ...(spec.rope ? { rope: true } : {}), ...(spec.handle ? { handle: spec.handle } : {}), ...(spec.band ? { band: spec.at } : {}), end: spec.at, ...(spec.anchorAt ? { anchorAt: spec.anchorAt } : {}) });
       continue;
     }
     if (spec.kind === "bell" && spec.each) {
