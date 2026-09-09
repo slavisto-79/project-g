@@ -521,12 +521,37 @@ export const exercisePoses = {
     { tempo: { down: 700, bottom: 650, up: 550, top: 500 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
+  // Good morning, from a reference clip measured with the pose lab ("High
+  // Bar Good Morning", side view, 3 reps in 17.3 s; MoveNet on 70 frames):
+  // the trunk reaches 71-78 degrees from vertical, the hips go BACK (thigh
+  // 28-37 degrees back) with the shin a few degrees forward and the knee
+  // soft at 150-158, and the tempo is a very slow lower (~4.5 s), a beat at
+  // the bottom, a fast stand (~1.0 s) and a pause standing (~0.5 s). The
+  // old frames took the pelvis 8cm FORWARD and bent the knees under it as
+  // the trunk leaned -- a squat-hinge hybrid. Authored from the joints:
+  // thigh back -4/12/24/33, shin -4/-3/-4/-7 (the knees stay BEHIND the
+  // ankles: the clip's knee of 150-158 with the thigh 33 back only closes
+  // if the shin leans back, and that is what a good morning looks like --
+  // legs nearly straight, hips pushed away), trunk 5/30/55/75, knee
+  // 180/171/160/154; the bar stays on the traps (the wide napeArms grip)
+  // and over the mid-foot at the bottom; hip height 0.439 -> 0.402.
   goodMorning: pose(
     "side",
-    ([[0.500, 0.494, 4], [0.528, 0.528, 40], [0.552, 0.538, 72]] as const).map(([x, y, torso]) =>
-      stand({ x, y }, torso, napeArms({ x, y }, torso), torso > 30 ? torso - 16 : torso),
+    ([[0.523, 0.490, 5, 180, 180], [0.485, 0.495, 30, 168, 177], [0.452, 0.510, 55, 156, 176], [0.424, 0.528, 75, 147, 173]] as const).map(
+      ([x, y, torso, upper, lower]) => ({
+        pelvis: { x, y },
+        torso,
+        neck: torso > 30 ? torso - 16 : torso,
+        arms: napeArms({ x, y }, torso),
+        legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
+      }),
     ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+    "overhand",
+    1,
+    // The clip's tempo; its camera was a shade off the side, and so is
+    // this one -- square on, the near plate hides the head and the trunk.
+    { tempo: { down: 4500, bottom: 250, up: 1000, top: 500 }, camera: { azimuth: 1.2 } },
   ),
 
   singleLegHinge: pose(
