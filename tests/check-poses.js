@@ -105,7 +105,9 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
 const STANDING_FRAMES = {
   squat: 0, frontSquat: 0, gobletSquat: 0, bodyweightSquat: 0, goodMorning: 0,
   hinge: 0, trapBarDeadlift: 0, singleLegHinge: 0, curl: 0, frontRaise: 0,
-  overheadPress: 0, pulldown: 0, lateralRaise: 0, fly: 0,
+  // (pulldown sat down when it was authored from its clip; it is no longer a
+  // standing frame.)
+  overheadPress: 0, lateralRaise: 0, fly: 0,
   tricepsExtension: 0, jump: 0, lateralLunge: 0, clean: 4,
   straightArmPulldown: 0, facePull: 0, landminePress: 0, burpee: 1,
   cableCurl: 0, cableFly: 0, cableLateralRaise: 0, cablePullThrough: 0,

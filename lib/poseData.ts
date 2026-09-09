@@ -1352,18 +1352,51 @@ export const exercisePoses = {
     ],
   ),
 
+  // Lat pulldown, from a reference clip measured with the pose lab (OPEX
+  // "Cable Lat Pulldown Machine", PEv0gTcMY3g, three-quarter side view, four
+  // reps in 10.5 s; MoveNet on 56 frames at 0.25 s): SEATED, thighs level
+  // (77-83 from vertical) with the shins tucked 23 back under the seat (knee
+  // 73-81), the trunk leaning back 8-12; at the top the arms reach up and a
+  // little forward to the bar (upper arm 143-158 from vertical, elbow
+  // 160-175, the wrist 25 cm above and 8 cm ahead of the shoulder); the pull
+  // brings the elbows straight down to the ribs (upper arm 1-13 from
+  // vertical, elbow 35-41) and the bar to the upper chest, 4 cm under the
+  // shoulder line; a rep is a 1.0 s pull, a touch, a 1.5 s release and a
+  // beat at the top. Authored SIDE-ON on a seat under the hips with the
+  // feet on the floor, the hands solved to shoulder-relative targets with
+  // the elbows breaking back, the grip wide (spread 0.14), the pulley above
+  // and just ahead of the hands. The old pose STOOD on the floor, face on,
+  // pulling a bar from 0.18 to 0.31 of the frame with no lean and no seat.
   pulldown: pose(
-    "front",
-    [0.180, 0.244, 0.310].map((barY) => {
-      const pelvis = { x: 0.5, y: 0.492 };
+    "side",
+    // [hand above the shoulder, hand ahead of it]: the top reach is 98% of
+    // the arm, which two-link IK draws at ~160 -- the clip's 160-175.
+    ([[0.272, 0.085], [0.10, 0.08], [-0.04, 0.079]] as const).map(([above, ahead]) => {
+      const torso = 350;
+      const pelvis = { x: 0.50, y: 0.693 };
+      const targets = [0, 1].map((side) => {
+        const s = shoulderAt(pelvis, torso, side as 0 | 1, "side");
+        return { x: s.x + ahead / ASPECT, y: s.y - above };
+      }) as [Point, Point];
       return {
         pelvis,
-        torso: 4,
-        arms: reachingArms(pelvis, 4, "front", grip({ x: 0.5, y: barY }, 0.145, "front"), DOWN),
-        legs: plantedLegs(pelvis, 4, "front", FEET_FRONT, OUT),
+        torso,
+        neck: 0,
+        arms: reachingArms(pelvis, torso, "side", targets, BACK).map((arm) => ({ ...arm, spread: 0.14 })) as [Limb, Limb],
+        legs: [{ upper: 100, lower: 203, end: 90 }, { upper: 100, lower: 203, end: 90 }] as [Limb, Limb],
       };
     }),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.44, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.5, y: -0.06 } }],
+    [
+      { kind: "floor" },
+      { kind: "slab", at: "pelvis", width: 0.16, height: 0.055, dy: 0.075 },
+      { kind: "bar", at: "grip", length: 0.44, plates: false },
+      // The pulley just ahead of the hands, on a long arm from a column that
+      // stands clear of the knees and the machine's own base.
+      { kind: "cable", at: "grip", anchor: { x: 0.57, y: 0.02 }, arm: 0.55 },
+    ],
+    "overhand",
+    1,
+    { tempo: { down: 1000, bottom: 150, up: 1500, top: 200 }, camera: { azimuth: 0.9 } },
   ),
 
   // Pull-up, from a reference clip measured with the pose lab (OPEX "Strict

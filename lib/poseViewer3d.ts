@@ -1545,7 +1545,10 @@ export class PoseViewer3D {
     const g = new THREE.Group();
     g.position.set(anchor.x, 0, anchor.z);
     g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), toward);
-    const colZ = -0.16;
+    // The column stands back from the pulley by the prop's arm -- a short
+    // bracket unless the pose says otherwise (a lat pulldown's pulley hangs
+    // out over the seat from a column well in front of the figure).
+    const colZ = -(prop.arm ?? 0.16);
     const top = Math.max(anchor.y + 0.14, 1.18);
     for (const x of [-0.17, 0.17]) {
       const post = new THREE.Mesh(new THREE.BoxGeometry(0.05, top - floorY, 0.05), this.iron);
@@ -2593,6 +2596,15 @@ export class PoseViewer3D {
           // patch of nothing.
           box.expandByPoint(vec(prop.anchor).add(new THREE.Vector3(0.28, 0.2, 0.28)));
           box.expandByPoint(new THREE.Vector3(prop.anchor[0] - 0.28, 0.02, prop.anchor[2] - 0.28));
+          // A long pulley arm puts the column well past the anchor; hold
+          // the column's ground too, or the card cuts the machine in half.
+          if (prop.arm !== undefined && prop.arm > 0.28) {
+            const away = new THREE.Vector3(prop.anchor[0] - prop.center[0], 0, prop.anchor[2] - prop.center[2]);
+            if (away.lengthSq() < 1e-6) away.set(0, 0, 1);
+            const column = vec(prop.anchor).addScaledVector(away.normalize(), prop.arm);
+            box.expandByPoint(column.clone().add(new THREE.Vector3(0.28, 0.2, 0.28)));
+            box.expandByPoint(new THREE.Vector3(column.x - 0.28, 0.02, column.z - 0.28));
+          }
         } else if (prop.kind !== "floor") {
           box.expandByPoint(vec(prop.center).addScalar(0.08));
           box.expandByPoint(vec(prop.center).addScalar(-0.08));
