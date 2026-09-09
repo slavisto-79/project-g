@@ -202,12 +202,40 @@ export const exercisePoses = {
   // A front squat racks the bar on the front delts with high elbows -- the
   // clean's catch -- and the trunk stays far more upright than a back squat,
   // which is the entire point of the front rack.
+  // Front squat, from a reference clip measured with the pose lab ("How To
+  // Do A Barbell front squat", Q1Ypb8ZNzI4, side view, the first 8 s -- two
+  // reps before the cut to a close-up; MoveNet on 41 frames at 0.2 s): a
+  // DEEP squat -- at the bottom the thigh is 84 degrees from vertical (the
+  // hip a shade above the knee), the shin 28 forward with the knee well over
+  // the toes, the knee 67; the trunk 33-38 from vertical (a keypoint trunk
+  // reads a few degrees high, so 32 here); the upper arms 45-55 degrees up
+  // from plumb with the elbows high and the forearms folded back to the
+  // shoulders; and the tempo a 1.4 s descent, a 0.5-1.0 s pause at the
+  // bottom, a 0.9 s stand and 0.8 s standing. Authored from the joints:
+  // thigh from vertical 2/46/65/84, shin 2/16/24/28, knee 176/118/91/68
+  // (the clip stands with the knees 15 degrees soft; the standing-knee rule
+  // in check-poses allows 4),
+  // trunk 3/15/26/32, hip height 0.435 -> 0.214 above the ankle in even
+  // steps; arms 135/350 (elbow 35 -- the clip's 10-20 is past the range
+  // check-poses allows, and the hands still sit on the front delts).
+  // Stance and gaze from `squatting()`.
+  // The old frames were the back squat's legs under a 2-15 degree trunk
+  // with the bar carried 16cm in front of the shoulders.
   frontSquat: pose(
     "side",
-    ([[0.500, 0.494, 2], [0.484, 0.578, 7], [0.466, 0.636, 12], [0.450, 0.690, 15]] as const).map(([x, y, torso]) =>
-      stand({ x, y }, torso, sideArms(150, 40)),
+    ([[0.523, 0.490, 3, 178, 182], [0.455, 0.567, 15, 134, 196], [0.446, 0.639, 26, 115, 204], [0.441, 0.717, 32, 96, 208]] as const).map(
+      ([x, y, torso, upper, lower]) =>
+        squatting({
+          pelvis: { x, y },
+          torso,
+          arms: sideArms(135, 350),
+          legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
+        }),
     ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+    "overhand",
+    1,
+    { tempo: { down: 1400, bottom: 600, up: 900, top: 800 }, camera: SQUAT_CAMERA },
   ),
 
   // A goblet squat hugs the bell against the chest with both hands.
