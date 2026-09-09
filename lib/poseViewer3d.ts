@@ -349,8 +349,10 @@ export class PoseViewer3D {
   private held: THREE.Group[] = [];
   private centre = new THREE.Vector3();
   private orbitRadius = 1.6;
-  // Set by fit(): true when the scene is much wider than it is tall.
+  // Set by fit(): true when the scene is much wider than it is tall, unless
+  // the pose's camera says so itself.
   private lyingScene = false;
+  private cameraLying: boolean | undefined;
   // Hands shift outboard with their held weights, so the grip stays closed.
   private fistOutboard = false;
   private readonly interactive: boolean;
@@ -435,6 +437,7 @@ export class PoseViewer3D {
     this.frames = pose.frames3d;
     this.tempo = pose.tempo;
     this.azimuth = pose.camera?.azimuth ?? DEFAULT_AZIMUTH;
+    this.cameraLying = pose.camera?.lying;
     this.interactive = options.interactive;
     this.reduceMotion = options.reduceMotion ?? false;
     this.onReady = options.onReady;
@@ -2602,7 +2605,10 @@ export class PoseViewer3D {
     if (this.mat) box.expandByObject(this.mat);
     box.getCenter(this.centre);
     const size = box.getSize(new THREE.Vector3());
-    this.lyingScene = Math.max(size.x, size.z) > size.y * 1.45;
+    // A pose can say outright whether it lies down: the box includes the
+    // props, and a two-metre barbell held by a bent-over figure makes the
+    // scene "wider than tall" without anyone lying anywhere.
+    this.lyingScene = this.cameraLying ?? Math.max(size.x, size.z) > size.y * 1.45;
     const extent = Math.max(size.x, size.y, size.z);
     // Both axes must fit: the vertical field of view bounds the height, and
     // the horizontal one -- vertical times aspect -- bounds the width. On a

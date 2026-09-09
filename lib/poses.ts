@@ -130,7 +130,10 @@ export type ExercisePose = {
   tempo?: Tempo;
   // Where the camera starts, as the orbit angle in radians from straight in
   // front of the figure (positive = round to the figure's right side).
-  camera?: { azimuth: number };
+  // lying: say outright whether this is a lying scene (a side-to-side swing
+  // instead of a full orbit); left out, the renderer decides from the shape
+  // of the scene, props included.
+  camera?: { azimuth: number; lying?: boolean };
 };
 
 // The frame the renderer maps into. Only the ratio matters: horizontal lengths
@@ -587,7 +590,7 @@ function pose(
   props: PropSpec[] = [],
   grip: GripStyle = "overhand",
   facing: 1 | -1 = 1,
-  timing: { tempo?: Tempo; camera?: { azimuth: number } } = {},
+  timing: { tempo?: Tempo; camera?: { azimuth: number; lying?: boolean } } = {},
 ): ExercisePose {
   if (figures.length < 2) throw new Error("a movement needs at least two key positions");
   const built = figures.map((figure) => build(figure, view));
