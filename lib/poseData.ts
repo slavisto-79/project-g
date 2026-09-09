@@ -967,11 +967,27 @@ export const exercisePoses = {
     ],
   ),
 
+  // Skull crusher, from a reference clip measured with the pose lab (OPEX "EZ
+  // Bar Skull Crusher", eluOhtYkm-0, side view from the head end, three reps
+  // in 9 s; MoveNet on 60 frames at 0.2 s): at the top the upper arms stand
+  // 1-5 degrees off vertical with the forearms 16-22 toward the head (elbow
+  // 158-167), the bar 4-5 cm past the shoulder line; the lowering tilts the
+  // upper arms 32-40 degrees toward the head and folds the elbow to 63-68,
+  // the bar finishing LEVEL with the shoulders, 15 cm past them -- behind
+  // the head, not above it; a rep is a 1.4 s lowering, a touch, a 1.2 s
+  // press and a 0.4 s lockout. Arms explicit (upper, forearm, world angles
+  // with the head to the left) 356/340 -> 340/280 -> 325/215 (elbow
+  // 164/120/70). The old frames kept the upper arm at 6 off vertical and
+  // stopped the forearm level at 108 -- the bar 18 cm above the shoulders,
+  // over the forehead.
   skullCrusher: pose(
     "side",
-    [354, 318, 282].map((forearm) => ({
+    // The bottom stops at an 80-degree elbow rather than the clip's 65: the
+    // bar has to clear the head's envelope, and this figure's head sits
+    // closer to its shoulders than the lifter's.
+    ([[356, 340], [340, 280], [322, 222]] as const).map(([upper, lower]) => ({
       ...bench(0.397, 0.304),
-      arms: [{ upper: 354, lower: forearm }, { upper: 359, lower: forearm + 5 }] as [Limb, Limb],
+      arms: [{ upper, lower }, { upper: upper + 5, lower: lower + 5 }] as [Limb, Limb],
     })),
     [
       { kind: "floor" },
@@ -983,6 +999,9 @@ export const exercisePoses = {
       { kind: "slab", at: "pelvis", width: 0.5, height: 0.055, dx: -0.154, dy: 0.085 },
       { kind: "bar", at: "grip", length: 0.14, plates: false },
     ],
+    "overhand",
+    1,
+    { tempo: { down: 1400, bottom: 200, up: 1200, top: 400 }, camera: { azimuth: -0.5 } },
   ),
 
   // Push-up, from a reference clip measured with the pose lab (OPEX "Push
