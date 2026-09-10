@@ -1310,6 +1310,70 @@ export const exercisePoses = {
     { tempo: { down: 800, bottom: 600, up: 1000, top: 400 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
+  // Power clean, from a reference clip measured with the pose lab (Fitness
+  // Pain Free "Power Clean (side view)", YEXjyc22Jek, square side view, two
+  // reps in 14 s; MoveNet on 70 frames at 0.3 s). The clip: a low start
+  // with the bar on the floor -- thigh 78-80 forward, trunk 47-55 forward,
+  // the arms plumb to the bar, held about three seconds; a pull that stands
+  // the lifter up and on the toes (the hip rising 0.63 -> 0.43 of the
+  // frame, trunk 4 from vertical); a catch in a quarter squat (knee 98-125,
+  // thigh 27-47 forward, shin 28-35 forward, trunk 9-15) with the elbows
+  // whipped up and the forearms folded (elbow 21-25) under the bar on the
+  // shoulders; standing up with the bar racked (knee 179, elbows still up);
+  // then a hinge to lower the bar back to the floor (trunk 25 -> 60 -> 97
+  // over 1.2 s, the arms straight). A rep is about 7 s, most of it the
+  // start position and the lowering.
+  // A loop of six key positions: the way down is a lowering, not the
+  // catch played backwards. The bar rests on the floor at the start (hands
+  // 0.176 up: the plates 3 mm off the floor). Hang Clean and Kettlebell
+  // Clean still borrow `clean`; the hang clean is the next movement.
+  powerClean: pose(
+    "side",
+    (() => {
+      const overAnkle = (ankle: Point, thigh: number, shin: number, torso: number): Point => {
+        const knee = along(ankle, shin + 180, P.shin);
+        const hip = along(knee, thigh + 180, P.thigh);
+        return { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      };
+      // The arms are ropes on the pull (as every other lift from the floor):
+      // they hang from the shoulders and the bar follows the hands.
+      // The rack, as the front squat's: upper arms 45 up from plumb, the
+      // forearms folded back so the hands sit at the front delts under the bar.
+      const rack = sideArms(135, 350);
+      const pull = (thigh: number, shin: number, torso: number) => {
+        const pelvis = overAnkle(FEET[0], thigh, shin, torso);
+        // 22 ahead of plumb, not the hinge's 12: the bar has to clear a heavy
+        // thigh and shin on the way past the knee.
+        return { pelvis, torso, neck: Math.round(torso * 0.6), arms: sideArms(158, 161), legs: sideLegs(thigh, shin, 90) };
+      };
+      return [
+        // The start: hips LOW (thigh 80 forward, the shin 20 over the toes),
+        // the trunk 50 -- that is what puts the hands on a bar resting on the
+        // floor (0.13 up, as the old clean's) with the trunk as upright as
+        // the clip has it.
+        pull(100, 200, 50),
+        // Past the knee: the bar dragged up the thigh, the trunk still over it.
+        pull(140, 188, 45),
+        // The extension: tall, on the toes, the bar just past the hip with the
+        // elbows starting to break (174/138) -- straight arms hung the bar
+        // 6.6 cm INSIDE a heavy thigh, and the pull is past the hip by here.
+        { pelvis: { x: 0.5, y: 0.454 }, torso: -5, neck: 0, arms: sideArms(174, 138), legs: sideLegs(178, 180, 120) },
+        // The catch: a quarter squat, elbows up, the bar on the shoulders.
+        { pelvis: overAnkle(FEET[0], 140, 210, 12), torso: 12, neck: 7, arms: rack, legs: sideLegs(140, 210, 90) },
+        stand({ x: 0.5, y: 0.494 }, 2, rack),
+        // The lowering: a hinge back down, the arms straight again.
+        pull(150, 190, 55),
+      ];
+    })(),
+    [{ kind: "floor", y: GROUND }, { kind: "bar", at: "grip" }],
+    "overhand",
+    1,
+    // to the knee, to the extension, the catch, the stand, the lowering, the floor.
+    // Camera 1.2, as the good morning's: at 0.9 the near plate covered the
+    // head through the whole rack.
+    { loop: [600, 250, 300, 700, 800, 600], camera: { azimuth: 1.2 } },
+  ),
+
   clean: pose(
     "side",
     // Floor, past the knee, the extension, the catch, and standing. Showing
