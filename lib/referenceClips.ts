@@ -529,6 +529,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "Hang Clean and Kettlebell Clean still borrow the old `clean`.",
   },
 
+  kettlebellClean: {
+    videoId: "JrNe81MYEuI",
+    title: "Single Arm Kettlebell Clean From Floor",
+    channel: "Functional Bodybuilding",
+    view: "side",
+    span: "six reps in 9 s",
+    prs: [308],
+    date: "2026-09-11",
+    exercises: ["Kettlebell Clean"],
+    notes: "Near-side view; the swing-through key keeps the bell out of the thighs, as the snatch's.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",

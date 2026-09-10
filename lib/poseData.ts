@@ -1074,6 +1074,64 @@ export const exercisePoses = {
   // The bell is a swung `bell` on the working hand: drawn on that hand and
   // along the arm's line, so overhead it stands ABOVE the hand, on the
   // forearm, not hanging under it.
+  // Kettlebell clean, from a reference clip measured with the pose lab
+  // (Functional Bodybuilding "Single Arm Kettlebell Clean From Floor",
+  // JrNe81MYEuI, near-side view, six reps in 9 s; MoveNet on 20 frames at
+  // 0.2 s over two of them). The clip: a one-arm swing that finishes at the
+  // shoulder -- the hinge has the trunk 45-52 forward, the knee 143-157 and
+  // the thigh 17-27 forward with the bell between the legs; the drive
+  // stands the lifter up (trunk 2-5, knee 177-179) and the bell comes to
+  // the RACK, the elbow folded tight (9-30) against the ribs with the bell
+  // resting on the outside of the forearm at the shoulder. A rep is about
+  // 1.7 s. Kettlebell Clean borrowed `clean`, a two-hand barbell clean from
+  // the floor.
+  // Three key positions there and back: the hinge, the swing through, the
+  // rack -- the way down IS the bell falling back into the hinge.
+  kettlebellClean: pose(
+    "side",
+    (() => {
+      const overFoot = (thigh: number, shin: number, torso: number): Point => {
+        const knee = along(FEET[0], shin + 180, P.shin);
+        const hip = along(knee, thigh + 180, P.thigh);
+        return { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      };
+      // Wider than the snatch's 0.16: on the midline the bell (radius 0.05)
+      // sits exactly one bell-plus-thigh from a thigh axis 0.108 out, and
+      // grazed it on the way through. 0.20 puts the axis 0.128 out.
+      const leg = (thigh: number, shin: number): Limb => ({ upper: thigh, lower: shin, end: 90, spread: 0.20, turn: 20 });
+      // The idle arm trails a hand's width wide of the body, as the snatch's.
+      const idle: Limb = { upper: 205, lower: 215, spread: 0.06 };
+      const hinge = (() => {
+        const torso = 55;
+        return {
+          pelvis: overFoot(168, 190, torso), torso, neck: 38,
+          // The working hand on the midline (spread -0.085 cancels the arm's
+          // splay), swung back between the legs.
+          // (At 230/214 the bell grazed 1 cm into the near thigh on the way
+          // down; 234/217 swings it clear behind the legs.)
+          arms: [{ upper: 234, lower: 217, spread: -0.085 }, idle] as [Limb, Limb],
+          legs: [leg(168, 190), leg(168, 190)] as [Limb, Limb],
+        };
+      })();
+      return [
+        hinge,
+        // The swing through: half-way up with the arm hanging plumb and the
+        // bell at knee height in front of the shins (the snatch needed this
+        // key too -- without it the bell cut through the thighs).
+        { pelvis: overFoot(173, 187, 35), torso: 35, neck: 24, arms: [{ upper: 183, lower: 183, spread: -0.085 }, { upper: 195, lower: 200, spread: 0.06 }] as [Limb, Limb], legs: [leg(173, 187), leg(173, 187)] as [Limb, Limb] },
+        // The rack: tall, the elbow tight to the ribs (170) with the forearm
+        // folded up across the chest, the bell standing on the forearm.
+        stand({ x: 0.50, y: 0.494 }, 3, [{ upper: 170, lower: 32, spread: -0.085 }, idle]),
+      ];
+    })(),
+    // One bell on the working hand, swung: it points along the arm, so at the
+    // rack it stands above the fist instead of hanging under it.
+    [{ kind: "floor" }, { kind: "bell", at: "hand0", swing: true }],
+    "overhand",
+    1,
+    { tempo: { down: 850, bottom: 0, up: 850, top: 250 }, camera: { azimuth: 1.2 } },
+  ),
+
   kettlebellSnatch: pose(
     "side",
     (() => {
