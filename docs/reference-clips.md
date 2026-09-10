@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 47 |
+| authored from a clip (the clip shows the exercise) | 48 |
 | sharing a pose that was authored from a clip | 39 |
-| without a clip yet | 76 |
-| poses with a clip | 46 of 99 (95 in use) |
+| without a clip yet | 75 |
+| poses with a clip | 47 of 100 (96 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -111,7 +111,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Incline Push-Up | `inclinePushUp` | no clip yet |  |  |
 | Inverted Row | `invertedRow` | no clip yet |  |  |
 | Jump Squat | `jump` | no clip yet |  |  |
-| Jumping Lunge | `jump` | no clip yet |  |  |
+| Jumping Lunge | `jumpingLunge` | authored from the clip | [Jump Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=BR1A8T9SjIU) (OPEX Fitness, side) | #301 |
 | Kettlebell Clean | `clean` | no clip yet |  |  |
 | Kettlebell Snatch | `clean` | no clip yet |  |  |
 | Kettlebell Swing | `kettlebellSwing` | authored from the clip | [The Russian Kettlebell Swing](https://www.youtube.com/watch?v=OPcG_thX6Dc) (Onnit, side) | #263 |
@@ -234,3 +234,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `pecDeck` | [Chest Fly Machine](https://www.youtube.com/watch?v=X3Nj2ZPwW04) | OPEX Fitness | three-quarter | three reps in 14 s | #298 | 2026-09-10 | Pec Deck | The machine's arms are not drawn; the seat is. |
 | `boxJump` | [Box Jump Step Down - OPEX Exercise Library](https://www.youtube.com/watch?v=W5QzqIbEWvk) | OPEX Fitness | side | three jumps in 10 s | #299 | 2026-09-10 | Box Jump | Up by a jump, down by a step: the first looping movement. |
 | `broadJump` | [Broad Jump | Strength & Conditioning Exercise Library](https://www.youtube.com/watch?v=YjFr2OEivz0) | Flow High Performance | side | one jump in 6 s | #300 | 2026-09-10 | Broad Jump | One rep, so the tempo is a single sample. The loop glides back to the start. |
+| `jumpingLunge` | [Jump Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=BR1A8T9SjIU) | OPEX Fitness | side | eight switches in 9 s | #301 | 2026-09-10 | Jumping Lunge |  |

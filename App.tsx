@@ -6250,7 +6250,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Jump Squat": "jump",
   "Tuck Jump": "jump",
   "Depth Jump": "jump",
-  "Jumping Lunge": "jump",
+  "Jumping Lunge": "jumpingLunge",
   "Skater Bound": "jump",
   "Sprint Intervals": "run",
   "High Knees": "run",
