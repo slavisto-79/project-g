@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 50 |
+| authored from a clip (the clip shows the exercise) | 51 |
 | sharing a pose that was authored from a clip | 39 |
-| without a clip yet | 73 |
-| poses with a clip | 49 of 102 (98 in use) |
+| without a clip yet | 72 |
+| poses with a clip | 50 of 103 (99 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -41,7 +41,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Barbell Row | `bentRow` | authored from the clip | [How to do a Barbell Bent Over Row Pronated](https://www.youtube.com/watch?v=bm0_q9bR_HA) (National Academy of Sports Medicine (NASM), side) | #273 |
 | Barbell Walking Lunge | `lunge` | no clip yet |  |  |
 | Battle Ropes | `battleRopes` | no clip yet |  |  |
-| Bear Crawl | `quadruped` | no clip yet |  |  |
+| Bear Crawl | `bearCrawl` | authored from the clip | [Crawl - OPEX Exercise Library](https://www.youtube.com/watch?v=w089AXf1f_g) (OPEX Fitness, side) | #304 |
 | Bench Dip | `dip` | shares `dip` (the clip shows Bar Dip) | [Weighted Dip - OPEX Exercise Library](https://www.youtube.com/watch?v=VNa0hX_y6Fk) (OPEX Fitness, three-quarter) | #282 |
 | Bicycle Crunch | `bicycleCrunch` | no clip yet |  |  |
 | Bird Dog | `quadruped` | no clip yet |  |  |
@@ -237,3 +237,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `jumpingLunge` | [Jump Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=BR1A8T9SjIU) | OPEX Fitness | side | eight switches in 9 s | #301 | 2026-09-10 | Jumping Lunge |  |
 | `skaterBound` | [Skater Jumps](https://www.youtube.com/watch?v=Xqzq9w42-z4) | Exercise Library | front | nine bounds in 12 s | #302 | 2026-09-10 | Skater Bound | Frontal keypoints read directly (hip travel, lean, free-foot height), not the lab's sagittal table. |
 | `kettlebellSnatch` | [Kettlebell Snatch](https://www.youtube.com/watch?v=y12D2GApeO0) | OPEX Fitness | side | four reps in 9 s | #303 | 2026-09-10 | Kettlebell Snatch | The way down is the pull reversed; the clip drops the bell a little further out in front. |
+| `bearCrawl` | [Crawl - OPEX Exercise Library](https://www.youtube.com/watch?v=w089AXf1f_g) | OPEX Fitness | side | ten hand-steps in 9 s | #304 | 2026-09-10 | Bear Crawl | Raw keypoints (the lab's table drops a crawling figure's legs). Ours crawls on the spot. |
