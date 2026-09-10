@@ -56,8 +56,8 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
       // a dip hangs from its bars -- its floor is there for the uprights to
       // stand on, under the lowest point of the rep.
       // ...and a step-up stands on its box at the top of the rep, a box jump
-      // flies up onto its box and stands there.
-      if (-deepest > 0.16 && name !== "legExtension" && name !== "dip" && name !== "stepUp" && name !== "boxJump") note(`${where}: floats ${(-deepest).toFixed(3)} above the floor`);
+      // flies up onto its box and stands there, a broad jump flies.
+      if (-deepest > 0.16 && name !== "legExtension" && name !== "dip" && name !== "stepUp" && name !== "boxJump" && name !== "broadJump") note(`${where}: floats ${(-deepest).toFixed(3)} above the floor`);
     }
   });
 
@@ -126,7 +126,7 @@ const STANDING_FRAMES = {
   // standing frame.)
   // (fly lay down on its bench when it was authored from its clip.)
   overheadPress: 0, lateralRaise: 0,
-  tricepsExtension: 0, jump: 0, boxJump: 0, lateralLunge: 0, clean: 4,
+  tricepsExtension: 0, jump: 0, boxJump: 0, broadJump: 0, lateralLunge: 0, clean: 4,
   straightArmPulldown: 0, facePull: 0, landminePress: 0, burpee: 1,
   cableCurl: 0, cableFly: 0, cableLateralRaise: 0, cablePullThrough: 0,
 };

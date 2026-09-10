@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 46 |
+| authored from a clip (the clip shows the exercise) | 47 |
 | sharing a pose that was authored from a clip | 39 |
-| without a clip yet | 77 |
-| poses with a clip | 45 of 98 (94 in use) |
+| without a clip yet | 76 |
+| poses with a clip | 46 of 99 (95 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -51,7 +51,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Bodyweight Squat | `bodyweightSquat` | no clip yet |  |  |
 | Box Jump | `boxJump` | authored from the clip | [Box Jump Step Down - OPEX Exercise Library](https://www.youtube.com/watch?v=W5QzqIbEWvk) (OPEX Fitness, side) | #299 |
 | Box Squat | `boxSquat` | authored from the clip | [Box Squat Movement Demo](https://www.youtube.com/watch?v=rMEPHwNhQfo) (The Active Life, side) | #271 |
-| Broad Jump | `jump` | no clip yet |  |  |
+| Broad Jump | `broadJump` | authored from the clip | [Broad Jump | Strength & Conditioning Exercise Library](https://www.youtube.com/watch?v=YjFr2OEivz0) (Flow High Performance, side) | #300 |
 | Bulgarian Split Squat | `splitSquat` | authored from the clip | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267 |
 | Burpee | `burpee` | no clip yet |  |  |
 | Cable Chest Fly | `cableFly` | no clip yet |  |  |
@@ -233,3 +233,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `overheadTricepsExtension` | [Single Dumbbell Overhead Tricep Extension - OPEX Exercise Library](https://www.youtube.com/watch?v=7h3lG2WnLXg) | OPEX Fitness | side | three reps in 8 s | #297 | 2026-09-10 | Overhead Triceps Extension |  |
 | `pecDeck` | [Chest Fly Machine](https://www.youtube.com/watch?v=X3Nj2ZPwW04) | OPEX Fitness | three-quarter | three reps in 14 s | #298 | 2026-09-10 | Pec Deck | The machine's arms are not drawn; the seat is. |
 | `boxJump` | [Box Jump Step Down - OPEX Exercise Library](https://www.youtube.com/watch?v=W5QzqIbEWvk) | OPEX Fitness | side | three jumps in 10 s | #299 | 2026-09-10 | Box Jump | Up by a jump, down by a step: the first looping movement. |
+| `broadJump` | [Broad Jump | Strength & Conditioning Exercise Library](https://www.youtube.com/watch?v=YjFr2OEivz0) | Flow High Performance | side | one jump in 6 s | #300 | 2026-09-10 | Broad Jump | One rep, so the tempo is a single sample. The loop glides back to the start. |
