@@ -1776,6 +1776,40 @@ export const exercisePoses = {
   // top leg is 2 degrees steeper so its foot lands on the bottom foot
   // (7.5cm up); the support forearm is pitched 90 degrees out of the plane
   // with `forward`.
+  // Dead bug, from a reference clip measured with the pose lab (OPEX
+  // "Alternating Dead Bug", -VykQ1HD0Vw, square side view, four reaches in
+  // 17 s; MoveNet on 43 frames at 0.4 s). The clip: lying supine (trunk
+  // 87-93 from vertical) with both hips and knees at a right angle (thigh
+  // 165-171 off plumb -- straight up -- knee 74-87) and the arms straight
+  // up (elbow 170-179, 20-25 degrees toward the head); one leg reaches out
+  // until the thigh is 3-7 degrees above level with the knee at 166-179
+  // while the OPPOSITE arm lowers overhead to level, 0.8 s out, 0.8 s held,
+  // 0.8 s back, then the other side. Authored as one side (the near leg,
+  // the far arm); the renderer's return is the same reach again.
+  // The old mapping showed the hollow hold for this.
+  deadBug: pose(
+    "side",
+    ([0, 0.5, 1] as const).map((reach) => {
+      const lerp = (a: number, b: number) => a + (b - a) * reach;
+      return {
+        pelvis: { x: 0.5, y: 0.735 },
+        torso: 274,
+        neck: 272,
+        // Arms: straight up, 20 degrees toward the head; the far arm lowers
+        // overhead to 5 degrees above the floor.
+        arms: [{ upper: 340, lower: 340 }, { upper: lerp(340, 275), lower: lerp(340, 275) }] as [Limb, Limb],
+        // Legs: thigh straight up (5 toward the feet), shin level; the near
+        // leg reaches out to 8 degrees above the floor, the knee opening
+        // from 90 to 172.
+        legs: [{ upper: lerp(5, 82), lower: lerp(95, 90), end: lerp(125, 100) }, { upper: 5, lower: 95, end: 125 }] as [Limb, Limb],
+      };
+    }),
+    [{ kind: "floor", mat: true, y: 0.792 }],
+    "overhand",
+    1,
+    { tempo: { down: 900, bottom: 700, up: 900, top: 600 }, camera: { azimuth: 0.9 } },
+  ),
+
   sidePlank: pose(
     "front",
     [
