@@ -505,6 +505,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "Near-side view: the angles are projections, +-5.",
   },
 
+  tuckJump: {
+    videoId: "w0cI_zLXJFo",
+    title: "Tuck Jump",
+    channel: "OPEX Bristol - The Future of Personal Training",
+    view: "side",
+    span: "three jumps in 8.5 s",
+    prs: [306],
+    date: "2026-09-11",
+    exercises: ["Tuck Jump"],
+    notes: "Read as raw keypoints (heights, knee under hip). The video sits behind YouTube's consent page.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",
