@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 52 |
+| authored from a clip (the clip shows the exercise) | 53 |
 | sharing a pose that was authored from a clip | 39 |
-| without a clip yet | 71 |
-| poses with a clip | 51 of 104 (100 in use) |
+| without a clip yet | 70 |
+| poses with a clip | 52 of 105 (101 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -179,7 +179,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Trap Bar Deadlift | `trapBarDeadlift` | authored from the clip | [How To Hex Bar Deadlift Correctly](https://www.youtube.com/watch?v=ZJPZQklCSLs) (Motiv8 Fitness, side) | #255, #256 |
 | Triceps Kickback | `kickback` | no clip yet |  |  |
 | Triceps Pushdown | `tricepsExtension` | authored from the clip | [Rope Cable Tricep Pushdown - OPEX Exercise Library](https://www.youtube.com/watch?v=y6EdXBdL75A) (OPEX Fitness, side) | #279 |
-| Tuck Jump | `jump` | no clip yet |  |  |
+| Tuck Jump | `tuckJump` | authored from the clip | [Tuck Jump](https://www.youtube.com/watch?v=w0cI_zLXJFo) (OPEX Bristol - The Future of Personal Training, side) | #306 |
 | V-Up | `hollowHold` | shares `hollowHold` (the clip shows Hollow Hold) | [Hollow Body Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=EsnM8eBtazU) (OPEX Fitness, side) | #291 |
 | Walking Lunge | `walkingLunge` | authored from the clip | [Walking Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=6wZoPedlpok) (OPEX Fitness, side) | #269 |
 | Wall Sit | `wallSit` | no clip yet |  |  |
@@ -239,3 +239,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `kettlebellSnatch` | [Kettlebell Snatch](https://www.youtube.com/watch?v=y12D2GApeO0) | OPEX Fitness | side | four reps in 9 s | #303 | 2026-09-10 | Kettlebell Snatch | The way down is the pull reversed; the clip drops the bell a little further out in front. |
 | `bearCrawl` | [Crawl - OPEX Exercise Library](https://www.youtube.com/watch?v=w089AXf1f_g) | OPEX Fitness | side | ten hand-steps in 9 s | #304 | 2026-09-10 | Bear Crawl | Raw keypoints (the lab's table drops a crawling figure's legs). Ours crawls on the spot. |
 | `highKnees` | [High Knees | Movement Demo](https://www.youtube.com/watch?v=cUmfCd-Hznk) | CrossFit | three-quarter | nine seconds on the spot | #305 | 2026-09-11 | High Knees | Near-side view: the angles are projections, +-5. |
+| `tuckJump` | [Tuck Jump](https://www.youtube.com/watch?v=w0cI_zLXJFo) | OPEX Bristol - The Future of Personal Training | side | three jumps in 8.5 s | #306 | 2026-09-11 | Tuck Jump | Read as raw keypoints (heights, knee under hip). The video sits behind YouTube's consent page. |

@@ -813,6 +813,45 @@ export const exercisePoses = {
     { loop: [700, 300, 300, 300, 500, 900], camera: { azimuth: 0.9 } },
   ),
 
+  // Tuck jump, from a reference clip measured with the pose lab (OPEX
+  // Bristol "Tuck Jump", w0cI_zLXJFo, square side view, three jumps in
+  // 8.5 s; MoveNet on 71 frames at 0.12 s, read as raw keypoints for the
+  // heights and the knee-under-hip distance). The clip: from
+  // standing, a 0.5 s dip -- the hip 8-10 cm down, the shoulders dropping
+  // twice as far (the trunk tips forward), the knees bent to about 110 --
+  // then a vertical jump with the knees pulled to the chest at the apex
+  // (the knee 32 px under the hip against 80 standing: the thigh near
+  // level; the shin folded back, knee 50-70; the hip 20-25 cm up), the
+  // hands drawn in at the chest; a landing back into the dip and a stand.
+  // A jump every 2.0 s: 0.5 s dip, 0.5 s in the air, 1.0 s landing and
+  // reset. Tuck Jump borrowed `jump` (a modest hop, arms in a V) before.
+  // Three key positions there and back: standing, the dip, the tucked
+  // apex -- the way back IS the landing into the dip and the stand.
+  tuckJump: pose(
+    "side",
+    (() => {
+      const overAnkle = (ankle: Point, thigh: number, shin: number, torso: number): Point => {
+        const knee = along(ankle, shin + 180, P.shin);
+        const hip = along(knee, thigh + 180, P.thigh);
+        return { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      };
+      return [
+        stand({ x: 0.5, y: 0.494 }, 2, sideArms(172, 160)),
+        // The dip: knees 110 (thigh 40, shin 30 forward), trunk 25, the arms
+        // swung back; the hip 8 cm down.
+        { pelvis: overAnkle(FEET[0], 140, 210, 25), torso: 25, neck: 15, arms: sideArms(215, 200), legs: sideLegs(140, 210, 90) },
+        // The apex: hip 20 cm up, the thighs pulled to level (85 forward) with
+        // the shins folded back under them (knee 55), the toes down; the
+        // hands drawn in at the chest.
+        { pelvis: { x: 0.5, y: 0.294 }, torso: 15, neck: 9, arms: sideArms(150, 60), legs: sideLegs(95, 220, 240) },
+      ];
+    })(),
+    [{ kind: "floor", y: GROUND }],
+    "neutral",
+    1,
+    { tempo: { down: 900, bottom: 0, up: 900, top: 200 }, camera: { azimuth: 0.9 } },
+  ),
+
   // Jumping lunge, from a reference clip measured with the pose lab (OPEX
   // "Jump Lunge", BR1A8T9SjIU, square side view, eight switches in 9 s;
   // MoveNet on 56 frames at 0.2 s). The clip: a lunge with the front thigh
