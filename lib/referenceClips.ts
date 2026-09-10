@@ -356,6 +356,16 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     date: "2026-09-10",
     exercises: ["Copenhagen Plank"],
   },
+  pallofPress: {
+    videoId: "syYBcVbEAFk",
+    title: "Cable Standing Pallof Press",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "three reps in 10 s",
+    prs: [294],
+    date: "2026-09-10",
+    exercises: ["Pallof Press"],
+  },
 
   hangingRaise: {
     videoId: "w0IDQ_05X34",

@@ -556,7 +556,9 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
         ? hands[Number(handAnchor[1])]!
         : view === "front" && !prop.band
           ? [(prop.ax - 0.5) * ASPECT, 1 - prop.ay, prop.depth ?? 0.45]
-          : point(prop.ax, prop.ay);
+          : view === "side" && prop.depth !== undefined
+            ? [prop.depth, 1 - prop.ay, (prop.ax - 0.5) * ASPECT]
+            : point(prop.ax, prop.ay);
       const centre = point(prop.x, prop.y);
       if (view === "front") centre[2] = heldDepth(prop.x, prop.y);
       return { kind: "cable" as const, center: centre, anchor, ...(prop.rope ? { rope: true } : {}), ...(prop.handle ? { handle: prop.handle } : {}), ...(prop.band ? { band: prop.band } : {}), ...(prop.end ? { end: prop.end } : {}), ...(prop.arm !== undefined ? { arm: prop.arm } : {}) };
@@ -591,9 +593,11 @@ type PropSpec =
   // frame's top edge, which is fine -- it only has to be off the figure).
   // anchorAt: anchor the run on a JOINT instead of a fixed point -- a loop
   // band round both ankles is anchored on the other ankle, and it moves.
-  // depth: FRONT view only -- where the pulley stands along the depth axis
-  // (world z; the figure faces +z). Left out, the station stands well in
-  // front of the figure (0.45); a woodchop's machine stands BESIDE it.
+  // depth: where the pulley stands along the axis the drawing cannot show.
+  // Front view: world z (the figure faces +z); left out, the station stands
+  // well in front of the figure (0.45); a woodchop's machine stands BESIDE
+  // it. Side view: world x, the lateral axis -- a Pallof press's pulley is
+  // out to the figure's side, which the plane has no other way to say.
   | { kind: "cable"; at: string; anchor?: Point; anchorAt?: string; rope?: boolean; handle?: "rope" | "d"; band?: boolean; arm?: number; depth?: number }
   // Placed under the lowest point of the figure, so it sits where the ground
   // is. Pin it with `y` when the body leaves the ground: otherwise the floor
