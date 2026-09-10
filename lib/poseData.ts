@@ -813,6 +813,44 @@ export const exercisePoses = {
     { loop: [700, 300, 300, 300, 500, 900], camera: { azimuth: 0.9 } },
   ),
 
+  // Jump squat, from a reference clip measured with the pose lab (OPEX
+  // Abbotsford "Jump Squats", 3jJt5gCMRNQ, near-side view, ten reps in
+  // 13 s; MoveNet on 64 frames at 0.25 s). The clip: a DEEP squat -- the
+  // thigh 77-88 forward (below parallel), the shin 22-30 forward, the knee
+  // 66-81, the trunk 39-45 forward -- with both arms reaching forward and
+  // level as a counterbalance (elbow 155-168, the upper arm 50-88 forward
+  // of plumb); then a jump that extends the whole body (knee 175-179, the
+  // trunk 3-5 back) with the arms swung back down to the sides; and a
+  // landing straight into the next squat. A rep is about 1.25 s.
+  // Jump Squat borrowed `jump`, a modest hop that only quarter-squats and
+  // keeps its arms in a V.
+  jumpSquat: pose(
+    "side",
+    (() => {
+      const overAnkle = (thigh: number, shin: number, torso: number): Point => {
+        const knee = along(FEET[0], shin + 180, P.shin);
+        const hip = along(knee, thigh + 180, P.thigh);
+        return { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      };
+      // Both arms reaching forward and level at the bottom, elbow 165.
+      const reachOut = sideArms(95, 110);
+      return [
+        stand({ x: 0.5, y: 0.494 }, 2, HANG),
+        // The bottom: thigh 82 forward and shin 27, so the knee closes to 71
+        // and the hip sits below the knee; trunk 42.
+        { pelvis: overAnkle(98, 207, 42), torso: 42, neck: 25, arms: reachOut, legs: sideLegs(98, 207, 90) },
+        // Airborne: the body one line, the toes pointed, the arms swung back
+        // to the sides. The hip is 17 cm above standing and the feet 12 cm
+        // off the floor (at 0.414 the extended legs left only 2.9 cm of air).
+        { pelvis: { x: 0.5, y: 0.325 }, torso: -3, neck: -2, arms: sideArms(190, 192), legs: sideLegs(178, 180, 140) },
+      ];
+    })(),
+    [{ kind: "floor", y: GROUND }],
+    "neutral",
+    1,
+    { tempo: { down: 600, bottom: 0, up: 500, top: 150 }, camera: { azimuth: 0.9 } },
+  ),
+
   // Tuck jump, from a reference clip measured with the pose lab (OPEX
   // Bristol "Tuck Jump", w0cI_zLXJFo, square side view, three jumps in
   // 8.5 s; MoveNet on 71 frames at 0.12 s, read as raw keypoints for the

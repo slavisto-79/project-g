@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 57 |
+| authored from a clip (the clip shows the exercise) | 58 |
 | sharing a pose that was authored from a clip | 37 |
-| without a clip yet | 68 |
-| poses with a clip | 56 of 109 (105 in use) |
+| without a clip yet | 67 |
+| poses with a clip | 57 of 110 (106 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -110,7 +110,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Incline Dumbbell Press | `inclinePress` | no clip yet |  |  |
 | Incline Push-Up | `inclinePushUp` | no clip yet |  |  |
 | Inverted Row | `invertedRow` | no clip yet |  |  |
-| Jump Squat | `jump` | no clip yet |  |  |
+| Jump Squat | `jumpSquat` | authored from the clip | [Jump Squats](https://www.youtube.com/watch?v=3jJt5gCMRNQ) (OPEX Abbotsford, three-quarter) | #311 |
 | Jumping Lunge | `jumpingLunge` | authored from the clip | [Jump Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=BR1A8T9SjIU) (OPEX Fitness, side) | #301 |
 | Kettlebell Clean | `kettlebellClean` | authored from the clip | [Single Arm Kettlebell Clean From Floor](https://www.youtube.com/watch?v=JrNe81MYEuI) (Functional Bodybuilding, side) | #308 |
 | Kettlebell Snatch | `kettlebellSnatch` | authored from the clip | [Kettlebell Snatch](https://www.youtube.com/watch?v=y12D2GApeO0) (OPEX Fitness, side) | #303 |
@@ -244,3 +244,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `kettlebellClean` | [Single Arm Kettlebell Clean From Floor](https://www.youtube.com/watch?v=JrNe81MYEuI) | Functional Bodybuilding | side | six reps in 9 s | #308 | 2026-09-11 | Kettlebell Clean | Near-side view; the swing-through key keeps the bell out of the thighs, as the snatch's. |
 | `pushPress` | [Push press (side view)](https://www.youtube.com/watch?v=xcCYH-UcoZ0) | Armory HPFT | side | three reps in 11.6 s | #309 | 2026-09-11 | Push Press | Push Jerk still borrows the strict press; it drops under the bar, which this one does not. |
 | `pushJerk` | [Push Jerk (Side view)](https://www.youtube.com/watch?v=dboDOX7xY_Q) | Fitness Pain Free | side | three reps in 10 s | #310 | 2026-09-11 | Push Jerk | The second dip -- dropping under a locked-out bar -- is what separates it from the push press. |
+| `jumpSquat` | [Jump Squats](https://www.youtube.com/watch?v=3jJt5gCMRNQ) | OPEX Abbotsford | three-quarter | ten reps in 13 s | #311 | 2026-09-11 | Jump Squat | Near-side view: the angles are projections, +-5. The arms reach forward at the bottom as a counterbalance. |
