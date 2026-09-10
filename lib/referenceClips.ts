@@ -400,6 +400,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "The arms only; the stride is the farmer's carry's.",
   },
 
+  stepUp: {
+    videoId: "RRuWVDefORg",
+    title: "Step Up - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "four step-ups in 19 s",
+    prs: [296],
+    date: "2026-09-10",
+    exercises: ["Step-Up"],
+    notes: "Dumbbell Step-Up shares the pose with the bells drawn in the hands.",
+  },
+
   hangingRaise: {
     videoId: "w0IDQ_05X34",
     title: "Hanging Leg Raises",
