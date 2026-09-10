@@ -412,6 +412,17 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "Dumbbell Step-Up shares the pose with the bells drawn in the hands.",
   },
 
+  overheadTricepsExtension: {
+    videoId: "7h3lG2WnLXg",
+    title: "Single Dumbbell Overhead Tricep Extension - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 8 s",
+    prs: [297],
+    date: "2026-09-10",
+    exercises: ["Overhead Triceps Extension"],
+  },
+
   hangingRaise: {
     videoId: "w0IDQ_05X34",
     title: "Hanging Leg Raises",

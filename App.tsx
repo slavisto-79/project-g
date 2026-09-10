@@ -6173,7 +6173,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Band Curl": "curl",
 
   "Triceps Pushdown": "tricepsExtension",
-  "Overhead Triceps Extension": "tricepsExtension",
+  "Overhead Triceps Extension": "overheadTricepsExtension",
 
   "Dumbbell Lateral Raise": "lateralRaise",
   "Cable Lateral Raise": "cableLateralRaise",
