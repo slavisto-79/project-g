@@ -565,6 +565,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "The second dip -- dropping under a locked-out bar -- is what separates it from the push press.",
   },
 
+  jumpSquat: {
+    videoId: "3jJt5gCMRNQ",
+    title: "Jump Squats",
+    channel: "OPEX Abbotsford",
+    view: "three-quarter",
+    span: "ten reps in 13 s",
+    prs: [311],
+    date: "2026-09-11",
+    exercises: ["Jump Squat"],
+    notes: "Near-side view: the angles are projections, +-5. The arms reach forward at the bottom as a counterbalance.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",
