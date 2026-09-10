@@ -205,6 +205,9 @@ function step(from: Point, angleDeg: number, length: number): Point {
 // plane toward the belly, about the elbow -- a side plank's support forearm,
 // which lies on the floor pointing at the camera. The hand comes with it and
 // the bone keeps its length; an arm with `forward` gets no guessed depth.
+// On a LEG it pitches the shin and foot about the knee the same way: negative
+// swings the foot BEHIND the body -- a skater bound's free leg, tucked behind
+// the stance leg, which the frontal plane alone would draw through it.
 // `yaw` (degrees) turns the whole arm about the VERTICAL axis through the
 // shoulder, from outboard toward the belly -- a pec deck's sweep, from the
 // arms out at the sides to the hands met in front, which neither plane can
@@ -292,7 +295,9 @@ function build(figure: Figure, view: View): { segments: PoseSegment[]; head: { x
     const side = index as 0 | 1;
     const from = hip[side]!;
     const knee = step(from, leg.upper, P.thigh);
-    const ankle = step(knee, leg.lower, P.shin);
+    // A shin pitched out of the plane is drawn foreshortened, as the forearm.
+    const flatShin = view === "front" && leg.forward ? Math.cos((leg.forward * Math.PI) / 180) : 1;
+    const ankle = step(knee, leg.lower, P.shin * flatShin);
     limb(from, knee, side);
     limb(knee, ankle, side);
     // Foot forward of the shin by default. Face on, the far foot splays the
@@ -506,7 +511,7 @@ function build3d(figure: Figure, view: View, facing: 1 | -1 = 1): { bones: PoseB
     const splay = view === "front" && side === 1 ? 90 : -90;
     const footAngle = leg.end ?? leg.lower + splay;
     bones.push({ part: "thigh", side, a: hip[side]!, b: knee });
-    bones.push({ part: "shin", side, a: knee, b: ankle });
+    // (The shin is pushed after the foot below, once a pitched ankle is final.)
     // Heel behind the ankle, toes in front: the foot is its own part. Toes
     // turned out yaw the foot about the vertical, each side away from the
     // midline; the 2D drawing keeps the foot in its plane.
@@ -517,7 +522,36 @@ function build3d(figure: Figure, view: View, facing: 1 | -1 = 1): { bones: PoseB
       const dz = p[2] - ankle[2];
       return [ankle[0] + Math.sin(yaw) * dz, p[1], ankle[2] + Math.cos(yaw) * dz];
     };
-    bones.push({ part: "foot", side, a: foot(-0.38 * P.foot), b: foot(P.foot) });
+    let heel = foot(-0.38 * P.foot), toe = foot(P.foot);
+    if (view === "front" && leg.forward) {
+      // The shin (and the foot on it) turned about the in-plane axis through
+      // the knee square to the shin -- the arm's `forward`, on a leg: positive
+      // swings the foot toward the belly, negative behind. Rodrigues.
+      const d: Vec3 = [ankle[0] - knee[0], ankle[1] - knee[1], 0];
+      const dl = Math.hypot(d[0], d[1]) || 1;
+      const k: Vec3 = [-d[1] / dl, d[0] / dl, 0];
+      const theta = (-facing * leg.forward * Math.PI) / 180;
+      const c = Math.cos(theta);
+      const sn = Math.sin(theta);
+      const turn = (p: Vec3): Vec3 => {
+        const v: Vec3 = [p[0] - knee[0], p[1] - knee[1], p[2] - knee[2]];
+        const dot = k[0] * v[0] + k[1] * v[1] + k[2] * v[2];
+        const cross: Vec3 = [k[1] * v[2] - k[2] * v[1], k[2] * v[0] - k[0] * v[2], k[0] * v[1] - k[1] * v[0]];
+        return [
+          knee[0] + v[0] * c + cross[0] * sn + k[0] * dot * (1 - c),
+          knee[1] + v[1] * c + cross[1] * sn + k[1] * dot * (1 - c),
+          knee[2] + v[2] * c + cross[2] * sn + k[2] * dot * (1 - c),
+        ];
+      };
+      const a = turn(ankle);
+      heel = turn(heel);
+      toe = turn(toe);
+      ankle[0] = a[0];
+      ankle[1] = a[1];
+      ankle[2] = a[2];
+    }
+    bones.push({ part: "shin", side, a: knee, b: ankle });
+    bones.push({ part: "foot", side, a: heel, b: toe });
   });
 
   return { bones, head: { c: headCentre, r: P.headRadius }, hands: [hands[0]!, hands[1]!] };

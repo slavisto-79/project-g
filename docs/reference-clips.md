@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 48 |
+| authored from a clip (the clip shows the exercise) | 49 |
 | sharing a pose that was authored from a clip | 39 |
-| without a clip yet | 75 |
-| poses with a clip | 47 of 100 (96 in use) |
+| without a clip yet | 74 |
+| poses with a clip | 48 of 101 (97 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -161,7 +161,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Single-Leg Deadlift | `singleLegHinge` | no clip yet |  |  |
 | Single-Leg Glute Bridge | `hipThrust` | shares `hipThrust` (the clip shows Barbell Hip Thrust) | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
 | Single-Leg Romanian Deadlift | `singleLegHinge` | no clip yet |  |  |
-| Skater Bound | `jump` | no clip yet |  |  |
+| Skater Bound | `skaterBound` | authored from the clip | [Skater Jumps](https://www.youtube.com/watch?v=Xqzq9w42-z4) (Exercise Library, front) | #302 |
 | Skull Crusher | `skullCrusher` | authored from the clip | [EZ Bar Skull Crusher - OPEX Exercise Library](https://www.youtube.com/watch?v=eluOhtYkm-0) (OPEX Fitness, head-end) | #281 |
 | Sled Push | `sledPush` | no clip yet |  |  |
 | Smith Machine Squat | `squat` | shares `squat` (the clip shows Barbell Back Squat) | [How to do a Barbell Back Squat](https://www.youtube.com/watch?v=-bJIpOq-LWk) (National Academy of Sports Medicine (NASM), three-quarter) | #254 |
@@ -235,3 +235,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `boxJump` | [Box Jump Step Down - OPEX Exercise Library](https://www.youtube.com/watch?v=W5QzqIbEWvk) | OPEX Fitness | side | three jumps in 10 s | #299 | 2026-09-10 | Box Jump | Up by a jump, down by a step: the first looping movement. |
 | `broadJump` | [Broad Jump | Strength & Conditioning Exercise Library](https://www.youtube.com/watch?v=YjFr2OEivz0) | Flow High Performance | side | one jump in 6 s | #300 | 2026-09-10 | Broad Jump | One rep, so the tempo is a single sample. The loop glides back to the start. |
 | `jumpingLunge` | [Jump Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=BR1A8T9SjIU) | OPEX Fitness | side | eight switches in 9 s | #301 | 2026-09-10 | Jumping Lunge |  |
+| `skaterBound` | [Skater Jumps](https://www.youtube.com/watch?v=Xqzq9w42-z4) | Exercise Library | front | nine bounds in 12 s | #302 | 2026-09-10 | Skater Bound | Frontal keypoints read directly (hip travel, lean, free-foot height), not the lab's sagittal table. |
