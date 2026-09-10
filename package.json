@@ -14,7 +14,8 @@
     "sweep:derived": "node tests/sweep-derived.js",
     "sweep:builder": "node tests/sweep-builder.js",
     "sweep:display": "node tests/sweep-display.js",
-    "check:poses": "node tests/check-poses.js"
+    "check:poses": "node tests/check-poses.js",
+    "check:references": "node tests/check-references.js"
   },
   "dependencies": {
     "@babel/plugin-transform-class-static-block": "^7.27.1",
