@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 38 |
-| sharing a pose that was authored from a clip | 46 |
+| authored from a clip (the clip shows the exercise) | 39 |
+| sharing a pose that was authored from a clip | 45 |
 | without a clip yet | 78 |
-| poses with a clip | 37 of 90 (86 in use) |
+| poses with a clip | 38 of 91 (87 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -133,7 +133,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | One-Arm Dumbbell Row | `oneArmRow` | no clip yet |  |  |
 | Overhead Carry | `carry` | shares `carry` (the clip shows Farmer's Carry) | [Dumbbell Farmer's Carry](https://www.youtube.com/watch?v=K4R8uc1x_OA) (OPEX Fitness, side) | #288 |
 | Overhead Triceps Extension | `tricepsExtension` | shares `tricepsExtension` (the clip shows Triceps Pushdown) | [Rope Cable Tricep Pushdown - OPEX Exercise Library](https://www.youtube.com/watch?v=y6EdXBdL75A) (OPEX Fitness, side) | #279 |
-| Pallof Press | `woodchop` | shares `woodchop` (the clip shows Cable Woodchopper) | [High to Low Cable Oblique Rotation](https://www.youtube.com/watch?v=KnbgKcvOG_c) (OPEX Fitness, three-quarter) | #287 |
+| Pallof Press | `pallofPress` | authored from the clip | [Cable Standing Pallof Press](https://www.youtube.com/watch?v=syYBcVbEAFk) (OPEX Fitness, three-quarter) | #294 |
 | Pec Deck | `fly` | shares `fly` (the clip shows Dumbbell Fly) | [Dumbbell Neutral Grip Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=AVIBmE5iQrQ) (OPEX Fitness, head-end) | #283 |
 | Pendlay Row | `bentRow` | shares `bentRow` (the clip shows Barbell Row) | [How to do a Barbell Bent Over Row Pronated](https://www.youtube.com/watch?v=bm0_q9bR_HA) (National Academy of Sports Medicine (NASM), side) | #273 |
 | Pike Push-Up | `pikePushUp` | no clip yet |  |  |
@@ -225,3 +225,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `deadBug` | [Alternating Dead Bug](https://www.youtube.com/watch?v=-VykQ1HD0Vw) | OPEX Fitness | side | four reaches in 17 s | #290 | 2026-09-10 | Dead Bug |  |
 | `hollowHold` | [Hollow Body Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=EsnM8eBtazU) | OPEX Fitness | side | 1.25 s into the hold, 3.5 s holding it | #291 | 2026-09-10 | Hollow Hold | V-Up borrows this hold. |
 | `copenhagenPlank` | [Copenhagen Plank](https://www.youtube.com/watch?v=tKb76R21AfM) | OPEX Fitness | front | a 7 s hold | #293 | 2026-09-10 | Copenhagen Plank |  |
+| `pallofPress` | [Cable Standing Pallof Press](https://www.youtube.com/watch?v=syYBcVbEAFk) | OPEX Fitness | three-quarter | three reps in 10 s | #294 | 2026-09-10 | Pallof Press |  |

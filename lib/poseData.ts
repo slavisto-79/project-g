@@ -1882,6 +1882,35 @@ export const exercisePoses = {
     { tempo: { down: 1600, bottom: 300, up: 1600, top: 300 }, camera: { azimuth: 0, lying: true } },
   ),
 
+  // Pallof press, from a reference clip measured with the pose lab (OPEX
+  // "Cable Standing Pallof Press", syYBcVbEAFk, three-quarter view, three
+  // reps in 10 s; MoveNet on 41 frames at 0.25 s). The clip: standing
+  // sideways to a cable at chest height, both hands on the handle at the
+  // sternum (elbow 66-80, upper arm 9-16 behind plumb, forearm level), then
+  // pressed straight out until the arms are all but locked (elbow 160-166
+  // as projected, lockout by the cue), the trunk within 5-13 of vertical
+  // and the knees soft (168-175); a rep is a 0.75 s press, a 0.6 s hold
+  // out, a 0.9 s return and 1.1 s at the chest. It borrowed the woodchop.
+  // A SIDE view: the press is forward, which is the plane, and the cable
+  // comes from the figure's side through the prop's `depth` (world x).
+  pallofPress: pose(
+    "side",
+    ([[188, 82], [140, 92], [94, 100]] as const).map(([upper, lower]) =>
+      // Pelvis at the curl's standing height (0.497): at STAND's 0.52 the
+      // solved knees came out at 138.
+      stand({ x: 0.5, y: 0.497 }, 5, [{ upper, lower, spread: -0.08 }, { upper, lower, spread: -0.08 }]),
+    ),
+    [
+      { kind: "floor" },
+      // The pulley at chest height, 90 cm out to the figure's right; the
+      // station's column stands beyond it.
+      { kind: "cable", at: "grip", anchor: { x: 0.5, y: 0.275 }, handle: "d", depth: 0.9 },
+    ],
+    "neutral",
+    1,
+    { tempo: { down: 750, bottom: 600, up: 900, top: 1100 }, camera: { azimuth: 0.9 } },
+  ),
+
   // Both hands travel together on a diagonal; that diagonal is the exercise.
   // They are authored as ONE pair of hands either side of what is held, not
   // as two arms swinging on the same angles: parallel arms from shoulders

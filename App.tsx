@@ -6263,7 +6263,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Cable Woodchopper": "woodchop",
   "Medicine Ball Slam": "medBallSlam",
   "Rotational Med Ball Throw": "medBallThrow",
-  "Pallof Press": "woodchop",
+  "Pallof Press": "pallofPress",
 
   "Suitcase Carry": "carry",
   "Front Rack Carry": "carry",
