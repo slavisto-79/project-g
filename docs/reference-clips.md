@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 55 |
-| sharing a pose that was authored from a clip | 39 |
+| authored from a clip (the clip shows the exercise) | 56 |
+| sharing a pose that was authored from a clip | 38 |
 | without a clip yet | 68 |
-| poses with a clip | 54 of 107 (103 in use) |
+| poses with a clip | 55 of 108 (104 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -145,7 +145,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Prone Y-T-W Raise | `proneRaise` | no clip yet |  |  |
 | Pull-Up | `pullUp` | authored from the clip | [Strict Pull Up - OPEX Exercise Library](https://www.youtube.com/watch?v=jgFel4wZl3I) (OPEX Fitness, side) | #274 |
 | Push Jerk | `overheadPress` | shares `overheadPress` (the clip shows Barbell Overhead Press) | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
-| Push Press | `overheadPress` | shares `overheadPress` (the clip shows Barbell Overhead Press) | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
+| Push Press | `pushPress` | authored from the clip | [Push press (side view)](https://www.youtube.com/watch?v=xcCYH-UcoZ0) (Armory HPFT, side) | #309 |
 | Push-Up | `pushUp` | authored from the clip | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
 | Rack Pull | `hinge` | no clip yet |  |  |
 | Reverse Snow Angel | `proneRaise` | no clip yet |  |  |
@@ -242,3 +242,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `tuckJump` | [Tuck Jump](https://www.youtube.com/watch?v=w0cI_zLXJFo) | OPEX Bristol - The Future of Personal Training | side | three jumps in 8.5 s | #306 | 2026-09-11 | Tuck Jump | Read as raw keypoints (heights, knee under hip). The video sits behind YouTube's consent page. |
 | `powerClean` | [Power Clean (side view)](https://www.youtube.com/watch?v=YEXjyc22Jek) | Fitness Pain Free | side | two reps in 14 s | #307 | 2026-09-11 | Power Clean | Hang Clean and Kettlebell Clean still borrow the old `clean`. |
 | `kettlebellClean` | [Single Arm Kettlebell Clean From Floor](https://www.youtube.com/watch?v=JrNe81MYEuI) | Functional Bodybuilding | side | six reps in 9 s | #308 | 2026-09-11 | Kettlebell Clean | Near-side view; the swing-through key keeps the bell out of the thighs, as the snatch's. |
+| `pushPress` | [Push press (side view)](https://www.youtube.com/watch?v=xcCYH-UcoZ0) | Armory HPFT | side | three reps in 11.6 s | #309 | 2026-09-11 | Push Press | Push Jerk still borrows the strict press; it drops under the bar, which this one does not. |

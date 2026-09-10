@@ -1912,6 +1912,44 @@ export const exercisePoses = {
   // arms explicit -- 150/5, 95/0, 5/355 -- with the elbows flared 45 degrees
   // outboard, which is where a press carries them, and the grip 6cm outside
   // the shoulders. The head tips back a touch while the bar passes.
+  // Push press, from a reference clip measured with the pose lab (Armory
+  // HPFT "Push press (side view)", xcCYH-UcoZ0, square side view, three
+  // reps in 11.6 s; MoveNet on 57 frames at 0.2 s). The clip: the bar
+  // racked on the front delts with the elbow folded to 28-34 and the trunk
+  // within 10 of vertical; a DIP -- the hip drops 0.10 of the frame (about
+  // 15 cm) with the trunk staying upright, the bar riding down with the
+  // shoulders; then a drive that stands the lifter up and presses the bar
+  // to a lockout overhead (elbow 173-179, the arms 170 from plumb, the
+  // wrist at 0.19 of the frame against 0.48 racked); a beat overhead, and
+  // the bar comes back to the rack. A rep is about 4 s: 1.5 s racked, a
+  // 0.4 s dip, a 0.4 s drive, 1.6 s overhead.
+  // Push Press and Push Jerk borrowed `overheadPress` -- a strict press,
+  // no legs at all. The jerk is the next movement; it drops UNDER the bar,
+  // which this one does not.
+  pushPress: pose(
+    "side",
+    (() => {
+      // The bar on the front delts, as the front squat's and the clean's
+      // catch: upper arms 45 up from plumb, the forearms folded back.
+      const rack = sideArms(135, 350);
+      // Overhead, as the strict press's top: the arms flared 45 out of the
+      // drawing plane so the bar reads as a bar, not a stub.
+      const locked = sideArms(5, 355).map((arm) => ({ ...arm, spread: 0.06, flare: 45 })) as [Limb, Limb];
+      const dipPelvis = { x: 0.5, y: 0.554 }; // 6 cm down: the clip's 0.10 of the frame
+      return [
+        stand({ x: 0.5, y: 0.494 }, 3, rack),
+        { pelvis: dipPelvis, torso: 5, neck: 3, arms: rack, legs: plantedLegs(dipPelvis, 5, "side", FEET, FORWARD) },
+        stand({ x: 0.5, y: 0.494 }, 0, locked),
+      ];
+    })(),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.40 }],
+    "overhand",
+    1,
+    // Camera 0.75, the strict press's: at 1.2 the near plate covered the
+    // whole figure.
+    { tempo: { down: 450, bottom: 0, up: 450, top: 900 }, camera: { azimuth: 0.75 } },
+  ),
+
   overheadPress: pose(
     "side",
     ([[355, 150, 5, 350], [358, 95, 0, 352], [0, 5, 355, 0]] as const).map(([torso, upper, lower, neck]) => {
