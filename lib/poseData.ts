@@ -257,6 +257,56 @@ export const exercisePoses = {
     { tempo: { down: 1500, bottom: 500, up: 800, top: 1200 }, camera: SQUAT_CAMERA },
   ),
 
+  // Step-up, from a reference clip measured with the pose lab (OPEX "Step
+  // Up", RRuWVDefORg, three-quarter view, four step-ups in 19 s; MoveNet on
+  // 71 frames at 0.25 s). The clip: a knee-high box IN FRONT of the lifter
+  // (the hip rises 0.5 m onto it); the lead foot goes up on the box with
+  // the knee at 73-80 and the trunk leaning 24-27 forward; the drive
+  // brings the hip up and over the foot (trunk 25 -> 10 -> 0) until she
+  // stands tall on the box with the trailing foot brought up beside the
+  // lead (knees 157-175); then down the same way; a rep is a 1.0 s drive,
+  // 0.5 s standing on the box, a 1.0 s step down and 0.5 s on the floor.
+  // Step-Up and Dumbbell Step-Up borrowed the Bulgarian split squat --
+  // whose box is BEHIND the lifter, under the rear foot.
+  // Box 0.25 (0.5 m) tall, its top 3 cm under the lead ankle; the lead leg
+  // is solved to that ankle, the trailing leg to the floor, then explicit
+  // (hanging) in the drive and solved to the box top standing.
+  stepUp: pose(
+    "side",
+    ([
+      // Hip heights are set by the straight leg under them: 0.436 (99% of
+      // the leg, where the solver locks the knee) above the trailing ankle
+      // on the floor at the start, above the lead ankle on the box at the
+      // top -- a hair less and the solver folds the knee 36 degrees.
+      [{ x: 0.44, y: 0.50 }, 25, "floor"],
+      [{ x: 0.57, y: 0.33 }, 12, "hanging"],
+      [{ x: 0.62, y: 0.221 }, 2, "box"],
+    ] as const).map(([pelvis, torso, trail]) => {
+      const lead = { x: 0.62, y: 0.658 };
+      const hips = [0, 1].map((side) => hipAt(pelvis, torso, side as 0 | 1, "side"));
+      // Knees fold FORWARD (bend -1, as FORWARD): +1 put the lead knee
+      // below and behind the hip, a leg sitting on air.
+      const leadLeg: Limb = { ...reach(hips[0]!, lead, P.thigh, P.shin, -1), end: 90 };
+      const trailLeg: Limb =
+        trail === "floor"
+          ? { ...reach(hips[1]!, { x: 0.455, y: 0.93 }, P.thigh, P.shin, -1), end: 90 }
+          : trail === "hanging"
+            ? { upper: 200, lower: 205, end: 160 }
+            : { ...reach(hips[1]!, { x: 0.60, y: 0.658 }, P.thigh, P.shin, -1), end: 90 };
+      return { pelvis, torso, neck: torso > 10 ? torso - 15 : 0, arms: wide(HANG), legs: [leadLeg, trailLeg] as [Limb, Limb] };
+    }),
+    [
+      { kind: "floor" },
+      { kind: "bell", at: "hand0", each: true },
+      // The box: its top 3 cm under the lead ankle, centred a little ahead
+      // of it, 0.25 deep, on posts to the floor.
+      { kind: "slab", at: "ankle0", dx: 0.02, dy: 0.055, width: 0.25, height: 0.05 },
+    ],
+    "neutral",
+    1,
+    { tempo: { down: 1000, bottom: 500, up: 1000, top: 500 }, camera: { azimuth: 0.9 } },
+  ),
+
   // A front squat racks the bar on the front delts with high elbows -- the
   // clean's catch -- and the trunk stays far more upright than a back squat,
   // which is the entire point of the front rack.

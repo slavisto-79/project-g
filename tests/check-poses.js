@@ -55,7 +55,8 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
       // A seated machine holds the whole body off the floor on purpose, and
       // a dip hangs from its bars -- its floor is there for the uprights to
       // stand on, under the lowest point of the rep.
-      if (-deepest > 0.16 && name !== "legExtension" && name !== "dip") note(`${where}: floats ${(-deepest).toFixed(3)} above the floor`);
+      // ...and a step-up stands on its box at the top of the rep.
+      if (-deepest > 0.16 && name !== "legExtension" && name !== "dip" && name !== "stepUp") note(`${where}: floats ${(-deepest).toFixed(3)} above the floor`);
     }
   });
 
