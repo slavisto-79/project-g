@@ -422,6 +422,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     exercises: ["Overhead Triceps Extension"],
   },
 
+  boxJump: {
+    videoId: "W5QzqIbEWvk",
+    title: "Box Jump Step Down - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three jumps in 10 s",
+    prs: [299],
+    date: "2026-09-10",
+    exercises: ["Box Jump"],
+    notes: "Up by a jump, down by a step: the first looping movement.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",

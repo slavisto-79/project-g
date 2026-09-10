@@ -622,6 +622,88 @@ export const exercisePoses = {
     [{ kind: "floor" }],
   ),
 
+  // Box jump, from a reference clip measured with the pose lab (OPEX "Box
+  // Jump Step Down", W5QzqIbEWvk, square side view, three jumps in 10 s;
+  // MoveNet on 47 frames at 0.25 s). The clip: standing a stride from a
+  // knee-high box; a 0.5 s dip -- trunk 31-37 forward, knee to 110, shin 34
+  // forward, the arms swung back -- then flight with the knees tucked
+  // (~110) and the arms swung forward; a landing on the box in a deep
+  // absorb (knee 116, trunk 31, the arms out in front, the hip still near
+  // its apex); a stand tall on the box; and a STEP down -- one foot
+  // reaching for the floor while the other leg bends on the box -- back to
+  // the start. A rep is 3.25 s. Box Jump borrowed `jump` (a hop on the
+  // spot) before.
+  // The first looping movement: it does not come back the way it went, so
+  // the key positions play in order (`loop`, one duration per leg, the last
+  // leg home) and the box is a slab fixed in the world, 0.25 (0.5 m) tall
+  // as the step-up's, its top 3 cm under a foot standing on it.
+  boxJump: pose(
+    "side",
+    (() => {
+      const boxTop = 0.658; // an ankle standing on the box
+      const floorFeet: [Point, Point] = [{ x: 0.435, y: FLOOR }, { x: 0.415, y: FLOOR }];
+      // The pelvis that puts the near leg, at these angles, on this ankle.
+      const overAnkle = (ankle: Point, thigh: number, shin: number, torso: number): Point => {
+        const knee = along(ankle, shin + 180, P.shin);
+        const hip = along(knee, thigh + 180, P.thigh);
+        return { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      };
+      const arms = sideArms(180, 136); // hanging, the forearms 44 forward: hands in front
+      const stepDownStart = (() => {
+        // The far leg bends on the box (knee 100) while the near foot reaches
+        // down in front of it; the pelvis is solved from the box leg.
+        const torso = 20;
+        const boxAnkle = { x: 0.545, y: boxTop }; // heel a centimetre inside the box's front edge
+        const knee = along(boxAnkle, 205 + 180, P.shin);
+        const hip1 = along(knee, 125 + 180, P.thigh);
+        const pelvis = { x: hip1.x - hipAt({ x: 0, y: 0 }, torso, 1, "side").x, y: hip1.y };
+        const hip0 = hipAt(pelvis, torso, 0, "side");
+        return {
+          pelvis, torso, neck: 12, arms,
+          legs: [{ ...reach(hip0, { x: 0.46, y: 0.76 }, P.thigh, P.shin, -1), end: 110 }, { upper: 125, lower: 205, end: 90 }] as [Limb, Limb],
+        };
+      })();
+      const landedInFront = (() => {
+        // The near foot on the floor a stride ahead of the box, the far foot
+        // lifting off the box's front edge on its way down.
+        // The hip stays high (the near knee soft, 140) so the far knee, with
+        // its foot 27 cm up, folds to 60 rather than 40.
+        const pelvis = { x: 0.45, y: 0.50 }, torso = 20;
+        const hip0 = hipAt(pelvis, torso, 0, "side"), hip1 = hipAt(pelvis, torso, 1, "side");
+        return {
+          pelvis, torso, neck: 12, arms,
+          legs: [{ ...reach(hip0, floorFeet[0], P.thigh, P.shin, -1), end: 90 }, { ...reach(hip1, { x: 0.505, y: 0.69 }, P.thigh, P.shin, -1), end: 130 }] as [Limb, Limb],
+        };
+      })();
+      return [
+        // Standing a stride from the box.
+        stand({ x: 0.40, y: 0.494 }, 2, arms, undefined, floorFeet),
+        // The dip: knees to 110, shins 34 forward, trunk 37, the arms swung back
+        // nearly straight (elbow 165).
+        { pelvis: overAnkle(floorFeet[0], 144, 214, 37), torso: 37, neck: 22, arms: sideArms(220, 205), legs: sideLegs(144, 214, 90) },
+        // Flight, at the apex: knees tucked, arms swung forward, the hip 24 cm
+        // above standing and the feet just over the box top.
+        { pelvis: { x: 0.52, y: 0.255 }, torso: 20, neck: 12, arms: sideArms(135, 50), legs: sideLegs(130, 205, 120) },
+        // Landing on the box, the deep absorb: knee 115, trunk 31, arms in front.
+        // Both legs at the same angles on the box (lyingLegs, not sideLegs):
+        // the five-degree depth offset put the far heel over the box's edge.
+        { pelvis: overAnkle({ x: 0.58, y: boxTop }, 132, 197, 31), torso: 31, neck: 19, arms: sideArms(138, 53), legs: lyingLegs(132, 197, 90) },
+        // Standing tall on the box.
+        { pelvis: overAnkle({ x: 0.58, y: boxTop }, 180, 180, 2), torso: 2, arms, legs: lyingLegs(180, 180, 90) },
+        stepDownStart,
+        landedInFront,
+      ];
+    })(),
+    [
+      { kind: "floor" },
+      { kind: "slab", x: 0.625, y: 0.713, width: 0.25, height: 0.05 },
+    ],
+    "neutral",
+    1,
+    // dip, flight, landing, stand, step down, foot to the floor, settle home.
+    { loop: [500, 350, 300, 450, 400, 350, 750], camera: { azimuth: 0.9 } },
+  ),
+
   run: pose(
     "side",
     [

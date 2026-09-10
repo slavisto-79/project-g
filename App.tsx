@@ -6245,7 +6245,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Wall Sit": "wallSit",
   "Single-Leg Calf Raise": "calfRaise",
 
-  "Box Jump": "jump",
+  "Box Jump": "boxJump",
   "Broad Jump": "jump",
   "Jump Squat": "jump",
   "Tuck Jump": "jump",
