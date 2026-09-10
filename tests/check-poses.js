@@ -177,7 +177,8 @@ for (const [name, entries] of Object.entries(RIGID_LEGS)) {
 //     behind the shin, so the rule stands down there instead of guessing.
 {
   const V = (a, b) => [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
-  const crossX = (u, v) => u[1] * v[2] - u[2] * v[1];
+  const cross = (u, v) => [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+  const crossX = (u, v) => cross(u, v)[0];
   const angleDeg = (u, v) => {
     const dot = u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
     const m = Math.hypot(...u) * Math.hypot(...v) || 1;
@@ -197,7 +198,13 @@ for (const [name, entries] of Object.entries(RIGID_LEGS)) {
           if (!up || !lo) return;
           const T = V(up.a, up.b), S = V(lo.a, lo.b);
           const bend = angleDeg(T, S);
-          const sign = Math.sign(crossX(T, S));
+          // The hinge's normal. A flip is its fore-aft sign reversing AND the
+          // normal turning through more than a right angle: an arm yawed
+          // about the vertical (a pec deck's sweep, out at the sides to met
+          // in front) carries the whole hinge round with it, so the sign
+          // alone changes while the fold itself never reverses.
+          const normal = cross(T, S);
+          const sign = Math.sign(normal[0]);
           // Joint range: an elbow flexes to ~150 degrees, a knee to ~160;
           // beyond that the limb is folded through itself.
           const rangeCap = label === "elbow" ? 152 : 163;
@@ -205,10 +212,11 @@ for (const [name, entries] of Object.entries(RIGID_LEGS)) {
             note(`${name}[${fi}] ${label}${side}: folded to ${bend.toFixed(0)}deg -- past the human range`);
           }
           if (bend > 25) {
-            if (prev && prev.sign !== sign) {
+            const turned = prev && prev.normal[0] * normal[0] + prev.normal[1] * normal[1] + prev.normal[2] * normal[2] < 0;
+            if (prev && prev.sign !== sign && turned) {
               note(`${name} ${label}${side}: fold side flips between frames ${prev.fi} and ${fi} (${prev.bend}deg vs ${bend.toFixed(0)}deg) -- the joint hinges the other way mid-rep`);
             }
-            prev = { fi, sign, bend: bend.toFixed(0) };
+            prev = { fi, sign, normal, bend: bend.toFixed(0) };
           } else if (bend < 12) {
             prev = null; // a near-straight frame resets the hinge reference
           }

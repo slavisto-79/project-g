@@ -6195,7 +6195,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Plyo Push-Up": "pushUp",
   "Dumbbell Fly": "fly",
   "Cable Chest Fly": "cableFly",
-  "Pec Deck": "fly",
+  "Pec Deck": "pecDeck",
   "Bar Dip": "dip",
   "Bench Dip": "dip",
   "Skull Crusher": "skullCrusher",

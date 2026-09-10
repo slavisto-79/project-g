@@ -200,7 +200,14 @@ function step(from: Point, angleDeg: number, length: number): Point {
 // plane toward the belly, about the elbow -- a side plank's support forearm,
 // which lies on the floor pointing at the camera. The hand comes with it and
 // the bone keeps its length; an arm with `forward` gets no guessed depth.
-type Limb = { upper: number; lower: number; end?: number; spread?: number; turn?: number; flare?: number; abduct?: number; forward?: number };
+// `yaw` (degrees) turns the whole arm about the VERTICAL axis through the
+// shoulder, from outboard toward the belly -- a pec deck's sweep, from the
+// arms out at the sides to the hands met in front, which neither plane can
+// draw. Both bones keep their length; an arm with `yaw` gets no guessed
+// front depth. Applied after `abduct`, so an arm authored hanging, swung
+// out level with `abduct -90`, then yawed 85, meets in front of the
+// chest the way a fly's does.
+type Limb = { upper: number; lower: number; end?: number; spread?: number; turn?: number; flare?: number; abduct?: number; forward?: number; yaw?: number };
 
 // How a movement is timed, in milliseconds: the way down, a pause at the
 // bottom, the way up, a pause at the top. Without one, every leg of the
@@ -422,10 +429,25 @@ function build3d(figure: Figure, view: View, facing: 1 | -1 = 1): { bones: PoseB
         joint[1] = s[1] - out * dx * sn + dy * c;
       }
     }
+    // Yaw: the arm turned about the vertical axis through the shoulder, its
+    // outboard side swinging toward the belly (+z for facing 1). Both
+    // bones keep their length.
+    if (arm.yaw) {
+      const s = shoulder[side]!;
+      const rad = (arm.yaw * Math.PI) / 180;
+      const c = Math.cos(rad);
+      const sn = Math.sin(rad) * facing;
+      for (const joint of [elbow, wrist]) {
+        const dx = joint[0] - s[0];
+        const dz = joint[2] - s[2];
+        joint[0] = s[0] + dx * c - out * dz * sn;
+        joint[2] = s[2] + out * dx * sn + dz * c;
+      }
+    }
     // Face on, the authored arms have no depth, so hands that cross in front
     // of the trunk would sit INSIDE it; give them the depth a real arm has
     // there -- well forward at the centreline, a hair forward at the sides.
-    if (view === "front" && !arm.forward) {
+    if (view === "front" && !arm.forward && !arm.yaw) {
       const z = frontDepth(wrist[0], wrist[1] - shoulderMid[1]);
       elbow[2] += z / 2;
       wrist[2] += z;
