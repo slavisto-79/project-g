@@ -134,6 +134,11 @@ export type ExercisePose = {
   grip: GripStyle;
   facing: 1 | -1;
   tempo?: Tempo;
+  // A movement that does not come back the way it went: the key positions
+  // play in order and the last one returns to the FIRST, each leg taking
+  // its entry's milliseconds (so there are as many entries as key
+  // positions). A box jump goes up by a jump and comes down by a step.
+  loop?: number[];
   // Where the camera starts, as the orbit angle in radians from straight in
   // front of the figure (positive = round to the figure's right side).
   // lying: say outright whether this is a lying scene (a side-to-side swing
@@ -610,7 +615,10 @@ type PropSpec =
   // (world z; the figure faces +z). Left out it sits in the figure's own
   // plane; a bench the top foot rests on in a Copenhagen plank stands a
   // little behind the body, so it does not hide it.
-  | { kind: "slab"; at: string; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; depth?: number }
+  // A slab rides a joint (`at`, plus dx/dy) or stands in the world (`x`,
+  // `y` and no `at`): a box the figure jumps onto does not move with any
+  // part of the figure.
+  | { kind: "slab"; at?: string; x?: number; y?: number; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; depth?: number }
   // anchor: the pulley, in authored coordinates (a high pulley sits above the
   // frame's top edge, which is fine -- it only has to be off the figure).
   // anchorAt: anchor the run on a JOINT instead of a fixed point -- a loop
@@ -651,7 +659,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
       }
       continue;
     }
-    const anchor = joints[spec.at];
+    const anchor = spec.at !== undefined ? joints[spec.at] : spec.kind === "slab" && spec.x !== undefined && spec.y !== undefined ? { x: spec.x, y: spec.y } : undefined;
     if (!anchor) continue;
     if (spec.kind === "bar") {
       drawn.push({
@@ -694,9 +702,11 @@ function pose(
   props: PropSpec[] = [],
   grip: GripStyle = "overhand",
   facing: 1 | -1 = 1,
-  timing: { tempo?: Tempo; camera?: { azimuth: number; lying?: boolean } } = {},
+  timing: { tempo?: Tempo; loop?: number[]; camera?: { azimuth: number; lying?: boolean } } = {},
 ): ExercisePose {
   if (figures.length < 2) throw new Error("a movement needs at least two key positions");
+  if (timing.loop && timing.loop.length !== figures.length) throw new Error("a loop needs one duration per key position (the last returns to the first)");
+  if (timing.loop && timing.tempo) throw new Error("a movement loops or has a tempo, not both");
   const built = figures.map((figure) => build(figure, view));
   // An unpinned floor goes under the lowest point the body reaches in ANY key
   // position, not the lowest in each one. Per-frame it slid about as the figure

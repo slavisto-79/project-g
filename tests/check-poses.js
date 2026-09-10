@@ -55,8 +55,9 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
       // A seated machine holds the whole body off the floor on purpose, and
       // a dip hangs from its bars -- its floor is there for the uprights to
       // stand on, under the lowest point of the rep.
-      // ...and a step-up stands on its box at the top of the rep.
-      if (-deepest > 0.16 && name !== "legExtension" && name !== "dip" && name !== "stepUp") note(`${where}: floats ${(-deepest).toFixed(3)} above the floor`);
+      // ...and a step-up stands on its box at the top of the rep, a box jump
+      // flies up onto its box and stands there.
+      if (-deepest > 0.16 && name !== "legExtension" && name !== "dip" && name !== "stepUp" && name !== "boxJump") note(`${where}: floats ${(-deepest).toFixed(3)} above the floor`);
     }
   });
 
@@ -82,13 +83,17 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   const HOLDS = new Set(["plank", "sidePlank", "copenhagenPlank", "wallSit", "carry", "quadruped", "hollowHold", "idle"]);
   // Measured on the WORLD bones: a fly's whole range is a swing out of the
   // authoring plane (`abduct`), which the flat segments cannot see.
-  const first3 = pose.frames3d[0].bones, last3 = pose.frames3d[pose.frames3d.length - 1].bones;
+  // ...and against EVERY later key position, not only the last: a looping
+  // movement (a box jump with its step down) ends where it began.
+  const first3 = pose.frames3d[0].bones;
   const travel = Math.max(
-    ...first3.map((s, i) => {
-      const t = last3[i];
-      const d = (p, q) => Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]);
-      return Math.max(d(s.a, t.a), d(s.b, t.b));
-    }),
+    ...pose.frames3d.slice(1).flatMap((frame) =>
+      first3.map((s, i) => {
+        const t = frame.bones[i];
+        const d = (p, q) => Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]);
+        return Math.max(d(s.a, t.a), d(s.b, t.b));
+      }),
+    ),
   );
   // Calf raises genuinely travel less than anything else here; the seated
   // one moves only the ankle, on purpose. The standing one goes from flat
@@ -121,7 +126,7 @@ const STANDING_FRAMES = {
   // standing frame.)
   // (fly lay down on its bench when it was authored from its clip.)
   overheadPress: 0, lateralRaise: 0,
-  tricepsExtension: 0, jump: 0, lateralLunge: 0, clean: 4,
+  tricepsExtension: 0, jump: 0, boxJump: 0, lateralLunge: 0, clean: 4,
   straightArmPulldown: 0, facePull: 0, landminePress: 0, burpee: 1,
   cableCurl: 0, cableFly: 0, cableLateralRaise: 0, cablePullThrough: 0,
 };

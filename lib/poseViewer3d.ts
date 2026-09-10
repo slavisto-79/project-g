@@ -318,6 +318,7 @@ export class PoseViewer3D {
   // The movement's own timing, when it has one; otherwise PHASE_MS per key
   // position each way and no pauses.
   private tempo?: Tempo;
+  private loop?: number[];
   // Where the camera starts on its orbit, radians from straight in front.
   private azimuth = DEFAULT_AZIMUTH;
   private head!: THREE.Mesh;
@@ -441,6 +442,7 @@ export class PoseViewer3D {
     this.host = host;
     this.frames = pose.frames3d;
     this.tempo = pose.tempo;
+    this.loop = pose.loop;
     this.azimuth = pose.camera?.azimuth ?? DEFAULT_AZIMUTH;
     this.cameraLying = pose.camera?.lying;
     this.interactive = options.interactive;
@@ -894,11 +896,14 @@ export class PoseViewer3D {
     this.seatExtra = Math.max(0, RADII.thigh * (buildScale("thigh") - 1));
     // Strain shows only on a rep that travels: the profile's idle sway
     // keeps a neutral face.
-    const last = this.frames[this.frames.length - 1]!;
+    // Against every key position, not just the last: a looping movement
+    // ends where it began.
     let travel = 0;
-    for (const s of [0, 1] as const) travel = Math.max(travel, vec(first.hands[s]).distanceTo(vec(last.hands[s])));
-    const pelvis0 = first.bones.find((b) => b.part === "spine"), pelvis1 = last.bones.find((b) => b.part === "spine");
-    if (pelvis0 && pelvis1) travel = Math.max(travel, vec(pelvis0.a).distanceTo(vec(pelvis1.a)));
+    for (const other of this.frames.slice(1)) {
+      for (const s of [0, 1] as const) travel = Math.max(travel, vec(first.hands[s]).distanceTo(vec(other.hands[s])));
+      const pelvis0 = first.bones.find((b) => b.part === "spine"), pelvis1 = other.bones.find((b) => b.part === "spine");
+      if (pelvis0 && pelvis1) travel = Math.max(travel, vec(pelvis0.a).distanceTo(vec(pelvis1.a)));
+    }
     this.effortScale = Math.min(1, Math.max(0, (travel - 0.03) / 0.1));
     const builtTaper: Record<string, [number, number]> = {};
     for (const bone of first.bones) {
@@ -2794,13 +2799,32 @@ export class PoseViewer3D {
     const elapsed = performance.now() - this.start;
     const last = this.frames.length - 1;
     let t: number;
+    // Which two key positions this instant lies between, and how far along.
+    // Normally the neighbours at floor(t) and floor(t) + 1; a loop's final
+    // leg runs from the last key position back to the first.
+    let ia = 0, ib = 1, f = 0;
     if (this.reduceMotion) {
       // Land on the final key position rather than hiding the figure: the end
       // of the movement is the more informative half of most exercises.
       t = last;
     } else {
       const ease = (forward: number) => (forward < 0.5 ? 2 * forward * forward : 1 - 2 * (1 - forward) * (1 - forward));
-      if (this.tempo) {
+      if (this.loop) {
+        const total = this.loop.reduce((sum, ms) => sum + ms, 0);
+        let at = elapsed % total;
+        let leg = 0;
+        while (leg < this.loop.length - 1 && at >= this.loop[leg]!) {
+          at -= this.loop[leg]!;
+          leg++;
+        }
+        const forward = ease(at / this.loop[leg]!);
+        ia = leg;
+        ib = (leg + 1) % this.frames.length;
+        f = forward;
+        // The effort ramp below reads t: rising through the loop, easing
+        // back to rest on the leg home.
+        t = ib === 0 ? last * (1 - forward) : leg + forward;
+      } else if (this.tempo) {
         // Down, hold, up, hold -- each leg its own length, the holds landing
         // exactly on the first and last key positions.
         const { down, bottom, up, top } = this.tempo;
@@ -2814,10 +2838,13 @@ export class PoseViewer3D {
         t = ease(forward) * last;
       }
     }
-    const i = Math.min(Math.floor(t), last - 1);
-    const f = t - i;
-    const a = this.frames[i]!;
-    const b = this.frames[i + 1]!;
+    if (!this.loop || this.reduceMotion) {
+      ia = Math.min(Math.floor(t), last - 1);
+      ib = ia + 1;
+      f = t - ia;
+    }
+    const a = this.frames[ia]!;
+    const b = this.frames[ib]!;
 
     // The breath: the rib cage swells and settles on a slow cycle, the
     // exhale a little longer than the inhale.
