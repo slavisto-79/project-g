@@ -332,7 +332,7 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
 // Stance knees move in sync: when both ankles stand together (same height,
 // near-equal depth), both legs must hold the same angles -- one straight leg
 // beside a folded one is how the squat's far knee drifted out of sync.
-const GAITS = new Set(["carry", "overheadCarry", "frontRackCarry", "suitcaseCarry", "run", "jumpingLunge"]); // walking strides are asymmetric on purpose
+const GAITS = new Set(["carry", "overheadCarry", "frontRackCarry", "suitcaseCarry", "run", "jumpingLunge", "skaterBound"]); // walking strides are asymmetric on purpose
 for (const [name, pose] of Object.entries(exercisePoses)) {
   if (GAITS.has(name)) continue;
   pose.frames3d.forEach((frame, fi) => {

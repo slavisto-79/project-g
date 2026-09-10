@@ -541,6 +541,58 @@ export const exercisePoses = {
     [{ kind: "floor" }],
   ),
 
+  // Skater bound, from a reference clip measured with the pose lab ("Skater
+  // Jumps", Xqzq9w42-z4, square FRONT view, nine bounds in 12 s; MoveNet on
+  // 61 frames at 0.2 s, read as frontal keypoints). The clip: a bound
+  // sideways from one leg to the other, the hip travelling 155 px (about
+  // 1.4 m) each way and rising only 3-4 cm; landing on one leg with the
+  // stance knee soft (165-170), the trunk leaning 7-13 over the stance
+  // foot, the free leg folded (knee 80-115) and crossed BEHIND the stance
+  // leg with its foot 13-15 cm up; mid-bound the legs straddle wide, low
+  // to the floor; the hands come together in front of the chest on each
+  // landing and swing out between. A bound every 1.3 s. Skater Bound
+  // borrowed `jump` (a two-footed hop, side view) before.
+  // Face on, since the whole movement is lateral. The free leg's shin is
+  // pitched behind the body with `forward` (now on legs too): in the frontal
+  // plane alone it drew through the stance leg. The bound covers 0.20
+  // (0.6 m) each way.
+  skaterBound: pose(
+    "front",
+    (() => {
+      const landed = (stance: 0 | 1): Figure => {
+        const dir = stance === 0 ? 1 : -1; // side 0 stands on the figure's right (+x)
+        // Pelvis height sets the stance knee: 0.487 puts the foot at 98.8% of
+        // the leg (knee 162, the clip's soft 165-170); 0.50 folded it to 147.
+        const pelvis = { x: 0.5 + dir * 0.10, y: 0.487 };
+        const torso = dir * 10; // leaning over the stance foot
+        const hipS = hipAt(pelvis, torso, stance, "front");
+        const foot = { x: hipS.x + dir * 0.008, y: FLOOR };
+        const stanceLeg: Limb = { ...reach(hipS, foot, P.thigh, P.shin, OUT[stance]), end: stance === 0 ? 90 : 270 };
+        // The free leg angled 20 toward the stance side, its shin swung 70
+        // behind: the foot ends up behind the stance ankle, 15 cm up.
+        const freeLeg: Limb = { upper: 180 - dir * 20, lower: 180, forward: -70, end: 180 };
+        const legs = (stance === 0 ? [stanceLeg, freeLeg] : [freeLeg, stanceLeg]) as [Limb, Limb];
+        // Hands together in front of the chest, the forearms crossing.
+        const arms: [Limb, Limb] = [{ upper: 200, lower: 290 }, { upper: 160, lower: 70 }];
+        return { pelvis, torso, arms, legs };
+      };
+      // Mid-bound: low and wide, the legs straddled, the arms swung out.
+      const flight: Figure = {
+        pelvis: { x: 0.5, y: 0.47 },
+        torso: 0,
+        arms: [{ upper: 150, lower: 130 }, { upper: 210, lower: 230 }],
+        // Toes down and out (135 / 225): pointing straight down they went 5 mm
+        // into the floor.
+        legs: [{ upper: 155, lower: 175, forward: -20, end: 135 }, { upper: 205, lower: 185, forward: -20, end: 225 }],
+      };
+      return [landed(0), flight, landed(1)];
+    })(),
+    [{ kind: "floor", y: GROUND }],
+    "neutral",
+    1,
+    { tempo: { down: 650, bottom: 0, up: 650, top: 0 }, camera: { azimuth: 0.35 } },
+  ),
+
   wallSit: pose(
     "side",
     [

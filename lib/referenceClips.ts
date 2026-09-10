@@ -457,6 +457,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     exercises: ["Jumping Lunge"],
   },
 
+  skaterBound: {
+    videoId: "Xqzq9w42-z4",
+    title: "Skater Jumps",
+    channel: "Exercise Library",
+    view: "front",
+    span: "nine bounds in 12 s",
+    prs: [302],
+    date: "2026-09-10",
+    exercises: ["Skater Bound"],
+    notes: "Frontal keypoints read directly (hip travel, lean, free-foot height), not the lab's sagittal table.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",
