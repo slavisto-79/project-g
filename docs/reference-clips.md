@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 54 |
+| authored from a clip (the clip shows the exercise) | 55 |
 | sharing a pose that was authored from a clip | 39 |
-| without a clip yet | 69 |
-| poses with a clip | 53 of 106 (102 in use) |
+| without a clip yet | 68 |
+| poses with a clip | 54 of 107 (103 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -112,7 +112,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Inverted Row | `invertedRow` | no clip yet |  |  |
 | Jump Squat | `jump` | no clip yet |  |  |
 | Jumping Lunge | `jumpingLunge` | authored from the clip | [Jump Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=BR1A8T9SjIU) (OPEX Fitness, side) | #301 |
-| Kettlebell Clean | `clean` | no clip yet |  |  |
+| Kettlebell Clean | `kettlebellClean` | authored from the clip | [Single Arm Kettlebell Clean From Floor](https://www.youtube.com/watch?v=JrNe81MYEuI) (Functional Bodybuilding, side) | #308 |
 | Kettlebell Snatch | `kettlebellSnatch` | authored from the clip | [Kettlebell Snatch](https://www.youtube.com/watch?v=y12D2GApeO0) (OPEX Fitness, side) | #303 |
 | Kettlebell Swing | `kettlebellSwing` | authored from the clip | [The Russian Kettlebell Swing](https://www.youtube.com/watch?v=OPcG_thX6Dc) (Onnit, side) | #263 |
 | Knee Push-Up | `kneePushUp` | no clip yet |  |  |
@@ -241,3 +241,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `highKnees` | [High Knees | Movement Demo](https://www.youtube.com/watch?v=cUmfCd-Hznk) | CrossFit | three-quarter | nine seconds on the spot | #305 | 2026-09-11 | High Knees | Near-side view: the angles are projections, +-5. |
 | `tuckJump` | [Tuck Jump](https://www.youtube.com/watch?v=w0cI_zLXJFo) | OPEX Bristol - The Future of Personal Training | side | three jumps in 8.5 s | #306 | 2026-09-11 | Tuck Jump | Read as raw keypoints (heights, knee under hip). The video sits behind YouTube's consent page. |
 | `powerClean` | [Power Clean (side view)](https://www.youtube.com/watch?v=YEXjyc22Jek) | Fitness Pain Free | side | two reps in 14 s | #307 | 2026-09-11 | Power Clean | Hang Clean and Kettlebell Clean still borrow the old `clean`. |
+| `kettlebellClean` | [Single Arm Kettlebell Clean From Floor](https://www.youtube.com/watch?v=JrNe81MYEuI) | Functional Bodybuilding | side | six reps in 9 s | #308 | 2026-09-11 | Kettlebell Clean | Near-side view; the swing-through key keeps the bell out of the thighs, as the snatch's. |

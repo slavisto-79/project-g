@@ -6270,7 +6270,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Overhead Carry": "overheadCarry",
   "Power Clean": "powerClean",
   "Hang Clean": "clean",
-  "Kettlebell Clean": "clean",
+  "Kettlebell Clean": "kettlebellClean",
   "Kettlebell Snatch": "kettlebellSnatch",
   "Bird Dog": "quadruped",
   "Bear Crawl": "bearCrawl",
