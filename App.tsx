@@ -6200,7 +6200,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Bench Dip": "dip",
   "Skull Crusher": "skullCrusher",
   "Band Overhead Press": "overheadPress",
-  "Push Jerk": "overheadPress",
+  "Push Jerk": "pushJerk",
 
   "Lat Pulldown": "pulldown",
   "Neutral-Grip Pulldown": "pulldown",

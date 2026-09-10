@@ -553,6 +553,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "Push Jerk still borrows the strict press; it drops under the bar, which this one does not.",
   },
 
+  pushJerk: {
+    videoId: "dboDOX7xY_Q",
+    title: "Push Jerk (Side view)",
+    channel: "Fitness Pain Free",
+    view: "side",
+    span: "three reps in 10 s",
+    prs: [310],
+    date: "2026-09-11",
+    exercises: ["Push Jerk"],
+    notes: "The second dip -- dropping under a locked-out bar -- is what separates it from the push press.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",
