@@ -434,6 +434,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "Up by a jump, down by a step: the first looping movement.",
   },
 
+  broadJump: {
+    videoId: "YjFr2OEivz0",
+    title: "Broad Jump | Strength & Conditioning Exercise Library",
+    channel: "Flow High Performance",
+    view: "side",
+    span: "one jump in 6 s",
+    prs: [300],
+    date: "2026-09-10",
+    exercises: ["Broad Jump"],
+    notes: "One rep, so the tempo is a single sample. The loop glides back to the start.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",

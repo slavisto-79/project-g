@@ -704,6 +704,63 @@ export const exercisePoses = {
     { loop: [500, 350, 300, 450, 400, 350, 750], camera: { azimuth: 0.9 } },
   ),
 
+  // Broad jump, from a reference clip measured with the pose lab (Flow High
+  // Performance "Broad Jump", YjFr2OEivz0, square side view, one jump in
+  // 6 s; MoveNet on 40 frames at 0.15 s). The clip: standing with the arms
+  // reached overhead; a 0.7 s dip that is nearly a hinge -- trunk 77-84
+  // forward, thigh 54 forward, shin 40-52 forward, knee 74-84, the arms
+  // swung back and up behind -- then take-off with the body extended along
+  // 40-45 forward and the arms thrown forward-up; flight with the knees
+  // coming forward; a landing about 0.8 body heights ahead in a DEEP absorb
+  // (thigh past level, knee 49-65, trunk 28-31, arms in front); and a rise
+  // to standing. Broad Jump borrowed `jump` (a hop on the spot) before.
+  // Ours lands a little shallower (knee 85) so the hip travels forward
+  // through every leg of the jump; see the landing key.
+  // A loop: the standing finish glides back to the start (0.9 s) while the
+  // arms rise to the overhead reach that opens the next jump -- the one
+  // motion here that no jumper makes, kept because the alternative was a
+  // rep played backwards, a jump BACKWARDS. The jump covers 0.42 (0.9 m).
+  broadJump: pose(
+    "side",
+    (() => {
+      const overAnkle = (ankle: Point, thigh: number, shin: number, torso: number): Point => {
+        const knee = along(ankle, shin + 180, P.shin);
+        const hip = along(knee, thigh + 180, P.thigh);
+        return { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      };
+      const startFeet: [Point, Point] = [{ x: 0.395, y: FLOOR }, { x: 0.375, y: FLOOR }];
+      const landFeet: [Point, Point] = [{ x: 0.68, y: FLOOR }, { x: 0.66, y: FLOOR }];
+      return [
+        // Standing, the arms reached overhead.
+        stand({ x: 0.36, y: 0.494 }, 2, sideArms(8, 10), undefined, startFeet),
+        // The dip: trunk 65, thigh 54 and shin 42 forward (knee 84), the arms
+        // swung back and up.
+        { pelvis: overAnkle(startFeet[0], 126, 222, 65), torso: 65, neck: 39, arms: sideArms(250, 240), legs: sideLegs(126, 222, 90) },
+        // Take-off: the body one line 35 forward, the toes leaving the floor,
+        // the arms thrown forward-up. (At 40 the hip stood so far ahead of
+        // the feet that it travelled BACKWARDS into the landing.)
+        { pelvis: overAnkle({ x: 0.40, y: 0.90 }, 215, 217, 35), torso: 35, neck: 21, arms: sideArms(60, 55), legs: sideLegs(215, 217, 120) },
+        // Flight: the hip 12 cm up, the knees coming forward for the landing.
+        { pelvis: { x: 0.58, y: 0.374 }, torso: 25, neck: 15, arms: sideArms(100, 95), legs: sideLegs(130, 175, 120) },
+        // The landing absorb: thigh 70 forward, shin 25, knee 85, trunk 30,
+        // the arms in front. (The clip goes deeper, thigh past level and knee
+        // 65: the hip then sits so far behind the feet that it, too, would
+        // travel backwards from the take-off.)
+        // (lyingLegs: the five-degree far-leg offset sank the far foot 8 mm.)
+        { pelvis: overAnkle(landFeet[0], 110, 205, 30), torso: 30, neck: 18, arms: sideArms(120, 110), legs: lyingLegs(110, 205, 90) },
+        // Standing tall where the jump landed.
+        stand({ x: 0.645, y: 0.494 }, 2, HANG, undefined, landFeet),
+      ];
+    })(),
+    // Pinned: unpinned, the floor went under the take-off toes, 4 cm below
+    // the standing feet.
+    [{ kind: "floor", y: GROUND }],
+    "neutral",
+    1,
+    // dip, take-off, flight, landing, rise, and the glide back to the start.
+    { loop: [700, 300, 300, 300, 500, 900], camera: { azimuth: 0.9 } },
+  ),
+
   run: pose(
     "side",
     [
