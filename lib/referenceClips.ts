@@ -1,0 +1,427 @@
+// The reference clips: for every movement that was authored against a
+// video of the real lift (docs/animation-from-clip.md), which video, seen
+// from where, and which library exercise it actually shows.
+//
+// This is the record of what each animation was corrected against. It is
+// kept per POSE (the thing that was measured and re-authored); which
+// exercises use a pose is App.tsx's POSE_FOR_EXERCISE, and
+// `npm run check:references` joins the two into docs/reference-clips.md --
+// one line per library exercise -- and fails on an entry that names a pose
+// or an exercise that does not exist. Add an entry with every movement PR.
+
+import type { PoseName } from "./poseData";
+
+// Where the camera stood. Sagittal numbers (trunk, knee, hip) are only
+// trustworthy from a side view; a three-quarter view gives them as
+// projections (+-5 degrees); a front view gives the frontal plane; the head
+// or foot end of a bench gives tempo and grip width and little else.
+export type ReferenceView = "side" | "three-quarter" | "front" | "head-end" | "foot-end";
+
+export type ReferenceClip = {
+  // YouTube video id; the URL is https://www.youtube.com/watch?v=<id>.
+  videoId: string;
+  title: string;
+  channel: string;
+  view: ReferenceView;
+  // What was measured: reps and seconds, or the length of a hold.
+  span: string;
+  // The pull requests that authored (and corrected) the pose from this clip.
+  prs: number[];
+  // Date of the (last) merge, ISO.
+  date: string;
+  // The library exercises this clip actually shows. Every other exercise
+  // mapped to the pose borrows it, and the generated doc says so.
+  exercises: string[];
+  notes?: string;
+};
+
+export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
+  // --- Batch 1: the three big lifts ------------------------------------
+  squat: {
+    videoId: "-bJIpOq-LWk",
+    title: "How to do a Barbell Back Squat",
+    channel: "National Academy of Sports Medicine (NASM)",
+    view: "three-quarter",
+    span: "three reps in 11.8 s",
+    prs: [254],
+    date: "2026-09-08",
+    exercises: ["Barbell Back Squat"],
+    notes: "Stance and toe angle read face on; depth to parallel; SQUAT_FRAMES are shared by the goblet and bodyweight squats.",
+  },
+  trapBarDeadlift: {
+    videoId: "ZJPZQklCSLs",
+    title: "How To Hex Bar Deadlift Correctly",
+    channel: "Motiv8 Fitness",
+    view: "side",
+    span: "two reps in 4.6 s",
+    prs: [255, 256],
+    date: "2026-09-08",
+    exercises: ["Trap Bar Deadlift"],
+  },
+  bench: {
+    videoId: "ejI1Nlsul9k",
+    title: "Barbell Bench Press - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "foot-end",
+    span: "three reps in 5.5 s",
+    prs: [257, 258],
+    date: "2026-09-08",
+    exercises: ["Barbell Bench Press"],
+    notes: "Foot-end camera: bar path, tempo and grip width; the chest-touch depth came from the skinned chest surface.",
+  },
+
+  // --- Batch 2: hinges and squats ---------------------------------------
+  romanianDeadlift: {
+    videoId: "ionx2qnNVMo",
+    title: "BB RDL (Romanian Deadlift) Side View",
+    channel: "Coach Savela",
+    view: "side",
+    span: "three reps in 9.8 s",
+    prs: [260],
+    date: "2026-09-09",
+    exercises: ["Romanian Deadlift"],
+  },
+  stiffLegDeadlift: {
+    videoId: "u3krqJlu7uc",
+    title: "BB Stiff Legged Deadlift",
+    channel: "Theory of Motion Exercise Library",
+    view: "side",
+    span: "five reps in 14.5 s",
+    prs: [261],
+    date: "2026-09-09",
+    exercises: ["Stiff-Leg Deadlift"],
+  },
+  goodMorning: {
+    videoId: "dEJ0FTm-CEk",
+    title: "High Bar Good Morning",
+    channel: "Renaissance Periodization",
+    view: "side",
+    span: "three reps in 17.3 s",
+    prs: [262],
+    date: "2026-09-09",
+    exercises: ["Good Morning"],
+  },
+  kettlebellSwing: {
+    videoId: "OPcG_thX6Dc",
+    title: "The Russian Kettlebell Swing",
+    channel: "Onnit",
+    view: "side",
+    span: "nine swings in 14.3 s",
+    prs: [263],
+    date: "2026-09-09",
+    exercises: ["Kettlebell Swing"],
+  },
+  hipThrust: {
+    videoId: "TSz4XEoFSFw",
+    title: "Barbell Hip Thrust",
+    channel: "My PT Hub",
+    view: "side",
+    span: "shoulders on a bench, three reps",
+    prs: [264],
+    date: "2026-09-09",
+    exercises: ["Barbell Hip Thrust"],
+    notes: "The OPEX clip in the batch list was a floor thrust with no bench, so this one was used instead.",
+  },
+  sumoDeadlift: {
+    videoId: "OKMDYjnK8m8",
+    title: "Sumo Deadlift - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "four reps in 16 s",
+    prs: [265],
+    date: "2026-09-09",
+    exercises: ["Sumo Deadlift"],
+    notes: "The plates hide the knees at the bottom; knee angles were read off the overlays.",
+  },
+  frontSquat: {
+    videoId: "Q1Ypb8ZNzI4",
+    title: "How To Do A Barbell front squat",
+    channel: "PureGym",
+    view: "side",
+    span: "the first 8 s, two reps before the cut to a close-up",
+    prs: [266],
+    date: "2026-09-09",
+    exercises: ["Barbell Front Squat"],
+  },
+  splitSquat: {
+    videoId: "Fmjj7wFJWRE",
+    title: "Bulgarian Split Squat with Dumbbells",
+    channel: "The Active Life",
+    view: "side",
+    span: "two reps after a 14 s setup",
+    prs: [267],
+    date: "2026-09-09",
+    exercises: ["Bulgarian Split Squat", "Dumbbell Bulgarian Split Squat"],
+    notes: "Step-Up and Dumbbell Step-Up still borrow this pose; a step-up's box is in FRONT of the lifter.",
+  },
+  splitSquatStatic: {
+    videoId: "Py2Qeg-D5T0",
+    title: "Split Squat - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 11 s",
+    prs: [268],
+    date: "2026-09-09",
+    exercises: ["Split Squat"],
+  },
+  walkingLunge: {
+    videoId: "6wZoPedlpok",
+    title: "Walking Lunge - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "two steps in 6.4 s",
+    prs: [269],
+    date: "2026-09-09",
+    exercises: ["Walking Lunge"],
+  },
+  legPress: {
+    videoId: "B8KqmwdomoU",
+    title: "Leg Press Machine Press - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 12 s",
+    prs: [270],
+    date: "2026-09-09",
+    exercises: ["Leg Press"],
+    notes: "The program builder never puts the leg press in a session; the pose is reachable only through the library.",
+  },
+  boxSquat: {
+    videoId: "rMEPHwNhQfo",
+    title: "Box Squat Movement Demo",
+    channel: "The Active Life",
+    view: "side",
+    span: "three reps after a 7 s walk-out",
+    prs: [271],
+    date: "2026-09-09",
+    exercises: ["Box Squat"],
+  },
+
+  // --- Batch 3: push and pull -------------------------------------------
+  overheadPress: {
+    videoId: "0YYeELi896g",
+    title: "How to Overhead Press Correctly (Military Press)",
+    channel: "TylerPath",
+    view: "three-quarter",
+    span: "three reps between the cuts",
+    prs: [272],
+    date: "2026-09-09",
+    exercises: ["Barbell Overhead Press"],
+  },
+  bentRow: {
+    videoId: "bm0_q9bR_HA",
+    title: "How to do a Barbell Bent Over Row Pronated",
+    channel: "National Academy of Sports Medicine (NASM)",
+    view: "side",
+    span: "three reps after a 6 s hinge down",
+    prs: [273],
+    date: "2026-09-09",
+    exercises: ["Barbell Row"],
+  },
+  pullUp: {
+    videoId: "jgFel4wZl3I",
+    title: "Strict Pull Up - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 8.6 s",
+    prs: [274],
+    date: "2026-09-09",
+    exercises: ["Pull-Up"],
+  },
+  pulldown: {
+    videoId: "PEv0gTcMY3g",
+    title: "Cable Lat Pulldown Machine - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "four reps in 10.5 s",
+    prs: [275],
+    date: "2026-09-09",
+    exercises: ["Lat Pulldown"],
+  },
+  seatedRow: {
+    videoId: "4ZbqM_gcgAI",
+    title: "Seated Cable Row - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 9.5 s",
+    prs: [276],
+    date: "2026-09-09",
+    exercises: ["Seated Cable Row"],
+  },
+  pushUp: {
+    videoId: "Ql8PKKsDE70",
+    title: "Push Up - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 4.8 s",
+    prs: [277],
+    date: "2026-09-09",
+    exercises: ["Push-Up"],
+    notes: "Knee, Incline and Decline Push-Up have their own poses, still derived from the old flat frames.",
+  },
+
+  // --- Batch 4: arms and shoulders --------------------------------------
+  curl: {
+    videoId: "-gSM-kqNlUw",
+    title: "EZ Bar Curl - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 10 s",
+    prs: [278],
+    date: "2026-09-09",
+    exercises: ["Barbell Curl"],
+  },
+  tricepsExtension: {
+    videoId: "y6EdXBdL75A",
+    title: "Rope Cable Tricep Pushdown - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "five reps in 11.6 s",
+    prs: [279],
+    date: "2026-09-09",
+    exercises: ["Triceps Pushdown"],
+    notes: "Overhead Triceps Extension borrows this pushdown; it needs its own overhead pose.",
+  },
+  lateralRaise: {
+    videoId: "8aUc9snLOxU",
+    title: "Dumbbell Lateral Raise - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "five reps in 9 s",
+    prs: [280],
+    date: "2026-09-09",
+    exercises: ["Dumbbell Lateral Raise"],
+  },
+  skullCrusher: {
+    videoId: "eluOhtYkm-0",
+    title: "EZ Bar Skull Crusher - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "head-end",
+    span: "three reps in 9 s",
+    prs: [281],
+    date: "2026-09-09",
+    exercises: ["Skull Crusher"],
+  },
+  dip: {
+    videoId: "VNa0hX_y6Fk",
+    title: "Weighted Dip - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "four reps in 11 s",
+    prs: [282],
+    date: "2026-09-09",
+    exercises: ["Bar Dip"],
+  },
+  fly: {
+    videoId: "AVIBmE5iQrQ",
+    title: "Dumbbell Neutral Grip Fly - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "head-end",
+    span: "three reps in 11.5 s",
+    prs: [283],
+    date: "2026-09-09",
+    exercises: ["Dumbbell Fly"],
+    notes: "Pec Deck (a seated machine) borrows this lying fly.",
+  },
+
+  // --- Batch 5: core and carries ----------------------------------------
+  plank: {
+    videoId: "rfPf3HCg2Ac",
+    title: "Front Plank to Forearm Plank",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "the forearm phases at 2.5-3, 6-6.5 and 9.5-10 s",
+    prs: [284],
+    date: "2026-09-09",
+    exercises: ["Plank"],
+  },
+  sidePlank: {
+    videoId: "tbWPBOgju9g",
+    title: "Side Plank - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "a 9 s hold",
+    prs: [285],
+    date: "2026-09-09",
+    exercises: ["Side Plank"],
+    notes: "Copenhagen Plank (feet on a bench) borrows this floor side plank.",
+  },
+  hangingRaise: {
+    videoId: "w0IDQ_05X34",
+    title: "Hanging Leg Raises",
+    channel: "OPEX San Juan",
+    view: "three-quarter",
+    span: "four reps in 12 s",
+    prs: [286],
+    date: "2026-09-09",
+    exercises: ["Hanging Leg Raise"],
+    notes: "The clip's knees bend (a knee raise); the leg raise keeps its hang, trunk lean and tempo with the knees held straight and the thighs stopping level.",
+  },
+  hangingKneeRaise: {
+    videoId: "w0IDQ_05X34",
+    title: "Hanging Leg Raises",
+    channel: "OPEX San Juan",
+    view: "three-quarter",
+    span: "four reps in 12 s",
+    prs: [286],
+    date: "2026-09-09",
+    exercises: ["Hanging Knee Raise"],
+    notes: "The clip as measured: knees to the chest.",
+  },
+  woodchop: {
+    videoId: "KnbgKcvOG_c",
+    title: "High to Low Cable Oblique Rotation",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "three reps in 11 s",
+    prs: [287],
+    date: "2026-09-09",
+    exercises: ["Cable Woodchopper"],
+    notes: "Pallof Press (a straight-out press against the cable) borrows this chop.",
+  },
+  carry: {
+    videoId: "K4R8uc1x_OA",
+    title: "Dumbbell Farmer's Carry",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "2.6 s of walking in frame",
+    prs: [288],
+    date: "2026-09-09",
+    exercises: ["Farmer's Carry"],
+    notes: "Suitcase, Front Rack and Overhead Carry walk the same way; their loads differ and are not drawn differently yet.",
+  },
+  russianTwist: {
+    videoId: "Hvtxbidjins",
+    title: "Russian Twist",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "six twists in 9.5 s",
+    prs: [289],
+    date: "2026-09-10",
+    exercises: ["Russian Twist"],
+  },
+  deadBug: {
+    videoId: "-VykQ1HD0Vw",
+    title: "Alternating Dead Bug",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reaches in 17 s",
+    prs: [290],
+    date: "2026-09-10",
+    exercises: ["Dead Bug"],
+  },
+  hollowHold: {
+    videoId: "EsnM8eBtazU",
+    title: "Hollow Body Hold - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "1.25 s into the hold, 3.5 s holding it",
+    prs: [291],
+    date: "2026-09-10",
+    exercises: ["Hollow Hold"],
+    notes: "V-Up borrows this hold.",
+  },
+};
+
+export function referenceClipUrl(clip: ReferenceClip): string {
+  return `https://www.youtube.com/watch?v=${clip.videoId}`;
+}

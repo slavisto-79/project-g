@@ -132,3 +132,10 @@ project-g-blond.vercel.app with the `project-g-test-state` seed for both
 sexes (the recipes that surface each exercise are in the session notes)
 → `check:poses` and the session sweep clean → memory note. One PR per
 movement; a batch is 5–6 movements of one pattern.
+
+Every movement PR also adds its clip to `lib/referenceClips.ts` (video id,
+title, channel, view, what was measured, the PR, and which library
+exercise the clip actually shows). `npm run check:references` validates
+the entry against the poses and the library and regenerates
+`docs/reference-clips.md`, the per-exercise record of what each animation
+was corrected against; the PR commits both.
