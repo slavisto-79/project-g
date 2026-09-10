@@ -1481,6 +1481,29 @@ export const exercisePoses = {
     { tempo: { down: 1000, bottom: 400, up: 1000, top: 200 }, camera: { azimuth: 0.9, lying: false } },
   ),
 
+  // Overhead triceps extension, from a reference clip measured with the pose
+  // lab (OPEX "Single Dumbbell Overhead Tricep Extension", 7h3lG2WnLXg,
+  // square side view, three reps in 8 s; MoveNet on 32 frames at 0.25 s).
+  // The clip: standing, one dumbbell in both hands overhead, the arms all
+  // but straight at the top (elbow 165-178, upper arm 2-20 forward of
+  // plumb), the elbows staying up and 20 forward of plumb while the
+  // forearms fold BEHIND the head to 67-77 off vertical (elbow 52-57), the
+  // trunk within 8 of vertical; a rep is a 1.25 s lowering, a beat behind
+  // the head, a 0.75 s press and 0.5 s at the top. It borrowed the cable
+  // pushdown before -- a dumbbell pushed DOWN in front of the chest.
+  overheadTricepsExtension: pose(
+    "side",
+    ([[8, 8], [14, 309], [20, 250]] as const).map(([upper, lower]) =>
+      stand({ x: 0.5, y: 0.497 }, 2, [{ upper, lower, spread: -0.08 }, { upper, lower, spread: -0.08 }]),
+    ),
+    // One bell held in both hands: a bell at the grip is drawn once, between
+    // them.
+    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.07 }],
+    "neutral",
+    1,
+    { tempo: { down: 1250, bottom: 250, up: 750, top: 500 }, camera: { azimuth: 0.9 } },
+  ),
+
   kickback: pose(
     "side",
     [180, 222, 264].map((forearm) => {
