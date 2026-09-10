@@ -345,6 +345,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     exercises: ["Side Plank"],
     notes: "Copenhagen Plank (feet on a bench) borrows this floor side plank.",
   },
+  // --- Batch 6: the borrowed exercises get their own poses ----------------
+  copenhagenPlank: {
+    videoId: "tKb76R21AfM",
+    title: "Copenhagen Plank",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "a 7 s hold",
+    prs: [293],
+    date: "2026-09-10",
+    exercises: ["Copenhagen Plank"],
+  },
+
   hangingRaise: {
     videoId: "w0IDQ_05X34",
     title: "Hanging Leg Raises",

@@ -78,7 +78,7 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   // differ is showing a partial range, which is the complaint that started
   // this rebuild. Holds are allowed to be still.
   // `idle` is the profile screen's resting figure, not an exercise.
-  const HOLDS = new Set(["plank", "sidePlank", "wallSit", "carry", "quadruped", "hollowHold", "idle"]);
+  const HOLDS = new Set(["plank", "sidePlank", "copenhagenPlank", "wallSit", "carry", "quadruped", "hollowHold", "idle"]);
   // Measured on the WORLD bones: a fly's whole range is a swing out of the
   // authoring plane (`abduct`), which the flat segments cannot see.
   const first3 = pose.frames3d[0].bones, last3 = pose.frames3d[pose.frames3d.length - 1].bones;
