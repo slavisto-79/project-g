@@ -1912,6 +1912,44 @@ export const exercisePoses = {
   // arms explicit -- 150/5, 95/0, 5/355 -- with the elbows flared 45 degrees
   // outboard, which is where a press carries them, and the grip 6cm outside
   // the shoulders. The head tips back a touch while the bar passes.
+  // Push jerk, from a reference clip measured with the pose lab (Fitness
+  // Pain Free "Push Jerk (Side view)", dboDOX7xY_Q, square side view, three
+  // reps in 10 s; MoveNet on 58 frames at 0.3 s). The clip: the bar racked
+  // (elbow 27-34, knee 177-179, trunk within 4); a DIP to knee 124-133; a
+  // drive to full extension (knee 175, the trunk 12 back); and then the
+  // thing that makes it a jerk -- the lifter DROPS UNDER the bar, catching
+  // it with the arms already locked overhead (elbow 171-175) and the knees
+  // re-bent to 99-110, the trunk 18-20 forward; then stands up under it
+  // (knee 154 -> 180) and brings the bar back to the rack. A rep is about
+  // 1.8 s: 0.3 s dip, 0.3 s drive, 0.6 s in the catch, 0.6 s standing.
+  // Push Jerk borrowed `overheadPress`, a strict press. The push press
+  // (the previous movement) drives the bar up with the legs but never
+  // drops under it; the second dip is the whole difference.
+  pushJerk: pose(
+    "side",
+    (() => {
+      const rack = sideArms(135, 350);
+      const locked = sideArms(5, 355).map((arm) => ({ ...arm, spread: 0.06, flare: 45 })) as [Limb, Limb];
+      const dip = { x: 0.5, y: 0.554 };
+      // The catch: under the bar, the knees folded to 110 and the trunk a
+      // little forward -- the pelvis 5.5 cm below standing.
+      const under = { x: 0.5, y: 0.549 };
+      return [
+        stand({ x: 0.5, y: 0.494 }, 3, rack),
+        { pelvis: dip, torso: 5, neck: 3, arms: rack, legs: plantedLegs(dip, 5, "side", FEET, FORWARD) },
+        // The drive: tall on the toes, the bar still on the shoulders.
+        { pelvis: { x: 0.5, y: 0.454 }, torso: -3, neck: -2, arms: rack, legs: sideLegs(178, 180, 120) },
+        // The catch: the arms already locked overhead, the knees re-bent.
+        { pelvis: under, torso: 12, neck: 7, arms: locked, legs: plantedLegs(under, 12, "side", FEET, FORWARD) },
+        stand({ x: 0.5, y: 0.494 }, 0, locked),
+      ];
+    })(),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.40 }],
+    "overhand",
+    1,
+    { tempo: { down: 700, bottom: 0, up: 700, top: 700 }, camera: { azimuth: 0.75 } },
+  ),
+
   // Push press, from a reference clip measured with the pose lab (Armory
   // HPFT "Push press (side view)", xcCYH-UcoZ0, square side view, three
   // reps in 11.6 s; MoveNet on 57 frames at 0.2 s). The clip: the bar
