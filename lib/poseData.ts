@@ -1298,6 +1298,52 @@ export const exercisePoses = {
     -1,
   ),
 
+  // Bear crawl, from a reference clip measured with the pose lab (OPEX
+  // "Crawl", w089AXf1f_g, square side view, ten hand-steps in 9 s; MoveNet
+  // on 56 frames at 0.2 s, read as raw keypoints -- the lab's table drops
+  // the legs of a crawling figure). The clip: on hands and toes with the
+  // trunk level (shoulders and hips at one height, 55 cm up), the arms
+  // straight (elbow 170-180) and near plumb (within 15), the knees bent to
+  // 65-115 and hovering 10-15 cm off the floor, the heels up; a hand steps
+  // 22 cm forward every 0.8 s, lifting 10 cm, with the opposite foot; the
+  // hips stay level throughout. Bear Crawl borrowed `quadruped` (the bird
+  // dog: kneeling, one arm and the opposite leg reached out) before.
+  // A crawl on the spot, as the carries walk on the spot: four key positions
+  // on a `loop` -- one diagonal pair planted forward, the other pair lifted
+  // mid-step, the first pair planted forward, the second lifted. Facing -x,
+  // as the quadruped does.
+  bearCrawl: pose(
+    "side",
+    (() => {
+      const pelvis = { x: 0.55, y: 0.646 }; // shoulders and hips 0.284 up: a straight arm to the floor
+      const torso = 270; // level, the shoulders ahead (toward -x)
+      const shoulders = [0, 1].map((side) => shoulderAt(pelvis, torso, side as 0 | 1, "side"));
+      const hips = [0, 1].map((side) => hipAt(pelvis, torso, side as 0 | 1, "side"));
+      // A hand on the floor `ahead` (in y units, -x is ahead) of its shoulder.
+      const hand = (side: 0 | 1, ahead: number, up = 0): Limb =>
+        ({ ...reach(shoulders[side]!, { x: shoulders[side]!.x - ahead / ASPECT, y: FLOOR - up }, P.upperArm, P.forearm, FORWARD[side]), end: 270 });
+      // A planted leg: the ankle 4 cm up (toes on the floor, heel raised)
+      // `back` behind its hip, the knee solved ahead of the hip and low.
+      const planted = (side: 0 | 1, back: number): Limb =>
+        ({ ...reach(hips[side]!, { x: hips[side]!.x + back / ASPECT, y: FLOOR - 0.04 }, P.thigh, P.shin, 1), end: 230 });
+      // Mid-step: the foot 13 cm up under the hip, the knee tucked ahead.
+      const lifted = (side: 0 | 1): Limb =>
+        ({ ...reach(hips[side]!, { x: hips[side]!.x + 0.12 / ASPECT, y: FLOOR - 0.13 }, P.thigh, P.shin, 1), end: 230 });
+      const neck = 290;
+      return [
+        { pelvis, torso, neck, arms: [hand(0, 0.05), hand(1, -0.05)], legs: [planted(0, 0.17), planted(1, 0.09)] },
+        { pelvis, torso, neck, arms: [hand(0, 0), hand(1, 0.03, 0.05)], legs: [lifted(0), planted(1, 0.13)] },
+        { pelvis, torso, neck, arms: [hand(0, -0.05), hand(1, 0.05)], legs: [planted(0, 0.09), planted(1, 0.17)] },
+        { pelvis, torso, neck, arms: [hand(0, 0.03, 0.05), hand(1, 0)], legs: [planted(0, 0.13), lifted(1)] },
+      ];
+    })(),
+    // Pinned: unpinned it dropped to the lowest toe and left the hands 6 cm up.
+    [{ kind: "floor", y: GROUND, mat: true }],
+    "overhand",
+    -1,
+    { loop: [400, 400, 400, 400], camera: { azimuth: 0.9 } },
+  ),
+
   // --- Horizontal push -----------------------------------------------------
 
   // The bench ends at the hip joint: the thighs angle down to the floor from

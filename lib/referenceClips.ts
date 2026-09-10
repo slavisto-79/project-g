@@ -481,6 +481,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "The way down is the pull reversed; the clip drops the bell a little further out in front.",
   },
 
+  bearCrawl: {
+    videoId: "w089AXf1f_g",
+    title: "Crawl - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "ten hand-steps in 9 s",
+    prs: [304],
+    date: "2026-09-10",
+    exercises: ["Bear Crawl"],
+    notes: "Raw keypoints (the lab's table drops a crawling figure's legs). Ours crawls on the spot.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",
