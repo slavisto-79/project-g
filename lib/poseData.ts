@@ -1841,6 +1841,47 @@ export const exercisePoses = {
     { tempo: { down: 1600, bottom: 300, up: 1600, top: 300 }, camera: { azimuth: 0, lying: true } },
   ),
 
+  // Copenhagen plank, from a reference clip measured with the pose lab (OPEX
+  // "Copenhagen Plank", tKb76R21AfM, the camera square on the front of the
+  // body, a 7 s hold; MoveNet on 15 frames at 0.5 s). The clip: the side
+  // plank's shape on the forearm, but the TOP foot rests on a bench and the
+  // hips ride up to it -- the body runs DOWN from the feet to the shoulders
+  // (the model reads the top side at 17 below level and the bottom side at 7
+  // above it: the girdles seen edge-on), the top leg straight and level
+  // with the bench (knee 170-174), the bottom leg hanging under the bench
+  // with a soft knee, the top hand on the hip (elbow 134-140).
+  // Same plane as the side plank (front view, lying along x), solved with
+  // both ends pinned: the support elbow at the forearm's radius (0.028)
+  // with the upper arm plumb, the top ankle 4 cm over a bench top 0.40 up;
+  // that fixes the body at 12 degrees, descending to the head (legs 78,
+  // trunk 258). The bottom leg 100 / 118 hangs clear of the bench's
+  // underside. Copenhagen Plank borrowed the floor side plank before.
+  copenhagenPlank: pose(
+    "front",
+    [
+      // The top hand rests ON the hip: its forearm is pitched 32 degrees
+      // toward the belly (`forward`) so the hand sits 8 cm off the hip line
+      // -- the hip's radius plus the hand's -- instead of the guessed front
+      // depth, which held it 11 cm out in the air. Both arms carry spread
+      // -0.028: the world build's splay is along x, which for a figure
+      // lying along x is the BODY axis, and it stretched the top forearm
+      // 1.3 cm toward the feet.
+      { pelvis: { x: 0.5, y: 0.617 }, torso: 258, neck: 262, arms: [{ upper: 60, lower: 112, forward: 32, spread: -0.028 }, { upper: 180, lower: 180, end: 180, forward: 90, spread: -0.028 }], legs: [{ upper: 78, lower: 80, end: 90 }, { upper: 100, lower: 118, end: 120 }] },
+      { pelvis: { x: 0.5, y: 0.620 }, torso: 258.7, neck: 262.7, arms: [{ upper: 60, lower: 112, forward: 32, spread: -0.028 }, { upper: 180, lower: 180, end: 180, forward: 90, spread: -0.028 }], legs: [{ upper: 78, lower: 80, end: 90 }, { upper: 100, lower: 118, end: 120 }] },
+    ],
+    [
+      { kind: "floor", mat: true, y: 0.93 },
+      // The bench under the top foot: its top 4 cm under the ankle, its
+      // length running along the body (`across`) toward the head.
+      // ...and 10 cm behind the body's plane, so the foot rests on its near
+      // half and the pad does not stand between the camera and the trunk.
+      { kind: "slab", at: "ankle0", width: 0.5, height: 0.055, dx: -0.10, dy: 0.0675, across: true, depth: -0.10 },
+    ],
+    "overhand",
+    1,
+    { tempo: { down: 1600, bottom: 300, up: 1600, top: 300 }, camera: { azimuth: 0, lying: true } },
+  ),
+
   // Both hands travel together on a diagonal; that diagonal is the exercise.
   // They are authored as ONE pair of hands either side of what is held, not
   // as two arms swinging on the same angles: parallel arms from shoulders

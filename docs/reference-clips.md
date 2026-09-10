@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 37 |
-| sharing a pose that was authored from a clip | 47 |
+| authored from a clip (the clip shows the exercise) | 38 |
+| sharing a pose that was authored from a clip | 46 |
 | without a clip yet | 78 |
-| poses with a clip | 36 of 89 (85 in use) |
+| poses with a clip | 37 of 90 (86 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -66,7 +66,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Close-Grip Bench Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
 | Concentration Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
 | Conventional Deadlift | `hinge` | no clip yet |  |  |
-| Copenhagen Plank | `sidePlank` | shares `sidePlank` (the clip shows Side Plank) | [Side Plank - OPEX Exercise Library](https://www.youtube.com/watch?v=tbWPBOgju9g) (OPEX Fitness, front) | #285 |
+| Copenhagen Plank | `copenhagenPlank` | authored from the clip | [Copenhagen Plank](https://www.youtube.com/watch?v=tKb76R21AfM) (OPEX Fitness, front) | #293 |
 | Cossack Squat | `lateralLunge` | no clip yet |  |  |
 | Curtsy Lunge | `curtsyLunge` | no clip yet |  |  |
 | Dead Bug | `deadBug` | authored from the clip | [Alternating Dead Bug](https://www.youtube.com/watch?v=-VykQ1HD0Vw) (OPEX Fitness, side) | #290 |
@@ -224,3 +224,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `russianTwist` | [Russian Twist](https://www.youtube.com/watch?v=Hvtxbidjins) | OPEX Fitness | side | six twists in 9.5 s | #289 | 2026-09-10 | Russian Twist |  |
 | `deadBug` | [Alternating Dead Bug](https://www.youtube.com/watch?v=-VykQ1HD0Vw) | OPEX Fitness | side | four reaches in 17 s | #290 | 2026-09-10 | Dead Bug |  |
 | `hollowHold` | [Hollow Body Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=EsnM8eBtazU) | OPEX Fitness | side | 1.25 s into the hold, 3.5 s holding it | #291 | 2026-09-10 | Hollow Hold | V-Up borrows this hold. |
+| `copenhagenPlank` | [Copenhagen Plank](https://www.youtube.com/watch?v=tKb76R21AfM) | OPEX Fitness | front | a 7 s hold | #293 | 2026-09-10 | Copenhagen Plank |  |
