@@ -469,6 +469,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "Frontal keypoints read directly (hip travel, lean, free-foot height), not the lab's sagittal table.",
   },
 
+  kettlebellSnatch: {
+    videoId: "y12D2GApeO0",
+    title: "Kettlebell Snatch",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 9 s",
+    prs: [303],
+    date: "2026-09-10",
+    exercises: ["Kettlebell Snatch"],
+    notes: "The way down is the pull reversed; the clip drops the bell a little further out in front.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",

@@ -2515,7 +2515,10 @@ export class PoseViewer3D {
       }
       this.scene.add(mesh);
       if (!twoHanded) this.fistOutboard = true;
-      this.held.push(this.anchored(mesh, i, "bell"));
+      const heldBell = this.anchored(mesh, i, "bell");
+      // A swung kettlebell (a snatch) points along the arm, as on a bar.
+      if (prop.swing && implement === "kettlebell") heldBell.userData.swing = true;
+      this.held.push(heldBell);
     }
 
     // Two towers facing the figure from either side are ONE machine -- a
@@ -2541,6 +2544,22 @@ export class PoseViewer3D {
 
   // Ties a prop mesh to its index so update() can move it each frame; "hands"
   // means one copy per hand, so a second mesh is cloned for the other side.
+  // A swung kettlebell points away from the shoulders along the arms: its
+  // ball (local -Y) goes where shoulders -> grip points. Hanging under
+  // vertical arms that is straight down, as it was; overhead it stands up.
+  // A one-arm bell points from ITS shoulder (side given); a two-hand one
+  // from the middle of the shoulder line.
+  private pointAlongArm(group: THREE.Group, a: PoseFrame3D, b: PoseFrame3D, f: number, side?: 0 | 1) {
+    const si = side === undefined ? a.bones.findIndex((bone) => bone.part === "shoulders") : a.bones.findIndex((bone) => bone.part === "upperArm" && bone.side === side);
+    const sa = a.bones[si];
+    const sb = b.bones[si];
+    if (si >= 0 && sa && sb) {
+      const mid = side === undefined ? lerp3(sa.a, sb.a, f).add(lerp3(sa.b, sb.b, f)).multiplyScalar(0.5) : lerp3(sa.a, sb.a, f);
+      const dir = group.position.clone().sub(mid);
+      if (dir.lengthSq() > 1e-6) group.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir.normalize());
+    }
+  }
+
   private anchored(mesh: THREE.Group | THREE.Mesh, propIndex: number, kind: string, mode: "centre" | "hands" = "centre"): THREE.Group {
     let group: THREE.Group;
     if (mesh instanceof THREE.Group) {
@@ -3042,12 +3061,19 @@ export class PoseViewer3D {
         const side = mode === "twin" ? 1 : 0;
         group.position.copy(lerp3(a.hands[side]!, b.hands[side]!, f)).add(jitter);
         group.position.x += side === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
-      } else if (pa.kind === "bell" && pb.kind === "bell" && this.frames[0]!.props.filter((p) => p.kind === "bell").length >= 2) {
-        // Two bells were authored per hand; keep each on its hand in 3D, where
-        // the hands genuinely sit apart on the lateral axis.
-        const which = Math.min(this.frames[0]!.props.filter((p, idx) => p.kind === "bell" && idx < propIndex).length, 1) as 0 | 1;
+      } else if (pa.kind === "bell" && pb.kind === "bell" && (pa.hand !== undefined || this.frames[0]!.props.filter((p) => p.kind === "bell").length >= 2)) {
+        // Two bells were authored per hand, or one bell on a named hand (a
+        // one-arm snatch, a suitcase carry); keep each on its hand in 3D,
+        // where the hands genuinely sit apart on the lateral axis. On the
+        // midline a one-arm bell hung 11 cm inboard of the hand, in the thigh.
+        const which = pa.hand !== undefined ? pa.hand : (Math.min(this.frames[0]!.props.filter((p, idx) => p.kind === "bell" && idx < propIndex).length, 1) as 0 | 1);
         group.position.copy(lerp3(a.hands[which], b.hands[which], f)).add(jitter);
-        group.position.x += which === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
+        // A swung bell hangs from a hand gripping its handle from above: it
+        // stays on the hand's own line (no outboard shove) and points along
+        // that arm.
+        const swung = !!(group.userData as { swing?: boolean }).swing;
+        if (!swung) group.position.x += which === 0 ? HELD_OUTBOARD : -HELD_OUTBOARD;
+        if (swung) this.pointAlongArm(group, a, b, f, which);
       } else {
         group.position.copy(lerp3(pa.center, pb.center, f));
         const buildOffset = (group.userData as { buildOffset?: THREE.Vector3 }).buildOffset;
@@ -3055,16 +3081,7 @@ export class PoseViewer3D {
         // A swung kettlebell points away from the shoulders along the arms:
         // its ball (local -Y) goes where shoulders -> grip points. Hanging
         // under vertical arms that is straight down, as it was.
-        if ((group.userData as { swing?: boolean }).swing) {
-          const si = a.bones.findIndex((bone) => bone.part === "shoulders");
-          const sa = a.bones[si];
-          const sb = b.bones[si];
-          if (si >= 0 && sa && sb) {
-            const mid = lerp3(sa.a, sb.a, f).add(lerp3(sa.b, sb.b, f)).multiplyScalar(0.5);
-            const dir = group.position.clone().sub(mid);
-            if (dir.lengthSq() > 1e-6) group.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir.normalize());
-          }
-        }
+        if ((group.userData as { swing?: boolean }).swing) this.pointAlongArm(group, a, b, f);
         // A landmine bar is built along +X from its pivot end; aim it from
         // the pivot through the hands, so the pivot end never leaves the floor.
         const pivot = (group.userData as { pivot?: THREE.Vector3 }).pivot;
