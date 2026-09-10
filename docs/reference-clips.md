@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 51 |
+| authored from a clip (the clip shows the exercise) | 52 |
 | sharing a pose that was authored from a clip | 39 |
-| without a clip yet | 72 |
-| poses with a clip | 50 of 103 (99 in use) |
+| without a clip yet | 71 |
+| poses with a clip | 51 of 104 (100 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -102,7 +102,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Hanging Knee Raise | `hangingKneeRaise` | authored from the clip | [Hanging Leg Raises](https://www.youtube.com/watch?v=w0IDQ_05X34) (OPEX San Juan, three-quarter) | #286 |
 | Hanging Leg Raise | `hangingRaise` | authored from the clip | [Hanging Leg Raises](https://www.youtube.com/watch?v=w0IDQ_05X34) (OPEX San Juan, three-quarter) | #286 |
 | Heels-Elevated Goblet Squat | `gobletSquat` | no clip yet |  |  |
-| High Knees | `run` | no clip yet |  |  |
+| High Knees | `highKnees` | authored from the clip | [High Knees | Movement Demo](https://www.youtube.com/watch?v=cUmfCd-Hznk) (CrossFit, three-quarter) | #305 |
 | Hip Hinge Wall Touch | `hinge` | no clip yet |  |  |
 | Hollow Hold | `hollowHold` | authored from the clip | [Hollow Body Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=EsnM8eBtazU) (OPEX Fitness, side) | #291 |
 | Incline Barbell Bench Press | `inclinePress` | no clip yet |  |  |
@@ -238,3 +238,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `skaterBound` | [Skater Jumps](https://www.youtube.com/watch?v=Xqzq9w42-z4) | Exercise Library | front | nine bounds in 12 s | #302 | 2026-09-10 | Skater Bound | Frontal keypoints read directly (hip travel, lean, free-foot height), not the lab's sagittal table. |
 | `kettlebellSnatch` | [Kettlebell Snatch](https://www.youtube.com/watch?v=y12D2GApeO0) | OPEX Fitness | side | four reps in 9 s | #303 | 2026-09-10 | Kettlebell Snatch | The way down is the pull reversed; the clip drops the bell a little further out in front. |
 | `bearCrawl` | [Crawl - OPEX Exercise Library](https://www.youtube.com/watch?v=w089AXf1f_g) | OPEX Fitness | side | ten hand-steps in 9 s | #304 | 2026-09-10 | Bear Crawl | Raw keypoints (the lab's table drops a crawling figure's legs). Ours crawls on the spot. |
+| `highKnees` | [High Knees | Movement Demo](https://www.youtube.com/watch?v=cUmfCd-Hznk) | CrossFit | three-quarter | nine seconds on the spot | #305 | 2026-09-11 | High Knees | Near-side view: the angles are projections, +-5. |

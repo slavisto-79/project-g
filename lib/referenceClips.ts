@@ -493,6 +493,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "Raw keypoints (the lab's table drops a crawling figure's legs). Ours crawls on the spot.",
   },
 
+  highKnees: {
+    videoId: "cUmfCd-Hznk",
+    title: "High Knees | Movement Demo",
+    channel: "CrossFit",
+    view: "three-quarter",
+    span: "nine seconds on the spot",
+    prs: [305],
+    date: "2026-09-11",
+    exercises: ["High Knees"],
+    notes: "Near-side view: the angles are projections, +-5.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",

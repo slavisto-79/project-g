@@ -857,6 +857,43 @@ export const exercisePoses = {
     { tempo: { down: 575, bottom: 0, up: 575, top: 0 }, camera: { azimuth: 0.9 } },
   ),
 
+  // High knees, from a reference clip measured with the pose lab (CrossFit
+  // "High Knees | Movement Demo", cUmfCd-Hznk, a near-side view, nine
+  // seconds of running on the spot; MoveNet on 64 frames at 0.15 s; the
+  // angles are projections, +-5). The clip: a run on the spot with each
+  // knee driven to hip height (thigh 68-89 forward at the peak, the shin
+  // hanging vertical under it), the stance leg straight (knee 160-170) on
+  // the ball of the foot, the trunk within 10 of upright, the arms pumping
+  // with the elbows at 40-65 and the upper arms swinging 20 either side of
+  // plumb; the hip is highest at each knee peak. A step every 0.6 s.
+  // High Knees borrowed `run` (a running stride) before.
+  // Three key positions there and back: one knee up, both feet down with
+  // the knees soft, the other knee up -- so the way back is the next step.
+  highKnees: pose(
+    "side",
+    (() => {
+      const torso = 5;
+      const up: Limb = { upper: 90, lower: 180, end: 200 }; // thigh level, shin plumb, toes down
+      const stance: Limb = { upper: 180, lower: 180, end: 120 }; // straight, on the ball of the foot
+      const fwdArm: Limb = { upper: 135, lower: 45 }; // elbow 90, the hand at chest height in front
+      const backArm: Limb = { upper: 215, lower: 125 }; // elbow 90, the hand by the hip
+      // On the ball of the foot the toes touch the floor 3.6 cm below the
+      // ankle, so the pelvis rides at 0.454, 4 cm above a flat-footed stand.
+      const kneeUp = (side: 0 | 1): Figure => ({
+        pelvis: { x: 0.5, y: 0.454 },
+        torso,
+        neck: 0,
+        arms: (side === 0 ? [backArm, fwdArm] : [fwdArm, backArm]) as [Limb, Limb],
+        legs: (side === 0 ? [up, stance] : [stance, up]) as [Limb, Limb],
+      });
+      return [kneeUp(0), stand({ x: 0.5, y: 0.50 }, torso, [{ upper: 180, lower: 90 }, { upper: 180, lower: 90 }], 0), kneeUp(1)];
+    })(),
+    [{ kind: "floor", y: GROUND }],
+    "neutral",
+    1,
+    { tempo: { down: 600, bottom: 0, up: 600, top: 0 }, camera: { azimuth: 0.9 } },
+  ),
+
   run: pose(
     "side",
     [
