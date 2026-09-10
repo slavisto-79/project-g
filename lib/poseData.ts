@@ -201,6 +201,17 @@ function hangingFigure(torso: number, thigh: number, shin: number): Figure {
   };
 }
 
+// The farmer's stride (OPEX "Dumbbell Farmer's Carry", K4R8uc1x_OA), shared
+// by every loaded carry: heel strike -> feet passing -> the next heel strike,
+// in place; only the arms differ between the carries.
+function carryStride(arms: [Limb, Limb]): Figure[] {
+  return [
+    { pelvis: { x: 0.5, y: 0.535 }, torso: 3, arms, legs: [{ upper: 160, lower: 166, end: 80 }, { upper: 202, lower: 214, end: 140 }] },
+    { pelvis: { x: 0.5, y: 0.528 }, torso: 3, arms, legs: [{ upper: 178, lower: 180, end: 90 }, { upper: 184, lower: 192, end: 100 }] },
+    { pelvis: { x: 0.5, y: 0.535 }, torso: 3, arms, legs: [{ upper: 202, lower: 214, end: 140 }, { upper: 160, lower: 166, end: 80 }] },
+  ];
+}
+
 export const exercisePoses = {
   // --- Squat pattern -------------------------------------------------------
 
@@ -2035,12 +2046,56 @@ export const exercisePoses = {
   // is kept symmetric enough to read either way.
   carry: pose(
     "side",
-    [
-      { pelvis: { x: 0.5, y: 0.535 }, torso: 3, arms: wide(HANG), legs: [{ upper: 160, lower: 166, end: 80 }, { upper: 202, lower: 214, end: 140 }] },
-      { pelvis: { x: 0.5, y: 0.528 }, torso: 3, arms: wide(HANG), legs: [{ upper: 178, lower: 180, end: 90 }, { upper: 184, lower: 192, end: 100 }] },
-      { pelvis: { x: 0.5, y: 0.535 }, torso: 3, arms: wide(HANG), legs: [{ upper: 202, lower: 214, end: 140 }, { upper: 160, lower: 166, end: 80 }] },
-    ],
+    carryStride(wide(HANG)),
     [{ kind: "floor", y: 0.972 }, { kind: "bell", at: "hand0", each: true }],
+    "neutral",
+    1,
+    { tempo: { down: 500, bottom: 40, up: 500, top: 40 }, camera: { azimuth: 0.9 } },
+  ),
+
+  // The other loaded carries: the farmer's stride with the load moved. Each
+  // from its own reference clip, measured with the pose lab -- all three
+  // filmed walking TOWARD the camera, which shows the arms and nothing of
+  // the stride (that is the farmer's, from its side-view clip).
+  // Overhead: OPEX "Dual Kettlebell Overhead Carry" (dwGP7RAYtxY, 12 frames
+  // at 0.25 s): both arms locked out overhead (elbow 175-179), 10-20
+  // degrees out from plumb in the frontal plane -- a shallow V -- the trunk
+  // within 5 of vertical. Authored plumb in the side plane and swung out
+  // 15 with `abduct`; the bells at the hands.
+  overheadCarry: pose(
+    "side",
+    carryStride([{ upper: 0, lower: 0, abduct: 15 }, { upper: 0, lower: 0, abduct: 15 }]),
+    [{ kind: "floor", y: 0.972 }, { kind: "bell", at: "hand0", each: true }],
+    "neutral",
+    1,
+    { tempo: { down: 500, bottom: 40, up: 500, top: 40 }, camera: { azimuth: 0.9 } },
+  ),
+  // Front rack: OPEX "Front Rack Kettlebell Carry" (0OzaglIheOc, 15 frames
+  // at 0.25 s): the elbows down by the ribs (upper arm within 8 of plumb),
+  // the forearms folded up to the shoulders (elbow 25-31, forearm ~30 off
+  // vertical), the bells at the collarbones. Upper arm 165 (15 forward of
+  // plumb) and forearm 15: the hand lands at shoulder height, 7 cm ahead
+  // of the shoulder, elbow 30.
+  frontRackCarry: pose(
+    "side",
+    carryStride([{ upper: 165, lower: 15 }, { upper: 165, lower: 15 }]),
+    [{ kind: "floor", y: 0.972 }, { kind: "bell", at: "hand0", each: true }],
+    "neutral",
+    1,
+    { tempo: { down: 500, bottom: 40, up: 500, top: 40 }, camera: { azimuth: 0.9 } },
+  ),
+  // Suitcase: OPEX "Single Arm Farmers Carry" (28BIZccT5fs, 22 frames at
+  // 0.25 s): one bell, the loaded arm straight (elbow 177-180) and held
+  // 9-12 degrees out from plumb so the bell clears the thigh, the free arm
+  // hanging (elbow 176-179, 5-8 off plumb), the trunk held within 12 of
+  // vertical against the pull. The loaded (near) arm is swung out 12 with
+  // `abduct` (negative: an arm that hangs swings outboard on the negative
+  // sign) -- `spread` would have stretched it 6 mm; the free arm hangs as
+  // the farmer's; one bell, on the near hand.
+  suitcaseCarry: pose(
+    "side",
+    carryStride([{ upper: 178, lower: 179, abduct: -12 }, { upper: 178, lower: 179, spread: 0.04 }]),
+    [{ kind: "floor", y: 0.972 }, { kind: "bell", at: "hand0" }],
     "neutral",
     1,
     { tempo: { down: 500, bottom: 40, up: 500, top: 40 }, camera: { azimuth: 0.9 } },
