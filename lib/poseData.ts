@@ -981,6 +981,76 @@ export const exercisePoses = {
     { tempo: { down: 600, bottom: 0, up: 600, top: 400 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
+  // Kettlebell snatch, from a reference clip measured with the pose lab
+  // (OPEX "Kettlebell Snatch", y12D2GApeO0, square side view, four reps in
+  // 9 s; MoveNet on 53 frames at 0.2 s). The clip: a one-arm swing that
+  // finishes overhead -- at the bottom a hinge with the trunk 61-71
+  // forward, the thigh 10-19 forward, the shin 11-15 forward, knee 146-159,
+  // the working arm hanging back between the legs (upper arm 38-41 behind
+  // plumb, elbow 159-165); the pull brings the trunk up as the bell rides
+  // the front of the body with the elbow bent to 122 (upper arm 17
+  // forward, forearm near level); the lockout stands tall with the arm
+  // straight overhead; the drop swings the bell back down in front. A rep
+  // is 2.3 s: 1.0 s from the hinge to the lockout, a beat there, 1.0 s
+  // down. Kettlebell Snatch borrowed `clean` (a two-hand barbell clean).
+  // The way down is the pull reversed -- the bell falls back down the
+  // front of the body into the hinge, close enough to the clip's drop.
+  // The bell is a swung `bell` on the working hand: drawn on that hand and
+  // along the arm's line, so overhead it stands ABOVE the hand, on the
+  // forearm, not hanging under it.
+  kettlebellSnatch: pose(
+    "side",
+    (() => {
+      // The pelvis that puts the near leg, at these angles, on the near foot.
+      const overFoot = (thigh: number, shin: number, torso: number): Point => {
+        const knee = along(FEET[0], shin + 180, P.shin);
+        const hip = along(knee, thigh + 180, P.thigh);
+        return { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      };
+      const stanceLeg = (thigh: number, shin: number): Limb => ({ upper: thigh, lower: shin, end: 90, spread: 0.16, turn: 20 });
+      const hinge = (() => {
+        const torso = 65;
+        // Stance 0.16 out each side with the toes turned 20 (a snatch stands
+        // a little wider than a swing) so the bell passes between the knees.
+        const leg: Limb = { upper: 165, lower: 192, end: 90, spread: 0.16, turn: 20 }; // thigh 15 forward, shin 12: knee 153
+        const knee = along(FEET[0], leg.lower + 180, P.shin);
+        const hip = along(knee, leg.upper + 180, P.thigh);
+        const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+        return {
+          pelvis, torso, neck: 45,
+          // The working arm swung back between the legs; the other trails
+          // out behind, a hand's width wide of the body.
+          // (At 220/205 the bell sat 1.4 cm inside the thigh line; 232/215 swings
+          // it clear behind the legs, as the swing's 235.)
+          // The working hand on the midline (spread -0.10 cancels the arm's
+          // splay): the bell hangs between the knees, not beside a thigh.
+          arms: [{ upper: 232, lower: 215, spread: -0.085 }, { upper: 205, lower: 215, spread: 0.06 }] as [Limb, Limb],
+          legs: [leg, { ...leg }] as [Limb, Limb],
+        };
+      })();
+      return [
+        hinge,
+        // The swing through: half-way up (trunk 40, knees 166) with the arm
+        // hanging plumb, the bell at knee height just in front of the shins.
+        // Without this key the bell cut the corner from behind the knees to
+        // the chest THROUGH the thighs.
+        { pelvis: overFoot(172, 186, 40), torso: 40, neck: 28, arms: [{ upper: 183, lower: 183, spread: -0.085 }, { upper: 195, lower: 200, spread: 0.06 }] as [Limb, Limb], legs: [stanceLeg(172, 186), stanceLeg(172, 186)] as [Limb, Limb] },
+        // The high pull: standing up into it, the bell riding the front of
+        // the body with the elbow high (122).
+        stand({ x: 0.50, y: 0.494 }, 15, [{ upper: 163, lower: 106, spread: -0.085 }, { upper: 188, lower: 192, spread: 0.06 }], 10),
+        // The lockout: tall, the arm straight overhead, 10 forward of plumb.
+        stand({ x: 0.50, y: 0.494 }, 2, [{ upper: 10, lower: 5, spread: -0.085 }, { upper: 180, lower: 182, spread: 0.06 }]),
+      ];
+    })(),
+    // One bell on the working hand, swung: drawn ON that hand (outboard of
+    // the thigh) and pointing along the arm, so overhead it stands above the
+    // hand on the forearm rather than hanging under it.
+    [{ kind: "floor" }, { kind: "bell", at: "hand0", swing: true }],
+    "overhand",
+    1,
+    { tempo: { down: 1000, bottom: 200, up: 1000, top: 100 }, camera: { azimuth: 1.2 } },
+  ),
+
   // Sumo deadlift, from a reference clip measured with the pose lab (OPEX
   // "Sumo Deadlift", three-quarter view, 4 reps in 16 s; MoveNet on 80
   // frames at 0.2 s -- the plates hide the knees at the bottom, so the

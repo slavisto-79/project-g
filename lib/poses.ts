@@ -27,7 +27,11 @@ export type PoseProp =
   // both: held in both hands (authored at the grip), not a per-hand weight.
   // wheel: an ab wheel -- a wheel on an axle with a handle out either side,
   // not a weight at all; it is authored as a bell because it rides the hands.
-  | { kind: "bell"; x: number; y: number; size: number; both?: boolean; wheel?: boolean }
+  // hand: which hand a single bell was authored on (from `at: "hand0"`), so
+  // the world form can keep it ON that hand rather than on the midline.
+  // swing: a kettlebell that points along the arm (shoulders -> hand) rather
+  // than hanging plumb -- a snatch stands it above the hand at the lockout.
+  | { kind: "bell"; x: number; y: number; size: number; both?: boolean; wheel?: boolean; hand?: 0 | 1; swing?: boolean }
   // angle: an inclined bench -- the backrest runs along this authored
   // direction (same convention as a bar's angle) from the anchor, which is
   // then the hip joint rather than the pad's centre.
@@ -99,7 +103,7 @@ export type PoseProp3D =
   // hex: a trap bar -- a hexagonal frame the lifter stands inside, handles at
   // the sides where the hands are; the plates sit outside the frame.
   | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean; dir?: Vec3; hex?: boolean }
-  | { kind: "bell"; center: Vec3; size: number; both?: boolean; wheel?: boolean }
+  | { kind: "bell"; center: Vec3; size: number; both?: boolean; wheel?: boolean; hand?: 0 | 1; swing?: boolean }
   // dir: an inclined bench's backrest direction; center is then the hip.
   // `across`: the bench stands crosswise to the figure (its length along x),
   // the way a bench is placed for hands or feet on its edge.
@@ -601,7 +605,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
     if (prop.kind === "bell") {
       const centre = point(prop.x, prop.y);
       if (view === "front") centre[2] = heldDepth(prop.x, prop.y);
-      return { kind: "bell" as const, center: centre, size: prop.size, ...(prop.both ? { both: true } : {}), ...(prop.wheel ? { wheel: true } : {}) };
+      return { kind: "bell" as const, center: centre, size: prop.size, ...(prop.both ? { both: true } : {}), ...(prop.wheel ? { wheel: true } : {}), ...(prop.hand !== undefined ? { hand: prop.hand } : {}), ...(prop.swing ? { swing: true } : {}) };
     }
     if (prop.kind === "cable") {
       // Face on, the machine stands IN FRONT of the figure (the figure faces
@@ -644,7 +648,8 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
 
 type PropSpec =
   | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean; hex?: boolean }
-  | { kind: "bell"; at: string; size?: number; each?: boolean; wheel?: boolean }
+  // swing: see PoseProp -- a kettlebell drawn along the arm's line.
+  | { kind: "bell"; at: string; size?: number; each?: boolean; wheel?: boolean; swing?: boolean }
   // depth: FRONT view only -- where the slab stands along the depth axis
   // (world z; the figure faces +z). Left out it sits in the figure's own
   // plane; a bench the top foot rests on in a Copenhagen plank stands a
@@ -707,7 +712,8 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
         ...(spec.hex ? { hex: true } : {}),
       });
     } else if (spec.kind === "bell") {
-      drawn.push({ kind: "bell", x: anchor.x, y: anchor.y, size: spec.size ?? 0.055, ...(spec.at === "grip" ? { both: true } : {}), ...(spec.wheel ? { wheel: true } : {}) });
+      const hand = spec.at === "hand0" ? 0 : spec.at === "hand1" ? 1 : undefined;
+      drawn.push({ kind: "bell", x: anchor.x, y: anchor.y, size: spec.size ?? 0.055, ...(spec.at === "grip" ? { both: true } : {}), ...(spec.wheel ? { wheel: true } : {}), ...(hand !== undefined ? { hand } : {}), ...(spec.swing ? { swing: true } : {}) });
     } else {
       drawn.push({
         kind: "slab",

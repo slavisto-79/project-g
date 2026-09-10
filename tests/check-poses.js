@@ -126,7 +126,7 @@ const STANDING_FRAMES = {
   // standing frame.)
   // (fly lay down on its bench when it was authored from its clip.)
   overheadPress: 0, lateralRaise: 0,
-  tricepsExtension: 0, jump: 0, boxJump: 0, broadJump: 0, lateralLunge: 0, clean: 4,
+  tricepsExtension: 0, jump: 0, boxJump: 0, broadJump: 0, lateralLunge: 0, clean: 4, kettlebellSnatch: 3,
   straightArmPulldown: 0, facePull: 0, landminePress: 0, burpee: 1,
   cableCurl: 0, cableFly: 0, cableLateralRaise: 0, cablePullThrough: 0,
 };
