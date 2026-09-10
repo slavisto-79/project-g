@@ -66,8 +66,11 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   }
 
   // Two key positions that are the same are a still frame sold as motion.
+  // Compared on the WORLD bones: a Russian twist's whole movement is the
+  // arms swung out of the authoring plane (`abduct`), which leaves the flat
+  // segments identical.
   for (let i = 1; i < frames.length; i++) {
-    const a = JSON.stringify(frames[i - 1].segments), b = JSON.stringify(frames[i].segments);
+    const a = JSON.stringify(pose.frames3d[i - 1].bones), b = JSON.stringify(pose.frames3d[i].bones);
     if (a === b) note(`${name}: key positions ${i - 1} and ${i} are identical`);
   }
 

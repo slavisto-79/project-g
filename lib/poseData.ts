@@ -2180,18 +2180,34 @@ export const exercisePoses = {
 
   // Seated and leaned back, feet light: the hands sweep between chest height
   // and the hip, which is the twist's rhythm seen side-on.
+  // Russian twist, from a reference clip measured with the pose lab (OPEX
+  // "Russian Twist", Hvtxbidjins, square side view, six twists in 9.5 s;
+  // MoveNet on 39 frames at 0.25 s): a V-sit with the feet off the floor --
+  // the trunk reclined 40-47 degrees, the thighs 34 degrees above level,
+  // the shins 30 below it (knee 110-120, hip 70-105), the head up -- and
+  // the clasped hands, elbows bent (50-97), sweeping from one hip to the
+  // other in ~0.75 s each way. The old sit reclined only 25 degrees and
+  // "twisted" by dropping straight arms 50 degrees in the plane.
+  // The sweep is the one thing a side view cannot draw, so each arm is
+  // swung about the fore-aft axis through its shoulder with `abduct` --
+  // signed OPPOSITELY on the two arms, which sends both hands to the same
+  // side of the body with every bone at full length (the same sign sends
+  // them apart, a fly). The hands are authored below the shoulders (upper
+  // arm 230, forearm 260, elbow 150) because the swing is proportional to
+  // that drop: hands at shoulder height would not move at all.
   russianTwist: pose(
     "side",
-    ([[275, 277], [225, 227]] as const).map(([up, low]) => ({
+    ([-60, 0, 60] as const).map((swing) => ({
       pelvis: { x: 0.5, y: 0.72 },
-      torso: 25,
-      neck: 15,
-      arms: sideArms(up, low),
-      legs: [{ upper: 305, lower: 235, end: 325 }, { upper: 310, lower: 240, end: 330 }] as [Limb, Limb],
+      torso: 42,
+      neck: 20,
+      arms: [{ upper: 230, lower: 260, spread: -0.075, abduct: swing }, { upper: 230, lower: 260, spread: -0.075, abduct: -swing }] as [Limb, Limb],
+      legs: [{ upper: 305, lower: 240, end: 330 }, { upper: 305, lower: 240, end: 330 }] as [Limb, Limb],
     })),
     [{ kind: "floor", mat: true, y: 0.745 }],
     "overhand",
     -1,
+    { tempo: { down: 750, bottom: 100, up: 750, top: 100 }, camera: { azimuth: 0.9 } },
   ),
 
   // Lying crunch with the legs trading places -- one knee to the chest, the
