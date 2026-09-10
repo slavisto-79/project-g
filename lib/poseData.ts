@@ -761,6 +761,50 @@ export const exercisePoses = {
     { loop: [700, 300, 300, 300, 500, 900], camera: { azimuth: 0.9 } },
   ),
 
+  // Jumping lunge, from a reference clip measured with the pose lab (OPEX
+  // "Jump Lunge", BR1A8T9SjIU, square side view, eight switches in 9 s;
+  // MoveNet on 56 frames at 0.2 s). The clip: a lunge with the front thigh
+  // 72-84 forward (near level), the front shin 15-20 forward, front knee
+  // 80-92; the rear knee just off the floor, the rear shin sweeping back
+  // and up past horizontal (105-115 from vertical), the rear foot on its
+  // toes; the trunk 8-22 forward; the hands clasped at the chest (elbow
+  // 52-60; the upper-arm reading, 60-77 forward, does not square with hands
+  // at the sternum and is not used); a hop switches the legs in the air --
+  // the hip 0.66 -> 0.44 of the frame -- and the next lunge lands with the
+  // other leg in front. A switch every 1.15 s. Jumping Lunge borrowed
+  // `jump` (a two-footed hop) before.
+  // Three key positions there and back: lunge, the switch in the air, the
+  // mirrored lunge -- the way back IS the next switch.
+  jumpingLunge: pose(
+    "side",
+    (() => {
+      const torso = 15, neck = 9;
+      // Hands clasped in front of the sternum (elbow 51, as the clip): the
+      // upper arm 15 forward with the elbow by the ribs, the forearm up and
+      // forward. (Upper arm 65 forward with the forearm folded up put the
+      // hands 7 cm ABOVE the shoulders.)
+      const arms: [Limb, Limb] = [{ upper: 165, lower: 36, spread: -0.08 }, { upper: 165, lower: 36, spread: -0.08 }];
+      const front: Limb = { upper: 102, lower: 197, end: 90 }; // thigh 78 forward, shin 17, knee 85
+      const rear: Limb = { upper: 190, lower: 280, end: 165 }; // knee 3 cm off the floor, shin back and up, toes down
+      const lunge = (ankle: Point): Point => {
+        const knee = along(ankle, front.lower + 180, P.shin);
+        const hip = along(knee, front.upper + 180, P.thigh);
+        return { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      };
+      const near = { x: 0.60, y: FLOOR }, far = { x: 0.58, y: FLOOR };
+      return [
+        { pelvis: lunge(near), torso, neck, arms, legs: [front, rear] as [Limb, Limb] },
+        // The switch: airborne, both knees soft as the legs pass under the hip.
+        { pelvis: { x: 0.50, y: 0.45 }, torso: 12, neck: 7, arms, legs: [{ upper: 175, lower: 205, end: 150 }, { upper: 185, lower: 220, end: 165 }] },
+        { pelvis: { ...lunge(far), x: lunge(far).x + (hipAt({ x: 0, y: 0 }, torso, 0, "side").x - hipAt({ x: 0, y: 0 }, torso, 1, "side").x) }, torso, neck, arms, legs: [rear, front] as [Limb, Limb] },
+      ];
+    })(),
+    [{ kind: "floor", y: GROUND }],
+    "neutral",
+    1,
+    { tempo: { down: 575, bottom: 0, up: 575, top: 0 }, camera: { azimuth: 0.9 } },
+  ),
+
   run: pose(
     "side",
     [

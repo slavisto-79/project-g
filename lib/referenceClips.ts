@@ -446,6 +446,17 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "One rep, so the tempo is a single sample. The loop glides back to the start.",
   },
 
+  jumpingLunge: {
+    videoId: "BR1A8T9SjIU",
+    title: "Jump Lunge - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "eight switches in 9 s",
+    prs: [301],
+    date: "2026-09-10",
+    exercises: ["Jumping Lunge"],
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",
