@@ -541,6 +541,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "Near-side view; the swing-through key keeps the bell out of the thighs, as the snatch's.",
   },
 
+  pushPress: {
+    videoId: "xcCYH-UcoZ0",
+    title: "Push press (side view)",
+    channel: "Armory HPFT",
+    view: "side",
+    span: "three reps in 11.6 s",
+    prs: [309],
+    date: "2026-09-11",
+    exercises: ["Push Press"],
+    notes: "Push Jerk still borrows the strict press; it drops under the bar, which this one does not.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",
