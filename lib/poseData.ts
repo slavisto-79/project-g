@@ -1316,6 +1316,39 @@ export const exercisePoses = {
 
   // --- Vertical push -------------------------------------------------------
 
+  // Pec deck, from a reference clip measured with the pose lab (OPEX "Chest
+  // Fly Machine", X3Nj2ZPwW04, three-quarter view, three reps in 14 s;
+  // MoveNet on 36 frames at 0.4 s). The clip: seated against the pad, the
+  // trunk 3-9 back of vertical, the thighs seated with the knees at ~140,
+  // the arms level with the shoulders and the elbows soft (145-171) as the
+  // handles sweep from out at the sides (upper arm ~57 behind the shoulder
+  // line as projected) to met in front of the chest (~60 ahead); a rep is a
+  // 0.9 s squeeze, a 0.5 s hold in, a 1.0 s opening and 0.8 s open. It
+  // borrowed the lying dumbbell fly before.
+  // The sweep is about the vertical axis, which no plane draws: each arm is
+  // authored hanging with a soft elbow, swung out level with `abduct -90`
+  // (a hanging arm swings outboard on the negative sign) and turned in with
+  // `yaw` -- -5 (a little behind the shoulder line) -> 45 -> 85, where the
+  // hands meet 8 cm apart in front of the chest.
+  pecDeck: pose(
+    "side",
+    ([-5, 45, 85] as const).map((yaw) => ({
+      pelvis: { x: 0.5, y: 0.693 },
+      torso: 354,
+      neck: 4,
+      arms: [{ upper: 180, lower: 150, end: 180, abduct: -90, yaw }, { upper: 180, lower: 150, end: 180, abduct: -90, yaw }] as [Limb, Limb],
+      legs: [{ upper: 100, lower: 203, end: 90 }, { upper: 100, lower: 203, end: 90 }] as [Limb, Limb],
+    })),
+    [
+      { kind: "floor" },
+      // The seat, as the lat pulldown's. The machine's arms are not drawn.
+      { kind: "slab", at: "pelvis", width: 0.16, height: 0.055, dy: 0.075 },
+    ],
+    "neutral",
+    1,
+    { tempo: { down: 900, bottom: 500, up: 1000, top: 800 }, camera: { azimuth: 0.6 } },
+  ),
+
   // Overhead press, from a reference clip measured with the pose lab
   // (TylerPath "How to Overhead Press Correctly", 0YYeELi896g, three-quarter
   // side view, three reps between the cuts; MoveNet on 63 frames at 0.3 s):

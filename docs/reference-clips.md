@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 44 |
-| sharing a pose that was authored from a clip | 40 |
+| authored from a clip (the clip shows the exercise) | 45 |
+| sharing a pose that was authored from a clip | 39 |
 | without a clip yet | 78 |
-| poses with a clip | 43 of 96 (92 in use) |
+| poses with a clip | 44 of 97 (93 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -134,7 +134,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Overhead Carry | `overheadCarry` | authored from the clip | [Dual Kettlebell Overhead Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=dwGP7RAYtxY) (OPEX Fitness, front) | #295 |
 | Overhead Triceps Extension | `overheadTricepsExtension` | authored from the clip | [Single Dumbbell Overhead Tricep Extension - OPEX Exercise Library](https://www.youtube.com/watch?v=7h3lG2WnLXg) (OPEX Fitness, side) | #297 |
 | Pallof Press | `pallofPress` | authored from the clip | [Cable Standing Pallof Press](https://www.youtube.com/watch?v=syYBcVbEAFk) (OPEX Fitness, three-quarter) | #294 |
-| Pec Deck | `fly` | shares `fly` (the clip shows Dumbbell Fly) | [Dumbbell Neutral Grip Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=AVIBmE5iQrQ) (OPEX Fitness, head-end) | #283 |
+| Pec Deck | `pecDeck` | authored from the clip | [Chest Fly Machine](https://www.youtube.com/watch?v=X3Nj2ZPwW04) (OPEX Fitness, three-quarter) | #298 |
 | Pendlay Row | `bentRow` | shares `bentRow` (the clip shows Barbell Row) | [How to do a Barbell Bent Over Row Pronated](https://www.youtube.com/watch?v=bm0_q9bR_HA) (National Academy of Sports Medicine (NASM), side) | #273 |
 | Pike Push-Up | `pikePushUp` | no clip yet |  |  |
 | Pistol Squat | `pistolSquat` | no clip yet |  |  |
@@ -214,7 +214,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `lateralRaise` | [Dumbbell Lateral Raise - OPEX Exercise Library](https://www.youtube.com/watch?v=8aUc9snLOxU) | OPEX Fitness | front | five reps in 9 s | #280 | 2026-09-09 | Dumbbell Lateral Raise |  |
 | `skullCrusher` | [EZ Bar Skull Crusher - OPEX Exercise Library](https://www.youtube.com/watch?v=eluOhtYkm-0) | OPEX Fitness | head-end | three reps in 9 s | #281 | 2026-09-09 | Skull Crusher |  |
 | `dip` | [Weighted Dip - OPEX Exercise Library](https://www.youtube.com/watch?v=VNa0hX_y6Fk) | OPEX Fitness | three-quarter | four reps in 11 s | #282 | 2026-09-09 | Bar Dip |  |
-| `fly` | [Dumbbell Neutral Grip Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=AVIBmE5iQrQ) | OPEX Fitness | head-end | three reps in 11.5 s | #283 | 2026-09-09 | Dumbbell Fly | Pec Deck (a seated machine) borrows this lying fly. |
+| `fly` | [Dumbbell Neutral Grip Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=AVIBmE5iQrQ) | OPEX Fitness | head-end | three reps in 11.5 s | #283 | 2026-09-09 | Dumbbell Fly |  |
 | `plank` | [Front Plank to Forearm Plank](https://www.youtube.com/watch?v=rfPf3HCg2Ac) | OPEX Fitness | side | the forearm phases at 2.5-3, 6-6.5 and 9.5-10 s | #284 | 2026-09-09 | Plank |  |
 | `sidePlank` | [Side Plank - OPEX Exercise Library](https://www.youtube.com/watch?v=tbWPBOgju9g) | OPEX Fitness | front | a 9 s hold | #285 | 2026-09-09 | Side Plank | Copenhagen Plank (feet on a bench) borrows this floor side plank. |
 | `hangingRaise` | [Hanging Leg Raises](https://www.youtube.com/watch?v=w0IDQ_05X34) | OPEX San Juan | three-quarter | four reps in 12 s | #286 | 2026-09-09 | Hanging Leg Raise | The clip's knees bend (a knee raise); the leg raise keeps its hang, trunk lean and tempo with the knees held straight and the thighs stopping level. |
@@ -231,3 +231,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `suitcaseCarry` | [Single Arm Farmers Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=28BIZccT5fs) | OPEX Fitness | front | 5 s of walking toward the camera | #295 | 2026-09-10 | Suitcase Carry | The arms only; the stride is the farmer's carry's. |
 | `stepUp` | [Step Up - OPEX Exercise Library](https://www.youtube.com/watch?v=RRuWVDefORg) | OPEX Fitness | three-quarter | four step-ups in 19 s | #296 | 2026-09-10 | Step-Up | Dumbbell Step-Up shares the pose with the bells drawn in the hands. |
 | `overheadTricepsExtension` | [Single Dumbbell Overhead Tricep Extension - OPEX Exercise Library](https://www.youtube.com/watch?v=7h3lG2WnLXg) | OPEX Fitness | side | three reps in 8 s | #297 | 2026-09-10 | Overhead Triceps Extension |  |
+| `pecDeck` | [Chest Fly Machine](https://www.youtube.com/watch?v=X3Nj2ZPwW04) | OPEX Fitness | three-quarter | three reps in 14 s | #298 | 2026-09-10 | Pec Deck | The machine's arms are not drawn; the seat is. |

@@ -320,7 +320,6 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [283],
     date: "2026-09-09",
     exercises: ["Dumbbell Fly"],
-    notes: "Pec Deck (a seated machine) borrows this lying fly.",
   },
 
   // --- Batch 5: core and carries ----------------------------------------
@@ -421,6 +420,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [297],
     date: "2026-09-10",
     exercises: ["Overhead Triceps Extension"],
+  },
+
+  pecDeck: {
+    videoId: "X3Nj2ZPwW04",
+    title: "Chest Fly Machine",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "three reps in 14 s",
+    prs: [298],
+    date: "2026-09-10",
+    exercises: ["Pec Deck"],
+    notes: "The machine's arms are not drawn; the seat is.",
   },
 
   hangingRaise: {
