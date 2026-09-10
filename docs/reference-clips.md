@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 53 |
+| authored from a clip (the clip shows the exercise) | 54 |
 | sharing a pose that was authored from a clip | 39 |
-| without a clip yet | 70 |
-| poses with a clip | 52 of 105 (101 in use) |
+| without a clip yet | 69 |
+| poses with a clip | 53 of 106 (102 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -140,7 +140,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Pistol Squat | `pistolSquat` | no clip yet |  |  |
 | Plank | `plank` | authored from the clip | [Front Plank to Forearm Plank](https://www.youtube.com/watch?v=rfPf3HCg2Ac) (OPEX Fitness, side) | #284 |
 | Plyo Push-Up | `pushUp` | shares `pushUp` (the clip shows Push-Up) | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
-| Power Clean | `clean` | no clip yet |  |  |
+| Power Clean | `powerClean` | authored from the clip | [Power Clean (side view)](https://www.youtube.com/watch?v=YEXjyc22Jek) (Fitness Pain Free, side) | #307 |
 | Preacher Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
 | Prone Y-T-W Raise | `proneRaise` | no clip yet |  |  |
 | Pull-Up | `pullUp` | authored from the clip | [Strict Pull Up - OPEX Exercise Library](https://www.youtube.com/watch?v=jgFel4wZl3I) (OPEX Fitness, side) | #274 |
@@ -240,3 +240,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `bearCrawl` | [Crawl - OPEX Exercise Library](https://www.youtube.com/watch?v=w089AXf1f_g) | OPEX Fitness | side | ten hand-steps in 9 s | #304 | 2026-09-10 | Bear Crawl | Raw keypoints (the lab's table drops a crawling figure's legs). Ours crawls on the spot. |
 | `highKnees` | [High Knees | Movement Demo](https://www.youtube.com/watch?v=cUmfCd-Hznk) | CrossFit | three-quarter | nine seconds on the spot | #305 | 2026-09-11 | High Knees | Near-side view: the angles are projections, +-5. |
 | `tuckJump` | [Tuck Jump](https://www.youtube.com/watch?v=w0cI_zLXJFo) | OPEX Bristol - The Future of Personal Training | side | three jumps in 8.5 s | #306 | 2026-09-11 | Tuck Jump | Read as raw keypoints (heights, knee under hip). The video sits behind YouTube's consent page. |
+| `powerClean` | [Power Clean (side view)](https://www.youtube.com/watch?v=YEXjyc22Jek) | Fitness Pain Free | side | two reps in 14 s | #307 | 2026-09-11 | Power Clean | Hang Clean and Kettlebell Clean still borrow the old `clean`. |

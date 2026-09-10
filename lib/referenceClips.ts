@@ -517,6 +517,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "Read as raw keypoints (heights, knee under hip). The video sits behind YouTube's consent page.",
   },
 
+  powerClean: {
+    videoId: "YEXjyc22Jek",
+    title: "Power Clean (side view)",
+    channel: "Fitness Pain Free",
+    view: "side",
+    span: "two reps in 14 s",
+    prs: [307],
+    date: "2026-09-11",
+    exercises: ["Power Clean"],
+    notes: "Hang Clean and Kettlebell Clean still borrow the old `clean`.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",
