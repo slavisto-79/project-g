@@ -1750,11 +1750,22 @@ export const exercisePoses = {
     [
       // The lower back stays on the floor throughout: the pelvis sits a hip's
       // radius above it (at 0.700 over a 0.792 floor it hung 5cm in the air).
+      // From a reference clip measured with the pose lab (OPEX "Hollow Body
+      // Hold", EsnM8eBtazU, square side view, 1.25 s into the hold and 3.5 s
+      // holding it; MoveNet on 22 frames at 0.25 s): flat on the back with
+      // the arms by the sides, then the shoulders come up 8-10 degrees, the
+      // straight legs (knee 172-179) to 25 degrees above the floor and the
+      // straight arms overhead to 20-30 degrees above it, by the ears -- and
+      // the position is HELD. The old hold lifted the legs to 28-34 and the
+      // arms to 42-47 with no tempo.
       { pelvis: { x: 0.5, y: 0.735 }, torso: 274, neck: 268, arms: sideArms(276, 279), legs: lyingLegs(91, 89, 40) },
-      { pelvis: { x: 0.5, y: 0.733 }, torso: 278, neck: 271, arms: sideArms(294, 298), legs: lyingLegs(78, 74, 24) },
-      { pelvis: { x: 0.5, y: 0.731 }, torso: 282, neck: 274, arms: sideArms(312, 317), legs: lyingLegs(62, 56, 8) },
+      { pelvis: { x: 0.5, y: 0.733 }, torso: 277, neck: 271, arms: sideArms(288, 291), legs: lyingLegs(78, 76, 24) },
+      { pelvis: { x: 0.5, y: 0.731 }, torso: 280, neck: 276, arms: sideArms(300, 303), legs: lyingLegs(65, 64, 12) },
     ],
     [{ kind: "floor", mat: true, y: 0.792 }],
+    "overhand",
+    1,
+    { tempo: { down: 1250, bottom: 2500, up: 1250, top: 600 }, camera: { azimuth: 0.9 } },
   ),
 
   // Side plank, from a reference clip measured with the pose lab (OPEX "Side

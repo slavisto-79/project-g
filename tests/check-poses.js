@@ -102,8 +102,10 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   const W = (Math.max(...all.map((s) => Math.max(s.x1, s.x2))) - Math.min(...all.map((s) => Math.min(s.x1, s.x2)))) * 850;
   const H = (Math.max(...all.map((s) => Math.max(s.y1, s.y2))) - Math.min(...all.map((s) => Math.min(s.y1, s.y2)))) * 567;
   // A forearm plank is genuinely longer and lower than anything else here,
-  // and the IYTW variant reaches an arm past its head on top of that.
-  const widthCap = name === "plankIYTW" ? 6.5 : name === "plankSaw" ? 5.5 : name === "plank" ? 5.0 : 3.4;
+  // and the IYTW variant reaches an arm past its head on top of that. A
+  // hollow hold is a shallow V by definition -- legs 25 degrees up, arms
+  // overhead 30 up, as the reference clip -- and reads 3.8:1.
+  const widthCap = name === "plankIYTW" ? 6.5 : name === "plankSaw" ? 5.5 : name === "plank" ? 5.0 : name === "hollowHold" ? 4.0 : 3.4;
   if (W / H > widthCap) note(`${name}: lying flat at ${(W / H).toFixed(1)}:1 wide`);
 }
 
