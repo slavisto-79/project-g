@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 39 |
-| sharing a pose that was authored from a clip | 45 |
+| authored from a clip (the clip shows the exercise) | 42 |
+| sharing a pose that was authored from a clip | 42 |
 | without a clip yet | 78 |
-| poses with a clip | 38 of 91 (87 in use) |
+| poses with a clip | 41 of 94 (90 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -91,7 +91,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Face Pull | `facePull` | no clip yet |  |  |
 | Farmer's Carry | `carry` | authored from the clip | [Dumbbell Farmer's Carry](https://www.youtube.com/watch?v=K4R8uc1x_OA) (OPEX Fitness, side) | #288 |
 | Frog Pump | `hipThrust` | shares `hipThrust` (the clip shows Barbell Hip Thrust) | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
-| Front Rack Carry | `carry` | shares `carry` (the clip shows Farmer's Carry) | [Dumbbell Farmer's Carry](https://www.youtube.com/watch?v=K4R8uc1x_OA) (OPEX Fitness, side) | #288 |
+| Front Rack Carry | `frontRackCarry` | authored from the clip | [Front Rack Kettlebell Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=0OzaglIheOc) (OPEX Fitness, front) | #295 |
 | Glute Bridge | `hipThrust` | shares `hipThrust` (the clip shows Barbell Hip Thrust) | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
 | Goblet Squat | `gobletSquat` | no clip yet |  |  |
 | Good Morning | `goodMorning` | authored from the clip | [High Bar Good Morning](https://www.youtube.com/watch?v=dEJ0FTm-CEk) (Renaissance Periodization, side) | #262 |
@@ -131,7 +131,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Neutral-Grip Pulldown | `pulldown` | shares `pulldown` (the clip shows Lat Pulldown) | [Cable Lat Pulldown Machine - OPEX Exercise Library](https://www.youtube.com/watch?v=PEv0gTcMY3g) (OPEX Fitness, three-quarter) | #275 |
 | Nordic Hamstring Curl | `legCurl` | no clip yet |  |  |
 | One-Arm Dumbbell Row | `oneArmRow` | no clip yet |  |  |
-| Overhead Carry | `carry` | shares `carry` (the clip shows Farmer's Carry) | [Dumbbell Farmer's Carry](https://www.youtube.com/watch?v=K4R8uc1x_OA) (OPEX Fitness, side) | #288 |
+| Overhead Carry | `overheadCarry` | authored from the clip | [Dual Kettlebell Overhead Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=dwGP7RAYtxY) (OPEX Fitness, front) | #295 |
 | Overhead Triceps Extension | `tricepsExtension` | shares `tricepsExtension` (the clip shows Triceps Pushdown) | [Rope Cable Tricep Pushdown - OPEX Exercise Library](https://www.youtube.com/watch?v=y6EdXBdL75A) (OPEX Fitness, side) | #279 |
 | Pallof Press | `pallofPress` | authored from the clip | [Cable Standing Pallof Press](https://www.youtube.com/watch?v=syYBcVbEAFk) (OPEX Fitness, three-quarter) | #294 |
 | Pec Deck | `fly` | shares `fly` (the clip shows Dumbbell Fly) | [Dumbbell Neutral Grip Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=AVIBmE5iQrQ) (OPEX Fitness, head-end) | #283 |
@@ -171,7 +171,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Step-Up | `splitSquat` | shares `splitSquat` (the clip shows Bulgarian Split Squat, Dumbbell Bulgarian Split Squat) | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267 |
 | Stiff-Leg Deadlift | `stiffLegDeadlift` | authored from the clip | [BB Stiff Legged Deadlift](https://www.youtube.com/watch?v=u3krqJlu7uc) (Theory of Motion Exercise Library, side) | #261 |
 | Straight-Arm Pulldown | `straightArmPulldown` | no clip yet |  |  |
-| Suitcase Carry | `carry` | shares `carry` (the clip shows Farmer's Carry) | [Dumbbell Farmer's Carry](https://www.youtube.com/watch?v=K4R8uc1x_OA) (OPEX Fitness, side) | #288 |
+| Suitcase Carry | `suitcaseCarry` | authored from the clip | [Single Arm Farmers Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=28BIZccT5fs) (OPEX Fitness, front) | #295 |
 | Sumo Deadlift | `sumoDeadlift` | authored from the clip | [Sumo Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=OKMDYjnK8m8) (OPEX Fitness, three-quarter) | #265 |
 | Superman | `proneRaise` | no clip yet |  |  |
 | T-Bar Row | `bentRow` | shares `bentRow` (the clip shows Barbell Row) | [How to do a Barbell Bent Over Row Pronated](https://www.youtube.com/watch?v=bm0_q9bR_HA) (National Academy of Sports Medicine (NASM), side) | #273 |
@@ -226,3 +226,6 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `hollowHold` | [Hollow Body Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=EsnM8eBtazU) | OPEX Fitness | side | 1.25 s into the hold, 3.5 s holding it | #291 | 2026-09-10 | Hollow Hold | V-Up borrows this hold. |
 | `copenhagenPlank` | [Copenhagen Plank](https://www.youtube.com/watch?v=tKb76R21AfM) | OPEX Fitness | front | a 7 s hold | #293 | 2026-09-10 | Copenhagen Plank |  |
 | `pallofPress` | [Cable Standing Pallof Press](https://www.youtube.com/watch?v=syYBcVbEAFk) | OPEX Fitness | three-quarter | three reps in 10 s | #294 | 2026-09-10 | Pallof Press |  |
+| `overheadCarry` | [Dual Kettlebell Overhead Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=dwGP7RAYtxY) | OPEX Fitness | front | 2.5 s of walking toward the camera | #295 | 2026-09-10 | Overhead Carry | The arms only; the stride is the farmer's carry's, from its side-view clip. |
+| `frontRackCarry` | [Front Rack Kettlebell Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=0OzaglIheOc) | OPEX Fitness | front | 3.5 s of walking toward the camera | #295 | 2026-09-10 | Front Rack Carry | The arms only; the stride is the farmer's carry's. |
+| `suitcaseCarry` | [Single Arm Farmers Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=28BIZccT5fs) | OPEX Fitness | front | 5 s of walking toward the camera | #295 | 2026-09-10 | Suitcase Carry | The arms only; the stride is the farmer's carry's. |

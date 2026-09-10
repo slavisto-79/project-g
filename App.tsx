@@ -6265,9 +6265,9 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Rotational Med Ball Throw": "medBallThrow",
   "Pallof Press": "pallofPress",
 
-  "Suitcase Carry": "carry",
-  "Front Rack Carry": "carry",
-  "Overhead Carry": "carry",
+  "Suitcase Carry": "suitcaseCarry",
+  "Front Rack Carry": "frontRackCarry",
+  "Overhead Carry": "overheadCarry",
   "Power Clean": "clean",
   "Hang Clean": "clean",
   "Kettlebell Clean": "clean",
