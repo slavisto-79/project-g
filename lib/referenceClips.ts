@@ -15,7 +15,10 @@ import type { PoseName } from "./poseData";
 // trustworthy from a side view; a three-quarter view gives them as
 // projections (+-5 degrees); a front view gives the frontal plane; the head
 // or foot end of a bench gives tempo and grip width and little else.
-export type ReferenceView = "side" | "three-quarter" | "front" | "head-end" | "foot-end";
+// "back" earns its place with the standing calf raise: a clip filmed from
+// behind gives tempo and vertical travel and NO sagittal angle at all, and
+// the record should say so rather than call it a side view.
+export type ReferenceView = "side" | "three-quarter" | "front" | "back" | "head-end" | "foot-end";
 
 export type ReferenceClip = {
   // YouTube video id; the URL is https://www.youtube.com/watch?v=<id>.
@@ -714,6 +717,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  calfRaise: {
+    videoId: "LnWEIjIls-M",
+    title: "Standing Calf Raise",
+    channel: "OPEX Fitness",
+    view: "back",
+    span: "four reps in 11.6 s",
+    prs: [320],
+    date: "2026-09-11",
+    exercises: ["Bodyweight Calf Raise", "Dumbbell Calf Raise"],
+    notes: "Filmed from behind and done on a LEDGE with the heels dropping below the step, so it settles the tempo and nothing about the angles; the pose draws the floor version the library cue describes and its range was left alone. Single-Leg Calf Raise borrows this pose.",
+  },
+
   legCurl: {
     videoId: "xKOyGU0AfOE",
     title: "Prone Hamstring Curl Machine",

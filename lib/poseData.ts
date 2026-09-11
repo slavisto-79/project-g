@@ -792,6 +792,17 @@ export const exercisePoses = {
 
   calfRaise: pose(
     "side",
+    // Reference: OPEX "Standing Calf Raise" (LnWEIjIls-M), four reps in 11.6
+    // s, measured with the pose lab. Two things about this clip limit what
+    // it can settle, and both are said here rather than hidden: it is filmed
+    // from BEHIND, so there is no sagittal ankle angle in it at all; and it
+    // is done on a LEDGE with the heels dropping below the step, which is
+    // not the exercise this pose draws (the library cue is "rise onto the
+    // toes" from the floor, and a previous pass deliberately removed a heel
+    // dip under a step that was never drawn). So the RANGE below is left
+    // exactly as it was. What the clip does give is the tempo -- 2.0 s a
+    // rep, measured top to top across four of them.
+    //
     // A calf raise really does travel less than any other movement here: flat
     // feet up to full plantarflexion. The ball of the foot is the pivot, so
     // the toe tip stays at one height while the ankle rises (pelvis 0.506 ->
@@ -801,10 +812,20 @@ export const exercisePoses = {
     [[0.506, 90], [0.479, 112], [0.450, 141]].map(([y, toe]) => ({
       pelvis: { x: 0.5, y: y! },
       torso: 0,
-      arms: HANG,
+      // Wide enough for the dumbbell head to clear the thigh, as everywhere
+      // else a weight hangs at the side.
+      arms: wide(HANG),
       legs: sideLegs(178, 179, toe),
     })),
-    [{ kind: "floor" }],
+    // Dumbbell Calf Raise shares this pose and had NOTHING in its hands:
+    // with only a floor authored the viewer has no prop to hang, so the
+    // loaded version drew the bodyweight one.
+    [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
+    "neutral",
+    1,
+    // From the clip: about two seconds a rep, and the lowering is the half
+    // the coaching cue asks you to slow down.
+    { tempo: { down: 900, bottom: 200, up: 700, top: 300 } },
   ),
 
   // Box jump, from a reference clip measured with the pose lab (OPEX "Box
