@@ -713,6 +713,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "On a bench the arm is about as long as the bench is tall, so the lockout is level rather than head-down.",
   },
 
+  // --- Batch 9: the highest-reach poses never authored from a clip --------
+  hinge: {
+    videoId: "TN3DHmd1Fe8",
+    title: "Conventional Deadlift - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 13.8 s",
+    prs: [316],
+    date: "2026-09-11",
+    exercises: ["Conventional Deadlift"],
+    notes: "Rack Pull, Back Extension and Hip Hinge Wall Touch borrow this hinge; the clip lowers the bar to just off the floor rather than setting it down.",
+  },
+
   kneePushUp: {
     videoId: "8XQ-okb5NWE",
     title: "Knee Push Up - OPEX Exercise Library",

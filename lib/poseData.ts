@@ -1100,17 +1100,51 @@ export const exercisePoses = {
 
   // --- Hinge pattern -------------------------------------------------------
 
-  // A Romanian deadlift stops at mid-shin: the trunk just short of
-  // horizontal (81 degrees), the hanging hands 0.14 above the floor -- a
-  // plate's radius and some air. The old bottom (98 degrees) hung the hands
-  // 6.5cm off the floor, where a barbell's plates went 5cm through it and
-  // dumbbells looked planted on the feet.
+  // The hip hinge, from a reference clip measured with the pose lab (OPEX
+  // "Conventional Deadlift", TN3DHmd1Fe8, square side view, three reps in
+  // 13.8 s; MoveNet on 51 frames at 0.25 s). What the clip actually does,
+  // and what the old frames had backwards: the HIPS TRAVEL BACK while the
+  // shoulders travel forward, and the shin stays near vertical. The old
+  // frames walked the pelvis 10.5 cm FORWARD over the foot and pitched the
+  // shin 40 degrees -- a shallow squat wearing a hinge's trunk angle.
+  //
+  // The clip's order of events is the other thing worth keeping: the trunk
+  // leads and the knee follows. Trunk 7 -> 56 -> 76 -> 82 from vertical
+  // while the knee only gives way from 176 to 163 to 151, and then folds to
+  // 121 in the last quarter as the hips settle back. Thigh 4/17/25/46
+  // degrees BEHIND vertical, shin 0/0/4/13 in front of it, so the bar
+  // clears the shins all the way down. A rep is a 1.0 s descent, 0.75 s at
+  // the bottom, a 0.6 s stand and 1.2 s tall.
+  //
+  // Authored from the ANKLE up, not from the pelvis: the foot is planted,
+  // so the leg angles are the authored quantity and the pelvis falls out of
+  // them. That is what keeps the hip travelling the right way.
   hinge: pose(
     "side",
-    ([[0.500, 0.494, 4], [0.528, 0.528, 36], [0.552, 0.538, 62], [0.570, 0.550, 81]] as const).map(([x, y, torso]) =>
-      stand({ x, y }, torso, wide(HANG_AHEAD), torso > 30 ? torso - 16 : torso),
-    ),
+    ([[4, 0, 4, 12], [17, 0, 57, 10], [25, 4, 76, 6], [46, 13, 80, 2]] as const).map(([thighBack, shinAhead, torso, armAhead]) => {
+      const upper = 180 - thighBack;
+      const lower = 180 + shinAhead;
+      // Up the planted leg: ankle -> knee -> hip, then back off the girdle's
+      // half-depth to the pelvis the build hangs the hip on.
+      const ankle = { x: 0.535, y: FLOOR };
+      const knee = along(ankle, lower + 180, P.shin);
+      const hip = along(knee, upper + 180, P.thigh);
+      const pelvis = { x: hip.x - (hipAt({ x: 0, y: 0 }, 0, 0, "side").x), y: hip.y };
+      return {
+        pelvis,
+        torso,
+        neck: torso > 30 ? torso - 16 : torso,
+        // The bar hangs from the shoulder: a few degrees ahead of plumb
+        // standing so it clears the thigh, plumb at the bottom where the
+        // shoulder is already out over it.
+        arms: wide(sideArms(180 - armAhead, 183 - armAhead)),
+        legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
+      };
+    }),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+    "overhand",
+    1,
+    { tempo: { down: 1000, bottom: 750, up: 600, top: 1200 } },
   ),
 
   // Romanian deadlift, from a reference clip measured with the pose lab
