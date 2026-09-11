@@ -589,6 +589,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "A step off the box, not a jump down; the contact before the rebound is 0.2-0.4 s.",
   },
 
+  arnoldPress: {
+    videoId: "hHmFzFaSn7U",
+    title: "Standing Arnold Dumbbell Press - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "four reps in 14 s",
+    prs: [314],
+    date: "2026-09-11",
+    exercises: ["Arnold Press"],
+    notes: "Front view: the hand path is the lift. The mannequin has no forearm twist, so the palm rotation is not drawn.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",

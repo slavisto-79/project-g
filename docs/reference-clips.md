@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 59 |
-| sharing a pose that was authored from a clip | 37 |
+| authored from a clip (the clip shows the exercise) | 60 |
+| sharing a pose that was authored from a clip | 36 |
 | without a clip yet | 66 |
-| poses with a clip | 58 of 111 (106 in use) |
+| poses with a clip | 59 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
 ## Every exercise
 
@@ -23,7 +23,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 |---|---|---|---|---|
 | Ab Wheel Rollout | `abWheelRollout` | no clip yet |  |  |
 | Archer Push-Up | `pushUp` | shares `pushUp` (the clip shows Push-Up) | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
-| Arnold Press | `overheadPress` | shares `overheadPress` (the clip shows Barbell Overhead Press) | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
+| Arnold Press | `arnoldPress` | authored from the clip | [Standing Arnold Dumbbell Press - OPEX Exercise Library](https://www.youtube.com/watch?v=hHmFzFaSn7U) (OPEX Fitness, front) | #314 |
 | Back Extension | `hinge` | no clip yet |  |  |
 | Band Chest Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
 | Band Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
@@ -246,3 +246,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `pushJerk` | [Push Jerk (Side view)](https://www.youtube.com/watch?v=dboDOX7xY_Q) | Fitness Pain Free | side | three reps in 10 s | #310 | 2026-09-11 | Push Jerk | The second dip -- dropping under a locked-out bar -- is what separates it from the push press. |
 | `jumpSquat` | [Jump Squats](https://www.youtube.com/watch?v=3jJt5gCMRNQ) | OPEX Abbotsford | three-quarter | ten reps in 13 s | #311 | 2026-09-11 | Jump Squat | Near-side view: the angles are projections, +-5. The arms reach forward at the bottom as a counterbalance. |
 | `depthJump` | [Depth Jump | Olympic Weightlifting Exercise Library](https://www.youtube.com/watch?v=GeN0S3XCZnM) | Catalyst Athletics | side | two reps out of a 1:20 tutorial | #312 | 2026-09-11 | Depth Jump | A step off the box, not a jump down; the contact before the rebound is 0.2-0.4 s. |
+| `arnoldPress` | [Standing Arnold Dumbbell Press - OPEX Exercise Library](https://www.youtube.com/watch?v=hHmFzFaSn7U) | OPEX Fitness | front | four reps in 14 s | #314 | 2026-09-11 | Arnold Press | Front view: the hand path is the lift. The mannequin has no forearm twist, so the palm rotation is not drawn. |
