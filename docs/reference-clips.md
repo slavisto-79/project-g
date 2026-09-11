@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 75 |
+| authored from a clip (the clip shows the exercise) | 76 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 38 |
-| poses with a clip | 71 of 111 (107 in use) |
+| without a clip yet | 37 |
+| poses with a clip | 72 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableKickback`, `cablePullThrough`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
 ## Every exercise
 
@@ -58,7 +58,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Cable Crunch | `cableCrunch` | no clip yet |  |  |
 | Cable Curl | `cableCurl` | no clip yet |  |  |
 | Cable Kickback | `cableKickback` | no clip yet |  |  |
-| Cable Lateral Raise | `cableLateralRaise` | no clip yet |  |  |
+| Cable Lateral Raise | `cableLateralRaise` | authored from the clip | [Cable Lateral Raise](https://www.youtube.com/watch?v=dQPTeeqgJqA) (OPEX Fitness, front) | #325 |
 | Cable Pull-Through | `cablePullThrough` | no clip yet |  |  |
 | Cable Woodchopper | `woodchop` | authored from the clip | [High to Low Cable Oblique Rotation](https://www.youtube.com/watch?v=KnbgKcvOG_c) (OPEX Fitness, three-quarter) | #287 |
 | Chest-Supported Row | `seatedRow` | shares `seatedRow` (the clip shows Seated Cable Row) | [Seated Cable Row - OPEX Exercise Library](https://www.youtube.com/watch?v=4ZbqM_gcgAI) (OPEX Fitness, side) | #276 |
@@ -259,3 +259,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `proneRaise` | [Superman Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=W8vlZfmxOpM) | OPEX Fitness | side | a 7 s hold | #322 | 2026-09-11 | Superman | A hold, so it gives one position and no tempo. It confirmed the trunk and legs (ankle lift 19.2 cm against the clip's 19.3) and corrected the arms, which finished 15.6 cm above the head. Prone Y-T-W Raise and Reverse Snow Angel share this pose and both lift the arms, so the top is a compromise between the three. |
 | `lateralLunge` | [Goblet Cossack Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=rSaWYv37zzE) | OPEX Fitness | front | four reps in 15.7 s | #323 | 2026-09-11 | Cossack Squat | Lateral Lunge shares this pose and STEPS OUT from a narrow stance; the clip holds one wide stance throughout and shifts side to side, which is the cossack. What transferred is the depth, the dead-straight trailing leg, the hands and the tempo. |
 | `cableFly` | [Cable Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=jtkaC-mq1Xk) | OPEX Fitness | front | four reps in 12.4 s | #324 | 2026-09-11 | Cable Chest Fly | A front camera cannot see an arm reaching forward, so the elbow angle in this clip is a projection and is not used; what it settles is the HAND PATH -- one height, wide to together -- and the pulley height. |
+| `cableLateralRaise` | [Cable Lateral Raise](https://www.youtube.com/watch?v=dQPTeeqgJqA) | OPEX Fitness | front | four reps in 12.1 s | #325 | 2026-09-11 | Cable Lateral Raise | Low pulleys, which the pose already had. What it corrected was the finish: the clip takes the hand ABOVE the shoulder, ours stopped 5 cm below it. |
