@@ -3810,24 +3810,58 @@ export const exercisePoses = {
     -1,
   ),
 
-  // Hip extension against a low pulley, standing on one leg with the hands on
-  // the machine for balance. The cuff is on the ankle, so the cable ends at
-  // the ankle rather than at a hand.
+  // Cable glute kickback, from a reference clip measured with the pose lab
+  // (OPEX "Cable Glute Kickback", iElJ4Ngx--k, four reps in 12.3 s; MoveNet
+  // on 42 frames at 0.35 s). This clip IS close to square -- the projected
+  // trunk holds 0.234 to 0.264 of the frame all the way through -- so its
+  // sagittal angles are usable, at the usual few degrees.
+  //
+  // THE KNEE MUST NOT STRAIGHTEN. Ours opened the working knee from 138 to
+  // 177 through the kick, finishing with the leg a straight rod behind the
+  // body. In the clip it never straightens at all: 134 at the bottom, 119 at
+  // full extension -- it BENDS slightly as the thigh goes back. The largest
+  // reading anywhere in the clip is 151, on one frame. The shin ends up
+  // pointing back and UP with the sole facing the ceiling, which is the
+  // whole shape of the movement and the reason it is a glute exercise
+  // rather than a hamstring one.
+  //
+  // THE TRUNK IS HINGED, not upright. Ours stood at a flat 12 degrees from
+  // vertical. She is over a bench at 46 degrees at every top position in all
+  // four reps, coming back to 22 / 28 / 36 at the bottoms -- drifting deeper
+  // as the set goes on, so the bottom is taken as 28 and the sweep is 28 to
+  // 46 within the rep.
+  //
+  // The thigh's BACK extreme was already right and is unchanged: 46 degrees
+  // behind vertical, measured and authored. What was short is its FORWARD
+  // end -- 28 degrees ahead of vertical in the clip against our 8, the knee
+  // driven toward the bench before the kick.
+  //
+  // The HANDS are still: they hold the frame and move 0.014 of the frame
+  // horizontally and 0.018 vertically across a whole rep. They were also too
+  // far out -- 0.195 in front of the pelvis against a measured 0.085, which
+  // with the new trunk angle would have left them hanging off the front.
+  //
+  // Tempo, which it did not have: 0.70 s stood at the bottom, 1.2 s to kick
+  // back, 0.35 s held there, 1.25 s to return. Period 3.5 s.
   cableKickback: pose(
     "side",
     // The start has the heel already off the floor with the knee folded --
     // at a true standing start the checker reads two planted feet and calls
     // the free leg a stance knee out of sync with the other.
-    ([[172, 214], [198, 210], [226, 229]] as const).map(([up, low]) => {
+    ([[152, 198, 28], [189, 243, 37], [226, 287, 46]] as const).map(([up, low, torso]) => {
       const pelvis = { x: 0.5, y: 0.494 };
-      const torso = 12;
       return {
         pelvis,
         torso,
         neck: torso - 6,
-        // Both hands on the upright in front: this is a balance movement and
-        // the hands are what makes that read.
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.63, y: 0.50 }, { x: 0.616, y: 0.508 }], FORWARD),
+        // Both hands braced in front: this is a balance movement and the
+        // hands are what makes that read. Placed off the PELVIS, which barely
+        // moves in the clip, rather than off the trunk, which swings. The
+        // thing she actually grips -- a bench back -- is NOT drawn: a slab
+        // narrow enough to read as an upright is still deep enough in the
+        // side view to stand across the working leg and hide the kick, which
+        // is the one thing this card has to show.
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.557, y: 0.470 }, { x: 0.543, y: 0.478 }], FORWARD),
         // The working leg is the NEAR one so nothing hides it; the far leg is
         // solved to the floor and holds the whole body up.
         legs: [{ upper: up, lower: low, end: low - 92 }, plantedLegs(pelvis, torso, "side", FEET, FORWARD)[1]!],
@@ -3838,6 +3872,8 @@ export const exercisePoses = {
       { kind: "cable", at: "ankle0", anchor: { x: 0.867, y: 0.928 } },
     ],
     "neutral",
+    1,
+    { tempo: { down: 1200, bottom: 350, up: 1250, top: 700 } },
   ),
 
   // Standing hip abduction on a loop band: the band goes under the standing

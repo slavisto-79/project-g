@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 10: the cable family ----------------------------------------
+  cableKickback: {
+    videoId: "iElJ4Ngx--k",
+    title: "Cable Glute Kickback",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 12.3 s",
+    prs: [331],
+    date: "2026-09-12",
+    exercises: ["Cable Kickback"],
+    notes: "Close to square -- the projected trunk holds 0.234 to 0.264 of the frame throughout -- so the sagittal angles are usable. The working KNEE NEVER STRAIGHTENS: 134 at the bottom, 119 at full extension, and the largest reading anywhere in the clip is 151 on a single frame. The trunk is hinged over a bench at 46 degrees at every top position in all four reps. The hands are still, moving 0.014 of the frame horizontally across a whole rep, and sit only 0.085 in front of the pelvis.",
+  },
+
   cableCrunch: {
     videoId: "2ndlUfl5JPo",
     title: "Kneeling Cable Crunch",
