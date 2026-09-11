@@ -256,7 +256,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [277],
     date: "2026-09-09",
     exercises: ["Push-Up"],
-    notes: "Knee, Incline and Decline Push-Up have their own poses, still derived from the old flat frames.",
+    notes: "Knee, Incline and Decline Push-Up have their own poses, each from its own clip.",
   },
 
   // --- Batch 4: arms and shoulders --------------------------------------
@@ -687,6 +687,41 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     date: "2026-09-10",
     exercises: ["Hollow Hold"],
     notes: "V-Up borrows this hold.",
+  },
+
+  // --- Batch 8 correction: the push-up variants -------------------------
+  inclinePushUp: {
+    videoId: "E--Ls5QtFqI",
+    title: "Incline Push Up on Bench - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 12 s",
+    prs: [315],
+    date: "2026-09-11",
+    exercises: ["Incline Push-Up"],
+  },
+
+  declinePushUp: {
+    videoId: "cnsPwJ2f2B4",
+    title: "Decline Push Up - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 11 s",
+    prs: [315],
+    date: "2026-09-11",
+    exercises: ["Decline Push-Up"],
+    notes: "On a bench the arm is about as long as the bench is tall, so the lockout is level rather than head-down.",
+  },
+
+  kneePushUp: {
+    videoId: "8XQ-okb5NWE",
+    title: "Knee Push Up - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "six reps in 11 s",
+    prs: [315],
+    date: "2026-09-11",
+    exercises: ["Knee Push-Up"],
   },
 };
 
