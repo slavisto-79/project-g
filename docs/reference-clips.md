@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 79 |
+| authored from a clip (the clip shows the exercise) | 80 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 34 |
-| poses with a clip | 75 of 111 (107 in use) |
+| without a clip yet | 33 |
+| poses with a clip | 76 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableKickback`, `cablePullThrough`, `clean`, `curtsyLunge`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableKickback`, `clean`, `curtsyLunge`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `wallSit`.
 
 ## Every exercise
 
@@ -59,7 +59,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Cable Curl | `cableCurl` | authored from the clip | [Cable Curl](https://www.youtube.com/watch?v=h9DPY5pCaGA) (OPEX Fitness, side) | #326 |
 | Cable Kickback | `cableKickback` | no clip yet |  |  |
 | Cable Lateral Raise | `cableLateralRaise` | authored from the clip | [Cable Lateral Raise](https://www.youtube.com/watch?v=dQPTeeqgJqA) (OPEX Fitness, front) | #325 |
-| Cable Pull-Through | `cablePullThrough` | no clip yet |  |  |
+| Cable Pull-Through | `cablePullThrough` | authored from the clip | [Cable Pull Through](https://www.youtube.com/watch?v=A30YKvpWGu4) (OPEX Fitness, three-quarter) | #329 |
 | Cable Woodchopper | `woodchop` | authored from the clip | [High to Low Cable Oblique Rotation](https://www.youtube.com/watch?v=KnbgKcvOG_c) (OPEX Fitness, three-quarter) | #287 |
 | Chest-Supported Row | `seatedRow` | shares `seatedRow` (the clip shows Seated Cable Row) | [Seated Cable Row - OPEX Exercise Library](https://www.youtube.com/watch?v=4ZbqM_gcgAI) (OPEX Fitness, side) | #276 |
 | Chin-Up | `pullUp` | shares `pullUp` (the clip shows Pull-Up) | [Strict Pull Up - OPEX Exercise Library](https://www.youtube.com/watch?v=jgFel4wZl3I) (OPEX Fitness, side) | #274 |
@@ -263,3 +263,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `cableCurl` | [Cable Curl](https://www.youtube.com/watch?v=h9DPY5pCaGA) | OPEX Fitness | side | four reps in 12.1 s | #326 | 2026-09-11 | Cable Curl | Elbow 160 hanging to 24-31 at the top, upper arm staying at the side. Ours stopped at 102 and its first two keys were 160 and 158, so the opening third of the animation did not move. |
 | `facePull` | [Cable Rope Face Pull](https://www.youtube.com/watch?v=5ZC4LagfDQ4) | OPEX Fitness | side | four reps in 11.6 s | #327 | 2026-09-11 | Face Pull | Both hands finish beside the head and MoveNet tangles the near and far arm there, so the elbow angles are unusable and are not quoted. What the frames show plainly is the pulley height -- well above the head -- and that the elbows stay high. |
 | `straightArmPulldown` | [Standing Cable Straight Arm Pulldown](https://www.youtube.com/watch?v=nAkTIeJ_Aus) | OPEX Fitness | side | three reps in 11.2 s | #328 | 2026-09-11 | Straight-Arm Pulldown | The shoulder-to-wrist line -- the line a locked arm makes -- reads 64 from vertical at the start and 167 at the finish, in all three reps within 5 degrees; ours started at 41, almost straight overhead. The clip CANNOT settle the elbow at the top: this lifter stands close enough that the bar reaches his forehead and his elbow folds to about 135 there, which is the clip rather than the lift, so the hand path is taken and the arm is kept locked. |
+| `cablePullThrough` | [Cable Pull Through](https://www.youtube.com/watch?v=A30YKvpWGu4) | OPEX Fitness | three-quarter | four reps in 12.6 s | #329 | 2026-09-11 | Cable Pull-Through | NOT square to the lifter: the trunk projects 0.268 of the frame standing and 0.181 at the bottom, and a rigid trunk cannot lose a third of its length to a square side camera. So no horizontal distance from this clip is quotable. What it does settle is anything measured in HEIGHT -- the hip stays level (0.432 to 0.430 above the ankle), the trunk reaches 104 from vertical, the arm swings from 9 degrees forward of straight down to 66 behind it -- plus the DIRECTION of hip and shoulder travel, which no projection reverses, plus the tempo. |
