@@ -717,6 +717,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  proneRaise: {
+    videoId: "W8vlZfmxOpM",
+    title: "Superman Hold - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "a 7 s hold",
+    prs: [322],
+    date: "2026-09-11",
+    exercises: ["Superman"],
+    notes: "A hold, so it gives one position and no tempo. It confirmed the trunk and legs (ankle lift 19.2 cm against the clip's 19.3) and corrected the arms, which finished 15.6 cm above the head. Prone Y-T-W Raise and Reverse Snow Angel share this pose and both lift the arms, so the top is a compromise between the three.",
+  },
+
   invertedRow: {
     videoId: "B90sF7dbP04",
     title: "Ring Row",
