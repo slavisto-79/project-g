@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 60 |
+| authored from a clip (the clip shows the exercise) | 63 |
 | sharing a pose that was authored from a clip | 36 |
-| without a clip yet | 66 |
-| poses with a clip | 59 of 111 (107 in use) |
+| without a clip yet | 63 |
+| poses with a clip | 62 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `invertedRow`, `kickback`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
 ## Every exercise
 
@@ -70,7 +70,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Cossack Squat | `lateralLunge` | no clip yet |  |  |
 | Curtsy Lunge | `curtsyLunge` | no clip yet |  |  |
 | Dead Bug | `deadBug` | authored from the clip | [Alternating Dead Bug](https://www.youtube.com/watch?v=-VykQ1HD0Vw) (OPEX Fitness, side) | #290 |
-| Decline Push-Up | `declinePushUp` | no clip yet |  |  |
+| Decline Push-Up | `declinePushUp` | authored from the clip | [Decline Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=cnsPwJ2f2B4) (OPEX Fitness, side) | #315 |
 | Depth Jump | `depthJump` | authored from the clip | [Depth Jump | Olympic Weightlifting Exercise Library](https://www.youtube.com/watch?v=GeN0S3XCZnM) (Catalyst Athletics, side) | #312 |
 | Diamond Push-Up | `pushUp` | shares `pushUp` (the clip shows Push-Up) | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
 | Doorway Row | `invertedRow` | no clip yet |  |  |
@@ -108,14 +108,14 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Incline Barbell Bench Press | `inclinePress` | no clip yet |  |  |
 | Incline Dumbbell Curl | `inclineCurl` | no clip yet |  |  |
 | Incline Dumbbell Press | `inclinePress` | no clip yet |  |  |
-| Incline Push-Up | `inclinePushUp` | no clip yet |  |  |
+| Incline Push-Up | `inclinePushUp` | authored from the clip | [Incline Push Up on Bench - OPEX Exercise Library](https://www.youtube.com/watch?v=E--Ls5QtFqI) (OPEX Fitness, side) | #315 |
 | Inverted Row | `invertedRow` | no clip yet |  |  |
 | Jump Squat | `jumpSquat` | authored from the clip | [Jump Squats](https://www.youtube.com/watch?v=3jJt5gCMRNQ) (OPEX Abbotsford, three-quarter) | #311 |
 | Jumping Lunge | `jumpingLunge` | authored from the clip | [Jump Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=BR1A8T9SjIU) (OPEX Fitness, side) | #301 |
 | Kettlebell Clean | `kettlebellClean` | authored from the clip | [Single Arm Kettlebell Clean From Floor](https://www.youtube.com/watch?v=JrNe81MYEuI) (Functional Bodybuilding, side) | #308 |
 | Kettlebell Snatch | `kettlebellSnatch` | authored from the clip | [Kettlebell Snatch](https://www.youtube.com/watch?v=y12D2GApeO0) (OPEX Fitness, side) | #303 |
 | Kettlebell Swing | `kettlebellSwing` | authored from the clip | [The Russian Kettlebell Swing](https://www.youtube.com/watch?v=OPcG_thX6Dc) (Onnit, side) | #263 |
-| Knee Push-Up | `kneePushUp` | no clip yet |  |  |
+| Knee Push-Up | `kneePushUp` | authored from the clip | [Knee Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=8XQ-okb5NWE) (OPEX Fitness, side) | #315 |
 | Landmine Press | `landminePress` | no clip yet |  |  |
 | Lat Pulldown | `pulldown` | authored from the clip | [Cable Lat Pulldown Machine - OPEX Exercise Library](https://www.youtube.com/watch?v=PEv0gTcMY3g) (OPEX Fitness, three-quarter) | #275 |
 | Lateral Lunge | `lateralLunge` | no clip yet |  |  |
@@ -208,7 +208,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `pullUp` | [Strict Pull Up - OPEX Exercise Library](https://www.youtube.com/watch?v=jgFel4wZl3I) | OPEX Fitness | side | four reps in 8.6 s | #274 | 2026-09-09 | Pull-Up |  |
 | `pulldown` | [Cable Lat Pulldown Machine - OPEX Exercise Library](https://www.youtube.com/watch?v=PEv0gTcMY3g) | OPEX Fitness | three-quarter | four reps in 10.5 s | #275 | 2026-09-09 | Lat Pulldown |  |
 | `seatedRow` | [Seated Cable Row - OPEX Exercise Library](https://www.youtube.com/watch?v=4ZbqM_gcgAI) | OPEX Fitness | side | three reps in 9.5 s | #276 | 2026-09-09 | Seated Cable Row |  |
-| `pushUp` | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) | OPEX Fitness | side | three reps in 4.8 s | #277 | 2026-09-09 | Push-Up | Knee, Incline and Decline Push-Up have their own poses, still derived from the old flat frames. |
+| `pushUp` | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) | OPEX Fitness | side | three reps in 4.8 s | #277 | 2026-09-09 | Push-Up | Knee, Incline and Decline Push-Up have their own poses, each from its own clip. |
 | `curl` | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) | OPEX Fitness | side | three reps in 10 s | #278 | 2026-09-09 | Barbell Curl |  |
 | `tricepsExtension` | [Rope Cable Tricep Pushdown - OPEX Exercise Library](https://www.youtube.com/watch?v=y6EdXBdL75A) | OPEX Fitness | side | five reps in 11.6 s | #279 | 2026-09-09 | Triceps Pushdown | Overhead Triceps Extension borrows this pushdown; it needs its own overhead pose. |
 | `lateralRaise` | [Dumbbell Lateral Raise - OPEX Exercise Library](https://www.youtube.com/watch?v=8aUc9snLOxU) | OPEX Fitness | front | five reps in 9 s | #280 | 2026-09-09 | Dumbbell Lateral Raise |  |
@@ -247,3 +247,6 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `jumpSquat` | [Jump Squats](https://www.youtube.com/watch?v=3jJt5gCMRNQ) | OPEX Abbotsford | three-quarter | ten reps in 13 s | #311 | 2026-09-11 | Jump Squat | Near-side view: the angles are projections, +-5. The arms reach forward at the bottom as a counterbalance. |
 | `depthJump` | [Depth Jump | Olympic Weightlifting Exercise Library](https://www.youtube.com/watch?v=GeN0S3XCZnM) | Catalyst Athletics | side | two reps out of a 1:20 tutorial | #312 | 2026-09-11 | Depth Jump | A step off the box, not a jump down; the contact before the rebound is 0.2-0.4 s. |
 | `arnoldPress` | [Standing Arnold Dumbbell Press - OPEX Exercise Library](https://www.youtube.com/watch?v=hHmFzFaSn7U) | OPEX Fitness | front | four reps in 14 s | #314 | 2026-09-11 | Arnold Press | Front view: the hand path is the lift. The mannequin has no forearm twist, so the palm rotation is not drawn. |
+| `inclinePushUp` | [Incline Push Up on Bench - OPEX Exercise Library](https://www.youtube.com/watch?v=E--Ls5QtFqI) | OPEX Fitness | side | four reps in 12 s | #315 | 2026-09-11 | Incline Push-Up |  |
+| `declinePushUp` | [Decline Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=cnsPwJ2f2B4) | OPEX Fitness | side | four reps in 11 s | #315 | 2026-09-11 | Decline Push-Up | On a bench the arm is about as long as the bench is tall, so the lockout is level rather than head-down. |
+| `kneePushUp` | [Knee Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=8XQ-okb5NWE) | OPEX Fitness | side | six reps in 11 s | #315 | 2026-09-11 | Knee Push-Up |  |

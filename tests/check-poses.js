@@ -156,7 +156,8 @@ for (const [name, idx] of Object.entries(STANDING_FRAMES)) {
 // it silently shortened the span and bent the push-up's knees 34 degrees.
 // Entries are [frame, side] pairs; null means every frame, both sides.
 const RIGID_LEGS = {
-  pushUp: null, pikePushUp: null, plank: null, plankSaw: null,
+  pushUp: null, inclinePushUp: null, declinePushUp: null,
+  pikePushUp: null, plank: null, plankSaw: null,
   plankIYTW: null, sidePlank: null, handstandPushUp: null, ringCurl: null,
   burpee: [[3, 0], [3, 1]],
   mountainClimber: [[0, 0], [1, 1]],

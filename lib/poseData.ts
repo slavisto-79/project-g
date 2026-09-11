@@ -212,6 +212,82 @@ function carryStride(arms: [Limb, Limb]): Figure[] {
   ];
 }
 
+// A push-up variant as its own movement rather than the flat one shifted
+// about: the hands stay put (a bench does not slide under them), the body
+// stays one straight line from the shoulder through the hip to the pivot --
+// the ankle, or the knee for the kneeling version -- and the ELBOW drives
+// the rep. For each elbow angle the shoulder has to sit a known distance
+// from the hand (the cosine rule on the upper arm and forearm), and there is
+// exactly one body angle that puts it there; it is found by bisection, so
+// the lockout really locks out instead of stopping at 135 degrees.
+// A push-up variant as its own movement rather than the flat one shifted
+// about: the hands stay put (a bench does not slide out from under them), the
+// body is one straight line from the shoulder through the hip to the PIVOT --
+// the ankle, or the knee for the kneeling version -- and the ELBOW drives the
+// rep. For each elbow angle the shoulder has to sit a known distance from the
+// hand (the cosine rule on the upper arm and forearm), and the body angle
+// that puts it there is solved rather than guessed.
+//
+// Two offsets make this worth solving instead of eyeballing three sets of
+// angles, and both are the fake depth the side view carries. The LEG solves
+// from the hip, which sits a girdle half-depth off the pelvis -- horizontal,
+// so harmless under a standing figure but running ALONG the body of a lying
+// one: placing the pelvis `thigh+shin` from the ankle left the hip short of
+// it and folded the knees to 151. So the HIP is placed, and the pelvis falls
+// out of it. The ARM solves from the same offset on the shoulder, which is
+// 1.8 cm of its 29 and the difference between a lockout that locks and one
+// that stops at 135.
+function pressUpFrames(hand: Point, pivot: Point, legSpan: number, elbows: number[], legs: (pelvis: Point, torso: number) => [Limb, Limb]): Figure[] {
+  // The side view's fake depth, read off hipAt rather than restated here, so
+  // it cannot drift from the one the build actually uses.
+  const depth = hipAt({ x: 0, y: 0 }, 0, 0, "side").x * ASPECT;
+  const dist = (a: Point, b: Point) => Math.hypot((a.x - b.x) * ASPECT, a.y - b.y);
+  // The body `deg` above horizontal, head end away from the pivot.
+  const bodyAt = (deg: number) => {
+    const a = (deg * Math.PI) / 180;
+    const cos = Math.cos(a);
+    const sin = Math.sin(a);
+    // Pelvis distance that lands the HIP exactly `legSpan` from the pivot,
+    // hip offset and all -- the positive root of |pelvis - offset| = legSpan.
+    const d = cos * depth + Math.sqrt(Math.max(legSpan * legSpan - depth * depth * (1 - cos * cos), 0));
+    const pelvis = { x: pivot.x - (cos * d) / ASPECT, y: pivot.y - sin * d };
+    // The trunk runs along the same line. x is in frame units: a real angle
+    // needs it scaled by ASPECT, as step() does.
+    const torso = (Math.atan2(-cos, sin) * 180) / Math.PI;
+    return { pelvis, torso };
+  };
+  return elbows.map((elbow) => {
+    const rad = (elbow * Math.PI) / 180;
+    // Shoulder-to-wrist across a bent elbow.
+    const reachLen = Math.sqrt(P.upperArm * P.upperArm + P.forearm * P.forearm - 2 * P.upperArm * P.forearm * Math.cos(rad));
+    const err = (deg: number) => {
+      const { pelvis, torso } = bodyAt(deg);
+      return dist(shoulderAt(pelvis, torso, 0, "side"), hand) - reachLen;
+    };
+    // Shoulder-to-hand is not monotonic in the body angle: it falls to a
+    // minimum and rises again, so two angles put the shoulder a given
+    // distance from the hand. The press-up is the steeper one -- the body
+    // rises from the pivot toward the hands -- so take the LAST crossing.
+    let deg = 0;
+    let prev = err(-70);
+    for (let t = -69.95; t <= 80; t += 0.05) {
+      const e = err(t);
+      if ((prev <= 0 && e >= 0) || (prev >= 0 && e <= 0)) deg = t;
+      prev = e;
+    }
+    const { pelvis, torso } = bodyAt(deg);
+    return {
+      pelvis,
+      torso,
+      neck: torso - 4,
+      // Both hands on the same point: the flat push-up staggers the far one
+      // 0.016 toward the head, which at a locked-out elbow is further than
+      // the far arm can reach.
+      arms: reachingArms(pelvis, torso, "side", [hand, hand], FORWARD, [264, 259]),
+      legs: legs(pelvis, torso),
+    };
+  });
+}
 export const exercisePoses = {
   // --- Squat pattern -------------------------------------------------------
 
@@ -1738,69 +1814,102 @@ export const exercisePoses = {
     { tempo: { down: 600, bottom: 150, up: 600, top: 300 } },
   ),
 
-  // The same plank with the feet up on a bench. Derived from the flat frames:
-  // hands where they were, ankles raised 0.26 (a 49cm bench), the pelvis at
-  // the same 0.65 of the way along the ankle-to-shoulder line, the torso
-  // re-aimed along it. Level at lockout, 12 degrees head-down at the bottom
-  // -- which is what a decline push-up on a bench actually looks like; a
-  // steeper slope needs a box taller than a bench.
+  // Decline push-up, from a reference clip measured with the pose lab (OPEX
+  // "Decline Push Up", cnsPwJ2f2B4, square side view). The hands stay on the
+  // floor where the flat push-up puts them and the ankles sit on the bench,
+  // 0.26 above them -- a 49 cm bench. That leaves the body all but LEVEL at
+  // lockout and about ten degrees head-down at the bottom, which is what a
+  // decline push-up on a bench really looks like: the arm is as long as the
+  // bench is tall, so the shoulder comes up to meet the raised feet. A
+  // steeper slope needs a box, not a bench.
+  // It used to be the flat frames re-aimed along a raised ankle line, which
+  // locked out at 135 and folded the knees to 147.
   declinePushUp: pose(
     "side",
-    ([[0.497, 0.596, 269.9, 0.800], [0.481, 0.635, 264.9, 0.784], [0.466, 0.688, 258.2, 0.764]] as const).map(([x, y, torso, ax]) =>
-      supported({ x, y }, torso, { x: 0.392, y: 0.855 }, { x: ax, y: 0.595 }),
+    pressUpFrames(
+      { x: 0.392, y: 0.855 },
+      { x: 0.800, y: 0.595 },
+      P.thigh + P.shin,
+      [172, 110, 60],
+      (pelvis, torso) => plantedLegs(pelvis, torso, "side", [{ x: 0.800, y: 0.595 }, { x: 0.784, y: 0.595 }], BACK, [130, 135]),
     ),
     [
-      // Pinned where the flat push-up's unpinned floor lands, so the hands
-      // meet the ground exactly as they do there.
-      { kind: "floor", y: 0.907 },
-      // Bench top a sole's thickness under the toe tips: the toe bone ends
-      // 0.046 below the ankle, the sneaker sole 0.012 under that. Crosswise,
-      // its near edge just behind the ankles, the whole foot on the pad.
-      { kind: "slab", at: "ankle0", width: 0.5, height: 0.055, dx: 0.033, dy: 0.086, across: true },
+      { kind: "floor", mat: true },
+      // The bench under the toes.
+      { kind: "slab", at: "ankle0", width: 0.45, height: 0.055, dx: 0.06, dy: 0.075, across: true },
     ],
     "overhand",
     -1,
+    { tempo: { down: 900, bottom: 200, up: 800, top: 400 } },
   ),
 
-  // The mirror image: hands up on the same bench, feet on the floor. Same
-  // derivation -- the hands rise 0.26 and the shoulders with them (the arm
-  // vector unchanged), the ankles stay put, the pelvis keeps its place on the
-  // ankle-to-shoulder line. 48 degrees up at lockout, 32 at the bottom.
+  // Incline push-up, from a reference clip measured with the pose lab (OPEX
+  // "Incline Push Up on Bench", E--Ls5QtFqI, square side view, four reps in
+  // 12 s; MoveNet on 59 frames at 0.25 s). The clip: the hands FIXED on the
+  // bench -- the wrist sits at the same pixel all rep -- the body one
+  // straight line (shoulder-hip-knee 154-180) rising about 31 degrees from
+  // the toes on the floor to the shoulders, the elbow locking out at 170-180
+  // and folding to 55-65 at the bottom; a rep is a 1.5 s descent, a beat, a
+  // 1.2 s press and 0.5 s at the top -- the slowest of the three, because the
+  // easiest variant is the one people are told to control.
+  // It used to be the flat push-up's frames shifted about, which locked out
+  // at 135, folded the knees to 151 and left the bench 5 cm under the palms.
   inclinePushUp: pose(
     "side",
-    ([[0.564, 0.518, 317.9, 0.513], [0.537, 0.557, 310.8, 0.487], [0.511, 0.610, 302.5, 0.459]] as const).map(([x, y, torso, hx]) =>
-      supported({ x, y }, torso, { x: hx, y: 0.595 }, { x: 0.767, y: 0.855 }),
+    pressUpFrames(
+      { x: 0.400, y: 0.720 },
+      { x: 0.800, y: 0.855 },
+      P.thigh + P.shin,
+      [172, 110, 60],
+      (pelvis, torso) => plantedLegs(pelvis, torso, "side", [{ x: 0.800, y: 0.855 }, { x: 0.784, y: 0.855 }], BACK, [130, 135]),
     ),
     [
-      { kind: "floor", y: 0.907 },
-      // Bench top the same 0.052 under the wrists that the floor is under
-      // them in the flat push-up, so the palms meet it the same way. The
-      // bench stands crosswise with the wrists at its edge: run along the
-      // body it reached under the hips, and the thighs sank 2cm into it at
-      // the bottom of the rep.
-      { kind: "slab", at: "hand0", width: 0.5, height: 0.055, dx: -0.052, dy: 0.0795, across: true },
+      { kind: "floor", mat: true },
+      // The bench: its top flush under the palms, standing crosswise so it
+      // does not reach back under the hips.
+      { kind: "slab", at: "hand0", width: 0.5, height: 0.055, dx: -0.052, dy: 0.050, across: true },
     ],
     "overhand",
     -1,
+    { tempo: { down: 1500, bottom: 250, up: 1200, top: 500 } },
   ),
 
+  // Knee push-up, from a reference clip measured with the pose lab (OPEX
+  // "Knee Push Up", 8XQ-okb5NWE, square side view, six reps in 11 s). The
+  // clip: the plank hinges at the KNEE, which rests on the mat with the shin
+  // lying flat behind it, the body one line from the shoulder through the hip
+  // to that knee, and the same lockout and depth as a full push-up. It used
+  // to be the flat frames shifted about, locking out at 148 and carrying the
+  // knee 14 cm clear of the mat it is supposed to be resting on.
   kneePushUp: pose(
     "side",
-    ([[0.536, 0.756, 307.5, 127.5], [0.524, 0.784, 299.1, 119.1], [0.515, 0.816, 290.2, 110.2]] as const).map(([x, y, torso, thigh]) => {
-      const pelvis = { x, y };
-      return {
-        pelvis,
-        torso,
-        neck: torso - 4,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.410, y: 0.885 }, { x: 0.394, y: 0.885 }], FORWARD, [264, 259]),
-        // The plank hinges at the planted knee: thigh on the body line, shin
-        // lying flat on the floor behind it.
-        legs: [{ upper: thigh, lower: 92, end: 100 }, { upper: thigh + 5, lower: 97, end: 105 }],
-      };
-    }),
+    pressUpFrames(
+      { x: 0.392, y: 0.855 },
+      { x: 0.700, y: 0.855 },
+      P.thigh,
+      [172, 110, 60],
+      (pelvis) => {
+        // The thigh runs from the hip down to the planted knee -- measured
+        // from the hip the build uses, so it comes out exactly a thigh long
+        // and the joint does not silently stretch.
+        const knee = { x: 0.700, y: 0.855 };
+        const hip = hipAt(pelvis, 0, 0, "side");
+        const thigh = (Math.atan2((knee.x - hip.x) * ASPECT, hip.y - knee.y) * 180) / Math.PI;
+        // The shin lies flat on the mat behind the knee, toes back. Both legs
+        // take the same thigh angle: the far knee then lands a girdle-depth
+        // into the page, which is the side view's depth convention, instead
+        // of being solved against an offset hip and coming out a different
+        // shape.
+        return [
+          { upper: thigh, lower: 90, end: 88 },
+          { upper: thigh, lower: 91, end: 89 },
+        ] as [Limb, Limb];
+      },
+    ),
     [{ kind: "floor", mat: true }],
     "overhand",
     -1,
+    { tempo: { down: 900, bottom: 200, up: 800, top: 400 } },
   ),
 
   // Forearm plank, from a reference clip measured with the pose lab (OPEX
