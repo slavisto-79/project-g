@@ -717,6 +717,20 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  // --- Batch 11: the leftovers, picked by measured defect -----------------
+  curtsyLunge: {
+    videoId: "7ptRZXL5MBs",
+    title: "Goblet Curtsy Squat",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "three reps in 10.8 s",
+    prs: [332],
+    date: "2026-09-12",
+    exercises: ["Curtsy Lunge"],
+    notes:
+      "Read as RATIOS of the standing hip height, because his proportions are not the model's -- his thigh is 0.58 of his hip height and ours 0.50. The hip drops 47% of that height (ours 30%); the TRAILING KNEE arrives at the floor, level with the standing ankle, where ours stopped 22% up; the trailing heel lifts to 14% with the knee BELOW it; the trailing foot finishes 1.5 shoulder widths past the standing foot from a stance of 0.72; and the trunk leaves vertical by 15 degrees AWAY from the crossing leg. A front camera cannot read a knee angle in this movement -- the standing shin travels forward, out of the film plane -- so no knee angle is quoted.",
+  },
+
   // --- Batch 10: the cable family ----------------------------------------
   cableKickback: {
     videoId: "iElJ4Ngx--k",
