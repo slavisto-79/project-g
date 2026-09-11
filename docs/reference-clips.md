@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 76 |
+| authored from a clip (the clip shows the exercise) | 77 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 37 |
-| poses with a clip | 72 of 111 (107 in use) |
+| without a clip yet | 36 |
+| poses with a clip | 73 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableKickback`, `cablePullThrough`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableKickback`, `cablePullThrough`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
 ## Every exercise
 
@@ -56,7 +56,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Burpee | `burpee` | no clip yet |  |  |
 | Cable Chest Fly | `cableFly` | authored from the clip | [Cable Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=jtkaC-mq1Xk) (OPEX Fitness, front) | #324 |
 | Cable Crunch | `cableCrunch` | no clip yet |  |  |
-| Cable Curl | `cableCurl` | no clip yet |  |  |
+| Cable Curl | `cableCurl` | authored from the clip | [Cable Curl](https://www.youtube.com/watch?v=h9DPY5pCaGA) (OPEX Fitness, side) | #326 |
 | Cable Kickback | `cableKickback` | no clip yet |  |  |
 | Cable Lateral Raise | `cableLateralRaise` | authored from the clip | [Cable Lateral Raise](https://www.youtube.com/watch?v=dQPTeeqgJqA) (OPEX Fitness, front) | #325 |
 | Cable Pull-Through | `cablePullThrough` | no clip yet |  |  |
@@ -260,3 +260,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `lateralLunge` | [Goblet Cossack Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=rSaWYv37zzE) | OPEX Fitness | front | four reps in 15.7 s | #323 | 2026-09-11 | Cossack Squat | Lateral Lunge shares this pose and STEPS OUT from a narrow stance; the clip holds one wide stance throughout and shifts side to side, which is the cossack. What transferred is the depth, the dead-straight trailing leg, the hands and the tempo. |
 | `cableFly` | [Cable Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=jtkaC-mq1Xk) | OPEX Fitness | front | four reps in 12.4 s | #324 | 2026-09-11 | Cable Chest Fly | A front camera cannot see an arm reaching forward, so the elbow angle in this clip is a projection and is not used; what it settles is the HAND PATH -- one height, wide to together -- and the pulley height. |
 | `cableLateralRaise` | [Cable Lateral Raise](https://www.youtube.com/watch?v=dQPTeeqgJqA) | OPEX Fitness | front | four reps in 12.1 s | #325 | 2026-09-11 | Cable Lateral Raise | Low pulleys, which the pose already had. What it corrected was the finish: the clip takes the hand ABOVE the shoulder, ours stopped 5 cm below it. |
+| `cableCurl` | [Cable Curl](https://www.youtube.com/watch?v=h9DPY5pCaGA) | OPEX Fitness | side | four reps in 12.1 s | #326 | 2026-09-11 | Cable Curl | Elbow 160 hanging to 24-31 at the top, upper arm staying at the side. Ours stopped at 102 and its first two keys were 160 and 158, so the opening third of the animation did not move. |

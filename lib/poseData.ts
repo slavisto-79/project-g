@@ -2421,11 +2421,25 @@ export const exercisePoses = {
   // for the crossover fly, low pulleys either side for the lateral raise,
   // and a low pulley BEHIND the lifter for the pull-through.
 
+  // Cable curl, from a reference clip measured with the pose lab (OPEX
+  // "Cable Curl", h9DPY5pCaGA, side view, four reps in 12.1 s; MoveNet on 39
+  // frames at 0.3 s). The clip curls the elbow from 158-163 hanging to
+  // 24-31 at the top -- the hand at the shoulder -- with the upper arm
+  // staying at the side (4 to 20 degrees off vertical, drifting forward as
+  // it finishes) and the trunk within 11 of upright.
+  //
+  // Ours stopped at 102, which is half a curl, and the first two keys were
+  // 160 and 158 -- the opening third of the animation did not move. The
+  // barbell curl, measured against its own clip, finishes at 41.
+  //
+  // A rep is 0.9 s up, a touch at the top, 1.5 s down and a beat hanging.
   cableCurl: pose(
     "side",
-    // Upper arms a shade forward of the curl's: the cable comes up from a low
-    // pulley ahead and grazed the thighs with the hands hanging plumb.
-    [172, 130, 74].map((forearm) => stand({ x: 0.5, y: 0.494 }, 356, sideArms(152, forearm))),
+    // Elbow interior = 180 - |upper - forearm|: 160 / 100 / 27, against the
+    // clip's 160 / 100 / 27. The upper arm hangs 12 degrees forward of
+    // plumb, inside the clip's 4-20, because the cable comes up from a low
+    // pulley ahead.
+    [188, 88, 15].map((forearm) => stand({ x: 0.5, y: 0.494 }, 356, sideArms(168, forearm))),
     [
       { kind: "floor" },
       // A short straight handle (a bell draws as one on a machine); a full
@@ -2434,6 +2448,8 @@ export const exercisePoses = {
       { kind: "cable", at: "grip", anchor: { x: 0.92, y: 0.9 } },
     ],
     "underhand",
+    1,
+    { tempo: { down: 900, bottom: 300, up: 1500, top: 300 } },
   ),
 
   // Cable fly, from a reference clip measured with the pose lab (OPEX "Cable
