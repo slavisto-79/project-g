@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 58 |
+| authored from a clip (the clip shows the exercise) | 59 |
 | sharing a pose that was authored from a clip | 37 |
-| without a clip yet | 67 |
-| poses with a clip | 57 of 110 (106 in use) |
+| without a clip yet | 66 |
+| poses with a clip | 58 of 111 (106 in use) |
 
 Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `declinePushUp`, `facePull`, `frontRaise`, `gobletSquat`, `handstandPushUp`, `hinge`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `inclinePushUp`, `invertedRow`, `jump`, `kickback`, `kneePushUp`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
@@ -71,7 +71,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Curtsy Lunge | `curtsyLunge` | no clip yet |  |  |
 | Dead Bug | `deadBug` | authored from the clip | [Alternating Dead Bug](https://www.youtube.com/watch?v=-VykQ1HD0Vw) (OPEX Fitness, side) | #290 |
 | Decline Push-Up | `declinePushUp` | no clip yet |  |  |
-| Depth Jump | `jump` | no clip yet |  |  |
+| Depth Jump | `depthJump` | authored from the clip | [Depth Jump | Olympic Weightlifting Exercise Library](https://www.youtube.com/watch?v=GeN0S3XCZnM) (Catalyst Athletics, side) | #312 |
 | Diamond Push-Up | `pushUp` | shares `pushUp` (the clip shows Push-Up) | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
 | Doorway Row | `invertedRow` | no clip yet |  |  |
 | Dumbbell Bench Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
@@ -245,3 +245,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `pushPress` | [Push press (side view)](https://www.youtube.com/watch?v=xcCYH-UcoZ0) | Armory HPFT | side | three reps in 11.6 s | #309 | 2026-09-11 | Push Press | Push Jerk still borrows the strict press; it drops under the bar, which this one does not. |
 | `pushJerk` | [Push Jerk (Side view)](https://www.youtube.com/watch?v=dboDOX7xY_Q) | Fitness Pain Free | side | three reps in 10 s | #310 | 2026-09-11 | Push Jerk | The second dip -- dropping under a locked-out bar -- is what separates it from the push press. |
 | `jumpSquat` | [Jump Squats](https://www.youtube.com/watch?v=3jJt5gCMRNQ) | OPEX Abbotsford | three-quarter | ten reps in 13 s | #311 | 2026-09-11 | Jump Squat | Near-side view: the angles are projections, +-5. The arms reach forward at the bottom as a counterbalance. |
+| `depthJump` | [Depth Jump | Olympic Weightlifting Exercise Library](https://www.youtube.com/watch?v=GeN0S3XCZnM) | Catalyst Athletics | side | two reps out of a 1:20 tutorial | #312 | 2026-09-11 | Depth Jump | A step off the box, not a jump down; the contact before the rebound is 0.2-0.4 s. |

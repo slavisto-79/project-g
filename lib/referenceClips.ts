@@ -577,6 +577,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes: "Near-side view: the angles are projections, +-5. The arms reach forward at the bottom as a counterbalance.",
   },
 
+  depthJump: {
+    videoId: "GeN0S3XCZnM",
+    title: "Depth Jump | Olympic Weightlifting Exercise Library",
+    channel: "Catalyst Athletics",
+    view: "side",
+    span: "two reps out of a 1:20 tutorial",
+    prs: [312],
+    date: "2026-09-11",
+    exercises: ["Depth Jump"],
+    notes: "A step off the box, not a jump down; the contact before the rebound is 0.2-0.4 s.",
+  },
+
   pecDeck: {
     videoId: "X3Nj2ZPwW04",
     title: "Chest Fly Machine",
