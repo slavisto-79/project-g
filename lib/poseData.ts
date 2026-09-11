@@ -3449,11 +3449,42 @@ export const exercisePoses = {
     -1,
   ),
 
-  // Arms locked straight, sweeping the bar from overhead down to the thighs.
+  // Straight-arm pulldown, from a reference clip measured with the pose lab
+  // (OPEX "Standing Cable Straight Arm Pulldown", nAkTIeJ_Aus, side view,
+  // three reps in 11.2 s; MoveNet on 40 frames at 0.35 s).
+  //
+  // The ARC RAN TOO HIGH AT THE TOP. The shoulder-to-wrist line -- the line
+  // a locked arm makes, and the one thing this lift is about -- reads 167
+  // from vertical at the finish, hands at the thighs, and 64 at the start,
+  // in all three reps and within 5 degrees each time. Ours ran 41 to 167:
+  // the finish was already right, and the start had the arms almost
+  // straight overhead, a third of a right angle past the clip. The middle
+  // key, taken at half the hand's vertical travel, is 130 against our 99.
+  //
+  // The ELBOW is deliberately NOT changed. The clip's own elbow holds 174
+  // to 180 from the finish through three quarters of the raise and then
+  // folds to about 135 in the last quarter, where the bar arrives at the
+  // lifter's forehead -- he stands close to the machine. That is this
+  // clip, not this lift, whose whole name is the locked elbow; a figure
+  // bending at the top would read as a lat pulldown. So the HAND PATH comes
+  // from the clip and the arm stays straight along it.
+  //
+  // The trunk was overdone as well: 12 degrees from vertical at the finish
+  // and 7 at the start, against our flat 18.
+  //
+  // Tempo, which it did not have: 1.25 s down, 0.35 s at the thighs, 2.25 s
+  // back up and no pause at the top -- the hand curve turns there inside a
+  // single 0.35 s frame in every rep. Period 3.85 s, the same to within
+  // 0.01 s across the three.
   straightArmPulldown: pose(
     "side",
-    [40, 98, 166].map((arm) => stand({ x: 0.5, y: 0.494 }, 18, sideArms(arm, arm + 2), 14, [{ x: 0.557, y: FLOOR }, { x: 0.515, y: FLOOR }])),
+    ([[63, 7], [129, 10], [166, 12]] as const).map(([arm, torso]) =>
+      stand({ x: 0.5, y: 0.494 }, torso, sideArms(arm, arm + 2), 14, [{ x: 0.557, y: FLOOR }, { x: 0.515, y: FLOOR }]),
+    ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.16, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.9, y: 0.02 } }],
+    "overhand",
+    1,
+    { tempo: { down: 1250, bottom: 350, up: 2250, top: 0 } },
   ),
 
   // Face pull, from a reference clip measured with the pose lab (OPEX "Cable

@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 10: the cable family ----------------------------------------
+  straightArmPulldown: {
+    videoId: "nAkTIeJ_Aus",
+    title: "Standing Cable Straight Arm Pulldown",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 11.2 s",
+    prs: [328],
+    date: "2026-09-11",
+    exercises: ["Straight-Arm Pulldown"],
+    notes: "The shoulder-to-wrist line -- the line a locked arm makes -- reads 64 from vertical at the start and 167 at the finish, in all three reps within 5 degrees; ours started at 41, almost straight overhead. The clip CANNOT settle the elbow at the top: this lifter stands close enough that the bar reaches his forehead and his elbow folds to about 135 there, which is the clip rather than the lift, so the hand path is taken and the arm is kept locked.",
+  },
+
   facePull: {
     videoId: "5ZC4LagfDQ4",
     title: "Cable Rope Face Pull",
