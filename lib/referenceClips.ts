@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 10: the cable family ----------------------------------------
+  facePull: {
+    videoId: "5ZC4LagfDQ4",
+    title: "Cable Rope Face Pull",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 11.6 s",
+    prs: [327],
+    date: "2026-09-11",
+    exercises: ["Face Pull"],
+    notes: "Both hands finish beside the head and MoveNet tangles the near and far arm there, so the elbow angles are unusable and are not quoted. What the frames show plainly is the pulley height -- well above the head -- and that the elbows stay high.",
+  },
+
   cableCurl: {
     videoId: "h9DPY5pCaGA",
     title: "Cable Curl",
