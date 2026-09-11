@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 71 |
-| sharing a pose that was authored from a clip | 44 |
-| without a clip yet | 47 |
-| poses with a clip | 67 of 111 (107 in use) |
+| authored from a clip (the clip shows the exercise) | 72 |
+| sharing a pose that was authored from a clip | 46 |
+| without a clip yet | 44 |
+| poses with a clip | 68 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `invertedRow`, `kickback`, `landminePress`, `lateralLunge`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `lateralLunge`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
 ## Every exercise
 
@@ -73,7 +73,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Decline Push-Up | `declinePushUp` | authored from the clip | [Decline Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=cnsPwJ2f2B4) (OPEX Fitness, side) | #315 |
 | Depth Jump | `depthJump` | authored from the clip | [Depth Jump | Olympic Weightlifting Exercise Library](https://www.youtube.com/watch?v=GeN0S3XCZnM) (Catalyst Athletics, side) | #312 |
 | Diamond Push-Up | `pushUp` | shares `pushUp` (the clip shows Push-Up) | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
-| Doorway Row | `invertedRow` | no clip yet |  |  |
+| Doorway Row | `invertedRow` | shares `invertedRow` (the clip shows Inverted Row) | [Ring Row](https://www.youtube.com/watch?v=B90sF7dbP04) (OPEX Fitness, side) | #321 |
 | Dumbbell Bench Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
 | Dumbbell Biceps Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
 | Dumbbell Bulgarian Split Squat | `splitSquat` | authored from the clip | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267 |
@@ -109,7 +109,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Incline Dumbbell Curl | `inclineCurl` | no clip yet |  |  |
 | Incline Dumbbell Press | `inclinePress` | no clip yet |  |  |
 | Incline Push-Up | `inclinePushUp` | authored from the clip | [Incline Push Up on Bench - OPEX Exercise Library](https://www.youtube.com/watch?v=E--Ls5QtFqI) (OPEX Fitness, side) | #315 |
-| Inverted Row | `invertedRow` | no clip yet |  |  |
+| Inverted Row | `invertedRow` | authored from the clip | [Ring Row](https://www.youtube.com/watch?v=B90sF7dbP04) (OPEX Fitness, side) | #321 |
 | Jump Squat | `jumpSquat` | authored from the clip | [Jump Squats](https://www.youtube.com/watch?v=3jJt5gCMRNQ) (OPEX Abbotsford, three-quarter) | #311 |
 | Jumping Lunge | `jumpingLunge` | authored from the clip | [Jump Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=BR1A8T9SjIU) (OPEX Fitness, side) | #301 |
 | Kettlebell Clean | `kettlebellClean` | authored from the clip | [Single Arm Kettlebell Clean From Floor](https://www.youtube.com/watch?v=JrNe81MYEuI) (Functional Bodybuilding, side) | #308 |
@@ -175,7 +175,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Sumo Deadlift | `sumoDeadlift` | authored from the clip | [Sumo Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=OKMDYjnK8m8) (OPEX Fitness, three-quarter) | #265 |
 | Superman | `proneRaise` | no clip yet |  |  |
 | T-Bar Row | `bentRow` | shares `bentRow` (the clip shows Barbell Row) | [How to do a Barbell Bent Over Row Pronated](https://www.youtube.com/watch?v=bm0_q9bR_HA) (National Academy of Sports Medicine (NASM), side) | #273 |
-| Towel Row | `invertedRow` | no clip yet |  |  |
+| Towel Row | `invertedRow` | shares `invertedRow` (the clip shows Inverted Row) | [Ring Row](https://www.youtube.com/watch?v=B90sF7dbP04) (OPEX Fitness, side) | #321 |
 | Trap Bar Deadlift | `trapBarDeadlift` | authored from the clip | [How To Hex Bar Deadlift Correctly](https://www.youtube.com/watch?v=ZJPZQklCSLs) (Motiv8 Fitness, side) | #255, #256 |
 | Triceps Kickback | `kickback` | no clip yet |  |  |
 | Triceps Pushdown | `tricepsExtension` | authored from the clip | [Rope Cable Tricep Pushdown - OPEX Exercise Library](https://www.youtube.com/watch?v=y6EdXBdL75A) (OPEX Fitness, side) | #279 |
@@ -255,3 +255,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `lunge` | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) | OPEX Fitness | side | three reps in 11.7 s | #318 | 2026-09-11 | Bodyweight Reverse Lunge, Dumbbell Lunge | Barbell Walking Lunge borrows this pose; the split stance is held throughout rather than stepped, which is the library convention for the lunge family. |
 | `legCurl` | [Prone Hamstring Curl Machine](https://www.youtube.com/watch?v=xKOyGU0AfOE) | OPEX Fitness | side | four reps in 12.4 s | #319 | 2026-09-11 | Lying Leg Curl, Seated Leg Curl | MoveNet scores only 0.26-0.71 on this one (small figure, gym clutter, the two legs confused when curled), so the range was read from the clusters the whole clip agrees on rather than per-frame angles. Nordic Hamstring Curl is ALSO mapped to this pose and should not be: it is a kneeling bodyweight movement with no machine. |
 | `calfRaise` | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) | OPEX Fitness | back | four reps in 11.6 s | #320 | 2026-09-11 | Bodyweight Calf Raise, Dumbbell Calf Raise | Filmed from behind and done on a LEDGE with the heels dropping below the step, so it settles the tempo and nothing about the angles; the pose draws the floor version the library cue describes and its range was left alone. Single-Leg Calf Raise borrows this pose. |
+| `invertedRow` | [Ring Row](https://www.youtube.com/watch?v=B90sF7dbP04) | OPEX Fitness | side | four reps in 10.8 s | #321 | 2026-09-11 | Inverted Row | Towel Row and Doorway Row borrow this pose. The clip is on rings; the pose draws a fixed bar, which is why the top stops at the shallow end of the clip's elbow band -- on rings the head passes between them, under a bar it does not. |

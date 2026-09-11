@@ -240,7 +240,21 @@ function carryStride(arms: [Limb, Limb]): Figure[] {
 // out of it. The ARM solves from the same offset on the shoulder, which is
 // 1.8 cm of its 29 and the difference between a lockout that locks and one
 // that stops at 135.
-function pressUpFrames(hand: Point, pivot: Point, legSpan: number, elbows: number[], legs: (pelvis: Point, torso: number) => [Limb, Limb]): Figure[] {
+function pressUpFrames(
+  hand: Point,
+  pivot: Point,
+  legSpan: number,
+  elbows: number[],
+  legs: (pelvis: Point, torso: number) => [Limb, Limb],
+  // An inverted row is this same solve pulled instead of pressed: the arms
+  // reach UP to a fixed bar and the elbow breaks the other way, so the one
+  // thing it needs to override is how the arms are built.
+  arms?: (pelvis: Point, torso: number, hand: Point) => [Limb, Limb],
+  // Which root to take: see the scan below. A press rises toward its hands
+  // from under them and wants the STEEPER body; a row hangs under a bar in
+  // front and wants the shallower one.
+  branch: "steeper" | "shallower" = "steeper",
+): Figure[] {
   // The side view's fake depth, read off hipAt rather than restated here, so
   // it cannot drift from the one the build actually uses.
   const depth = hipAt({ x: 0, y: 0 }, 0, 0, "side").x * ASPECT;
@@ -270,12 +284,18 @@ function pressUpFrames(hand: Point, pivot: Point, legSpan: number, elbows: numbe
     // Shoulder-to-hand is not monotonic in the body angle: it falls to a
     // minimum and rises again, so two angles put the shoulder a given
     // distance from the hand. The press-up is the steeper one -- the body
-    // rises from the pivot toward the hands -- so take the LAST crossing.
+    // rises from the pivot toward hands below it -- so it takes the LAST
+    // crossing. A row hangs from a bar ahead and above, where the shallower
+    // root is the one that lifts the chest to it, and takes the first.
     let deg = 0;
+    let found = false;
     let prev = err(-70);
     for (let t = -69.95; t <= 80; t += 0.05) {
       const e = err(t);
-      if ((prev <= 0 && e >= 0) || (prev >= 0 && e <= 0)) deg = t;
+      if ((prev <= 0 && e >= 0) || (prev >= 0 && e <= 0)) {
+        if (branch === "steeper" || !found) deg = t;
+        found = true;
+      }
       prev = e;
     }
     const { pelvis, torso } = bodyAt(deg);
@@ -286,7 +306,7 @@ function pressUpFrames(hand: Point, pivot: Point, legSpan: number, elbows: numbe
       // Both hands on the same point: the flat push-up staggers the far one
       // 0.016 toward the head, which at a locked-out elbow is further than
       // the far arm can reach.
-      arms: reachingArms(pelvis, torso, "side", [hand, hand], FORWARD, [264, 259]),
+      arms: arms ? arms(pelvis, torso, hand) : reachingArms(pelvis, torso, "side", [hand, hand], FORWARD, [264, 259]),
       legs: legs(pelvis, torso),
     };
   });
@@ -2705,20 +2725,49 @@ export const exercisePoses = {
     { tempo: { down: 1100, bottom: 200, up: 1100, top: 300 }, camera: { azimuth: 0.9 } },
   ),
 
+  // Inverted row, from a reference clip measured with the pose lab (OPEX
+  // "Ring Row", B90sF7dbP04, square side view, four reps in 10.8 s; MoveNet
+  // on 41 frames at 0.25 s). The clip is a rigid plank turning about the
+  // HEELS: the knee reads 158-179 in every frame of every rep and the
+  // shoulder-hip-knee line 156-179, while the body swings from 16 degrees
+  // above horizontal hanging to 39 at the top and the elbow runs 157-178
+  // down to 33-44 with the chest at the rings.
+  //
+  // Ours bent the KNEES to 103 at the bottom -- the pelvis was placed by
+  // hand and the planted feet were 8 cm nearer than a straight leg reaches,
+  // so two-link IK folded them. On a movement whose whole demand is holding
+  // a line. And the pull stopped at an elbow of 70, well short of the
+  // chest-to-bar the clip finishes on.
+  //
+  // Solved instead with pressUpFrames, which is the same problem: one rigid
+  // body turning about a fixed pivot until the elbow hits a given angle.
+  // A push-up presses down from it and a row pulls up to it, so the only
+  // thing overridden is the arms.
   invertedRow: pose(
     "side",
-    [0.684, 0.618, 0.556].map((pelvisY) => {
-      const pelvis = { x: 0.52, y: pelvisY };
-      const torso = 284;
-      return {
-        pelvis,
-        torso,
-        neck: torso,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.335, y: 0.341 }, { x: 0.319, y: 0.341 }], BACK),
-        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.745, y: 0.815 }, { x: 0.729, y: 0.815 }], FORWARD, [40, 45]),
-      };
-    }),
+    pressUpFrames(
+      { x: 0.335, y: 0.341 },
+      { x: 0.745, y: 0.815 },
+      P.thigh + P.shin,
+      // 44 is the shallow end of the clip's 33-44 top band, and the end
+      // that keeps the head clear of a fixed bar: at 38 the crown passed
+      // through it by 2.5 cm.
+      [178, 90, 44],
+      (pelvis, torso) => {
+        // The heels are the contact: the foot stays as it was, angled up off
+        // the floor the way a row's does.
+        const flat: [number, number] = [40, 45];
+        return plantedLegs(pelvis, torso, "side", [{ x: 0.745, y: 0.815 }, { x: 0.729, y: 0.815 }], FORWARD, flat);
+      },
+      (pelvis, torso, hand) => reachingArms(pelvis, torso, "side", [hand, { x: hand.x - 0.016, y: hand.y }], BACK),
+      "shallower",
+    ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17, plates: false }],
+    "overhand",
+    1,
+    // A rep in the clip is about 1.2 s up, a touch at the rings, 1.2 s down
+    // and a beat hanging.
+    { tempo: { down: 1200, bottom: 300, up: 1200, top: 300 } },
   ),
 
   // Hanging raises, from a reference clip measured with the pose lab (OPEX
