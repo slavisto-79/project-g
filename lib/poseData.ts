@@ -659,21 +659,6 @@ export const exercisePoses = {
     [{ kind: "floor" }],
   ),
 
-  jump: pose(
-    "side",
-    [
-      stand({ x: 0.500, y: 0.494 }, 2, sideArms(178, 179)),
-      stand({ x: 0.452, y: 0.630 }, 30, sideArms(212, 200)),
-      // Airborne: nothing is planted, so the angles are direct and the ground
-      // is pinned where the take-off was. A modest hop with the arms in a V,
-      // not overhead -- fully raised arms at the flight apex stretched the
-      // camera frame ~30% taller and shrank the figure in the card.
-      { pelvis: { x: 0.49, y: 0.500 }, torso: 8, arms: sideArms(72, 52), legs: sideLegs(160, 172, 130) },
-      { pelvis: { x: 0.50, y: 0.435 }, torso: 2, arms: sideArms(55, 35), legs: sideLegs(176, 178, 140) },
-    ],
-    [{ kind: "floor" }],
-  ),
-
   // Box jump, from a reference clip measured with the pose lab (OPEX "Box
   // Jump Step Down", W5QzqIbEWvk, square side view, three jumps in 10 s;
   // MoveNet on 47 frames at 0.25 s). The clip: standing a stride from a
