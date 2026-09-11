@@ -813,6 +813,60 @@ export const exercisePoses = {
     { loop: [700, 300, 300, 300, 500, 900], camera: { azimuth: 0.9 } },
   ),
 
+  // Depth jump, from a reference clip measured with the pose lab (Catalyst
+  // Athletics "Depth Jump", GeN0S3XCZnM, square side view, two reps out of
+  // a 1:20 tutorial; MoveNet on 41 frames at 0.2 s over 8 s). The clip:
+  // standing on a knee-high box; a STEP off it (not a jump down) with the
+  // hip falling 0.16 of the frame; a landing that absorbs to knee 128-133
+  // with the trunk 8-11 forward; an immediate rebound that takes the whole
+  // body off the floor again (the hip 0.32 of the frame against 0.40 on the
+  // box, the arms thrown up); and a second landing, again at knee 127-133.
+  // The contact between the two is short -- 0.2-0.4 s, which is the whole
+  // point of the drill.
+  // Depth Jump borrowed `jump`, a hop on the spot with no box at all.
+  // A loop of six key positions, as the box jump's: the way back to the box
+  // is a step up, not the drop played backwards.
+  depthJump: pose(
+    "side",
+    (() => {
+      const boxTop = 0.658; // an ankle standing on the box
+      const floorFeet: [Point, Point] = [{ x: 0.42, y: FLOOR }, { x: 0.40, y: FLOOR }];
+      const overAnkle = (ankle: Point, thigh: number, shin: number, torso: number): Point => {
+        const knee = along(ankle, shin + 180, P.shin);
+        const hip = along(knee, thigh + 180, P.thigh);
+        return { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      };
+      const arms = sideArms(180, 150); // hanging, the forearms a little forward
+      const onBox = { x: 0.60, y: boxTop };
+      return [
+        // Standing tall on the box.
+        { pelvis: overAnkle(onBox, 180, 180, 2), torso: 2, neck: 0, arms, legs: lyingLegs(180, 180, 90) },
+        // Stepping off: the near foot has left the edge and hangs in front,
+        // the far foot still on the box, the hip starting to fall.
+        { pelvis: { x: 0.54, y: 0.30 }, torso: 8, neck: 5, arms, legs: [{ upper: 160, lower: 175, end: 120 }, { upper: 185, lower: 182, end: 90 }] as [Limb, Limb] },
+        // The landing: both feet on the floor in front of the box, knee 130,
+        // trunk 20, the arms swung back ready to drive.
+        { pelvis: overAnkle(floorFeet[0], 140, 205, 20), torso: 20, neck: 12, arms: sideArms(215, 200), legs: sideLegs(140, 205, 90) },
+        // The rebound: off the floor again, the toes pointed, the arms up.
+        { pelvis: { x: 0.42, y: 0.345 }, torso: -2, neck: -1, arms: sideArms(60, 45), legs: sideLegs(178, 180, 140) },
+        // The second landing, the same absorb.
+        { pelvis: overAnkle(floorFeet[0], 140, 205, 20), torso: 20, neck: 12, arms: sideArms(150, 130), legs: sideLegs(140, 205, 90) },
+        // Stepping back up: the far foot on the box, the hip rising.
+        { pelvis: { x: 0.52, y: 0.33 }, torso: 15, neck: 9, arms, legs: [{ upper: 195, lower: 195, end: 120 }, { ...reach(hipAt({ x: 0.52, y: 0.33 }, 15, 1, "side"), { x: 0.60, y: boxTop }, P.thigh, P.shin, -1), end: 90 }] as [Limb, Limb] },
+      ];
+    })(),
+    [
+      { kind: "floor" },
+      // Centred under the feet standing on it: at 0.66 the foot sat on the
+      // front edge with 16 cm of box behind it.
+      { kind: "slab", x: 0.61, y: 0.713, width: 0.25, height: 0.05 },
+    ],
+    "neutral",
+    1,
+    // off the box, the landing, the rebound, the landing, the step up, home.
+    { loop: [400, 300, 350, 350, 500, 500], camera: { azimuth: 0.9 } },
+  ),
+
   // Jump squat, from a reference clip measured with the pose lab (OPEX
   // Abbotsford "Jump Squats", 3jJt5gCMRNQ, near-side view, ten reps in
   // 13 s; MoveNet on 64 frames at 0.25 s). The clip: a DEEP squat -- the
