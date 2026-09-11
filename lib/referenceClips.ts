@@ -717,6 +717,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  invertedRow: {
+    videoId: "B90sF7dbP04",
+    title: "Ring Row",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 10.8 s",
+    prs: [321],
+    date: "2026-09-11",
+    exercises: ["Inverted Row"],
+    notes: "Towel Row and Doorway Row borrow this pose. The clip is on rings; the pose draws a fixed bar, which is why the top stops at the shallow end of the clip's elbow band -- on rings the head passes between them, under a bar it does not.",
+  },
+
   calfRaise: {
     videoId: "LnWEIjIls-M",
     title: "Standing Calf Raise",
