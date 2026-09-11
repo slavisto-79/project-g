@@ -26,6 +26,13 @@ const GROUND = 0.938;
 const FLOOR = 0.930;
 const FEET: [Point, Point] = [{ x: 0.535, y: FLOOR }, { x: 0.515, y: FLOOR }];
 const FEET_FRONT: [Point, Point] = [{ x: 0.565, y: FLOOR }, { x: 0.435, y: FLOOR }];
+// The kneeling crunch's pulley, named because the hand placement aims the rope
+// handle at it. It stands well forward (x 0.04): any closer and the cable's run
+// down to the rope passes through the face at the bottom of the crunch. It sits
+// a quarter-frame ABOVE the authored frame (a 2.3 m tower): at the frame's top
+// edge the cable reached a kneeling lifter's hands at barely 30 degrees, and
+// read as coming from ahead rather than from above.
+const CRUNCH_ANCHOR: Point = { x: 0.04, y: -0.25 };
 
 // Knees break forwards in a side view, outwards face on.
 const FORWARD: [1 | -1, 1 | -1] = [-1, -1];
@@ -3648,28 +3655,65 @@ export const exercisePoses = {
     -1,
   ),
 
-  // Kneeling at the stack, ribs curling toward the hips; the hands ride at the
-  // temples the whole way down.
+  // Kneeling cable crunch, from a reference clip measured with the pose lab
+  // (OPEX "Kneeling Cable Crunch", 2ndlUfl5JPo, three reps in 9.6 s; MoveNet
+  // on 42 frames at 0.3 s).
+  //
+  // Like the pull-through's clip this one is NOT square to the lifter -- the
+  // projected trunk runs 0.23 to 0.33 of the frame as she turns through the
+  // rep -- so the angles below are read the projection-proof way, from the
+  // VERTICAL drop of the shoulder below the hip over a trunk length of
+  // 0.330 (its largest projection, where it lies closest to the film plane).
+  //
+  // THE CURL STOPPED A QUARTER SHORT. The clip runs the hip-to-shoulder line
+  // from 33 degrees off vertical at full extension to 121 at the bottom, the
+  // same to within 3 degrees in all three reps -- an 88 degree sweep. Ours
+  // ran 25 to 88, a 63 degree sweep that finished with the trunk merely
+  // horizontal. At her bottom the NOSE IS BELOW THE KNEE (0.034 of the frame
+  // under it); at ours the head still sat 0.18 above it, which is not a
+  // crunch, it is a bow.
+  //
+  // Our trunk is one rigid segment and hers rounds, so this matches the line
+  // her hip and shoulder make, not the shape of her spine. That is the
+  // honest limit of the model, and it is the line that carries the movement.
+  //
+  // THE HIPS SAT ON THE WRONG SIDE OF THE KNEES. In the clip the hip is
+  // AWAY from the stack of the knee -- she kneels facing the machine and
+  // sits back toward her heels -- and ours put it on the stack side, so the
+  // thigh and the trunk lay along one line and the figure read as a plank
+  // tipping over rather than a kneeler folding. The thigh is mirrored.
+  //
+  // AND THE HIPS CAME OFF THE HEELS AS SHE CURLED. The hip stands 0.255 of
+  // the frame above the knee extended and 0.279 crunched, a 0.024 RISE; ours
+  // dropped the hip instead. The thigh now runs 208 / 200 / 193 -- 28
+  // degrees off vertical closing to 13 -- which lifts the hip 4 cm.
+  //
+  // Tempo, which it did not have: 1.2 s down, 0.6 s squeezed, 1.2 s back up
+  // and 0.6 s extended. The three periods measure 3.6, 3.3 and 3.6 s.
   cableCrunch: pose(
     "side",
-    ([[168, 335], [162, 300], [154, 272]] as const).map(([thigh, torso]) => {
+    ([[208, 327], [200, 283], [193, 239]] as const).map(([thigh, torso]) => {
       const knee = { x: 0.50, y: 0.905 };
       const pelvis = { x: knee.x - (0.225 * Math.sin((thigh * Math.PI) / 180)) / (850 / 567), y: knee.y + 0.225 * Math.cos((thigh * Math.PI) / 180) };
       return {
         pelvis,
         torso,
         neck: torso - 25,
-        // The rope is held at the forehead, 14cm IN FRONT of the face and
-        // riding with the trunk as it curls -- with the hands on the skull
-        // the cable had to pass through the head to reach them, and at 10cm
-        // the deepest curl pressed the rope into the beard.
+        // The rope handle rides at the face the whole way down -- in the clip
+        // the hands sit about 0.11 of the frame from the nose at the top and
+        // the same at the bottom, so it is one fixed distance, not a path.
+        // It is placed 12cm from the head ALONG THE LINE TO THE PULLEY: the
+        // old version offset it by a pair of hand-tuned distances along and
+        // across the trunk, which worked while the trunk stayed near upright
+        // and swung the handle under the chin and below the knees once the
+        // curl went past horizontal. Aiming it at the anchor also makes the
+        // cable geometrically incapable of cutting through the skull.
         arms: (() => {
-          const top = spineTop(pelvis, torso);
-          const rad = (torso * Math.PI) / 180;
-          const rope = {
-            x: top.x - (0.14 * Math.cos(rad)) / (850 / 567) + (0.13 * Math.sin(rad)) / (850 / 567),
-            y: top.y - 0.14 * Math.sin(rad) - 0.13 * Math.cos(rad),
-          };
+          const head = along(spineTop(pelvis, torso), torso - 25, 0.086);
+          const vx = (CRUNCH_ANCHOR.x - head.x) * ASPECT;
+          const vy = CRUNCH_ANCHOR.y - head.y;
+          const len = Math.hypot(vx, vy);
+          const rope = { x: head.x + (0.12 * vx) / len / ASPECT, y: head.y + (0.12 * vy) / len };
           return reachingArms(pelvis, torso, "side", [rope, rope], FORWARD);
         })(),
         legs: [{ upper: thigh, lower: 90, end: 98 }, { upper: thigh + 4, lower: 94, end: 102 }] as [Limb, Limb],
@@ -3681,7 +3725,10 @@ export const exercisePoses = {
     // It sits a quarter-frame ABOVE the authored frame (a 2.3m tower): at the
     // frame's top edge the cable reached a kneeling lifter's hands at barely
     // 30 degrees, and read as coming from ahead rather than from above.
-    [{ kind: "floor", mat: true }, { kind: "bar", at: "grip", length: 0.08, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.04, y: -0.25 }, handle: "rope" }],
+    [{ kind: "floor", mat: true }, { kind: "bar", at: "grip", length: 0.08, plates: false }, { kind: "cable", at: "grip", anchor: CRUNCH_ANCHOR, handle: "rope" }],
+    "neutral",
+    1,
+    { tempo: { down: 1200, bottom: 600, up: 1200, top: 600 } },
   ),
 
   // Seated and leaned back, feet light: the hands sweep between chest height
