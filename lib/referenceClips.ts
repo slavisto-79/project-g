@@ -714,6 +714,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  lunge: {
+    videoId: "Q2k3kYbtOcI",
+    title: "Dumbbell Reverse Lunge",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 11.7 s",
+    prs: [318],
+    date: "2026-09-11",
+    exercises: ["Bodyweight Reverse Lunge", "Dumbbell Lunge"],
+    notes: "Barbell Walking Lunge borrows this pose; the split stance is held throughout rather than stepped, which is the library convention for the lunge family.",
+  },
+
   gobletSquat: {
     videoId: "pEGfGwp6IEA",
     title: "Goblet Squat - OPEX Exercise Library",

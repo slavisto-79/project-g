@@ -41,6 +41,9 @@ const HANG = sideArms(178, 179);
 // travels in FRONT of the shins, and the knees never cross its line.
 const HANG_AHEAD = sideArms(168, 171);
 const HANG_FRONT = bothArms(175, 178);
+// A lunge's REAR foot stands on its toes: a world foot angle past straight
+// down, so the toe is the lowest point and the ankle rides above it.
+const REAR_FOOT = 200;
 // Arms carried a little wider than plumb. A dumbbell hanging at the side has
 // its inner head between the wrist and the thigh; with the wrist 0.4cm off
 // the thigh's skin (the authored hang) the head sat 2cm inside it on the
@@ -598,19 +601,46 @@ export const exercisePoses = {
     { tempo: { down: 1200, bottom: 200, up: 800, top: 600 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
+  // Reverse lunge, from a reference clip measured with the pose lab (OPEX
+  // "Dumbbell Reverse Lunge", Q2k3kYbtOcI, square side view, three reps in
+  // 11.7 s; MoveNet on 45 frames at 0.25 s, both legs read separately --
+  // table() picks one side per frame and a lunge's two legs do different
+  // things).
+  //
+  // The thing the old frames had wrong: the REAR FOOT. Both feet were
+  // planted flat on the floor, so the rear leg stayed long and held its
+  // knee 4 cm up in the air at the bottom. In the clip the rear heel is up
+  // and the foot stands on its toes -- the rear ankle sits 5.2 cm ABOVE the
+  // front one and the rear knee comes down level with the floor (measured
+  // 1.7 cm below the front ankle JOINT, which is itself a centimetre up
+  // from the sole). So the rear toe is the contact point here, the way a
+  // push-up's is, and the ankle hangs off it.
+  //
+  // The rest of the clip: the front foot never moves (ankle x 0.276-0.282
+  // across all three reps), the front thigh comes to level at the bottom
+  // (knee 0.016 below the hip) with the knee at 69-77 and the shin 21-27
+  // degrees forward, the rear knee at 81-88, and the trunk stays within 10
+  // degrees of upright. A rep is a 1.0 s descent, a beat at the bottom, a
+  // 1.0 s stand and 0.75 s tall -- the pose had no tempo at all.
   lunge: pose(
     "side",
-    [0.545, 0.612, 0.680].map((y) => {
+    [0.520, 0.630, 0.700].map((y) => {
       const pelvis = { x: 0.49, y };
+      // The rear foot stands on its toes: the toe is planted and the ankle
+      // hangs off it, up and a little forward.
+      const rearToe = { x: 0.293, y: FLOOR };
+      const rearAnkle = along(rearToe, REAR_FOOT - 180, 0.069);
       return {
         pelvis,
         torso: 4,
         arms: wide(HANG),
-        legs: plantedLegs(pelvis, 4, "side", [{ x: 0.605, y: FLOOR }, { x: 0.372, y: FLOOR }], FORWARD),
+        legs: plantedLegs(pelvis, 4, "side", [{ x: 0.605, y: FLOOR }, rearAnkle], FORWARD, [90, REAR_FOOT]),
       };
     }),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
     "neutral",
+    1,
+    { tempo: { down: 1000, bottom: 250, up: 1000, top: 750 } },
   ),
 
   lateralLunge: pose(

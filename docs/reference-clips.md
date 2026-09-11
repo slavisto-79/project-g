@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 65 |
-| sharing a pose that was authored from a clip | 41 |
-| without a clip yet | 56 |
-| poses with a clip | 64 of 111 (107 in use) |
+| authored from a clip (the clip shows the exercise) | 67 |
+| sharing a pose that was authored from a clip | 42 |
+| without a clip yet | 53 |
+| poses with a clip | 65 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `invertedRow`, `kickback`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `lunge`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `invertedRow`, `kickback`, `landminePress`, `lateralLunge`, `legCurl`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
 ## Every exercise
 
@@ -39,7 +39,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Barbell Hip Thrust | `hipThrust` | authored from the clip | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
 | Barbell Overhead Press | `overheadPress` | authored from the clip | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
 | Barbell Row | `bentRow` | authored from the clip | [How to do a Barbell Bent Over Row Pronated](https://www.youtube.com/watch?v=bm0_q9bR_HA) (National Academy of Sports Medicine (NASM), side) | #273 |
-| Barbell Walking Lunge | `lunge` | no clip yet |  |  |
+| Barbell Walking Lunge | `lunge` | shares `lunge` (the clip shows Bodyweight Reverse Lunge, Dumbbell Lunge) | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
 | Battle Ropes | `battleRopes` | no clip yet |  |  |
 | Bear Crawl | `bearCrawl` | authored from the clip | [Crawl - OPEX Exercise Library](https://www.youtube.com/watch?v=w089AXf1f_g) (OPEX Fitness, side) | #304 |
 | Bench Dip | `dip` | shares `dip` (the clip shows Bar Dip) | [Weighted Dip - OPEX Exercise Library](https://www.youtube.com/watch?v=VNa0hX_y6Fk) (OPEX Fitness, three-quarter) | #282 |
@@ -47,7 +47,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Bird Dog | `quadruped` | no clip yet |  |  |
 | Bodyweight Calf Raise | `calfRaise` | no clip yet |  |  |
 | Bodyweight Good Morning | `goodMorning` | shares `goodMorning` (the clip shows Good Morning) | [High Bar Good Morning](https://www.youtube.com/watch?v=dEJ0FTm-CEk) (Renaissance Periodization, side) | #262 |
-| Bodyweight Reverse Lunge | `lunge` | no clip yet |  |  |
+| Bodyweight Reverse Lunge | `lunge` | authored from the clip | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
 | Bodyweight Squat | `bodyweightSquat` | no clip yet |  |  |
 | Box Jump | `boxJump` | authored from the clip | [Box Jump Step Down - OPEX Exercise Library](https://www.youtube.com/watch?v=W5QzqIbEWvk) (OPEX Fitness, side) | #299 |
 | Box Squat | `boxSquat` | authored from the clip | [Box Squat Movement Demo](https://www.youtube.com/watch?v=rMEPHwNhQfo) (The Active Life, side) | #271 |
@@ -83,7 +83,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Dumbbell Front Raise | `frontRaise` | no clip yet |  |  |
 | Dumbbell Front Squat | `gobletSquat` | shares `gobletSquat` (the clip shows Goblet Squat) | [Goblet Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=pEGfGwp6IEA) (OPEX Fitness, three-quarter) | #317 |
 | Dumbbell Lateral Raise | `lateralRaise` | authored from the clip | [Dumbbell Lateral Raise - OPEX Exercise Library](https://www.youtube.com/watch?v=8aUc9snLOxU) (OPEX Fitness, front) | #280 |
-| Dumbbell Lunge | `lunge` | no clip yet |  |  |
+| Dumbbell Lunge | `lunge` | authored from the clip | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
 | Dumbbell Reverse Fly | `reverseFly` | no clip yet |  |  |
 | Dumbbell Romanian Deadlift | `romanianDeadlift` | shares `romanianDeadlift` (the clip shows Romanian Deadlift) | [BB RDL (Romanian Deadlift) Side View](https://www.youtube.com/watch?v=ionx2qnNVMo) (Coach Savela, side) | #260 |
 | Dumbbell Shoulder Press | `overheadPress` | shares `overheadPress` (the clip shows Barbell Overhead Press) | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
@@ -252,3 +252,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `kneePushUp` | [Knee Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=8XQ-okb5NWE) | OPEX Fitness | side | six reps in 11 s | #315 | 2026-09-11 | Knee Push-Up |  |
 | `hinge` | [Conventional Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=TN3DHmd1Fe8) | OPEX Fitness | side | three reps in 13.8 s | #316 | 2026-09-11 | Conventional Deadlift | Rack Pull, Back Extension and Hip Hinge Wall Touch borrow this hinge; the clip lowers the bar to just off the floor rather than setting it down. |
 | `gobletSquat` | [Goblet Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=pEGfGwp6IEA) | OPEX Fitness | three-quarter | three reps in 11.2 s | #317 | 2026-09-11 | Goblet Squat | Confirms the shared squat frames (parallel bottom, same hip drop) rather than correcting them; a three-quarter camera cannot settle the trunk angle. What it settled was the tempo and the fact that the bell stays ON the chest. |
+| `lunge` | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) | OPEX Fitness | side | three reps in 11.7 s | #318 | 2026-09-11 | Bodyweight Reverse Lunge, Dumbbell Lunge | Barbell Walking Lunge borrows this pose; the split stance is held throughout rather than stepped, which is the library convention for the lunge family. |
