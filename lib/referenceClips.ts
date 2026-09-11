@@ -714,6 +714,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  legCurl: {
+    videoId: "xKOyGU0AfOE",
+    title: "Prone Hamstring Curl Machine",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 12.4 s",
+    prs: [319],
+    date: "2026-09-11",
+    exercises: ["Lying Leg Curl", "Seated Leg Curl"],
+    notes: "MoveNet scores only 0.26-0.71 on this one (small figure, gym clutter, the two legs confused when curled), so the range was read from the clusters the whole clip agrees on rather than per-frame angles. Nordic Hamstring Curl is ALSO mapped to this pose and should not be: it is a kneeling bodyweight movement with no machine.",
+  },
+
   lunge: {
     videoId: "Q2k3kYbtOcI",
     title: "Dumbbell Reverse Lunge",

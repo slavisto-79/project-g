@@ -747,9 +747,23 @@ export const exercisePoses = {
     ],
   ),
 
+  // Lying leg curl, from a reference clip measured with the pose lab (OPEX
+  // "Prone Hamstring Curl Machine", xKOyGU0AfOE, side view, four reps in
+  // 12.4 s). The lifter is small in frame on a gym machine and MoveNet
+  // scores only 0.26-0.71 here, mixing the two legs on the curled frames,
+  // so the per-frame angles are NOT quoted -- what survives is the two
+  // clusters the whole clip agrees on, and they are what this pose needed:
+  // extended, the shin is HORIZONTAL and the knee 142-174; curled, the shin
+  // is vertical or a touch past it and the knee is 48-60. Ours stopped at
+  // 102 -- a shin straight up, which is half a curl. A rep is about 1.0 s
+  // to curl and 1.25 s to lower, with a beat at each end.
+  //
+  // And the thing the clip has that the pose did not: the machine's ROLLER
+  // at the ankles, which is what the legs are actually pushing. Without it
+  // the figure read as someone lying on a bench kicking their heels up.
   legCurl: pose(
     "side",
-    [90, 50, 14].map((shin) => ({
+    [90, 45, -30].map((shin) => ({
       pelvis: { x: 0.47, y: 0.62 },
       torso: 266,
       neck: 318,
@@ -760,9 +774,20 @@ export const exercisePoses = {
     // The pad sits a centimetre lower than a lying pad's usual body-half:
     // the trunk tilts 4 degrees head-down, which put the chest 2.5cm into
     // the pad (measured on the skinned body).
-    [{ kind: "floor", y: 0.79 }, { kind: "slab", at: "pelvis", width: 0.62, height: 0.055, dx: -0.13, dy: 0.095 }],
+    [
+      { kind: "floor", y: 0.79 },
+      // Long enough to carry the thigh to the knee, which is where a curl
+      // machine's pad stops so the joint is free to bend at its edge: at
+      // 0.62 the pad ended 11 cm short and the thighs hung in the air.
+      { kind: "slab", at: "pelvis", width: 0.70, height: 0.055, dx: -0.089, dy: 0.095 },
+      // The roller on the back of the ankles, as the leg extension has one
+      // on the front of its shins: anchored to the joint so it travels
+      // through the whole curl.
+      { kind: "slab", at: "ankle0", width: 0.16, height: 0.05, dy: -0.045, lever: true },
+    ],
     "overhand",
     -1,
+    { tempo: { down: 1250, bottom: 300, up: 1000, top: 300 } },
   ),
 
   calfRaise: pose(
