@@ -714,6 +714,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  gobletSquat: {
+    videoId: "pEGfGwp6IEA",
+    title: "Goblet Squat - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "three reps in 11.2 s",
+    prs: [317],
+    date: "2026-09-11",
+    exercises: ["Goblet Squat"],
+    notes: "Confirms the shared squat frames (parallel bottom, same hip drop) rather than correcting them; a three-quarter camera cannot settle the trunk angle. What it settled was the tempo and the fact that the bell stays ON the chest.",
+  },
+
   hinge: {
     videoId: "TN3DHmd1Fe8",
     title: "Conventional Deadlift - OPEX Exercise Library",

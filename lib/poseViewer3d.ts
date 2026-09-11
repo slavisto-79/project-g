@@ -2518,6 +2518,11 @@ export class PoseViewer3D {
       const heldBell = this.anchored(mesh, i, "bell");
       // A swung kettlebell (a snatch) points along the arm, as on a bar.
       if (prop.swing && implement === "kettlebell") heldBell.userData.swing = true;
+      // A goblet hold is CLAMPED to the chest, so it leans with the chest.
+      // Hanging plumb from the grip, the ball stayed at one depth while the
+      // trunk rotated away from it: 3.9 cm off the body standing and 7.1 at
+      // the bottom of a squat, on a lift whose whole name is the hold.
+      if (prop.hug) heldBell.userData.hug = true;
       this.held.push(heldBell);
     }
 
@@ -2558,6 +2563,19 @@ export class PoseViewer3D {
       const dir = group.position.clone().sub(mid);
       if (dir.lengthSq() > 1e-6) group.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir.normalize());
     }
+  }
+
+  // A bell hugged to the chest points its ball (local -Y) down the TRUNK,
+  // the way a kettlebell clamped between the forearms does. pointAlongArm's
+  // sibling: same trick, a different line.
+  private pointDownTrunk(group: THREE.Group, a: PoseFrame3D, b: PoseFrame3D, f: number) {
+    const si = a.bones.findIndex((bone) => bone.part === "spine");
+    const sa = a.bones[si];
+    const sb = b.bones[si];
+    if (si < 0 || !sa || !sb) return;
+    // The spine runs pelvis (a) -> shoulders (b), so DOWN the trunk is b->a.
+    const dir = lerp3(sa.a, sb.a, f).sub(lerp3(sa.b, sb.b, f));
+    if (dir.lengthSq() > 1e-6) group.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir.normalize());
   }
 
   private anchored(mesh: THREE.Group | THREE.Mesh, propIndex: number, kind: string, mode: "centre" | "hands" = "centre"): THREE.Group {
@@ -3082,6 +3100,7 @@ export class PoseViewer3D {
         // its ball (local -Y) goes where shoulders -> grip points. Hanging
         // under vertical arms that is straight down, as it was.
         if ((group.userData as { swing?: boolean }).swing) this.pointAlongArm(group, a, b, f);
+        if ((group.userData as { hug?: boolean }).hug) this.pointDownTrunk(group, a, b, f);
         // A landmine bar is built along +X from its pivot end; aim it from
         // the pivot through the hands, so the pivot end never leaves the floor.
         const pivot = (group.userData as { pivot?: THREE.Vector3 }).pivot;

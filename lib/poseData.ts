@@ -422,14 +422,31 @@ export const exercisePoses = {
     { tempo: { down: 1400, bottom: 600, up: 900, top: 800 }, camera: SQUAT_CAMERA },
   ),
 
-  // A goblet squat hugs the bell against the chest with both hands.
+  // A goblet squat hugs the bell against the chest with both hands -- and
+  // `hug` is what makes it do that: the bell leans with the chest instead of
+  // hanging plumb from the grip.
+  //
+  // From a reference clip measured with the pose lab (OPEX "Goblet Squat",
+  // pEGfGwp6IEA, three-quarter view, three reps in 11.2 s; MoveNet on 33
+  // frames at 0.25 s). The clip CONFIRMS the shared squat frames rather than
+  // correcting them: it bottoms with the hip crease level with the knee
+  // (measured +0.024, -0.011, +0.010, -0.024 of frame height across the
+  // three reps -- parallel, not below it) and the hip at 0.40 of its
+  // standing height above the ankle, against the shared frames' 0.42. The
+  // trunk reads 32 degrees at the bottom against the frames' 37, but this
+  // camera is three-quarters on, so a sagittal angle is a projection and 5
+  // degrees is inside its error -- not a reason to move a frame that was
+  // solved from the back squat's bar constraint.
+  //
+  // What the clip does settle is the TIMING, which was the back squat's:
+  // 1.25 s down, a quarter-second at the bottom, 1.0 s up and 0.55 s tall.
   gobletSquat: pose(
     "side",
     SQUAT_FRAMES.map(([x, y, torso]) => squatting(stand({ x, y }, torso, chestArms({ x, y }, torso)))),
-    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.06 }],
+    [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.06, hug: true }],
     "neutral",
     1,
-    { tempo: SQUAT_TEMPO, camera: SQUAT_CAMERA },
+    { tempo: { down: 1250, bottom: 250, up: 1000, top: 550 }, camera: SQUAT_CAMERA },
   ),
 
   // Not an exercise: the figure at rest, for the profile screen where the
