@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 10: the cable family ----------------------------------------
+  cableCurl: {
+    videoId: "h9DPY5pCaGA",
+    title: "Cable Curl",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 12.1 s",
+    prs: [326],
+    date: "2026-09-11",
+    exercises: ["Cable Curl"],
+    notes: "Elbow 160 hanging to 24-31 at the top, upper arm staying at the side. Ours stopped at 102 and its first two keys were 160 and 158, so the opening third of the animation did not move.",
+  },
+
   cableLateralRaise: {
     videoId: "dQPTeeqgJqA",
     title: "Cable Lateral Raise",
