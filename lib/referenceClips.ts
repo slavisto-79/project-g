@@ -717,6 +717,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  lateralLunge: {
+    videoId: "rSaWYv37zzE",
+    title: "Goblet Cossack Squat - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "four reps in 15.7 s",
+    prs: [323],
+    date: "2026-09-11",
+    exercises: ["Cossack Squat"],
+    notes: "Lateral Lunge shares this pose and STEPS OUT from a narrow stance; the clip holds one wide stance throughout and shifts side to side, which is the cossack. What transferred is the depth, the dead-straight trailing leg, the hands and the tempo.",
+  },
+
   proneRaise: {
     videoId: "W8vlZfmxOpM",
     title: "Superman Hold - OPEX Exercise Library",
