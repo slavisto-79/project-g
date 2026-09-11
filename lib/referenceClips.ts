@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 10: the cable family ----------------------------------------
+  cableCrunch: {
+    videoId: "2ndlUfl5JPo",
+    title: "Kneeling Cable Crunch",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "three reps in 9.6 s",
+    prs: [330],
+    date: "2026-09-11",
+    exercises: ["Cable Crunch"],
+    notes: "Not square to the lifter -- the projected trunk runs 0.23 to 0.33 of the frame as she turns through the rep -- so the angles are read the projection-proof way, from the VERTICAL drop of the shoulder below the hip over a trunk of 0.330. On those terms the hip-to-shoulder line sweeps 33 to 121 degrees off vertical, the same to within 3 degrees in all three reps, and at the bottom her NOSE IS BELOW HER KNEE. Her hips also rise off the heels as she curls, 0.255 to 0.279 above the knee. Our trunk is one rigid segment and hers rounds, so the pose matches the line her hip and shoulder make, not the shape of her spine.",
+  },
+
   cablePullThrough: {
     videoId: "A30YKvpWGu4",
     title: "Cable Pull Through",
