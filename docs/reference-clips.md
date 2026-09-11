@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 81 |
+| authored from a clip (the clip shows the exercise) | 82 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 32 |
-| poses with a clip | 77 of 111 (107 in use) |
+| without a clip yet | 31 |
+| poses with a clip | 78 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableKickback`, `clean`, `curtsyLunge`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `clean`, `curtsyLunge`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `wallSit`.
 
 ## Every exercise
 
@@ -57,7 +57,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Cable Chest Fly | `cableFly` | authored from the clip | [Cable Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=jtkaC-mq1Xk) (OPEX Fitness, front) | #324 |
 | Cable Crunch | `cableCrunch` | authored from the clip | [Kneeling Cable Crunch](https://www.youtube.com/watch?v=2ndlUfl5JPo) (OPEX Fitness, three-quarter) | #330 |
 | Cable Curl | `cableCurl` | authored from the clip | [Cable Curl](https://www.youtube.com/watch?v=h9DPY5pCaGA) (OPEX Fitness, side) | #326 |
-| Cable Kickback | `cableKickback` | no clip yet |  |  |
+| Cable Kickback | `cableKickback` | authored from the clip | [Cable Glute Kickback](https://www.youtube.com/watch?v=iElJ4Ngx--k) (OPEX Fitness, side) | #331 |
 | Cable Lateral Raise | `cableLateralRaise` | authored from the clip | [Cable Lateral Raise](https://www.youtube.com/watch?v=dQPTeeqgJqA) (OPEX Fitness, front) | #325 |
 | Cable Pull-Through | `cablePullThrough` | authored from the clip | [Cable Pull Through](https://www.youtube.com/watch?v=A30YKvpWGu4) (OPEX Fitness, three-quarter) | #329 |
 | Cable Woodchopper | `woodchop` | authored from the clip | [High to Low Cable Oblique Rotation](https://www.youtube.com/watch?v=KnbgKcvOG_c) (OPEX Fitness, three-quarter) | #287 |
@@ -265,3 +265,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `straightArmPulldown` | [Standing Cable Straight Arm Pulldown](https://www.youtube.com/watch?v=nAkTIeJ_Aus) | OPEX Fitness | side | three reps in 11.2 s | #328 | 2026-09-11 | Straight-Arm Pulldown | The shoulder-to-wrist line -- the line a locked arm makes -- reads 64 from vertical at the start and 167 at the finish, in all three reps within 5 degrees; ours started at 41, almost straight overhead. The clip CANNOT settle the elbow at the top: this lifter stands close enough that the bar reaches his forehead and his elbow folds to about 135 there, which is the clip rather than the lift, so the hand path is taken and the arm is kept locked. |
 | `cablePullThrough` | [Cable Pull Through](https://www.youtube.com/watch?v=A30YKvpWGu4) | OPEX Fitness | three-quarter | four reps in 12.6 s | #329 | 2026-09-11 | Cable Pull-Through | NOT square to the lifter: the trunk projects 0.268 of the frame standing and 0.181 at the bottom, and a rigid trunk cannot lose a third of its length to a square side camera. So no horizontal distance from this clip is quotable. What it does settle is anything measured in HEIGHT -- the hip stays level (0.432 to 0.430 above the ankle), the trunk reaches 104 from vertical, the arm swings from 9 degrees forward of straight down to 66 behind it -- plus the DIRECTION of hip and shoulder travel, which no projection reverses, plus the tempo. |
 | `cableCrunch` | [Kneeling Cable Crunch](https://www.youtube.com/watch?v=2ndlUfl5JPo) | OPEX Fitness | three-quarter | three reps in 9.6 s | #330 | 2026-09-11 | Cable Crunch | Not square to the lifter -- the projected trunk runs 0.23 to 0.33 of the frame as she turns through the rep -- so the angles are read the projection-proof way, from the VERTICAL drop of the shoulder below the hip over a trunk of 0.330. On those terms the hip-to-shoulder line sweeps 33 to 121 degrees off vertical, the same to within 3 degrees in all three reps, and at the bottom her NOSE IS BELOW HER KNEE. Her hips also rise off the heels as she curls, 0.255 to 0.279 above the knee. Our trunk is one rigid segment and hers rounds, so the pose matches the line her hip and shoulder make, not the shape of her spine. |
+| `cableKickback` | [Cable Glute Kickback](https://www.youtube.com/watch?v=iElJ4Ngx--k) | OPEX Fitness | side | four reps in 12.3 s | #331 | 2026-09-12 | Cable Kickback | Close to square -- the projected trunk holds 0.234 to 0.264 of the frame throughout -- so the sagittal angles are usable. The working KNEE NEVER STRAIGHTENS: 134 at the bottom, 119 at full extension, and the largest reading anywhere in the clip is 151 on a single frame. The trunk is hinged over a bench at 46 degrees at every top position in all four reps. The hands are still, moving 0.014 of the frame horizontally across a whole rep, and sit only 0.085 in front of the pelvis. |
