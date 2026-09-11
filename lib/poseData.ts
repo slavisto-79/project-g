@@ -3589,25 +3589,72 @@ export const exercisePoses = {
     "neutral",
   ),
 
-  // Face on: the working leg steps behind and across the midline, which is
-  // what loads the outer hip.
+  // Curtsy lunge, from a reference clip measured with the pose lab (OPEX
+  // "Goblet Curtsy Squat", 7ptRZXL5MBs, three reps in 10.8 s; MoveNet on 43
+  // frames at 0.3 s, a near-square FRONT view).
+  //
+  // Everything below is a RATIO of the standing hip height, because his
+  // proportions are not ours -- his thigh is 0.58 of his hip height and the
+  // model's 0.50 -- and because a ratio of two heights survives a camera
+  // that is not perfectly square. Lateral distances are given in shoulder
+  // widths, calibrated on his own shoulders while he faces the lens.
+  //
+  // IT DID NOT GO DOWN FAR ENOUGH. The clip drops the hip 47% of its
+  // standing height; ours dropped it 30%. The tell is the TRAILING KNEE: in
+  // the clip it arrives at the floor, level with the standing ankle to
+  // within a hundredth of the frame, which is the whole look of a curtsy.
+  // Ours stopped it 22% of hip height -- about 20 cm -- in the air.
+  //
+  // THE TRAILING HEEL STAYS DOWN in ours, flat on the floor beside the
+  // standing one. In the clip that foot is up on its toes: the ankle sits
+  // 14% of hip height above the floor with the knee BELOW it, which is what
+  // a knee on the floor and a toe planted behind it look like.
+  //
+  // AND IT DID NOT CROSS FAR ENOUGH. The trailing foot finishes 1.5 shoulder
+  // widths past the standing foot in the clip; ours managed 0.78. The stance
+  // it starts from was also too wide: 1.16 shoulder widths against 0.72,
+  // which is hip width. FEET_FRONT is shared with every other front pose, so
+  // the narrower stance is passed in here rather than changed there.
+  //
+  // THE LEAN WENT THE WRONG WAY. The trunk leaves vertical by 15 degrees at
+  // the bottom -- AWAY from the crossing leg, counterbalancing over the
+  // standing one. Ours leant 8 degrees TOWARD it.
+  //
+  // The hands come down too. The clip holds a goblet weight ours does not
+  // have, so only the OBSERVATION is taken, not the position: its wrist
+  // rides 17% of hip height below the shoulder while ours sat 2% below --
+  // up at the face like a boxing guard. They now rest on the hips, 24%
+  // below. A chest-level hold is what the clip shows and what the front
+  // view cannot draw: with our arm lengths, folding the hand to the
+  // midline at chest height puts either the hand or the elbow inside the
+  // ribs, because a front view has no depth to hold them out in.
+  //
+  // Tempo, which it did not have: 1.2 s down, no pause at the bottom, 1.2 s
+  // up and 1.2 s standing. Period 3.6 s, the same across both measurable
+  // gaps.
   curtsyLunge: pose(
     "front",
     [
-      standFront(0.497, 0, bothArms(150, 25)),
+      standFront(0.497, 0, bothArms(138, 204), [{ x: 0.540, y: FLOOR }, { x: 0.460, y: FLOOR }]),
       // Both feet flat (explicit ends): left to the shin, the crossed leg's
       // foot tilted with it and its toes went 6cm through the floor, which
       // then sat 6cm under the standing frame.
       (() => {
-        const pelvis = { x: 0.512, y: 0.565 };
-        return { pelvis, torso: 6, arms: bothArms(150, 25), legs: plantedLegs(pelvis, 6, "front", [{ x: 0.565, y: FLOOR }, { x: 0.628, y: FLOOR }], OUT, [90, 270]) };
+        const pelvis = { x: 0.567, y: 0.602 };
+        return { pelvis, torso: -8, arms: bothArms(138, 204), legs: plantedLegs(pelvis, -8, "front", [{ x: 0.540, y: FLOOR }, { x: 0.585, y: 0.899 }], [1, 1], [90, 270]) };
       })(),
       (() => {
-        const pelvis = { x: 0.52, y: 0.632 };
-        return { pelvis, torso: 8, arms: bothArms(150, 25), legs: plantedLegs(pelvis, 8, "front", [{ x: 0.565, y: FLOOR }, { x: 0.652, y: FLOOR }], OUT, [90, 270]) };
+        const pelvis = { x: 0.644, y: 0.707 };
+        return { pelvis, torso: -15, arms: bothArms(138, 204), legs: plantedLegs(pelvis, -15, "front", [{ x: 0.540, y: FLOOR }, { x: 0.710, y: 0.868 }], [1, 1], [90, 270]) };
       })(),
     ],
     [{ kind: "floor" }],
+    "neutral",
+    1,
+    // The card orbits a full turn every 18 s; at the default 0.9 it OPENS
+    // nearly side on, where a front-authored cross-behind reads as a plain
+    // kneel. 0.35 opens it close to the clip's own camera.
+    { tempo: { down: 1200, bottom: 0, up: 1200, top: 1200 }, camera: { azimuth: 0.35 } },
   ),
 
   // Knees stay bent at ninety, which is the whole point: only the ankle moves,

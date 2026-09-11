@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 82 |
+| authored from a clip (the clip shows the exercise) | 83 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 31 |
-| poses with a clip | 78 of 111 (107 in use) |
+| without a clip yet | 30 |
+| poses with a clip | 79 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `clean`, `curtsyLunge`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `wallSit`.
 
 ## Every exercise
 
@@ -68,7 +68,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Conventional Deadlift | `hinge` | authored from the clip | [Conventional Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=TN3DHmd1Fe8) (OPEX Fitness, side) | #316 |
 | Copenhagen Plank | `copenhagenPlank` | authored from the clip | [Copenhagen Plank](https://www.youtube.com/watch?v=tKb76R21AfM) (OPEX Fitness, front) | #293 |
 | Cossack Squat | `lateralLunge` | authored from the clip | [Goblet Cossack Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=rSaWYv37zzE) (OPEX Fitness, front) | #323 |
-| Curtsy Lunge | `curtsyLunge` | no clip yet |  |  |
+| Curtsy Lunge | `curtsyLunge` | authored from the clip | [Goblet Curtsy Squat](https://www.youtube.com/watch?v=7ptRZXL5MBs) (OPEX Fitness, front) | #332 |
 | Dead Bug | `deadBug` | authored from the clip | [Alternating Dead Bug](https://www.youtube.com/watch?v=-VykQ1HD0Vw) (OPEX Fitness, side) | #290 |
 | Decline Push-Up | `declinePushUp` | authored from the clip | [Decline Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=cnsPwJ2f2B4) (OPEX Fitness, side) | #315 |
 | Depth Jump | `depthJump` | authored from the clip | [Depth Jump | Olympic Weightlifting Exercise Library](https://www.youtube.com/watch?v=GeN0S3XCZnM) (Catalyst Athletics, side) | #312 |
@@ -266,3 +266,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `cablePullThrough` | [Cable Pull Through](https://www.youtube.com/watch?v=A30YKvpWGu4) | OPEX Fitness | three-quarter | four reps in 12.6 s | #329 | 2026-09-11 | Cable Pull-Through | NOT square to the lifter: the trunk projects 0.268 of the frame standing and 0.181 at the bottom, and a rigid trunk cannot lose a third of its length to a square side camera. So no horizontal distance from this clip is quotable. What it does settle is anything measured in HEIGHT -- the hip stays level (0.432 to 0.430 above the ankle), the trunk reaches 104 from vertical, the arm swings from 9 degrees forward of straight down to 66 behind it -- plus the DIRECTION of hip and shoulder travel, which no projection reverses, plus the tempo. |
 | `cableCrunch` | [Kneeling Cable Crunch](https://www.youtube.com/watch?v=2ndlUfl5JPo) | OPEX Fitness | three-quarter | three reps in 9.6 s | #330 | 2026-09-11 | Cable Crunch | Not square to the lifter -- the projected trunk runs 0.23 to 0.33 of the frame as she turns through the rep -- so the angles are read the projection-proof way, from the VERTICAL drop of the shoulder below the hip over a trunk of 0.330. On those terms the hip-to-shoulder line sweeps 33 to 121 degrees off vertical, the same to within 3 degrees in all three reps, and at the bottom her NOSE IS BELOW HER KNEE. Her hips also rise off the heels as she curls, 0.255 to 0.279 above the knee. Our trunk is one rigid segment and hers rounds, so the pose matches the line her hip and shoulder make, not the shape of her spine. |
 | `cableKickback` | [Cable Glute Kickback](https://www.youtube.com/watch?v=iElJ4Ngx--k) | OPEX Fitness | side | four reps in 12.3 s | #331 | 2026-09-12 | Cable Kickback | Close to square -- the projected trunk holds 0.234 to 0.264 of the frame throughout -- so the sagittal angles are usable. The working KNEE NEVER STRAIGHTENS: 134 at the bottom, 119 at full extension, and the largest reading anywhere in the clip is 151 on a single frame. The trunk is hinged over a bench at 46 degrees at every top position in all four reps. The hands are still, moving 0.014 of the frame horizontally across a whole rep, and sit only 0.085 in front of the pelvis. |
+| `curtsyLunge` | [Goblet Curtsy Squat](https://www.youtube.com/watch?v=7ptRZXL5MBs) | OPEX Fitness | front | three reps in 10.8 s | #332 | 2026-09-12 | Curtsy Lunge | Read as RATIOS of the standing hip height, because his proportions are not the model's -- his thigh is 0.58 of his hip height and ours 0.50. The hip drops 47% of that height (ours 30%); the TRAILING KNEE arrives at the floor, level with the standing ankle, where ours stopped 22% up; the trailing heel lifts to 14% with the knee BELOW it; the trailing foot finishes 1.5 shoulder widths past the standing foot from a stance of 0.72; and the trunk leaves vertical by 15 degrees AWAY from the crossing leg. A front camera cannot read a knee angle in this movement -- the standing shin travels forward, out of the film plane -- so no knee angle is quoted. |
