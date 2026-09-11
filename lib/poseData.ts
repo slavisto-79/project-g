@@ -3456,11 +3456,29 @@ export const exercisePoses = {
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.16, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.9, y: 0.02 } }],
   ),
 
-  // Pulled to the face with the elbows staying high.
+  // Face pull, from a reference clip measured with the pose lab (OPEX "Cable
+  // Rope Face Pull", 5ZC4LagfDQ4, side view, four reps in 11.6 s; MoveNet on
+  // 38 frames at 0.3 s).
+  //
+  // The ELBOW angles in this clip are not usable and are not quoted: both
+  // hands finish beside the head and the model tangles the near and far arm
+  // there, reading the elbow anywhere from 3 to 28 degrees. What the frames
+  // DO show, plainly, is the pulley -- it sits well above the head, and the
+  // rope runs down to the face. Ours anchored the cable at shoulder height,
+  // so the rope came in level and the movement read as a row to the chin.
+  //
+  // Pulled to the face with the elbows staying high, which the frames
+  // needed fixing too: the elbows DROPPED 4.7 cm below the shoulder as the
+  // rope came in, where the clip keeps them at shoulder height and flared. A
+  // rep
+  // is 0.9 s in, a beat at the face, 1.2 s out and a beat extended.
   facePull: pose(
     "side",
-    ([[82, 84], [96, 50], [108, 4]] as const).map(([up, low]) => stand({ x: 0.5, y: 0.494 }, 6, sideArms(up, low), undefined, [{ x: 0.538, y: FLOOR }, { x: 0.515, y: FLOOR }])),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.10, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.92, y: 0.3 }, handle: "rope" }],
+    ([[72, 82], [80, 40], [88, -15]] as const).map(([up, low]) => stand({ x: 0.5, y: 0.494 }, 6, sideArms(up, low), undefined, [{ x: 0.538, y: FLOOR }, { x: 0.515, y: FLOOR }])),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.10, plates: false }, { kind: "cable", at: "grip", anchor: { x: 0.92, y: 0.10 }, handle: "rope" }],
+    "neutral",
+    1,
+    { tempo: { down: 900, bottom: 300, up: 1200, top: 300 } },
   ),
 
   // Hinged over, arms sweeping from a hang up and back with soft elbows.

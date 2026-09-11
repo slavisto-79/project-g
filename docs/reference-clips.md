@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 77 |
+| authored from a clip (the clip shows the exercise) | 78 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 36 |
-| poses with a clip | 73 of 111 (107 in use) |
+| without a clip yet | 35 |
+| poses with a clip | 74 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableKickback`, `cablePullThrough`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableKickback`, `cablePullThrough`, `clean`, `curtsyLunge`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
 ## Every exercise
 
@@ -88,7 +88,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Dumbbell Romanian Deadlift | `romanianDeadlift` | shares `romanianDeadlift` (the clip shows Romanian Deadlift) | [BB RDL (Romanian Deadlift) Side View](https://www.youtube.com/watch?v=ionx2qnNVMo) (Coach Savela, side) | #260 |
 | Dumbbell Shoulder Press | `overheadPress` | shares `overheadPress` (the clip shows Barbell Overhead Press) | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
 | Dumbbell Step-Up | `stepUp` | shares `stepUp` (the clip shows Step-Up) | [Step Up - OPEX Exercise Library](https://www.youtube.com/watch?v=RRuWVDefORg) (OPEX Fitness, three-quarter) | #296 |
-| Face Pull | `facePull` | no clip yet |  |  |
+| Face Pull | `facePull` | authored from the clip | [Cable Rope Face Pull](https://www.youtube.com/watch?v=5ZC4LagfDQ4) (OPEX Fitness, side) | #327 |
 | Farmer's Carry | `carry` | authored from the clip | [Dumbbell Farmer's Carry](https://www.youtube.com/watch?v=K4R8uc1x_OA) (OPEX Fitness, side) | #288 |
 | Frog Pump | `hipThrust` | shares `hipThrust` (the clip shows Barbell Hip Thrust) | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
 | Front Rack Carry | `frontRackCarry` | authored from the clip | [Front Rack Kettlebell Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=0OzaglIheOc) (OPEX Fitness, front) | #295 |
@@ -261,3 +261,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `cableFly` | [Cable Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=jtkaC-mq1Xk) | OPEX Fitness | front | four reps in 12.4 s | #324 | 2026-09-11 | Cable Chest Fly | A front camera cannot see an arm reaching forward, so the elbow angle in this clip is a projection and is not used; what it settles is the HAND PATH -- one height, wide to together -- and the pulley height. |
 | `cableLateralRaise` | [Cable Lateral Raise](https://www.youtube.com/watch?v=dQPTeeqgJqA) | OPEX Fitness | front | four reps in 12.1 s | #325 | 2026-09-11 | Cable Lateral Raise | Low pulleys, which the pose already had. What it corrected was the finish: the clip takes the hand ABOVE the shoulder, ours stopped 5 cm below it. |
 | `cableCurl` | [Cable Curl](https://www.youtube.com/watch?v=h9DPY5pCaGA) | OPEX Fitness | side | four reps in 12.1 s | #326 | 2026-09-11 | Cable Curl | Elbow 160 hanging to 24-31 at the top, upper arm staying at the side. Ours stopped at 102 and its first two keys were 160 and 158, so the opening third of the animation did not move. |
+| `facePull` | [Cable Rope Face Pull](https://www.youtube.com/watch?v=5ZC4LagfDQ4) | OPEX Fitness | side | four reps in 11.6 s | #327 | 2026-09-11 | Face Pull | Both hands finish beside the head and MoveNet tangles the near and far arm there, so the elbow angles are unusable and are not quoted. What the frames show plainly is the pulley height -- well above the head -- and that the elbows stay high. |
