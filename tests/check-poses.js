@@ -111,8 +111,12 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   // A forearm plank is genuinely longer and lower than anything else here,
   // and the IYTW variant reaches an arm past its head on top of that. A
   // hollow hold is a shallow V by definition -- legs 25 degrees up, arms
-  // overhead 30 up, as the reference clip -- and reads 3.8:1.
-  const widthCap = name === "plankIYTW" ? 6.5 : name === "plankSaw" ? 5.5 : name === "plank" ? 5.0 : name === "hollowHold" ? 4.0 : 3.4;
+  // overhead 30 up, as the reference clip -- and reads 3.8:1. A superman is
+  // the same kind of shape for the same kind of reason: arms reaching past
+  // the head and legs past the toes, both just off the floor, which is what
+  // the reference clip holds. Carrying its hands 15 cm ABOVE the head kept
+  // it inside 3.4, and that is not the exercise.
+  const widthCap = name === "plankIYTW" ? 6.5 : name === "plankSaw" ? 5.5 : name === "plank" ? 5.0 : name === "proneRaise" ? 4.5 : name === "hollowHold" ? 4.0 : 3.4;
   if (W / H > widthCap) note(`${name}: lying flat at ${(W / H).toFixed(1)}:1 wide`);
 }
 

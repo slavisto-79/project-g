@@ -2862,6 +2862,30 @@ export const exercisePoses = {
     "underhand",
   ),
 
+  // Superman, from a reference clip measured with the pose lab (OPEX
+  // "Superman Hold", W8vlZfmxOpM, side view, a 7 s hold -- a hold gives one
+  // position and no tempo, and that is all this one is used for).
+  //
+  // What it CONFIRMS, measured against the hip, which is the part left on
+  // the floor: the clip lifts the shoulder 6.7 cm, the knee 6.7 and the
+  // ANKLE 19.3. Ours reads 9.2, 8.4 and 19.2 -- the ankle to a millimetre.
+  // The trunk and the legs were already right.
+  //
+  // What it CORRECTS: the arms. They finished 29.6 cm above the hip, which
+  // is 15.6 cm above the figure's own HEAD -- past anything the three
+  // exercises on this pose ask for, and nothing like the clip's 5.4 cm. They
+  // now finish level with the head (17.6 cm up), which is the Y-T-W raise's
+  // and the snow angel's position and much nearer the superman's.
+  //
+  // The reason they were up there is worth recording: reaching them FORWARD
+  // makes the figure longer, and the flat-and-wide check caps a lying pose
+  // at 3.4:1. This one now reads 4.4, so it gets its own cap the way the
+  // plank family and the hollow hold do -- a superman really is that shape.
+  // Rendered at every key on both builds to confirm the card still frames it.
+  //
+  // Still a compromise: Superman alone would hold the arms at the clip's
+  // 5.4 cm, but Prone Y-T-W Raise and Reverse Snow Angel share this pose and
+  // both lift them.
   proneRaise: pose(
     "side",
     [
@@ -2873,9 +2897,9 @@ export const exercisePoses = {
       // Trunk 2 degrees up from the hips: the chest is thicker than the
       // thighs the floor is pinned under, and level it went 2cm through.
       { pelvis: { x: 0.5, y: 0.680 }, torso: 272, neck: 284, arms: sideArms(272, 276), legs: lyingLegs(92, 92, 104) },
-      { pelvis: { x: 0.5, y: 0.678 }, torso: 280, neck: 292, arms: sideArms(292, 296), legs: lyingLegs(80, 76, 112) },
+      { pelvis: { x: 0.5, y: 0.678 }, torso: 280, neck: 292, arms: sideArms(278, 282), legs: lyingLegs(80, 76, 112) },
       // Chest and legs both come off the ground, which is the whole exercise.
-      { pelvis: { x: 0.5, y: 0.676 }, torso: 292, neck: 304, arms: sideArms(312, 318), legs: lyingLegs(68, 60, 96) },
+      { pelvis: { x: 0.5, y: 0.676 }, torso: 292, neck: 304, arms: sideArms(284, 290), legs: lyingLegs(68, 60, 96) },
     ],
     // Pinned a thigh's radius under the leg line, where the belly and the
     // thighs actually rest: at 0.786 the trunk hung 5cm over the floor.
