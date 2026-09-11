@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 69 |
-| sharing a pose that was authored from a clip | 43 |
-| without a clip yet | 50 |
-| poses with a clip | 66 of 111 (107 in use) |
+| authored from a clip (the clip shows the exercise) | 71 |
+| sharing a pose that was authored from a clip | 44 |
+| without a clip yet | 47 |
+| poses with a clip | 67 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `calfRaise`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `invertedRow`, `kickback`, `landminePress`, `lateralLunge`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `invertedRow`, `kickback`, `landminePress`, `lateralLunge`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `proneRaise`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
 ## Every exercise
 
@@ -45,7 +45,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Bench Dip | `dip` | shares `dip` (the clip shows Bar Dip) | [Weighted Dip - OPEX Exercise Library](https://www.youtube.com/watch?v=VNa0hX_y6Fk) (OPEX Fitness, three-quarter) | #282 |
 | Bicycle Crunch | `bicycleCrunch` | no clip yet |  |  |
 | Bird Dog | `quadruped` | no clip yet |  |  |
-| Bodyweight Calf Raise | `calfRaise` | no clip yet |  |  |
+| Bodyweight Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
 | Bodyweight Good Morning | `goodMorning` | shares `goodMorning` (the clip shows Good Morning) | [High Bar Good Morning](https://www.youtube.com/watch?v=dEJ0FTm-CEk) (Renaissance Periodization, side) | #262 |
 | Bodyweight Reverse Lunge | `lunge` | authored from the clip | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
 | Bodyweight Squat | `bodyweightSquat` | no clip yet |  |  |
@@ -77,7 +77,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Dumbbell Bench Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
 | Dumbbell Biceps Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
 | Dumbbell Bulgarian Split Squat | `splitSquat` | authored from the clip | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267 |
-| Dumbbell Calf Raise | `calfRaise` | no clip yet |  |  |
+| Dumbbell Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
 | Dumbbell Floor Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
 | Dumbbell Fly | `fly` | authored from the clip | [Dumbbell Neutral Grip Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=AVIBmE5iQrQ) (OPEX Fitness, head-end) | #283 |
 | Dumbbell Front Raise | `frontRaise` | no clip yet |  |  |
@@ -157,7 +157,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Seated Dumbbell Press | `overheadPress` | shares `overheadPress` (the clip shows Barbell Overhead Press) | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
 | Seated Leg Curl | `legCurl` | authored from the clip | [Prone Hamstring Curl Machine](https://www.youtube.com/watch?v=xKOyGU0AfOE) (OPEX Fitness, side) | #319 |
 | Side Plank | `sidePlank` | authored from the clip | [Side Plank - OPEX Exercise Library](https://www.youtube.com/watch?v=tbWPBOgju9g) (OPEX Fitness, front) | #285 |
-| Single-Leg Calf Raise | `calfRaise` | no clip yet |  |  |
+| Single-Leg Calf Raise | `calfRaise` | shares `calfRaise` (the clip shows Bodyweight Calf Raise, Dumbbell Calf Raise) | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
 | Single-Leg Deadlift | `singleLegHinge` | no clip yet |  |  |
 | Single-Leg Glute Bridge | `hipThrust` | shares `hipThrust` (the clip shows Barbell Hip Thrust) | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
 | Single-Leg Romanian Deadlift | `singleLegHinge` | no clip yet |  |  |
@@ -254,3 +254,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `gobletSquat` | [Goblet Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=pEGfGwp6IEA) | OPEX Fitness | three-quarter | three reps in 11.2 s | #317 | 2026-09-11 | Goblet Squat | Confirms the shared squat frames (parallel bottom, same hip drop) rather than correcting them; a three-quarter camera cannot settle the trunk angle. What it settled was the tempo and the fact that the bell stays ON the chest. |
 | `lunge` | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) | OPEX Fitness | side | three reps in 11.7 s | #318 | 2026-09-11 | Bodyweight Reverse Lunge, Dumbbell Lunge | Barbell Walking Lunge borrows this pose; the split stance is held throughout rather than stepped, which is the library convention for the lunge family. |
 | `legCurl` | [Prone Hamstring Curl Machine](https://www.youtube.com/watch?v=xKOyGU0AfOE) | OPEX Fitness | side | four reps in 12.4 s | #319 | 2026-09-11 | Lying Leg Curl, Seated Leg Curl | MoveNet scores only 0.26-0.71 on this one (small figure, gym clutter, the two legs confused when curled), so the range was read from the clusters the whole clip agrees on rather than per-frame angles. Nordic Hamstring Curl is ALSO mapped to this pose and should not be: it is a kneeling bodyweight movement with no machine. |
+| `calfRaise` | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) | OPEX Fitness | back | four reps in 11.6 s | #320 | 2026-09-11 | Bodyweight Calf Raise, Dumbbell Calf Raise | Filmed from behind and done on a LEDGE with the heels dropping below the step, so it settles the tempo and nothing about the angles; the pose draws the floor version the library cue describes and its range was left alone. Single-Leg Calf Raise borrows this pose. |
