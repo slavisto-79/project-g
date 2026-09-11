@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 10: the cable family ----------------------------------------
+  cablePullThrough: {
+    videoId: "A30YKvpWGu4",
+    title: "Cable Pull Through",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "four reps in 12.6 s",
+    prs: [329],
+    date: "2026-09-11",
+    exercises: ["Cable Pull-Through"],
+    notes: "NOT square to the lifter: the trunk projects 0.268 of the frame standing and 0.181 at the bottom, and a rigid trunk cannot lose a third of its length to a square side camera. So no horizontal distance from this clip is quotable. What it does settle is anything measured in HEIGHT -- the hip stays level (0.432 to 0.430 above the ankle), the trunk reaches 104 from vertical, the arm swings from 9 degrees forward of straight down to 66 behind it -- plus the DIRECTION of hip and shoulder travel, which no projection reverses, plus the tempo.",
+  },
+
   straightArmPulldown: {
     videoId: "nAkTIeJ_Aus",
     title: "Standing Cable Straight Arm Pulldown",

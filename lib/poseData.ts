@@ -2531,22 +2531,73 @@ export const exercisePoses = {
     { tempo: { down: 900, bottom: 300, up: 1200, top: 300 } },
   ),
 
-  // A hinge with the rope held between the legs, the cable running back to a
-  // low pulley behind: the hands hang toward the pulley, not toward the floor.
+  // Cable pull-through, from a reference clip measured with the pose lab
+  // (OPEX "Cable Pull Through", A30YKvpWGu4, four reps in 12.6 s; MoveNet on
+  // 41 frames at 0.35 s).
+  //
+  // READ THE CLIP'S LIMITS FIRST, because they decide what may be taken from
+  // it. It is NOT filmed square to the lifter: her trunk projects 0.268 of
+  // the frame standing and only 0.181 at the bottom, and a rigid trunk
+  // cannot lose a third of its length to a square side camera. So every
+  // horizontal distance in it is foreshortened by an unknown factor and NONE
+  // is quoted here. What survives is anything measured in HEIGHT -- a
+  // vertical segment projects at full length whatever the yaw -- plus the
+  // DIRECTION of travel, which no projection can reverse, plus the tempo.
+  //
+  // On those terms the old frames were wrong three ways.
+  //
+  // THE HIPS WENT THE WRONG WAY. They walked 21.5 cm FORWARD over the foot
+  // into the hinge while the shoulders went forward too. In the clip the hip
+  // and the shoulder separate: the shoulder travels toward the camera-front
+  // and the hip travels the other way, every rep. That is what a hinge is,
+  // and it is the one thing an oblique camera still settles. Authored from
+  // the ANKLE up now, the way `hinge` is, so the pelvis falls out of the leg
+  // angles instead of being placed: shin vertical, thigh swinging 2 -> 7 ->
+  // 13 -> 18 degrees behind it, which carries the hip 12.6 cm BACK.
+  //
+  // THE HIPS ALSO SANK. Ours dropped them 12 cm. The clip holds the hip at
+  // 0.432 of the frame above the ankle standing and 0.430 at the bottom --
+  // no change worth the name, and a height, so it is trustworthy. The new
+  // frames give up 2 cm, which is inside the frame-to-frame scatter of the
+  // measurement itself.
+  //
+  // THE ARMS HUNG WHEN THEY SHOULD REACH BACK. Taking the arm's angle from
+  // the vertical drop of the wrist below the shoulder over a shoulder-wrist
+  // length of 0.284 -- heights again -- the clip runs 9 degrees FORWARD of
+  // straight down standing, through straight down, to 66 degrees BEHIND it
+  // at the bottom, where the hands are level with the knee. Ours barely left
+  // the vertical and finished down at the shin.
+  //
+  // The trunk goes to 104 from vertical at the bottom, not 98, read the same
+  // way: at full hinge the shoulder is 0.066 of the frame BELOW the hip
+  // against a trunk of 0.268, so the torso is 14 degrees past horizontal.
+  //
+  // Tempo, which it did not have: 1.4 s down, no pause at the bottom, 1.05 s
+  // up and 0.70 s standing tall. Period 3.15 s, identical across all three
+  // measurable gaps.
   cablePullThrough: pose(
     "side",
-    ([[0.500, 0.494, 4, 0.46, 0.52], [0.528, 0.528, 40, 0.56, 0.59], [0.552, 0.538, 72, 0.62, 0.70], [0.570, 0.550, 98, 0.65, 0.82]] as const).map(
-      ([x, y, torso, hx, hy]) => {
-        const pelvis = { x, y };
-        return {
-          pelvis,
-          torso,
-          neck: torso > 30 ? torso - 16 : torso,
-          arms: reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: hx - 0.016, y: hy }], BACK),
-          legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
-        };
-      },
-    ),
+    ([[2, 4, 171], [7, 40, 180], [13, 70, 211], [18, 104, 246]] as const).map(([thighBack, torso, armFromUp]) => {
+      // Up the planted leg: ankle -> knee -> hip, then back off the girdle's
+      // half-depth to the pelvis the build hangs the hip on.
+      const ankle = { x: 0.535, y: FLOOR };
+      const knee = along(ankle, 0, P.shin);
+      const hip = along(knee, -thighBack, P.thigh);
+      const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, 0, 0, "side").x, y: hip.y };
+      // The hands are placed by ANGLE off the shoulder, not at a fixed point:
+      // the clip gives an angle and our proportions are not hers.
+      // 0.995 of the arm, off the NEAR shoulder: the straightening band wants
+      // at least 0.99 to draw a straight arm, and a target at the full length
+      // overshoots once the girdle depth is added.
+      const wrist = along(shoulderAt(pelvis, torso, 0, "side"), armFromUp, (P.upperArm + P.forearm) * 0.995);
+      return {
+        pelvis,
+        torso,
+        neck: torso > 30 ? torso - 16 : torso,
+        arms: reachingArms(pelvis, torso, "side", [wrist, { x: wrist.x - 0.016, y: wrist.y }], BACK),
+        legs: [{ upper: 180 - thighBack, lower: 180, end: 90 }, { upper: 180 - thighBack, lower: 180, end: 90 }] as [Limb, Limb],
+      };
+    }),
     [
       { kind: "floor" },
       // The rope handle sits BETWEEN the thighs; a bar prop would trip the
@@ -2555,6 +2606,8 @@ export const exercisePoses = {
       { kind: "cable", at: "grip", anchor: { x: 0.06, y: 0.93 }, handle: "rope" },
     ],
     "neutral",
+    1,
+    { tempo: { down: 1400, bottom: 0, up: 1050, top: 700 } },
   ),
 
   // Triceps pushdown, from a reference clip measured with the pose lab (OPEX
