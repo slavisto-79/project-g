@@ -2099,6 +2099,43 @@ export const exercisePoses = {
   // 0.75 s raise, a touch at the top, a 1.2 s lowering and a beat at the
   // bottom. Frames [upper, forearm] 172/172 -> 135/140 -> 88/100. The old
   // frames stopped 3 degrees under level and had no tempo.
+  // Arnold press, from a reference clip measured with the pose lab (OPEX
+  // "Standing Arnold Dumbbell Press", hHmFzFaSn7U, square FRONT view -- the
+  // right one, since the whole difference from a shoulder press is what the
+  // hands do across the body -- four reps in 14 s; MoveNet on 67 frames at
+  // 0.25 s, read as frontal keypoints).
+  // The clip: at the bottom the elbows are folded to 21-34 with the hands
+  // together in FRONT of the chest, a shoulder-width apart (53 px against
+  // 55 px between the shoulders) and a shade below shoulder height; the
+  // press sweeps them OUT -- widest at the middle, 87 px, 1.6 shoulder
+  // widths, with the elbow opening through 100 -- and then up to a lockout
+  // (elbow 167-178, the hands back to 56 px apart, 105 px above the
+  // shoulders). A rep is about 2.4 s, half of it at the bottom.
+  // The forearms also rotate (palms in at the bottom, forward at the top).
+  // The mannequin has no forearm twist, so what carries the lift is the
+  // hand PATH: in front of the chest, out wide, overhead.
+  // Arnold Press borrowed `overheadPress`, a side-view strict press whose
+  // hands never leave the plane.
+  arnoldPress: pose(
+    "front",
+    ([
+      // Bottom: upper arms hanging 17 out, forearms folded up and INWARD so
+      // the hands sit in front of the chest a shoulder-width apart.
+      [163, -33],
+      // The middle: elbows swung out and opening through 99, the hands 22 cm
+      // above the shoulders and only 5 cm outboard of them -- the clip's
+      // widest frame, not the arms thrown out to the sides.
+      [44, -37],
+      // The lockout: all but straight overhead, 5 inward of plumb so the
+      // front build's wrist splay does not push the hands wide.
+      [-5, -5],
+    ] as const).map(([upper, lower]) => standFront(0.497, 0, bothArms(upper, lower))),
+    [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
+    "neutral",
+    1,
+    { tempo: { down: 900, bottom: 600, up: 900, top: 300 } },
+  ),
+
   lateralRaise: pose(
     "front",
     ([[172, 172], [135, 140], [88, 100]] as const).map(([upper, lower]) => standFront(0.497, 0, bothArms(upper, lower))),
