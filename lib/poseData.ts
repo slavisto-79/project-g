@@ -2492,15 +2492,27 @@ export const exercisePoses = {
     { tempo: { down: 900, bottom: 300, up: 900, top: 1400 }, camera: { azimuth: 0.9 } },
   ),
 
+  // Cable lateral raise, from a reference clip measured with the pose lab
+  // (OPEX "Cable Lateral Raise", dQPTeeqgJqA, front view, four reps in 12.1
+  // s; MoveNet on 39 frames at 0.3 s, scores 0.66-0.91). The clip finishes
+  // with the hand ABOVE the shoulder -- 0.08 of the frame, about 6.6 cm on
+  // this figure -- and the elbow near straight throughout (164-176). Ours
+  // stopped 5 cm BELOW the shoulder, which is a raise that never reaches
+  // shoulder height; the dumbbell version had the same fault corrected in
+  // its own PR ("the old frames stopped 3 degrees under level"). A rep is
+  // about 0.9 s up, a touch, 1.2 s down and a beat at the bottom.
+  // The low pulleys were already right: the clip runs its cable to the floor.
   cableLateralRaise: pose(
     "front",
-    [170, 131, 93].map((arm) => standFront(0.497, 0, bothArms(arm, arm + 14))),
+    [170, 128, 74].map((arm) => standFront(0.497, 0, bothArms(arm, arm + 14))),
     [
       { kind: "floor" },
       { kind: "cable", at: "hand0", anchor: { x: 0.95, y: 0.92 }, handle: "d" },
       { kind: "cable", at: "hand1", anchor: { x: 0.05, y: 0.92 }, handle: "d" },
     ],
     "neutral",
+    1,
+    { tempo: { down: 900, bottom: 300, up: 1200, top: 300 } },
   ),
 
   // A hinge with the rope held between the legs, the cable running back to a

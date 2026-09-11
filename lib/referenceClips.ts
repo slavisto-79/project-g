@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 10: the cable family ----------------------------------------
+  cableLateralRaise: {
+    videoId: "dQPTeeqgJqA",
+    title: "Cable Lateral Raise",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "four reps in 12.1 s",
+    prs: [325],
+    date: "2026-09-11",
+    exercises: ["Cable Lateral Raise"],
+    notes: "Low pulleys, which the pose already had. What it corrected was the finish: the clip takes the hand ABOVE the shoulder, ours stopped 5 cm below it.",
+  },
+
   cableFly: {
     videoId: "jtkaC-mq1Xk",
     title: "Cable Fly - OPEX Exercise Library",
