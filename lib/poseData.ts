@@ -666,22 +666,29 @@ export const exercisePoses = {
   lateralLunge: pose(
     "front",
     [
-      standFront(0.497, 0, bothArms(150, 25)),
+      standFront(0.497, 0, bothArms(158, -48)),
       // Feet flat (explicit ends) in the stepped frames: left to the shins,
       // the wide foot's toes tipped 4cm up and the long leg's 3cm down.
-      { ...standFront(0.560, 5, bothArms(150, 25), [{ x: 0.645, y: FLOOR }, { x: 0.400, y: FLOOR }]), pelvis: { x: 0.482, y: 0.560 }, legs: plantedLegs({ x: 0.482, y: 0.560 }, 5, "front", [{ x: 0.645, y: FLOOR }, { x: 0.400, y: FLOOR }], OUT, [90, 270]) },
+      // The pelvis is SOLVED, not placed: it sits where the trailing leg is
+      // at full stretch and the squatting knee is at the clip's angle.
+      { ...standFront(0.570, 4, bothArms(158, -48), [{ x: 0.645, y: FLOOR }, { x: 0.400, y: FLOOR }]), pelvis: { x: 0.443, y: 0.570 }, legs: plantedLegs({ x: 0.443, y: 0.570 }, 4, "front", [{ x: 0.645, y: FLOOR }, { x: 0.400, y: FLOOR }], OUT, [90, 270]) },
       (() => {
-        const pelvis = { x: 0.455, y: 0.605 };
+        const pelvis = { x: 0.401, y: 0.678 };
         return {
           pelvis,
-          torso: 10,
-          arms: bothArms(150, 25),
+          torso: 6,
+          arms: bothArms(158, -48),
           // One knee bends deeply over a wide foot; the other leg stays long.
-          legs: plantedLegs(pelvis, 10, "front", [{ x: 0.676, y: FLOOR }, { x: 0.372, y: FLOOR }], OUT, [90, 270]),
+          legs: plantedLegs(pelvis, 6, "front", [{ x: 0.676, y: FLOOR }, { x: 0.372, y: FLOOR }], OUT, [90, 270]),
         };
       })(),
     ],
     [{ kind: "floor" }],
+    "neutral",
+    1,
+    // The clip: about 2.2 s down, a beat at the bottom, 1.5 s up and 1.2 s
+    // standing between reps.
+    { tempo: { down: 2200, bottom: 300, up: 1500, top: 1200 } },
   ),
 
   // Skater bound, from a reference clip measured with the pose lab ("Skater

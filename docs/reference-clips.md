@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 73 |
-| sharing a pose that was authored from a clip | 48 |
-| without a clip yet | 41 |
-| poses with a clip | 69 of 111 (107 in use) |
+| authored from a clip (the clip shows the exercise) | 74 |
+| sharing a pose that was authored from a clip | 49 |
+| without a clip yet | 39 |
+| poses with a clip | 70 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `lateralLunge`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `cableCrunch`, `cableCurl`, `cableFly`, `cableKickback`, `cableLateralRaise`, `cablePullThrough`, `clean`, `curtsyLunge`, `facePull`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `straightArmPulldown`, `wallSit`.
 
 ## Every exercise
 
@@ -67,7 +67,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Concentration Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
 | Conventional Deadlift | `hinge` | authored from the clip | [Conventional Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=TN3DHmd1Fe8) (OPEX Fitness, side) | #316 |
 | Copenhagen Plank | `copenhagenPlank` | authored from the clip | [Copenhagen Plank](https://www.youtube.com/watch?v=tKb76R21AfM) (OPEX Fitness, front) | #293 |
-| Cossack Squat | `lateralLunge` | no clip yet |  |  |
+| Cossack Squat | `lateralLunge` | authored from the clip | [Goblet Cossack Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=rSaWYv37zzE) (OPEX Fitness, front) | #323 |
 | Curtsy Lunge | `curtsyLunge` | no clip yet |  |  |
 | Dead Bug | `deadBug` | authored from the clip | [Alternating Dead Bug](https://www.youtube.com/watch?v=-VykQ1HD0Vw) (OPEX Fitness, side) | #290 |
 | Decline Push-Up | `declinePushUp` | authored from the clip | [Decline Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=cnsPwJ2f2B4) (OPEX Fitness, side) | #315 |
@@ -118,7 +118,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Knee Push-Up | `kneePushUp` | authored from the clip | [Knee Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=8XQ-okb5NWE) (OPEX Fitness, side) | #315 |
 | Landmine Press | `landminePress` | no clip yet |  |  |
 | Lat Pulldown | `pulldown` | authored from the clip | [Cable Lat Pulldown Machine - OPEX Exercise Library](https://www.youtube.com/watch?v=PEv0gTcMY3g) (OPEX Fitness, three-quarter) | #275 |
-| Lateral Lunge | `lateralLunge` | no clip yet |  |  |
+| Lateral Lunge | `lateralLunge` | shares `lateralLunge` (the clip shows Cossack Squat) | [Goblet Cossack Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=rSaWYv37zzE) (OPEX Fitness, front) | #323 |
 | Leg Extension | `legExtension` | no clip yet |  |  |
 | Leg Press | `legPress` | authored from the clip | [Leg Press Machine Press - OPEX Exercise Library](https://www.youtube.com/watch?v=B8KqmwdomoU) (OPEX Fitness, side) | #270 |
 | Lying Leg Curl | `legCurl` | authored from the clip | [Prone Hamstring Curl Machine](https://www.youtube.com/watch?v=xKOyGU0AfOE) (OPEX Fitness, side) | #319 |
@@ -257,3 +257,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `calfRaise` | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) | OPEX Fitness | back | four reps in 11.6 s | #320 | 2026-09-11 | Bodyweight Calf Raise, Dumbbell Calf Raise | Filmed from behind and done on a LEDGE with the heels dropping below the step, so it settles the tempo and nothing about the angles; the pose draws the floor version the library cue describes and its range was left alone. Single-Leg Calf Raise borrows this pose. |
 | `invertedRow` | [Ring Row](https://www.youtube.com/watch?v=B90sF7dbP04) | OPEX Fitness | side | four reps in 10.8 s | #321 | 2026-09-11 | Inverted Row | Towel Row and Doorway Row borrow this pose. The clip is on rings; the pose draws a fixed bar, which is why the top stops at the shallow end of the clip's elbow band -- on rings the head passes between them, under a bar it does not. |
 | `proneRaise` | [Superman Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=W8vlZfmxOpM) | OPEX Fitness | side | a 7 s hold | #322 | 2026-09-11 | Superman | A hold, so it gives one position and no tempo. It confirmed the trunk and legs (ankle lift 19.2 cm against the clip's 19.3) and corrected the arms, which finished 15.6 cm above the head. Prone Y-T-W Raise and Reverse Snow Angel share this pose and both lift the arms, so the top is a compromise between the three. |
+| `lateralLunge` | [Goblet Cossack Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=rSaWYv37zzE) | OPEX Fitness | front | four reps in 15.7 s | #323 | 2026-09-11 | Cossack Squat | Lateral Lunge shares this pose and STEPS OUT from a narrow stance; the clip holds one wide stance throughout and shifts side to side, which is the cossack. What transferred is the depth, the dead-straight trailing leg, the hands and the tempo. |
