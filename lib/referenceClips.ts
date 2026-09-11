@@ -717,6 +717,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  // --- Batch 10: the cable family ----------------------------------------
+  cableFly: {
+    videoId: "jtkaC-mq1Xk",
+    title: "Cable Fly - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "four reps in 12.4 s",
+    prs: [324],
+    date: "2026-09-11",
+    exercises: ["Cable Chest Fly"],
+    notes: "A front camera cannot see an arm reaching forward, so the elbow angle in this clip is a projection and is not used; what it settles is the HAND PATH -- one height, wide to together -- and the pulley height.",
+  },
+
   lateralLunge: {
     videoId: "rSaWYv37zzE",
     title: "Goblet Cossack Squat - OPEX Exercise Library",

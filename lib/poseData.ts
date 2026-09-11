@@ -2436,15 +2436,60 @@ export const exercisePoses = {
     "underhand",
   ),
 
+  // Cable fly, from a reference clip measured with the pose lab (OPEX "Cable
+  // Fly", jtkaC-mq1Xk, square FRONT view, four reps in 12.4 s; MoveNet on 40
+  // frames at 0.3 s, read as frontal keypoints).
+  //
+  // The old frames had the movement BACKWARDS. They swept the arms from
+  // level (96) UP to overhead (24) while the cables hung from pulleys at the
+  // ceiling -- the hands travelled TOWARD the anchors, which is a cable
+  // going slack, not a cable being pulled. And the hands finished 34 cm
+  // apart on a lift whose cue is "bring the hands together in front of the
+  // chest".
+  //
+  // What the clip does: the hands stay at ONE height -- 0.67 shoulder widths
+  // below the shoulders in every frame of every rep -- and travel inward,
+  // from 3.2 shoulder widths apart to 0.73, which is together. The pulleys
+  // are at CHEST height, not overhead: the cable runs level out to the towers
+  // at about 0.43 of the way from the shoulder down to the hip. A rep is 0.9
+  // s in, a beat squeezed, 0.9 s out and 1.4 s open.
+  //
+  // The elbow is NOT read from this clip. A front camera cannot see an arm
+  // reaching forward, so its projected 157 -> 80 is a shadow of the real
+  // angle; the pec deck, which is this movement seated, has the same note.
+  // So the sweep is authored the pec deck's way -- hanging arm, soft elbow,
+  // swung out with `abduct` and turned in with `yaw` -- and the HAND PATH
+  // is what the clip fixes.
   cableFly: pose(
+    // FRONT, not side: the towers are authored by their cable anchors, and a
+    // side view reads an anchor x as FORWARD. Authored side-on, the two
+    // stacks stood in front of and behind the figure and hid it at every
+    // orbit angle.
     "front",
-    [96, 60, 24].map((arm) => standFront(0.497, 0, bothArms(arm, arm - 25))),
+    // The hands are the authored quantity: one HEIGHT, and a lateral travel
+    // from wide to together. `abduct`/`yaw` -- the pec deck's trick for the
+    // same sweep -- only work out of a SIDE plane, and read as almost no
+    // movement at all when the figure is built face on.
+    ([0.682, 0.607, 0.541] as const).map((handX) => {
+      const pelvis = { x: 0.5, y: 0.497 };
+      const hands: [Point, Point] = [{ x: handX, y: 0.365 }, { x: 1 - handX, y: 0.365 }];
+      return {
+        pelvis,
+        torso: 0,
+        arms: reachingArms(pelvis, 0, "front", hands, [1, -1]),
+        legs: plantedLegs(pelvis, 0, "front", FEET_FRONT, OUT),
+      };
+    }),
     [
       { kind: "floor" },
-      { kind: "cable", at: "hand0", anchor: { x: 0.95, y: 0.05 }, handle: "d" },
-      { kind: "cable", at: "hand1", anchor: { x: 0.05, y: 0.05 }, handle: "d" },
+      // Chest-height pulleys, level with the hands, not the ceiling ones the
+      // old frames pulled upward against.
+      { kind: "cable", at: "hand0", anchor: { x: 0.95, y: 0.36 }, handle: "d" },
+      { kind: "cable", at: "hand1", anchor: { x: 0.05, y: 0.36 }, handle: "d" },
     ],
     "neutral",
+    1,
+    { tempo: { down: 900, bottom: 300, up: 900, top: 1400 }, camera: { azimuth: 0.9 } },
   ),
 
   cableLateralRaise: pose(
