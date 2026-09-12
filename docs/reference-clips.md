@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 95 |
+| authored from a clip (the clip shows the exercise) | 96 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 18 |
-| poses with a clip | 89 of 111 (107 in use) |
+| without a clip yet | 17 |
+| poses with a clip | 90 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `sledPush`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `wallSit`.
 
 ## Every exercise
 
@@ -163,7 +163,7 @@ Poses without a clip yet: `abWheelRollout`, `bodyweightSquat`, `burpee`, `clean`
 | Single-Leg Romanian Deadlift | `singleLegHinge` | authored from the clip | [Dumbbell Single Leg Romanian Deadlift](https://www.youtube.com/watch?v=pJewPISyHjw) (OPEX Fitness, side) | #337 |
 | Skater Bound | `skaterBound` | authored from the clip | [Skater Jumps](https://www.youtube.com/watch?v=Xqzq9w42-z4) (Exercise Library, front) | #302 |
 | Skull Crusher | `skullCrusher` | authored from the clip | [EZ Bar Skull Crusher - OPEX Exercise Library](https://www.youtube.com/watch?v=eluOhtYkm-0) (OPEX Fitness, head-end) | #281 |
-| Sled Push | `sledPush` | no clip yet |  |  |
+| Sled Push | `sledPush` | authored from the clip | [Sled Push](https://www.youtube.com/watch?v=rB4LFuZM_i8) (OPEX Fitness, side) | #343 |
 | Smith Machine Squat | `squat` | shares `squat` (the clip shows Barbell Back Squat) | [How to do a Barbell Back Squat](https://www.youtube.com/watch?v=-bJIpOq-LWk) (National Academy of Sports Medicine (NASM), three-quarter) | #254 |
 | Split Squat | `splitSquatStatic` | authored from the clip | [Split Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=Py2Qeg-D5T0) (OPEX Fitness, side) | #268 |
 | Sprint Intervals | `run` | no clip yet |  |  |
@@ -277,3 +277,4 @@ Poses without a clip yet: `abWheelRollout`, `bodyweightSquat`, `burpee`, `clean`
 | `bicycleCrunch` | [Bicycle Crunch](https://www.youtube.com/watch?v=cbKIDZ_XyjY) | Wodstar | side | two full pedal cycles in the 4 s MoveNet could read | #340 | 2026-09-12 | Bicycle Crunch | The only non-OPEX clip in the library: OPEX has no bicycle crunch. MoveNet reads only 3.3 to 7.2 s of the 10 s clip. In that window the elbows ALTERNATE in antiphase with the knees -- the near elbow travels 0.46 of the frame toward the tucked knee and back, twice -- and the shoulder keypoints separate from 0.001 of the frame to 0.139 as the trunk turns. The tucked knee reads 52 to 60 and the long knee 147 to 168. A full pedal takes 1.96 s. What it CANNOT settle is the twist in degrees: a side camera reads rotation about the long axis as keypoints sliding past each other, not as an angle. |
 | `landminePress` | [Landmine Standing Press](https://www.youtube.com/watch?v=y5RxyrjwKFk) | OPEX Fitness | side | three reps in 12.6 s | #341 | 2026-09-13 | Landmine Press | Pressed with ONE hand while the other hangs, matching the library's unilateral flag; ours cupped the bar with both. Shoulder-to-wrist over a straight arm runs 40% with the bar at the shoulder (elbow 40), 67% at half the extension, 94% locked out (elbow 149), the arm sweeping from 118 degrees off vertical to 56. The trunk leans 8 degrees at the shoulder and 20 locked out. Period 4.2 s: 1.05 s up, 0.7 s locked, 1.75 s down, 0.7 s at the shoulder. The clip offers only 480p. |
 | `battleRopes` | [Battling Ropes](https://www.youtube.com/watch?v=4aT3IyKOo5M) | OPEX Fitness | side | eight wave cycles in 3.5 s | #342 | 2026-09-13 | Battle Ropes | Read at 0.1 s rather than the usual 0.3, because a rope wave is fast enough to alias at the slower rate. The camera was expected to give little and gave a lot. The trunk holds 57 to 63 degrees off vertical, mean 59.5, in every frame -- bent over the ropes. The hands never rise above the shoulder: the up hand turns at 0.29 trunk lengths below it with the elbow at 88, the down hand drives to 1.06 below with the elbow at 145. The two wrists run in clean antiphase, their height difference swinging plus and minus 0.21 of the frame. A full cycle takes 0.44 s -- nine peaks over 3.5 s, 2.3 waves a second. The squat under it matched ours already: hip height over trunk length 1.51. |
+| `sledPush` | [Sled Push](https://www.youtube.com/watch?v=rB4LFuZM_i8) | OPEX Fitness | side | three stride cycles in 3.75 s | #343 | 2026-09-13 | Sled Push | She crosses the frame, so the crop FOLLOWED her, centred on a position read off two probe frames; at a fixed full-frame crop MoveNet found only part of her. The sled does not hide the legs -- ankles score 0.61 to 0.94. One leg drives out to 166-177 while the other folds to 72-84, the recovering foot lifting 0.42 trunk lengths, trading every step. The elbows hold 161 to 179, the arm forward and 24 degrees below horizontal. The trunk leans 67 degrees off vertical. A full stride cycle takes 1.1 s. The projected trunk grows from 0.228 to 0.316 of the frame over the clip because she walks toward the camera, not because of any yaw. |
