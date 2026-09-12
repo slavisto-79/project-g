@@ -760,17 +760,44 @@ export const exercisePoses = {
     [{ kind: "floor" }, { kind: "slab", at: "shoulder", dx: -0.075, dy: 0.1, width: 0.045, height: 0.62 }],
   ),
 
+  // Leg extension, from a reference clip measured with the pose lab (OPEX
+  // "Leg Extension Machine", s1JfTvyWdTs, three reps in 6.6 s; MoveNet on
+  // 37 frames at 0.25 s, a side view).
+  //
+  // WHAT THIS CLIP CANNOT MEASURE IS THE LEG, which on a leg extension is
+  // awkward, so it goes first. The machine's frame stands between the
+  // camera and the shin: the ankle keypoint scores 0.03 to 0.27 across all
+  // 37 frames and the knee 0.10 to 0.39, and the knee angle they give
+  // wanders 66 / 128 / 137 / 105 with no rep in it at all. A second clip on
+  // the same machine (Single Leg Leg Extension Machine, U0tcA7b4c3k) is no
+  // better, 0.12 to 0.39. A brightness probe of the patch the shin sweeps
+  // through -- which needs no pose model -- varied by four levels out of
+  // 255, so there is no tempo to be had here either. NO TEMPO IS ADDED and
+  // the knee range, which was already right at 97 to 178, is untouched.
+  //
+  // WHAT IT DOES SETTLE is the TRUNK, and that was wrong. She is reclined
+  // against a backrest at 25 degrees off vertical -- 23.8 to 29.4 over 27
+  // frames, shoulder scores 0.69 to 0.81, the projected trunk steady to 4%,
+  // so a square side view and a trustworthy number. Ours sat at 4 degrees,
+  // bolt upright on a bench with nothing behind it. The trunk goes to 335
+  // and the backrest it leans on is now drawn.
   legExtension: pose(
     "side",
     [175, 132, 90].map((shin) => ({
       pelvis: { x: 0.40, y: 0.58 },
-      torso: 356,
+      torso: 335,
+      // The head stays up: without a neck of its own it follows the trunk
+      // and the reclined figure ends up staring at the ceiling, which the
+      // clip does not do.
+      neck: 357,
       arms: sideArms(150, 172),
       legs: sideLegs(92, shin, shin - 90),
     })),
     [
       { kind: "floor", y: 0.9 },
       { kind: "slab", at: "pelvis", width: 0.22, height: 0.055, dy: 0.075 },
+      // The backrest she is reclined against, along the trunk.
+      { kind: "slab", at: "pelvis", width: 0.30, height: 0.05, angle: 335 },
       // The machine's shin pad: a padded roller riding the ankle, which is
       // what the movement is actually pushing. Anchored to the joint, so it
       // travels with the shin through the whole extension. The offset is

@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 11: the leftovers, picked by measured defect -----------------
+  legExtension: {
+    videoId: "s1JfTvyWdTs",
+    title: "Leg Extension Machine",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 6.6 s",
+    prs: [338],
+    date: "2026-09-12",
+    exercises: ["Leg Extension"],
+    notes:
+      "It CANNOT measure the leg, which on a leg extension is awkward: the machine's frame stands between the camera and the shin, so the ankle keypoint scores 0.03 to 0.27 across all 37 frames and the knee 0.10 to 0.39, and the knee angle they give wanders 66 / 128 / 137 / 105 with no rep in it. A second clip on the same machine (U0tcA7b4c3k) is no better, 0.12 to 0.39, and a brightness probe of the patch the shin sweeps through -- which needs no pose model -- varied four levels out of 255. So NO TEMPO was taken from it and the knee range was left alone. What it does settle is the TRUNK: reclined against a backrest at 25 degrees off vertical, 23.8 to 29.4 over 27 frames with shoulder scores 0.69 to 0.81 and the projected trunk steady to 4%, against our bolt-upright 4.",
+  },
+
   singleLegHinge: {
     videoId: "pJewPISyHjw",
     title: "Dumbbell Single Leg Romanian Deadlift",
