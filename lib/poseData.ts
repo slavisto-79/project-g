@@ -494,11 +494,53 @@ export const exercisePoses = {
     [{ kind: "floor" }],
   ),
 
-  // Bodyweight: arms reach forward as the counterbalance.
+  // Bodyweight squat, from a reference clip measured with the pose lab (OPEX
+  // "Air Squat", iiKn5FiVUjI, three reps in 7 s; MoveNet on 48 frames at
+  // 0.2 s, a side view).
+  //
+  // THE ARMS SWING. Standing they hang (shoulder to wrist 3 degrees off
+  // plumb, elbows 160); they rise as she sits -- 121-125 at a third of the
+  // way down, 106-113 at two thirds -- and reach forward 14 degrees under
+  // level at the bottom (104-106, elbows 146-149), then fall again as she
+  // stands. Ours held them out level through the whole rep.
+  //
+  // THE BOTTOM IS PARALLEL, not below it: hip crease level with the knee,
+  // thigh 78-88 from vertical, shin 23-26 forward, knee 69-76, trunk 34-38,
+  // the hip at 0.45 of its standing height over the ankle. The back squat's
+  // frames it borrowed went a shade past that (knee 58, 0.41).
+  //
+  // Tempo, which it did not have: 0.7 s down, 0.4 s at the bottom, 0.7 s up
+  // and 0.6 s standing -- 2.2-2.4 s a rep, the same in all three.
+  //
+  // Joints from the clip, near-side frames: thigh from vertical 45/68/88,
+  // shin 20/27/26, trunk 29/35/36, the pelvis walked back from the planted
+  // foot; stance and gaze from squatting().
   bodyweightSquat: pose(
     "side",
-    SQUAT_FRAMES.map(([x, y, torso]) => stand({ x, y }, torso, sideArms(96, 92))),
+    (() => {
+      const overAnkle = (thigh: number, shin: number, torso: number): Point => {
+        const knee = along(FEET[0], 180 + shin + 180, P.shin);
+        const hip = along(knee, 180 - thigh + 180, P.thigh);
+        return { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      };
+      const sat = (thigh: number, shin: number, torso: number, arms: [Limb, Limb]) =>
+        squatting({
+          pelvis: overAnkle(thigh, shin, torso),
+          torso,
+          arms,
+          legs: [{ upper: 180 - thigh, lower: 180 + shin, end: 90 }, { upper: 180 - thigh, lower: 180 + shin, end: 90 }] as [Limb, Limb],
+        });
+      return [
+        squatting(stand({ x: 0.528, y: 0.492 }, 3, sideArms(184, 164))),
+        sat(45, 20, 29, sideArms(140, 110)),
+        sat(68, 27, 35, sideArms(127, 93)),
+        sat(88, 26, 36, sideArms(121, 89)),
+      ];
+    })(),
     [{ kind: "floor" }],
+    "neutral",
+    1,
+    { tempo: { down: 700, bottom: 400, up: 700, top: 600 }, camera: SQUAT_CAMERA },
   ),
 
   // Bulgarian split squat, from a reference clip measured with the pose lab
