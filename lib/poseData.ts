@@ -1774,8 +1774,8 @@ export const exercisePoses = {
   // start position and the lowering.
   // A loop of six key positions: the way down is a lowering, not the
   // catch played backwards. The bar rests on the floor at the start (hands
-  // 0.176 up: the plates 3 mm off the floor). Hang Clean and Kettlebell
-  // Clean still borrow `clean`; the hang clean is the next movement.
+  // 0.176 up: the plates 3 mm off the floor). Kettlebell Clean and Hang
+  // Clean have since got poses of their own.
   powerClean: pose(
     "side",
     (() => {
@@ -1823,26 +1823,75 @@ export const exercisePoses = {
     { loop: [600, 250, 300, 700, 800, 600], camera: { azimuth: 1.2 } },
   ),
 
+  // Hang clean -- the one exercise on this pose -- from a reference clip
+  // measured with the pose lab (OPEX "Hang Clean", 0u97BVlVib0, two reps in
+  // 18 s; MoveNet on 69 frames at 0.25 s, a side view). Lengths are in the
+  // lifter's own trunk lengths, heights in fractions of her standing hip
+  // height over the ankle.
+  //
+  // IT WAS A CLEAN FROM THE FLOOR. The old keys started with the bar on the
+  // floor. A hang clean starts standing with the bar at the hips, dips --
+  // the shoulders fall 0.24 trunk lengths as the hips go back, the bar to
+  // just above the knee -- and pulls from there.
+  //
+  // THE CATCH IS A FULL SQUAT, not a quarter squat. Both reps bottom with
+  // the hip at 0.28 of its standing height, the knee 0.3 trunk lengths ABOVE
+  // the hip and the trunk 20-25 degrees forward. Ours caught at 0.86 of
+  // standing height, knee 117.
+  //
+  // THE RACK sat 17 cm ahead of the shoulders with the wrists under them;
+  // it is now the front squat's rack (wrists on the front delts, elbows
+  // high), which is what the clip's wrists -- 0.02-0.04 of the frame over
+  // her shoulders -- show.
+  //
+  // Between the dip and the catch she is tall and up on her toes with the
+  // bar at her chest and the elbows out. The plate covers her hip in the dip
+  // (the projected trunk shrinks from 0.23 to 0.17, which a rigid segment
+  // cannot do), so the dip is taken from the shoulder's fall, not the
+  // hip's angle.
+  //
+  // Cadence, which it did not have: hang to dip 0.5 s, dip to the pull
+  // under 0.5, down into the catch 1.0 (the same in both reps), stand 0.9,
+  // lower the bar to the hips 0.8, stand tall 0.5. The clip holds the rack
+  // 1.5 s and the hang 1.5 s between reps; those demonstration pauses are
+  // left out.
   clean: pose(
     "side",
-    // Floor, past the knee, the extension, the catch, and standing. Showing
-    // only the first and last is what made the old version a deadlift.
-    ([[0.570, 96], [0.548, 60], [0.516, 16], [0.500, 4], [0.500, 356]] as const).map(([x, torso], i) => {
-      // The start is a lift FROM THE FLOOR: the load has to rest on it, not
-      // cut into it. Measured at the old height, the hands sat 7.7cm above the
-      // floor -- a plated bar there buries 4.3cm of plate in the podium and a
-      // kettlebell 6cm of bell. The hips start higher, which is a clean's
-      // start anyway: hips above the knees, shoulders over the bar.
-      const pelvis = { x, y: [0.497, 0.538, 0.518, 0.556, 0.494][i]! };
-      return {
-        pelvis,
-        torso,
-        neck: torso > 30 ? torso - 16 : torso,
-        arms: i >= 3 ? sideArms(150, 42) : HANG_AHEAD,
-        legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
+    (() => {
+      const overAnkle = (ankle: Point, thigh: number, shin: number, torso: number): Point => {
+        const knee = along(ankle, shin + 180, P.shin);
+        const hip = along(knee, thigh + 180, P.thigh);
+        return { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
       };
-    }),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+      const legsAt = (thigh: number, shin: number, torso: number, arms: [Limb, Limb], end = 90, heel = 0): Figure => ({
+        pelvis: overAnkle({ x: FEET[0].x, y: FEET[0].y - heel }, thigh, shin, torso),
+        torso,
+        neck: Math.round(torso * 0.6),
+        arms,
+        legs: sideLegs(thigh, shin, end),
+      });
+      return [
+        // The hang: arms 20 ahead of plumb -- HANG_AHEAD's 12 put the bar
+        // 1.3 cm into the thighs (2.8 on the heavy build).
+        stand({ x: 0.5, y: 0.494 }, 2, sideArms(160, 164)),
+        // The dip: trunk 38, knees 156, the shoulders 0.24 trunk lengths down.
+        legsAt(163, 187, 38, sideArms(172, 174)),
+        // The pull under: heels 3 cm up, knees 158, the elbows swung out and
+        // the forearms folded in so the bar rides up the chest.
+        legsAt(170, 192, -3, [{ upper: 180, lower: 45, abduct: -45 }, { upper: 180, lower: 45, abduct: -45 }], 118, 0.03),
+        // The catch: hip 0.28 of its standing height over the ankle, the knee
+        // 0.07 above the hip, trunk 23.
+        squatting(legsAt(72, 205, 23, sideArms(135, 350))),
+        stand({ x: 0.5, y: 0.494 }, 2, sideArms(135, 350)),
+        // The bar dropped back to the hips, the knees giving to 136 and the
+        // elbows to 125 to absorb it (the clip's 136 and 121).
+        legsAt(158, 202, 0, sideArms(175, 120)),
+      ];
+    })(),
+    [{ kind: "floor", y: GROUND }, { kind: "bar", at: "grip", length: 0.17 }],
+    "overhand",
+    1,
+    { loop: [500, 500, 1000, 900, 800, 500], camera: { azimuth: 1.2 } },
   ),
 
   // A plank on locked arms with the knees driving alternately to the chest.
