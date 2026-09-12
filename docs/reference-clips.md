@@ -10,18 +10,18 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 98 |
+| authored from a clip (the clip shows the exercise) | 99 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 15 |
-| poses with a clip | 92 of 111 (107 in use) |
+| without a clip yet | 14 |
+| poses with a clip | 93 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bodyweightSquat`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `wallSit`.
+Poses without a clip yet: `bodyweightSquat`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `wallSit`.
 
 ## Every exercise
 
 | Exercise | Pose | Status | Clip | PR |
 |---|---|---|---|---|
-| Ab Wheel Rollout | `abWheelRollout` | no clip yet |  |  |
+| Ab Wheel Rollout | `abWheelRollout` | authored from the clip | [Ab Wheel Rollout](https://www.youtube.com/watch?v=4HZCJLM5wBk) (OPEX Fitness, side) | #346 |
 | Archer Push-Up | `pushUp` | shares `pushUp` (the clip shows Push-Up) | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
 | Arnold Press | `arnoldPress` | authored from the clip | [Standing Arnold Dumbbell Press - OPEX Exercise Library](https://www.youtube.com/watch?v=hHmFzFaSn7U) (OPEX Fitness, front) | #314 |
 | Back Extension | `hinge` | shares `hinge` (the clip shows Conventional Deadlift) | [Conventional Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=TN3DHmd1Fe8) (OPEX Fitness, side) | #316 |
@@ -280,3 +280,4 @@ Poses without a clip yet: `abWheelRollout`, `bodyweightSquat`, `frontRaise`, `ha
 | `sledPush` | [Sled Push](https://www.youtube.com/watch?v=rB4LFuZM_i8) | OPEX Fitness | side | three stride cycles in 3.75 s | #343 | 2026-09-13 | Sled Push | She crosses the frame, so the crop FOLLOWED her, centred on a position read off two probe frames; at a fixed full-frame crop MoveNet found only part of her. The sled does not hide the legs -- ankles score 0.61 to 0.94. One leg drives out to 166-177 while the other folds to 72-84, the recovering foot lifting 0.42 trunk lengths, trading every step. The elbows hold 161 to 179, the arm forward and 24 degrees below horizontal. The trunk leans 67 degrees off vertical. A full stride cycle takes 1.1 s. The projected trunk grows from 0.228 to 0.316 of the frame over the clip because she walks toward the camera, not because of any yaw. |
 | `burpee` | [Burpee](https://www.youtube.com/watch?v=Ozqwsv3kggA) | OPEX Fitness | side | four burpees in 10.75 s | #344 | 2026-09-13 | Burpee | Measured in the lifter's own trunk lengths (hip to shoulder, 0.271 of the crop standing). The bottom is chest to floor in all three reps it is seen in -- hip and shoulder down at the wrists' height for two frames running, elbows 59-73 -- not a plank. With the hands planted the crouch is high: knees 121-136, hip angle 36-56, heels up, the hip within 0.08 trunk lengths of standing. The press out leads with the chest (shoulders 0.40 up, hips still down, elbows 104-113). At the apex the wrists are 0.32 above the shoulders with the elbows bent 72-91 and the hip 0.28 over standing. 3.25 s a burpee, apex to apex. He turns toward the camera in flight, so the plane the arms rise in is not quotable -- only their height and bend. |
 | `clean` | [Hang Clean](https://www.youtube.com/watch?v=0u97BVlVib0) | OPEX Fitness | side | two reps in 18 s | #345 | 2026-09-13 | Hang Clean | The old pose was a clean from the floor. From a stand with the bar at the hips she dips -- shoulders down 0.24 trunk lengths, bar to just above the knee -- pulls tall onto her toes with the bar at the chest, and catches in a FULL squat: hip at 0.28 of its standing height over the ankle, knee 0.3 trunk lengths above the hip, trunk 20-25 forward (ours caught at 0.86, knee 117). Wrists 0.02-0.04 of the frame over the shoulders in the rack. The near plate covers the hip in the dip (the projected trunk shrinks 0.23 to 0.17, which a rigid segment cannot), so the dip is read from the shoulder's fall, not the hip angle. Dip 0.5 s, pull 0.5, into the catch 1.0 (both reps), stand 0.9, lower 0.8, stand 0.5; the 1.5 s demonstration holds in the rack and the hang are left out. |
+| `abWheelRollout` | [Ab Wheel Rollout](https://www.youtube.com/watch?v=4HZCJLM5wBk) | OPEX Fitness | side | three reps in 14 s | #346 | 2026-09-13 | Ab Wheel Rollout | The start sits back: hips behind the knees (thigh 26 back from vertical), trunk 66 forward, hip angle 85-89, arms near plumb. Fully out knee, hip and shoulder make one line (hip angle 165-171), trunk level (87-91), arms reaching forward with the elbows long (142-175), wrists 0.26 trunk lengths under the shoulders. The camera looks down a little: the projected trunk grows 0.40 to 0.53 of the frame as it levels, so the START's trunk angle is the least certain number; hip angle and thigh direction are unaffected. Our wheel handles cannot sit lower than the kneeling knee joint (5 cm minimum wheel radius), so the arms land near 80 from plumb against her 71. 1.75 s out and 1.75 s back in all three reps, about 0.4 s held long and 0.6 s at the start. |
