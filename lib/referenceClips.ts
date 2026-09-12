@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 12: the conditioning movements, which want a CADENCE ---------
+  landminePress: {
+    videoId: "y5RxyrjwKFk",
+    title: "Landmine Standing Press",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 12.6 s",
+    prs: [341],
+    date: "2026-09-13",
+    exercises: ["Landmine Press"],
+    notes:
+      "Pressed with ONE hand while the other hangs, matching the library's unilateral flag; ours cupped the bar with both. Shoulder-to-wrist over a straight arm runs 40% with the bar at the shoulder (elbow 40), 67% at half the extension, 94% locked out (elbow 149), the arm sweeping from 118 degrees off vertical to 56. The trunk leans 8 degrees at the shoulder and 20 locked out. Period 4.2 s: 1.05 s up, 0.7 s locked, 1.75 s down, 0.7 s at the shoulder. The clip offers only 480p.",
+  },
+
   bicycleCrunch: {
     videoId: "cbKIDZ_XyjY",
     title: "Bicycle Crunch",

@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 93 |
+| authored from a clip (the clip shows the exercise) | 94 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 20 |
-| poses with a clip | 87 of 111 (107 in use) |
+| without a clip yet | 19 |
+| poses with a clip | 88 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `battleRopes`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `landminePress`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `sledPush`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `battleRopes`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `sledPush`, `wallSit`.
 
 ## Every exercise
 
@@ -116,7 +116,7 @@ Poses without a clip yet: `abWheelRollout`, `battleRopes`, `bodyweightSquat`, `b
 | Kettlebell Snatch | `kettlebellSnatch` | authored from the clip | [Kettlebell Snatch](https://www.youtube.com/watch?v=y12D2GApeO0) (OPEX Fitness, side) | #303 |
 | Kettlebell Swing | `kettlebellSwing` | authored from the clip | [The Russian Kettlebell Swing](https://www.youtube.com/watch?v=OPcG_thX6Dc) (Onnit, side) | #263 |
 | Knee Push-Up | `kneePushUp` | authored from the clip | [Knee Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=8XQ-okb5NWE) (OPEX Fitness, side) | #315 |
-| Landmine Press | `landminePress` | no clip yet |  |  |
+| Landmine Press | `landminePress` | authored from the clip | [Landmine Standing Press](https://www.youtube.com/watch?v=y5RxyrjwKFk) (OPEX Fitness, side) | #341 |
 | Lat Pulldown | `pulldown` | authored from the clip | [Cable Lat Pulldown Machine - OPEX Exercise Library](https://www.youtube.com/watch?v=PEv0gTcMY3g) (OPEX Fitness, three-quarter) | #275 |
 | Lateral Lunge | `lateralLunge` | shares `lateralLunge` (the clip shows Cossack Squat) | [Goblet Cossack Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=rSaWYv37zzE) (OPEX Fitness, front) | #323 |
 | Leg Extension | `legExtension` | authored from the clip | [Leg Extension Machine](https://www.youtube.com/watch?v=s1JfTvyWdTs) (OPEX Fitness, side) | #338 |
@@ -275,3 +275,4 @@ Poses without a clip yet: `abWheelRollout`, `battleRopes`, `bodyweightSquat`, `b
 | `legExtension` | [Leg Extension Machine](https://www.youtube.com/watch?v=s1JfTvyWdTs) | OPEX Fitness | side | three reps in 6.6 s | #338 | 2026-09-12 | Leg Extension | It CANNOT measure the leg, which on a leg extension is awkward: the machine's frame stands between the camera and the shin, so the ankle keypoint scores 0.03 to 0.27 across all 37 frames and the knee 0.10 to 0.39, and the knee angle they give wanders 66 / 128 / 137 / 105 with no rep in it. A second clip on the same machine (U0tcA7b4c3k) is no better, 0.12 to 0.39, and a brightness probe of the patch the shin sweeps through -- which needs no pose model -- varied four levels out of 255. So NO TEMPO was taken from it and the knee range was left alone. What it does settle is the TRUNK: reclined against a backrest at 25 degrees off vertical, 23.8 to 29.4 over 27 frames with shoulder scores 0.69 to 0.81 and the projected trunk steady to 4%, against our bolt-upright 4. |
 | `bandedLateralWalk` | [Banded Lateral Walks](https://www.youtube.com/watch?v=pzQ2M_iY0D8) | OPEX Fitness | front | six step cycles in 8.4 s | #339 | 2026-09-12 | Banded Lateral Walk | A square front view -- the shoulder separation holds 0.172 to 0.183 of the frame throughout. The body TRAVELS: the hip crosses 1.10 of the frame in 8.4 s because the feet alternate, lead out then trail in, six times. The step is 1.04 shoulder widths and the stance swings between 0.71 closed and 1.73 open, which differ by exactly one step -- that is what says the trail foot closes the whole gap the lead opened. The stepping foot lifts 3 cm. A full cycle takes 1.44 s, the mean of five gaps. What the clip CANNOT settle is the knee: a front camera cannot read a knee bending toward the lens and reports 146 to 180 with no pattern, so the squat depth is set from the hip HEIGHT instead, 2.25 shoulder widths above the ankle. |
 | `bicycleCrunch` | [Bicycle Crunch](https://www.youtube.com/watch?v=cbKIDZ_XyjY) | Wodstar | side | two full pedal cycles in the 4 s MoveNet could read | #340 | 2026-09-12 | Bicycle Crunch | The only non-OPEX clip in the library: OPEX has no bicycle crunch. MoveNet reads only 3.3 to 7.2 s of the 10 s clip. In that window the elbows ALTERNATE in antiphase with the knees -- the near elbow travels 0.46 of the frame toward the tucked knee and back, twice -- and the shoulder keypoints separate from 0.001 of the frame to 0.139 as the trunk turns. The tucked knee reads 52 to 60 and the long knee 147 to 168. A full pedal takes 1.96 s. What it CANNOT settle is the twist in degrees: a side camera reads rotation about the long axis as keypoints sliding past each other, not as an angle. |
+| `landminePress` | [Landmine Standing Press](https://www.youtube.com/watch?v=y5RxyrjwKFk) | OPEX Fitness | side | three reps in 12.6 s | #341 | 2026-09-13 | Landmine Press | Pressed with ONE hand while the other hangs, matching the library's unilateral flag; ours cupped the bar with both. Shoulder-to-wrist over a straight arm runs 40% with the bar at the shoulder (elbow 40), 67% at half the extension, 94% locked out (elbow 149), the arm sweeping from 118 degrees off vertical to 56. The trunk leans 8 degrees at the shoulder and 20 locked out. Period 4.2 s: 1.05 s up, 0.7 s locked, 1.75 s down, 0.7 s at the shoulder. The clip offers only 480p. |

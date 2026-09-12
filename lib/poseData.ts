@@ -3561,27 +3561,52 @@ export const exercisePoses = {
     { tempo: { down: 1100, bottom: 400, up: 1200, top: 400 }, camera: { azimuth: 1.2 } },
   ),
 
-  // One end of a full-length bar sits in a pivot on the floor ahead; the hands
-  // cup the other end at the chest and press it up AND forward, so they
-  // travel an arc about that pivot -- a 2.2m bar leaning 33 degrees at the
-  // start and 50 at lockout. The world build finds the pivot from the arc;
-  // the 2D angle is the bar's lean at the start.
+  // Landmine press, from a reference clip measured with the pose lab (OPEX
+  // "Landmine Standing Press", y5RxyrjwKFk, three reps in 12.6 s; MoveNet on
+  // 42 frames at 0.35 s, a side view, 480p -- the most the clip offers).
+  //
+  // IT WAS PRESSED WITH TWO HANDS. The library marks Landmine Press
+  // unilateral, the cue says "press one end of the bar", and the clip
+  // presses with one hand while the other hangs at the side. Ours cupped
+  // the bar end with both. The far arm now hangs, and the bar rides the
+  // pressing hand instead of the midpoint between two.
+  //
+  // THE FIRST HALF DID ALMOST NOTHING. Measured as shoulder-to-wrist over a
+  // straight arm, ours ran 46 / 53 / 91% -- the opening half of the
+  // animation covered 7% of the press and the rest crammed into the second.
+  // The clip runs 40% with the bar at the shoulder (elbow 40), 67% at half
+  // the extension, and 94% locked out (elbow 149), and the arm sweeps from
+  // 118 degrees off vertical to 56 -- up and FORWARD along the bar's arc,
+  // most of that angle spent in the first half. The pressing wrist is now
+  // placed off the shoulder by that angle and that extension.
+  //
+  // AND IT DID NOT LEAN INTO IT. The trunk goes 8 degrees off vertical with
+  // the bar at the shoulder to 20 locked out, the whole body tipping toward
+  // the pivot as the arm drives. Ours drifted 10 to 13.
+  //
+  // Tempo, which it did not have: 1.05 s to press, 0.7 s locked out, 1.75 s
+  // to lower and 0.7 s at the shoulder. Period 4.2 s, identical across
+  // both measurable gaps -- a slow, controlled eccentric.
   landminePress: pose(
     "side",
-    ([[0.593, 0.355, 10], [0.643, 0.247, 11], [0.707, 0.145, 13]] as const).map(([hx, hy, torso]) => {
+    ([[0.25, 118, 8], [0.58, 68, 14], [0.88, 56, 20]] as const).map(([reachOf, armAngle, torso]) => {
       const pelvis = { x: 0.5, y: 0.494 };
-      // Both hands cup the ONE bar end at the midline, so the elbows tuck in
-      // and the fists sit side by side instead of a shoulder-width apart.
-      const [near, far] = reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: hx - 0.012, y: hy + 0.01 }], BACK);
+      const wrist = along(shoulderAt(pelvis, torso, 0, "side"), armAngle, (P.upperArm + P.forearm) * reachOf);
+      const [press] = reachingArms(pelvis, torso, "side", [wrist, wrist], BACK);
       return {
         pelvis,
         torso,
-        arms: [{ ...near, spread: -0.065 }, { ...far, spread: -0.065 }] as [typeof near, typeof far],
+        // One hand on the bar; the other hangs, as in the clip.
+        // The pressing hand comes in to the midline: a side view draws the bar
+        // there, and without the spread the fist sat 11 cm to one side of it.
+        arms: [{ ...press, spread: -0.112 }, { upper: 183, lower: 178 }] as [Limb, Limb],
         legs: plantedLegs(pelvis, torso, "side", [{ x: 0.548, y: FLOOR }, { x: 0.515, y: FLOOR }], FORWARD),
       };
     }),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", angle: 303, length: 0.30, plates: false }],
+    [{ kind: "floor" }, { kind: "bar", at: "hand0", angle: 303, length: 0.30, plates: false }],
     "neutral",
+    1,
+    { tempo: { down: 1050, bottom: 700, up: 1750, top: 700 } },
   ),
 
   // A push-up folded into a pike: hips stay the apex, the head travels to the
