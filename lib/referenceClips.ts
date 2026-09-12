@@ -717,6 +717,20 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  // --- Batch 12: the conditioning movements, which want a CADENCE ---------
+  bandedLateralWalk: {
+    videoId: "pzQ2M_iY0D8",
+    title: "Banded Lateral Walks",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "six step cycles in 8.4 s",
+    prs: [339],
+    date: "2026-09-12",
+    exercises: ["Banded Lateral Walk"],
+    notes:
+      "A square front view -- the shoulder separation holds 0.172 to 0.183 of the frame throughout. The body TRAVELS: the hip crosses 1.10 of the frame in 8.4 s because the feet alternate, lead out then trail in, six times. The step is 1.04 shoulder widths and the stance swings between 0.71 closed and 1.73 open, which differ by exactly one step -- that is what says the trail foot closes the whole gap the lead opened. The stepping foot lifts 3 cm. A full cycle takes 1.44 s, the mean of five gaps. What the clip CANNOT settle is the knee: a front camera cannot read a knee bending toward the lens and reports 146 to 180 with no pattern, so the squat depth is set from the hip HEIGHT instead, 2.25 shoulder widths above the ankle.",
+  },
+
   // --- Batch 11: the leftovers, picked by measured defect -----------------
   legExtension: {
     videoId: "s1JfTvyWdTs",

@@ -4125,17 +4125,60 @@ export const exercisePoses = {
     "neutral",
   ),
 
-  // Stepping sideways in a half squat with a loop band round both ankles: the
-  // band runs ankle to ankle and both ends move, which is the whole exercise.
+  // Banded lateral walk, from a reference clip measured with the pose lab
+  // (OPEX "Banded Lateral Walks", pzQ2M_iY0D8, six full step cycles in
+  // 8.4 s; MoveNet on 39 frames at 0.3 s, a square front view -- the
+  // shoulder separation holds 0.172 to 0.183 of the frame throughout).
+  //
+  // IT DID NOT WALK. Ours slid one foot outward across three keys and
+  // stopped: the trailing foot never followed, the stance only ever
+  // widened, and the whole animation carried 3% of body height of travel,
+  // the least of any pose in the library. In the clip the body crosses the
+  // frame -- the hip travels 1.10 of the frame in 8.4 s -- because the feet
+  // ALTERNATE: the lead foot steps out, the trail foot follows it in, six
+  // times over.
+  //
+  // The step is 1.04 shoulder widths and the stance swings between 0.71
+  // shoulder widths closed and 1.73 open -- and those two differ by exactly
+  // one step, which is what says the trail foot closes the whole gap the
+  // lead foot opened. The stepping foot lifts 3 cm; it is a low shuffle,
+  // not a march.
+  //
+  // Authored as four key positions on a `loop`, walking ON THE SPOT the way
+  // `bearCrawl` crawls on the spot: closed, lead lifted mid-step, open,
+  // trail lifted mid-step. Between the last key and the first both planted
+  // feet slide back one step -- which is not a cheat but what a treadmill
+  // view of a walk looks like: the body advances, so the ground goes by.
+  //
+  // WHAT THE CLIP CANNOT SETTLE is the knee. She is squatted, but a front
+  // camera cannot read a knee that bends toward the lens: it reports 146 to
+  // 180 with no pattern. The depth is set from the hip HEIGHT instead --
+  // 2.25 shoulder widths above the ankle against our 2.38, so the pelvis
+  // drops from 0.530 to 0.552.
+  //
+  // Cadence: a full cycle -- both feet stepping once -- takes 1.44 s, the
+  // mean of five measured gaps, and the two steps are evenly spaced within
+  // it. Four keys of 360 ms.
   bandedLateralWalk: pose(
     "front",
-    ([0.535, 0.600, 0.665] as const).map((outerFoot) => {
-      const pelvis = { x: 0.5, y: 0.530 };
+    ([
+      [0.540, 0.460, 0, 0],
+      [0.598, 0.460, 1, 0],
+      [0.656, 0.460, 0, 0],
+      [0.656, 0.576, 0, 1],
+    ] as const).map(([leadX, trailX, leadUp, trailUp]) => {
+      const pelvis = { x: 0.5, y: 0.552 };
+      const LIFT = 0.033; // the stepping foot clears the floor by 3 cm
       return {
         pelvis,
         torso: 6,
-        arms: bothArms(158, 128),
-        legs: plantedLegs(pelvis, 6, "front", [{ x: outerFoot, y: FLOOR }, { x: 0.435, y: FLOOR }], OUT),
+        // Hands on the hips, as the clip has them; they were held out at the
+        // sides like a scarecrow, which carries nothing in this movement.
+        arms: bothArms(138, 204),
+        legs: plantedLegs(pelvis, 6, "front", [
+          { x: leadX, y: FLOOR - leadUp * LIFT },
+          { x: trailX, y: FLOOR - trailUp * LIFT },
+        ], OUT),
       };
     }),
     [
@@ -4143,6 +4186,8 @@ export const exercisePoses = {
       { kind: "cable", at: "ankle0", anchorAt: "ankle1", band: true },
     ],
     "neutral",
+    1,
+    { loop: [360, 360, 360, 360] },
   ),
 
   // Quarter-squat stance, arms pumping alternately -- the ropes themselves
