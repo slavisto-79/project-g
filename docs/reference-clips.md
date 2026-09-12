@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 99 |
+| authored from a clip (the clip shows the exercise) | 100 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 14 |
-| poses with a clip | 93 of 111 (107 in use) |
+| without a clip yet | 13 |
+| poses with a clip | 94 of 111 (107 in use) |
 
-Poses without a clip yet: `bodyweightSquat`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `wallSit`.
+Poses without a clip yet: `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `wallSit`.
 
 ## Every exercise
 
@@ -48,7 +48,7 @@ Poses without a clip yet: `bodyweightSquat`, `frontRaise`, `handstandPushUp`, `h
 | Bodyweight Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
 | Bodyweight Good Morning | `goodMorning` | shares `goodMorning` (the clip shows Good Morning) | [High Bar Good Morning](https://www.youtube.com/watch?v=dEJ0FTm-CEk) (Renaissance Periodization, side) | #262 |
 | Bodyweight Reverse Lunge | `lunge` | authored from the clip | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
-| Bodyweight Squat | `bodyweightSquat` | no clip yet |  |  |
+| Bodyweight Squat | `bodyweightSquat` | authored from the clip | [Air Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=iiKn5FiVUjI) (OPEX Fitness, side) | #347 |
 | Box Jump | `boxJump` | authored from the clip | [Box Jump Step Down - OPEX Exercise Library](https://www.youtube.com/watch?v=W5QzqIbEWvk) (OPEX Fitness, side) | #299 |
 | Box Squat | `boxSquat` | authored from the clip | [Box Squat Movement Demo](https://www.youtube.com/watch?v=rMEPHwNhQfo) (The Active Life, side) | #271 |
 | Broad Jump | `broadJump` | authored from the clip | [Broad Jump | Strength & Conditioning Exercise Library](https://www.youtube.com/watch?v=YjFr2OEivz0) (Flow High Performance, side) | #300 |
@@ -281,3 +281,4 @@ Poses without a clip yet: `bodyweightSquat`, `frontRaise`, `handstandPushUp`, `h
 | `burpee` | [Burpee](https://www.youtube.com/watch?v=Ozqwsv3kggA) | OPEX Fitness | side | four burpees in 10.75 s | #344 | 2026-09-13 | Burpee | Measured in the lifter's own trunk lengths (hip to shoulder, 0.271 of the crop standing). The bottom is chest to floor in all three reps it is seen in -- hip and shoulder down at the wrists' height for two frames running, elbows 59-73 -- not a plank. With the hands planted the crouch is high: knees 121-136, hip angle 36-56, heels up, the hip within 0.08 trunk lengths of standing. The press out leads with the chest (shoulders 0.40 up, hips still down, elbows 104-113). At the apex the wrists are 0.32 above the shoulders with the elbows bent 72-91 and the hip 0.28 over standing. 3.25 s a burpee, apex to apex. He turns toward the camera in flight, so the plane the arms rise in is not quotable -- only their height and bend. |
 | `clean` | [Hang Clean](https://www.youtube.com/watch?v=0u97BVlVib0) | OPEX Fitness | side | two reps in 18 s | #345 | 2026-09-13 | Hang Clean | The old pose was a clean from the floor. From a stand with the bar at the hips she dips -- shoulders down 0.24 trunk lengths, bar to just above the knee -- pulls tall onto her toes with the bar at the chest, and catches in a FULL squat: hip at 0.28 of its standing height over the ankle, knee 0.3 trunk lengths above the hip, trunk 20-25 forward (ours caught at 0.86, knee 117). Wrists 0.02-0.04 of the frame over the shoulders in the rack. The near plate covers the hip in the dip (the projected trunk shrinks 0.23 to 0.17, which a rigid segment cannot), so the dip is read from the shoulder's fall, not the hip angle. Dip 0.5 s, pull 0.5, into the catch 1.0 (both reps), stand 0.9, lower 0.8, stand 0.5; the 1.5 s demonstration holds in the rack and the hang are left out. |
 | `abWheelRollout` | [Ab Wheel Rollout](https://www.youtube.com/watch?v=4HZCJLM5wBk) | OPEX Fitness | side | three reps in 14 s | #346 | 2026-09-13 | Ab Wheel Rollout | The start sits back: hips behind the knees (thigh 26 back from vertical), trunk 66 forward, hip angle 85-89, arms near plumb. Fully out knee, hip and shoulder make one line (hip angle 165-171), trunk level (87-91), arms reaching forward with the elbows long (142-175), wrists 0.26 trunk lengths under the shoulders. The camera looks down a little: the projected trunk grows 0.40 to 0.53 of the frame as it levels, so the START's trunk angle is the least certain number; hip angle and thigh direction are unaffected. Our wheel handles cannot sit lower than the kneeling knee joint (5 cm minimum wheel radius), so the arms land near 80 from plumb against her 71. 1.75 s out and 1.75 s back in all three reps, about 0.4 s held long and 0.6 s at the start. |
+| `bodyweightSquat` | [Air Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=iiKn5FiVUjI) | OPEX Fitness | side | three reps in 7 s | #347 | 2026-09-13 | Bodyweight Squat | The arms swing: hanging when standing (3 degrees off plumb, elbows 160), 121-125 from up a third of the way down, 106-113 at two thirds, 14 degrees under level at the bottom (elbows 146-149). The bottom is parallel -- hip crease level with the knee, thigh 78-88 from vertical, shin 23-26, knee 69-76, trunk 34-38, hip at 0.45 of its standing height over the ankle. 0.7 s down, 0.4 s at the bottom, 0.7 s up, 0.6 s standing. Model sides alternate frame to frame (near ankle 0.90 of the crop, far 0.85); angles are from the near-side frames. |

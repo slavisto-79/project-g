@@ -717,6 +717,20 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  // --- Batch 13: bodyweight, on the floor and upside down -----------------
+  bodyweightSquat: {
+    videoId: "iiKn5FiVUjI",
+    title: "Air Squat - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 7 s",
+    prs: [347],
+    date: "2026-09-13",
+    exercises: ["Bodyweight Squat"],
+    notes:
+      "The arms swing: hanging when standing (3 degrees off plumb, elbows 160), 121-125 from up a third of the way down, 106-113 at two thirds, 14 degrees under level at the bottom (elbows 146-149). The bottom is parallel -- hip crease level with the knee, thigh 78-88 from vertical, shin 23-26, knee 69-76, trunk 34-38, hip at 0.45 of its standing height over the ankle. 0.7 s down, 0.4 s at the bottom, 0.7 s up, 0.6 s standing. Model sides alternate frame to frame (near ankle 0.90 of the crop, far 0.85); angles are from the near-side frames.",
+  },
+
   // --- Batch 12: the conditioning movements, which want a CADENCE ---------
   abWheelRollout: {
     videoId: "4HZCJLM5wBk",
