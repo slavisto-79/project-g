@@ -529,7 +529,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [307],
     date: "2026-09-11",
     exercises: ["Power Clean"],
-    notes: "Hang Clean and Kettlebell Clean still borrow the old `clean`.",
+    notes: "Kettlebell Clean and Hang Clean were later given poses of their own (`kettlebellClean`, `clean`).",
   },
 
   kettlebellClean: {
@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 12: the conditioning movements, which want a CADENCE ---------
+  clean: {
+    videoId: "0u97BVlVib0",
+    title: "Hang Clean",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "two reps in 18 s",
+    prs: [345],
+    date: "2026-09-13",
+    exercises: ["Hang Clean"],
+    notes:
+      "The old pose was a clean from the floor. From a stand with the bar at the hips she dips -- shoulders down 0.24 trunk lengths, bar to just above the knee -- pulls tall onto her toes with the bar at the chest, and catches in a FULL squat: hip at 0.28 of its standing height over the ankle, knee 0.3 trunk lengths above the hip, trunk 20-25 forward (ours caught at 0.86, knee 117). Wrists 0.02-0.04 of the frame over the shoulders in the rack. The near plate covers the hip in the dip (the projected trunk shrinks 0.23 to 0.17, which a rigid segment cannot), so the dip is read from the shoulder's fall, not the hip angle. Dip 0.5 s, pull 0.5, into the catch 1.0 (both reps), stand 0.9, lower 0.8, stand 0.5; the 1.5 s demonstration holds in the rack and the hang are left out.",
+  },
+
   burpee: {
     videoId: "Ozqwsv3kggA",
     title: "Burpee",
