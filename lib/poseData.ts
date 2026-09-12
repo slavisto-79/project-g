@@ -3991,24 +3991,54 @@ export const exercisePoses = {
     { tempo: { down: 750, bottom: 100, up: 750, top: 100 }, camera: { azimuth: 0.9 } },
   ),
 
-  // Lying crunch with the legs trading places -- one knee to the chest, the
-  // other held long off the floor. The swap IS the pedal.
+  // Bicycle crunch, from a reference clip measured with the pose lab
+  // (Wodstar "Bicycle Crunch", cbKIDZ_XyjY, two full pedal cycles inside
+  // the 4 s MoveNet could read; 34 frames at 0.28 s, a side view). The only
+  // non-OPEX clip in the library: OPEX has no bicycle crunch at all.
+  //
+  // IT DID NOT ROTATE, and the rotation is the exercise. Ours swapped the
+  // legs and left everything above the hips identical between the two keys
+  // -- the same elbow angle, the same arms, no twist at all. In the clip
+  // the elbows ALTERNATE in antiphase with the knees: the near elbow
+  // travels 0.46 of the frame toward the tucked knee and back, twice, and
+  // the shoulder keypoints separate from 0.001 of the frame to 0.139 as the
+  // trunk turns. The elbow now swings 21 cm and the reaching hand lifts
+  // with it, which is that shoulder coming off the mat.
+  //
+  // The knees were also too extreme at both ends: 35 tucked and 178 long,
+  // against a measured 57 and 160. Nobody folds a knee to 35 degrees on a
+  // bicycle crunch and nobody locks the long one out.
+  //
+  // WHAT THE CLIP CANNOT SETTLE is how much the trunk turns in degrees -- a
+  // side camera reads a twist about the long axis as keypoints sliding past
+  // each other, not as an angle. What it does settle is the SHAPE: the
+  // elbows alternate, opposite the knees, and by how much of the frame.
+  //
+  // Cadence: one full pedal -- both legs swapping and back -- takes 1.96 s,
+  // from the knee-angle extremes of both legs. Two keys of 980 ms.
   bicycleCrunch: pose(
     "side",
     [0, 1].map((phase) => {
-      const tucked: Limb = { upper: 335, lower: 120, end: 80 };
-      const long: Limb = { upper: 63, lower: 61, end: 22 };
+      const tucked: Limb = { upper: 335, lower: 98, end: 80 };
+      const long: Limb = { upper: 63, lower: 83, end: 22 };
+      // The elbow that reaches is the one OPPOSITE the tucked knee, which is
+      // what makes the twist read; the other stays back by the head.
+      const reaching: Limb = { upper: 30, lower: 240 };
+      const back: Limb = { upper: 335, lower: 185 };
       return {
         // Lower back on the floor: a hip's radius above it, as in the hollow
         // hold (at 0.70 it hung 3.5cm in the air).
         pelvis: { x: 0.5, y: 0.733 },
         torso: 282,
         neck: 304,
-        arms: sideArms(330, 185),
-        legs: (phase === 0 ? [tucked, long] : [{ ...long, upper: 68, lower: 66 }, { ...tucked, upper: 340 }]) as [Limb, Limb],
+        arms: (phase === 0 ? [back, reaching] : [reaching, back]) as [Limb, Limb],
+        legs: (phase === 0 ? [tucked, long] : [{ ...long, upper: 68, lower: 88 }, { ...tucked, upper: 340 }]) as [Limb, Limb],
       };
     }),
     [{ kind: "floor", mat: true, y: 0.792 }],
+    "neutral",
+    1,
+    { loop: [980, 980] },
   ),
 
   // Jump, stand, crouch with the hands planted, plank -- played out and back,
