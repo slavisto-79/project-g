@@ -115,8 +115,12 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   // the same kind of shape for the same kind of reason: arms reaching past
   // the head and legs past the toes, both just off the floor, which is what
   // the reference clip holds. Carrying its hands 15 cm ABOVE the head kept
-  // it inside 3.4, and that is not the exercise.
-  const widthCap = name === "plankIYTW" ? 6.5 : name === "plankSaw" ? 5.5 : name === "plank" ? 5.0 : name === "proneRaise" ? 4.5 : name === "hollowHold" ? 4.0 : 3.4;
+  // it inside 3.4, and that is not the exercise. A bicycle crunch joins them
+  // at 4.0 for the same reason once it actually rotates: one leg is held long
+  // just off the floor while the OPPOSITE elbow reaches down the body toward
+  // the tucked knee, and the two together are the silhouette. It measures
+  // 3.8.
+  const widthCap = name === "plankIYTW" ? 6.5 : name === "plankSaw" ? 5.5 : name === "plank" ? 5.0 : name === "proneRaise" ? 4.5 : name === "hollowHold" || name === "bicycleCrunch" ? 4.0 : 3.4;
   if (W / H > widthCap) note(`${name}: lying flat at ${(W / H).toFixed(1)}:1 wide`);
 }
 

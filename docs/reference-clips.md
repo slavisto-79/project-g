@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 92 |
+| authored from a clip (the clip shows the exercise) | 93 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 21 |
-| poses with a clip | 86 of 111 (107 in use) |
+| without a clip yet | 20 |
+| poses with a clip | 87 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `landminePress`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `sledPush`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `battleRopes`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `landminePress`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `sledPush`, `wallSit`.
 
 ## Every exercise
 
@@ -43,7 +43,7 @@ Poses without a clip yet: `abWheelRollout`, `battleRopes`, `bicycleCrunch`, `bod
 | Battle Ropes | `battleRopes` | no clip yet |  |  |
 | Bear Crawl | `bearCrawl` | authored from the clip | [Crawl - OPEX Exercise Library](https://www.youtube.com/watch?v=w089AXf1f_g) (OPEX Fitness, side) | #304 |
 | Bench Dip | `dip` | shares `dip` (the clip shows Bar Dip) | [Weighted Dip - OPEX Exercise Library](https://www.youtube.com/watch?v=VNa0hX_y6Fk) (OPEX Fitness, three-quarter) | #282 |
-| Bicycle Crunch | `bicycleCrunch` | no clip yet |  |  |
+| Bicycle Crunch | `bicycleCrunch` | authored from the clip | [Bicycle Crunch](https://www.youtube.com/watch?v=cbKIDZ_XyjY) (Wodstar, side) | #340 |
 | Bird Dog | `quadruped` | no clip yet |  |  |
 | Bodyweight Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
 | Bodyweight Good Morning | `goodMorning` | shares `goodMorning` (the clip shows Good Morning) | [High Bar Good Morning](https://www.youtube.com/watch?v=dEJ0FTm-CEk) (Renaissance Periodization, side) | #262 |
@@ -274,3 +274,4 @@ Poses without a clip yet: `abWheelRollout`, `battleRopes`, `bicycleCrunch`, `bod
 | `singleLegHinge` | [Dumbbell Single Leg Romanian Deadlift](https://www.youtube.com/watch?v=pJewPISyHjw) | OPEX Fitness | side | four reps in 14.8 s | #337 | 2026-09-12 | Single-Leg Romanian Deadlift, Single-Leg Deadlift | Read as fractions of the standing hip height. The hip travels 28% of it BACK -- from 11% in front of the standing ankle to 17% behind -- while the shoulder goes the other way; ours walked the pelvis 20% FORWARD. The standing knee holds 173 to 153, twenty degrees, against our fifty four. The trunk reaches 104 off vertical and the hip gives up only 3% of its height. The FREE LEG is taken by angle, not position: its ankle projects 0.370 of the frame from the hip where a straight leg of hers is 0.481, so it swings a fifth of its length out of the film plane -- but the clip does settle that it hangs plumb at the top, reaches 57 degrees behind plumb at the halfway point, and finishes level with the hip, knee near straight at 158. |
 | `legExtension` | [Leg Extension Machine](https://www.youtube.com/watch?v=s1JfTvyWdTs) | OPEX Fitness | side | three reps in 6.6 s | #338 | 2026-09-12 | Leg Extension | It CANNOT measure the leg, which on a leg extension is awkward: the machine's frame stands between the camera and the shin, so the ankle keypoint scores 0.03 to 0.27 across all 37 frames and the knee 0.10 to 0.39, and the knee angle they give wanders 66 / 128 / 137 / 105 with no rep in it. A second clip on the same machine (U0tcA7b4c3k) is no better, 0.12 to 0.39, and a brightness probe of the patch the shin sweeps through -- which needs no pose model -- varied four levels out of 255. So NO TEMPO was taken from it and the knee range was left alone. What it does settle is the TRUNK: reclined against a backrest at 25 degrees off vertical, 23.8 to 29.4 over 27 frames with shoulder scores 0.69 to 0.81 and the projected trunk steady to 4%, against our bolt-upright 4. |
 | `bandedLateralWalk` | [Banded Lateral Walks](https://www.youtube.com/watch?v=pzQ2M_iY0D8) | OPEX Fitness | front | six step cycles in 8.4 s | #339 | 2026-09-12 | Banded Lateral Walk | A square front view -- the shoulder separation holds 0.172 to 0.183 of the frame throughout. The body TRAVELS: the hip crosses 1.10 of the frame in 8.4 s because the feet alternate, lead out then trail in, six times. The step is 1.04 shoulder widths and the stance swings between 0.71 closed and 1.73 open, which differ by exactly one step -- that is what says the trail foot closes the whole gap the lead opened. The stepping foot lifts 3 cm. A full cycle takes 1.44 s, the mean of five gaps. What the clip CANNOT settle is the knee: a front camera cannot read a knee bending toward the lens and reports 146 to 180 with no pattern, so the squat depth is set from the hip HEIGHT instead, 2.25 shoulder widths above the ankle. |
+| `bicycleCrunch` | [Bicycle Crunch](https://www.youtube.com/watch?v=cbKIDZ_XyjY) | Wodstar | side | two full pedal cycles in the 4 s MoveNet could read | #340 | 2026-09-12 | Bicycle Crunch | The only non-OPEX clip in the library: OPEX has no bicycle crunch. MoveNet reads only 3.3 to 7.2 s of the 10 s clip. In that window the elbows ALTERNATE in antiphase with the knees -- the near elbow travels 0.46 of the frame toward the tucked knee and back, twice -- and the shoulder keypoints separate from 0.001 of the frame to 0.139 as the trunk turns. The tucked knee reads 52 to 60 and the long knee 147 to 168. A full pedal takes 1.96 s. What it CANNOT settle is the twist in degrees: a side camera reads rotation about the long axis as keypoints sliding past each other, not as an angle. |

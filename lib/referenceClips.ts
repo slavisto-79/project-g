@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 12: the conditioning movements, which want a CADENCE ---------
+  bicycleCrunch: {
+    videoId: "cbKIDZ_XyjY",
+    title: "Bicycle Crunch",
+    channel: "Wodstar",
+    view: "side",
+    span: "two full pedal cycles in the 4 s MoveNet could read",
+    prs: [340],
+    date: "2026-09-12",
+    exercises: ["Bicycle Crunch"],
+    notes:
+      "The only non-OPEX clip in the library: OPEX has no bicycle crunch. MoveNet reads only 3.3 to 7.2 s of the 10 s clip. In that window the elbows ALTERNATE in antiphase with the knees -- the near elbow travels 0.46 of the frame toward the tucked knee and back, twice -- and the shoulder keypoints separate from 0.001 of the frame to 0.139 as the trunk turns. The tucked knee reads 52 to 60 and the long knee 147 to 168. A full pedal takes 1.96 s. What it CANNOT settle is the twist in degrees: a side camera reads rotation about the long axis as keypoints sliding past each other, not as an angle.",
+  },
+
   bandedLateralWalk: {
     videoId: "pzQ2M_iY0D8",
     title: "Banded Lateral Walks",
