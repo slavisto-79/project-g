@@ -4245,17 +4245,57 @@ export const exercisePoses = {
     { loop: [360, 360, 360, 360] },
   ),
 
-  // Quarter-squat stance, arms pumping alternately -- the ropes themselves
-  // cannot be drawn, but the wave rhythm can.
+  // Battle ropes, from a reference clip measured with the pose lab (OPEX
+  // "Battling Ropes", 4aT3IyKOo5M, 4 s read at 0.1 s -- 41 frames, because a
+  // rope wave is fast enough to alias at the lab's usual 0.3 s; a square side
+  // view, the projected trunk steady to 5%).
+  //
+  // THE ROPES WERE ALREADY THE HARD PART, and the clip settles more than
+  // expected: the wrists, the elbows and the trunk all read cleanly. What
+  // was wrong is everything above the hips.
+  //
+  // SHE IS BENT OVER THE ROPES, NOT STANDING BEHIND THEM. The trunk holds
+  // 57 to 63 degrees off vertical, mean 59.5, in every frame. Ours stood at
+  // 18. The squat under it was right and is unchanged: hip height over trunk
+  // length reads 1.51 in the clip and 1.54 in ours.
+  //
+  // THE HANDS NEVER COME ABOVE THE SHOULDER. The up hand turns at 0.29
+  // trunk lengths below it and the down hand drives to 1.06 below -- a
+  // wave is thrown from chest height down toward the knee. Ours flung the
+  // up hand a quarter of a trunk length ABOVE the shoulder, which is a
+  // wave nobody makes, and the elbows only worked through 100 to 124.
+  // The clip bends to 88 lifting and opens to 145 driving down.
+  //
+  // The two arms run in clean antiphase -- their height difference swings
+  // plus and minus 0.21 of the frame -- so two keys that trade the arms
+  // remain the right shape for it.
+  //
+  // Cadence: 0.44 s per full cycle, nine peaks over 3.5 s -- 2.3 waves a
+  // second. Two keys of 220 ms.
   battleRopes: pose(
     "side",
-    ([[112, 32, 152, 96], [152, 96, 116, 36]] as const).map(([nu, nl, fu, fl]) => {
+    [0, 1].map((phase) => {
       const pelvis = { x: 0.49, y: 0.56 };
+      const torso = 60;
+      // Each hand is placed off ITS OWN shoulder -- the far shoulder sits a
+      // girdle-depth away, and one shared target locked the far elbow out.
+      // Up = 0.29 trunk lengths below the shoulder with the elbow at 88; down
+      // = 1.06 below with the elbow at 145.
+      const at = (side: 0 | 1, h: number, v: number): Point => {
+        const sh = shoulderAt(pelvis, torso, side, "side");
+        return { x: sh.x + h / ASPECT, y: sh.y + v };
+      };
+      const up = (side: 0 | 1) => at(side, 0.189, 0.071);
+      const down = (side: 0 | 1) => at(side, 0.095, 0.260);
       return {
         pelvis,
-        torso: 18,
-        arms: [{ upper: nu, lower: nl }, { upper: fu, lower: fl }] as [Limb, Limb],
-        legs: plantedLegs(pelvis, 18, "side", [{ x: 0.56, y: FLOOR }, { x: 0.53, y: FLOOR }], FORWARD),
+        torso,
+        neck: 40,
+        arms: [0, 1].map((side) => {
+          const hand = (phase === side ? up : down)(side as 0 | 1);
+          return reachingArms(pelvis, torso, "side", [hand, hand], FORWARD)[side]!;
+        }) as [Limb, Limb],
+        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.56, y: FLOOR }, { x: 0.53, y: FLOOR }], FORWARD),
       };
     }),
     // One rope per hand, and BOTH to the same anchor: battle ropes are one
@@ -4266,6 +4306,9 @@ export const exercisePoses = {
       { kind: "cable", at: "hand0", anchor: { x: 1.00, y: 0.905 }, rope: true },
       { kind: "cable", at: "hand1", anchor: { x: 1.00, y: 0.905 }, rope: true },
     ],
+    "neutral",
+    1,
+    { loop: [220, 220] },
   ),
 
   // Low lean into the sled's posts, legs driving alternately -- one flat and

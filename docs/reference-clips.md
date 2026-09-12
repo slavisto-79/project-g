@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 94 |
+| authored from a clip (the clip shows the exercise) | 95 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 19 |
-| poses with a clip | 88 of 111 (107 in use) |
+| without a clip yet | 18 |
+| poses with a clip | 89 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `battleRopes`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `sledPush`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `sledPush`, `wallSit`.
 
 ## Every exercise
 
@@ -40,7 +40,7 @@ Poses without a clip yet: `abWheelRollout`, `battleRopes`, `bodyweightSquat`, `b
 | Barbell Overhead Press | `overheadPress` | authored from the clip | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
 | Barbell Row | `bentRow` | authored from the clip | [How to do a Barbell Bent Over Row Pronated](https://www.youtube.com/watch?v=bm0_q9bR_HA) (National Academy of Sports Medicine (NASM), side) | #273 |
 | Barbell Walking Lunge | `lunge` | shares `lunge` (the clip shows Bodyweight Reverse Lunge, Dumbbell Lunge) | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
-| Battle Ropes | `battleRopes` | no clip yet |  |  |
+| Battle Ropes | `battleRopes` | authored from the clip | [Battling Ropes](https://www.youtube.com/watch?v=4aT3IyKOo5M) (OPEX Fitness, side) | #342 |
 | Bear Crawl | `bearCrawl` | authored from the clip | [Crawl - OPEX Exercise Library](https://www.youtube.com/watch?v=w089AXf1f_g) (OPEX Fitness, side) | #304 |
 | Bench Dip | `dip` | shares `dip` (the clip shows Bar Dip) | [Weighted Dip - OPEX Exercise Library](https://www.youtube.com/watch?v=VNa0hX_y6Fk) (OPEX Fitness, three-quarter) | #282 |
 | Bicycle Crunch | `bicycleCrunch` | authored from the clip | [Bicycle Crunch](https://www.youtube.com/watch?v=cbKIDZ_XyjY) (Wodstar, side) | #340 |
@@ -276,3 +276,4 @@ Poses without a clip yet: `abWheelRollout`, `battleRopes`, `bodyweightSquat`, `b
 | `bandedLateralWalk` | [Banded Lateral Walks](https://www.youtube.com/watch?v=pzQ2M_iY0D8) | OPEX Fitness | front | six step cycles in 8.4 s | #339 | 2026-09-12 | Banded Lateral Walk | A square front view -- the shoulder separation holds 0.172 to 0.183 of the frame throughout. The body TRAVELS: the hip crosses 1.10 of the frame in 8.4 s because the feet alternate, lead out then trail in, six times. The step is 1.04 shoulder widths and the stance swings between 0.71 closed and 1.73 open, which differ by exactly one step -- that is what says the trail foot closes the whole gap the lead opened. The stepping foot lifts 3 cm. A full cycle takes 1.44 s, the mean of five gaps. What the clip CANNOT settle is the knee: a front camera cannot read a knee bending toward the lens and reports 146 to 180 with no pattern, so the squat depth is set from the hip HEIGHT instead, 2.25 shoulder widths above the ankle. |
 | `bicycleCrunch` | [Bicycle Crunch](https://www.youtube.com/watch?v=cbKIDZ_XyjY) | Wodstar | side | two full pedal cycles in the 4 s MoveNet could read | #340 | 2026-09-12 | Bicycle Crunch | The only non-OPEX clip in the library: OPEX has no bicycle crunch. MoveNet reads only 3.3 to 7.2 s of the 10 s clip. In that window the elbows ALTERNATE in antiphase with the knees -- the near elbow travels 0.46 of the frame toward the tucked knee and back, twice -- and the shoulder keypoints separate from 0.001 of the frame to 0.139 as the trunk turns. The tucked knee reads 52 to 60 and the long knee 147 to 168. A full pedal takes 1.96 s. What it CANNOT settle is the twist in degrees: a side camera reads rotation about the long axis as keypoints sliding past each other, not as an angle. |
 | `landminePress` | [Landmine Standing Press](https://www.youtube.com/watch?v=y5RxyrjwKFk) | OPEX Fitness | side | three reps in 12.6 s | #341 | 2026-09-13 | Landmine Press | Pressed with ONE hand while the other hangs, matching the library's unilateral flag; ours cupped the bar with both. Shoulder-to-wrist over a straight arm runs 40% with the bar at the shoulder (elbow 40), 67% at half the extension, 94% locked out (elbow 149), the arm sweeping from 118 degrees off vertical to 56. The trunk leans 8 degrees at the shoulder and 20 locked out. Period 4.2 s: 1.05 s up, 0.7 s locked, 1.75 s down, 0.7 s at the shoulder. The clip offers only 480p. |
+| `battleRopes` | [Battling Ropes](https://www.youtube.com/watch?v=4aT3IyKOo5M) | OPEX Fitness | side | eight wave cycles in 3.5 s | #342 | 2026-09-13 | Battle Ropes | Read at 0.1 s rather than the usual 0.3, because a rope wave is fast enough to alias at the slower rate. The camera was expected to give little and gave a lot. The trunk holds 57 to 63 degrees off vertical, mean 59.5, in every frame -- bent over the ropes. The hands never rise above the shoulder: the up hand turns at 0.29 trunk lengths below it with the elbow at 88, the down hand drives to 1.06 below with the elbow at 145. The two wrists run in clean antiphase, their height difference swinging plus and minus 0.21 of the frame. A full cycle takes 0.44 s -- nine peaks over 3.5 s, 2.3 waves a second. The squat under it matched ours already: hip height over trunk length 1.51. |
