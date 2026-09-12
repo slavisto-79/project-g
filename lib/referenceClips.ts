@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 11: the leftovers, picked by measured defect -----------------
+  singleLegHinge: {
+    videoId: "pJewPISyHjw",
+    title: "Dumbbell Single Leg Romanian Deadlift",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 14.8 s",
+    prs: [337],
+    date: "2026-09-12",
+    exercises: ["Single-Leg Romanian Deadlift", "Single-Leg Deadlift"],
+    notes:
+      "Read as fractions of the standing hip height. The hip travels 28% of it BACK -- from 11% in front of the standing ankle to 17% behind -- while the shoulder goes the other way; ours walked the pelvis 20% FORWARD. The standing knee holds 173 to 153, twenty degrees, against our fifty four. The trunk reaches 104 off vertical and the hip gives up only 3% of its height. The FREE LEG is taken by angle, not position: its ankle projects 0.370 of the frame from the hip where a straight leg of hers is 0.481, so it swings a fifth of its length out of the film plane -- but the clip does settle that it hangs plumb at the top, reaches 57 degrees behind plumb at the halfway point, and finishes level with the hip, knee near straight at 158.",
+  },
+
   inclineCurl: {
     videoId: "aG7CXiKxepw",
     title: "Incline Dumbbell Curl",

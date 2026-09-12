@@ -1621,24 +1621,74 @@ export const exercisePoses = {
     { tempo: { down: 4500, bottom: 250, up: 1000, top: 500 }, camera: { azimuth: 1.2 } },
   ),
 
+  // Single-leg Romanian deadlift, from a reference clip measured with the
+  // pose lab (OPEX "Dumbbell Single Leg Romanian Deadlift", pJewPISyHjw,
+  // four reps in 14.8 s; MoveNet on 44 frames at 0.4 s, a side view).
+  //
+  // THE HIPS WENT THE WRONG WAY -- the same defect the two-legged `hinge`
+  // had before #316. Ours walked the pelvis 20% of its own hip height
+  // FORWARD over the standing foot. The clip sends it 28% BACK, from 11%
+  // of hip height in front of the ankle to 17% behind it, while the
+  // shoulder travels the other way. A hip and a shoulder separating is
+  // what a hinge IS, and it is the one thing a side camera settles beyond
+  // argument.
+  //
+  // THE STANDING KNEE FOLDED LIKE A SQUAT. Ours bent it 180 to 126, fifty
+  // four degrees. The clip holds 173 to 153 -- twenty. A Romanian deadlift
+  // is a hinge with a soft knee, and ours was doing a one-legged squat
+  // under a hinged trunk.
+  //
+  // It is now authored from the ANKLE up, the way `hinge` is: shin 6 / 7 /
+  // 4 degrees ahead of vertical, thigh -6 / 10 / 23 behind it, and the
+  // pelvis falls out of them instead of being placed. That is what keeps
+  // the hip travelling the right way.
+  //
+  // The trunk goes one notch further too, 104 from vertical rather than 94,
+  // and the hip gives up 3% of its height rather than 11%.
+  //
+  // The FREE LEG is authored by angle, not by position: its ankle projects
+  // only 0.370 of the frame from the hip where a straight leg of hers is
+  // 0.481, so it swings a fifth of its length out of the film plane and a
+  // measured distance would land ours short. What the clip does settle is
+  // that the free leg hangs PLUMB at the top, its ankle within 0.006 of
+  // the frame of straight below the hip, swings to 57 degrees behind plumb
+  // at the halfway point, and finishes LEVEL WITH THE HIP -- within 0.009
+  // -- with the knee near straight, 158.
+  //
+  // Tempo, which it did not have: 0.8 s standing, 2.8 s down, 0.4 s at the
+  // bottom and 1.2 s up. Period 5.2 s, identical across both measurable
+  // gaps -- a slow lift, which is what a balance movement wants.
   singleLegHinge: pose(
     "side",
-    ([[0.500, 0.494, 4, 196, 214], [0.532, 0.530, 50, 248, 254], [0.560, 0.542, 94, 284, 278]] as const).map(([x, y, torso, up, low]) => {
-      const pelvis = { x, y };
-      return {
-        pelvis,
-        torso,
-        neck: torso > 30 ? torso - 14 : torso,
-        // Hanging dumbbells clear the hips (wider on the female build) only
-        // if the arms hang a little outboard.
-        arms: HANG_AHEAD.map((arm) => ({ ...arm, spread: 0.05 })) as [Limb, Limb],
-        // Standing leg solved to the floor; the free leg swings back as the
-        // counterweight, which is the balance the movement is built on.
-        legs: [plantedLegs(pelvis, torso, "side", FEET, FORWARD)[0], { upper: up, lower: low, end: low - 90 }],
-      };
-    }),
+    ([[6, -6, 4, 190, 212], [7, 10, 54, 226, 248], [4, 23, 104, 261, 279]] as const).map(
+      ([shinAhead, thighBack, torso, up, low]) => {
+        // Up the planted leg: ankle -> knee -> hip, then back off the
+        // girdle's half-depth to the pelvis the build hangs the hip on.
+        const ankle = { x: 0.535, y: FLOOR };
+        const knee = along(ankle, shinAhead, P.shin);
+        const hip = along(knee, -thighBack, P.thigh);
+        const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, 0, 0, "side").x, y: hip.y };
+        return {
+          pelvis,
+          torso,
+          neck: torso > 30 ? torso - 14 : torso,
+          // Hanging dumbbells clear the hips (wider on the female build)
+          // only if the arms hang a little outboard.
+          arms: HANG_AHEAD.map((arm) => ({ ...arm, spread: 0.05 })) as [Limb, Limb],
+          // Standing leg from its own angles; the free leg swings back as
+          // the counterweight, which is the balance the movement is built
+          // on.
+          legs: [
+            { upper: 180 - thighBack, lower: 180 + shinAhead, end: 90 },
+            { upper: up, lower: low, end: low - 90 },
+          ] as [Limb, Limb],
+        };
+      },
+    ),
     [{ kind: "floor" }, { kind: "bell", at: "hand0" }],
     "neutral",
+    1,
+    { tempo: { down: 2800, bottom: 400, up: 1200, top: 800 } },
   ),
 
   // Barbell hip thrust, from a reference clip measured with the pose lab
