@@ -3937,24 +3937,60 @@ export const exercisePoses = {
     { tempo: { down: 600, bottom: 250, up: 550, top: 250 } },
   ),
 
-  // Kneeling, the wheel rolls out ahead; the pelvis is derived from the fixed
-  // knee so the shins never leave the ground.
+  // Ab wheel rollout, from a reference clip measured with the pose lab (OPEX
+  // "Ab Wheel Rollout", 4HZCJLM5wBk, three reps in 14 s; MoveNet on 66
+  // frames at 0.25 s, a side view from a little above).
+  //
+  // THE START SITS BACK. Kneeling, her hips are BEHIND the knees -- the
+  // thigh 26 degrees back from vertical -- with the trunk 66 forward, a
+  // right angle at the hip (85-89) and the arms near plumb to the wheel.
+  // Ours started with the hips 30 degrees AHEAD of the knees and the hip
+  // open to 145, already a third of the way out.
+  //
+  // THE EXTENSION IS ONE STRAIGHT LINE. Fully out, knee, hip and shoulder
+  // line up (hip angle 165-171), the trunk level (87-91) and the arms
+  // REACHING forward with the elbows long (142-175). Ours stopped with the
+  // trunk still 13 degrees up and the upper arms hanging plumb, elbows 98
+  // -- the wheel pulled in under the chest.
+  //
+  // Her projected trunk grows from 0.40 of the frame at the start to 0.53
+  // fully out: the camera looks down, which foreshortens a steep trunk and
+  // not a level one. So the start's trunk angle is the least certain number
+  // here; the hip angle and the direction of the thigh are not affected.
+  //
+  // Arms: at full extension her wrists are 0.26 trunk lengths under the
+  // shoulders (71 degrees from plumb). Our wheel handles cannot sit lower
+  // than our kneeling knee joint without the wheel shrinking under its 5 cm
+  // minimum radius, so the trunk is taken at 86 and the arms land at about
+  // 80.
+  //
+  // Tempo, which it did not have: 1.75 s out and 1.75 s back in all three
+  // reps, about 0.4 s held long and 0.6 s at the start.
   abWheelRollout: pose(
     "side",
-    ([[150, 297, 0.287], [130, 288, 0.20], [118, 283, 0.145]] as const).map(([thigh, torso, wx]) => {
+    ([[206, 294], [154, 279], [104, 274]] as const).map(([thigh, torso]) => {
       const knee = { x: 0.545, y: 0.905 };
-      const pelvis = { x: knee.x - (0.225 * Math.sin((thigh * Math.PI) / 180)) / (850 / 567), y: knee.y + 0.225 * Math.cos((thigh * Math.PI) / 180) };
+      const pelvis = { x: knee.x - (0.225 * Math.sin((thigh * Math.PI) / 180)) / ASPECT, y: knee.y + 0.225 * Math.cos((thigh * Math.PI) / 180) };
+      // Hands on the wheel's handles, as low as the wheel allows, and as far
+      // ahead as a long arm (elbow about 165) reaches.
+      const handY = 0.885;
+      const hands = [0, 1].map((side) => {
+        const sh = shoulderAt(pelvis, torso, side as 0 | 1, "side");
+        const dy = handY - sh.y;
+        return { x: sh.x - Math.sqrt(Math.max(0.285 * 0.285 - dy * dy, 0)) / ASPECT, y: handY };
+      }) as [Point, Point];
       return {
         pelvis,
         torso,
         neck: torso - 6,
-        arms: reachingArms(pelvis, torso, "side", [{ x: wx, y: 0.868 }, { x: wx - 0.014, y: 0.868 }], FORWARD),
+        arms: reachingArms(pelvis, torso, "side", hands, FORWARD),
         legs: [{ upper: thigh, lower: 90, end: 98 }, { upper: thigh + 4, lower: 94, end: 102 }] as [Limb, Limb],
       };
     }),
     [{ kind: "floor", mat: true }, { kind: "bell", at: "grip", size: 0.045, wheel: true }],
     "overhand",
     -1,
+    { tempo: { down: 1750, bottom: 400, up: 1750, top: 600 } },
   ),
 
   // Kneeling cable crunch, from a reference clip measured with the pose lab

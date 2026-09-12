@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 12: the conditioning movements, which want a CADENCE ---------
+  abWheelRollout: {
+    videoId: "4HZCJLM5wBk",
+    title: "Ab Wheel Rollout",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 14 s",
+    prs: [346],
+    date: "2026-09-13",
+    exercises: ["Ab Wheel Rollout"],
+    notes:
+      "The start sits back: hips behind the knees (thigh 26 back from vertical), trunk 66 forward, hip angle 85-89, arms near plumb. Fully out knee, hip and shoulder make one line (hip angle 165-171), trunk level (87-91), arms reaching forward with the elbows long (142-175), wrists 0.26 trunk lengths under the shoulders. The camera looks down a little: the projected trunk grows 0.40 to 0.53 of the frame as it levels, so the START's trunk angle is the least certain number; hip angle and thigh direction are unaffected. Our wheel handles cannot sit lower than the kneeling knee joint (5 cm minimum wheel radius), so the arms land near 80 from plumb against her 71. 1.75 s out and 1.75 s back in all three reps, about 0.4 s held long and 0.6 s at the start.",
+  },
+
   clean: {
     videoId: "0u97BVlVib0",
     title: "Hang Clean",
