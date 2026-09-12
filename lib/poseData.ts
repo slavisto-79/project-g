@@ -1897,14 +1897,43 @@ export const exercisePoses = {
     { tempo: { down: 900, bottom: 150, up: 600, top: 350 }, camera: { azimuth: -0.5 } },
   ),
 
+  // Incline bench press, from a reference clip measured with the pose lab
+  // (OPEX "Incline Barbell Bench Press", PZ7waXzAzZc, three reps in 6 s;
+  // MoveNet on 36 frames at 0.25 s, a square side view -- the projected
+  // trunk holds 0.123 to 0.158 of the frame throughout, so the sagittal
+  // angles are usable).
+  //
+  // IT PRESSED HALF A PRESS. Measured as the shoulder-to-wrist distance
+  // over a straight arm, which is proportion-free: the clip runs 98% at
+  // lockout down to 50% at the chest, the same to within 2% across all
+  // three reps, with the elbow closing 157 to 48. Ours stopped at 73% and
+  // an elbow of 94 -- the bar halted a forearm short of the chest and the
+  // card showed a partial rep.
+  //
+  // WHAT THIS CLIP CANNOT GIVE US IS THE TRUNK, and the reason is worth
+  // writing down. His hip-to-shoulder line sits 31 degrees off vertical
+  // while the pad he is lying on is nearer 50 -- the difference is his
+  // ARCH, his chest lifted off the bench. Our trunk is one rigid segment
+  // lying flat on the pad, so copying his 31 would float the figure's back
+  // off the bench. The pad stays at 306, which is 36 degrees from
+  // horizontal and already what the exercise's own cue asks for. The arm
+  // angles are therefore taken RELATIVE TO THE TRUNK -- 58 degrees off it
+  // at lockout, 121 at the chest -- and re-projected onto ours.
+  //
+  // Tempo, which it did not have: 1.0 s down, no pause at the chest, 1.0 s
+  // up and 0.25 s at lockout. Period 2.25 s, identical across both
+  // measurable gaps.
   inclinePress: pose(
     "side",
-    ([[0.460, 0.212], [0.495, 0.262], [0.525, 0.305]] as const).map(([barX, barY]) => incline(barX, barY)),
+    ([[0.466, 0.213], [0.499, 0.342], [0.542, 0.439]] as const).map(([barX, barY]) => incline(barX, barY)),
     [
       { kind: "floor" },
       { kind: "slab", at: "pelvis", width: 0.55, height: 0.055, angle: 306 },
       { kind: "bar", at: "grip", length: 0.17 },
     ],
+    "overhand",
+    1,
+    { tempo: { down: 1000, bottom: 0, up: 1000, top: 250 } },
   ),
 
   // Skull crusher, from a reference clip measured with the pose lab (OPEX "EZ
