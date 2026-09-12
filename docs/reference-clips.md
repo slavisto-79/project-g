@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 85 |
+| authored from a clip (the clip shows the exercise) | 87 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 28 |
-| poses with a clip | 81 of 111 (107 in use) |
+| without a clip yet | 26 |
+| poses with a clip | 82 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `singleLegHinge`, `sledPush`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `singleLegHinge`, `sledPush`, `wallSit`.
 
 ## Every exercise
 
@@ -105,9 +105,9 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | High Knees | `highKnees` | authored from the clip | [High Knees | Movement Demo](https://www.youtube.com/watch?v=cUmfCd-Hznk) (CrossFit, three-quarter) | #305 |
 | Hip Hinge Wall Touch | `hinge` | shares `hinge` (the clip shows Conventional Deadlift) | [Conventional Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=TN3DHmd1Fe8) (OPEX Fitness, side) | #316 |
 | Hollow Hold | `hollowHold` | authored from the clip | [Hollow Body Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=EsnM8eBtazU) (OPEX Fitness, side) | #291 |
-| Incline Barbell Bench Press | `inclinePress` | no clip yet |  |  |
+| Incline Barbell Bench Press | `inclinePress` | authored from the clip | [Incline Barbell Bench Press](https://www.youtube.com/watch?v=PZ7waXzAzZc) (OPEX Fitness, side) | #335 |
 | Incline Dumbbell Curl | `inclineCurl` | no clip yet |  |  |
-| Incline Dumbbell Press | `inclinePress` | no clip yet |  |  |
+| Incline Dumbbell Press | `inclinePress` | authored from the clip | [Incline Barbell Bench Press](https://www.youtube.com/watch?v=PZ7waXzAzZc) (OPEX Fitness, side) | #335 |
 | Incline Push-Up | `inclinePushUp` | authored from the clip | [Incline Push Up on Bench - OPEX Exercise Library](https://www.youtube.com/watch?v=E--Ls5QtFqI) (OPEX Fitness, side) | #315 |
 | Inverted Row | `invertedRow` | authored from the clip | [Ring Row](https://www.youtube.com/watch?v=B90sF7dbP04) (OPEX Fitness, side) | #321 |
 | Jump Squat | `jumpSquat` | authored from the clip | [Jump Squats](https://www.youtube.com/watch?v=3jJt5gCMRNQ) (OPEX Abbotsford, three-quarter) | #311 |
@@ -269,3 +269,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `curtsyLunge` | [Goblet Curtsy Squat](https://www.youtube.com/watch?v=7ptRZXL5MBs) | OPEX Fitness | front | three reps in 10.8 s | #332 | 2026-09-12 | Curtsy Lunge | Read as RATIOS of the standing hip height, because his proportions are not the model's -- his thigh is 0.58 of his hip height and ours 0.50. The hip drops 47% of that height (ours 30%); the TRAILING KNEE arrives at the floor, level with the standing ankle, where ours stopped 22% up; the trailing heel lifts to 14% with the knee BELOW it; the trailing foot finishes 1.5 shoulder widths past the standing foot from a stance of 0.72; and the trunk leaves vertical by 15 degrees AWAY from the crossing leg. A front camera cannot read a knee angle in this movement -- the standing shin travels forward, out of the film plane -- so no knee angle is quoted. |
 | `seatedCalfRaise` | [Seated Calf Raise Machine](https://www.youtube.com/watch?v=2Q-HQ3mnePg) | OPEX Fitness | side | five reps in 8.4 s | #333 | 2026-09-12 | Seated Calf Raise | What it settles beyond argument: the machine puts the ball of the foot on a RAISED PLATE and the heel drops below plate level, which is where the calf is stretched -- ours had the foot flat on the floor, so that half of the range did not exist. It also holds the knee at 83 to 89 degrees in all 37 frames, mean 86. What it CANNOT settle is any travel distance: its hip keypoint rises 8 cm over a rep, which a seated hip on a fixed seat cannot do, so the whole skeleton estimate drifts in phase with the lift and its scale is untrustworthy here. The heel range is therefore authored from the plate geometry and capped by keeping the knee inside the clip's own band at the start. |
 | `reverseFly` | [Cable Reverse Fly](https://www.youtube.com/watch?v=qDnwFycUW0I) | OPEX Fitness | back | three reps in 10.5 s | #334 | 2026-09-12 | Dumbbell Reverse Fly | A SUBSTITUTION, and the reason is the camera. The two dumbbell clips in the OPEX library (o8x-WppEits, 3cKWQo6tCg0) were measured first and set aside: both are filmed near side on, shoulders only 23 and 30 px apart in frame, so the lateral spread -- the one thing this movement is -- lies along the camera axis and cannot be told apart from one arm forward and one arm back. This one is filmed from BEHIND and settles it: the wrists run 1.0 shoulder widths, hanging straight under the shoulders, to 3.8 wide open, the same to within 0.07 across three reps, with the wrist within 0.005 of shoulder height at every top and the elbow held at 143 to 158, mean 151. It is the STANDING cable version, so it settles nothing about the trunk -- ours stays hinged at 92 -- but the joint doing the work, horizontal abduction of the shoulder, is the same lift. |
+| `inclinePress` | [Incline Barbell Bench Press](https://www.youtube.com/watch?v=PZ7waXzAzZc) | OPEX Fitness | side | three reps in 6 s | #335 | 2026-09-12 | Incline Barbell Bench Press, Incline Dumbbell Press | Square side view -- the projected trunk holds 0.123 to 0.158 of the frame throughout, so the sagittal angles are usable. Shoulder-to-wrist over a straight arm runs 98% at lockout to 50% at the chest, the same to within 2% across three reps, elbow 157 to 48. What it CANNOT give is the trunk: his hip-to-shoulder line sits 31 degrees off vertical while the pad is nearer 50, the difference being his arch, and our trunk is a rigid segment lying on the pad. So the arm angles are taken RELATIVE TO THE TRUNK -- 58 degrees off it at lockout, 121 at the chest -- and re-projected onto ours. |

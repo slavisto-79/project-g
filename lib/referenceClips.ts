@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 11: the leftovers, picked by measured defect -----------------
+  inclinePress: {
+    videoId: "PZ7waXzAzZc",
+    title: "Incline Barbell Bench Press",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 6 s",
+    prs: [335],
+    date: "2026-09-12",
+    exercises: ["Incline Barbell Bench Press", "Incline Dumbbell Press"],
+    notes:
+      "Square side view -- the projected trunk holds 0.123 to 0.158 of the frame throughout, so the sagittal angles are usable. Shoulder-to-wrist over a straight arm runs 98% at lockout to 50% at the chest, the same to within 2% across three reps, elbow 157 to 48. What it CANNOT give is the trunk: his hip-to-shoulder line sits 31 degrees off vertical while the pad is nearer 50, the difference being his arch, and our trunk is a rigid segment lying on the pad. So the arm angles are taken RELATIVE TO THE TRUNK -- 58 degrees off it at lockout, 121 at the chest -- and re-projected onto ours.",
+  },
+
   reverseFly: {
     videoId: "qDnwFycUW0I",
     title: "Cable Reverse Fly",
