@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 11: the leftovers, picked by measured defect -----------------
+  reverseFly: {
+    videoId: "qDnwFycUW0I",
+    title: "Cable Reverse Fly",
+    channel: "OPEX Fitness",
+    view: "back",
+    span: "three reps in 10.5 s",
+    prs: [334],
+    date: "2026-09-12",
+    exercises: ["Dumbbell Reverse Fly"],
+    notes:
+      "A SUBSTITUTION, and the reason is the camera. The two dumbbell clips in the OPEX library (o8x-WppEits, 3cKWQo6tCg0) were measured first and set aside: both are filmed near side on, shoulders only 23 and 30 px apart in frame, so the lateral spread -- the one thing this movement is -- lies along the camera axis and cannot be told apart from one arm forward and one arm back. This one is filmed from BEHIND and settles it: the wrists run 1.0 shoulder widths, hanging straight under the shoulders, to 3.8 wide open, the same to within 0.07 across three reps, with the wrist within 0.005 of shoulder height at every top and the elbow held at 143 to 158, mean 151. It is the STANDING cable version, so it settles nothing about the trunk -- ours stays hinged at 92 -- but the joint doing the work, horizontal abduction of the shoulder, is the same lift.",
+  },
+
   seatedCalfRaise: {
     videoId: "2Q-HQ3mnePg",
     title: "Seated Calf Raise Machine",
