@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 12: the conditioning movements, which want a CADENCE ---------
+  battleRopes: {
+    videoId: "4aT3IyKOo5M",
+    title: "Battling Ropes",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "eight wave cycles in 3.5 s",
+    prs: [342],
+    date: "2026-09-13",
+    exercises: ["Battle Ropes"],
+    notes:
+      "Read at 0.1 s rather than the usual 0.3, because a rope wave is fast enough to alias at the slower rate. The camera was expected to give little and gave a lot. The trunk holds 57 to 63 degrees off vertical, mean 59.5, in every frame -- bent over the ropes. The hands never rise above the shoulder: the up hand turns at 0.29 trunk lengths below it with the elbow at 88, the down hand drives to 1.06 below with the elbow at 145. The two wrists run in clean antiphase, their height difference swinging plus and minus 0.21 of the frame. A full cycle takes 0.44 s -- nine peaks over 3.5 s, 2.3 waves a second. The squat under it matched ours already: hip height over trunk length 1.51.",
+  },
+
   landminePress: {
     videoId: "y5RxyrjwKFk",
     title: "Landmine Standing Press",
