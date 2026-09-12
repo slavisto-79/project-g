@@ -136,7 +136,7 @@ const STANDING_FRAMES = {
   // (fly lay down on its bench when it was authored from its clip.)
   overheadPress: 0, pushPress: 0, pushJerk: 0, arnoldPress: 0, lateralRaise: 0,
   tricepsExtension: 0, boxJump: 0, broadJump: 0, tuckJump: 0, jumpSquat: 0, depthJump: 0, lateralLunge: 0, clean: 4, powerClean: 4, kettlebellSnatch: 3, kettlebellClean: 2,
-  straightArmPulldown: 0, facePull: 0, landminePress: 0, burpee: 1,
+  straightArmPulldown: 0, facePull: 0, landminePress: 0, burpee: 0,
   cableCurl: 0, cableFly: 0, cableLateralRaise: 0, cablePullThrough: 0,
 };
 function kneeBend(frame, side) {
@@ -167,7 +167,7 @@ const RIGID_LEGS = {
   pushUp: null, inclinePushUp: null, declinePushUp: null,
   pikePushUp: null, plank: null, plankSaw: null,
   plankIYTW: null, sidePlank: null, handstandPushUp: null, ringCurl: null,
-  burpee: [[3, 0], [3, 1]],
+  burpee: [[2, 0], [2, 1], [3, 0], [3, 1]],
   mountainClimber: [[0, 0], [1, 1]],
 };
 for (const [name, entries] of Object.entries(RIGID_LEGS)) {
