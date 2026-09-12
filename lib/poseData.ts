@@ -802,7 +802,7 @@ export const exercisePoses = {
       torso: 266,
       neck: 318,
       // Hands on the handles beside the bench, arms outside the pad.
-      arms: sideArms(226, 300).map((arm) => ({ ...arm, spread: 0.08 })) as [Limb, Limb],
+      arms: sideArms(226, 300).map((arm) => ({ ...arm, spread: 0.07 })) as [Limb, Limb],
       legs: sideLegs(92, shin, shin + 85),
     })),
     // The pad sits a centimetre lower than a lying pad's usual body-half:
@@ -4147,29 +4147,55 @@ export const exercisePoses = {
     "neutral",
   ),
 
-  // Lying back on an incline: the upper arms hang plumb BEHIND the torso and
-  // stay there -- only the forearms curl, which is the whole point. The arms
-  // hang OUTSIDE the backrest (spread), the way they must on a real bench:
-  // the dumbbells used to swing through the pad.
+  // Incline dumbbell curl, from a reference clip measured with the pose lab
+  // (OPEX "Incline Dumbbell Curl", aG7CXiKxepw, three reps in 11.2 s;
+  // MoveNet on 40 frames at 0.35 s, a square side view -- the projected
+  // trunk holds 0.249 to 0.288 of the frame throughout).
+  //
+  // IT CURLED HALF A CURL. The clip runs the elbow from 178 straight down
+  // to 26 at the top, the same to within 4 degrees across all three reps.
+  // Ours went 178 to 87 -- it stopped with the forearm still past
+  // horizontal, which on a curl is where the work begins, not where it
+  // ends.
+  //
+  // The UPPER ARM does not quite stay put either. The old comment claimed
+  // it holds plumb and only the forearm moves; the clip drifts it 23
+  // degrees further behind the torso as the curl closes, 183 to 206. Small
+  // enough that the cue survives -- this is still a forearm movement --
+  // but it is what the lifter does and it is now what the figure does.
+  //
+  // And the BENCH was too flat. The trunk measures 41.5 degrees off
+  // vertical, mean over 33 frames, against our 54. Unlike the incline
+  // PRESS, whose clip reads 19 degrees more upright than its own pad
+  // because the lifter arches, nobody arches on a curl: here the trunk IS
+  // the pad, so both move to 318.
+  //
+  // The arms still hang OUTSIDE the backrest (`spread`), the way they must on
+  // a real bench: the dumbbells used to swing through the pad.
+  //
+  // Tempo, which it did not have: 1.2 s up, 0.7 s squeezed, 1.5 s down and
+  // 0.7 s hanging. Period 4.1 s, mean over four measurable gaps.
   inclineCurl: pose(
     "side",
-    [179, 130, 78].map((forearm) => {
+    ([[183, 184], [190, 268], [206, 359]] as const).map(([upper, forearm]) => {
       const pelvis = { x: 0.585, y: 0.64 };
-      const torso = 306;
+      const torso = 318;
       return {
         pelvis,
         torso,
-        neck: 316,
-        arms: sideArms(178, forearm).map((arm) => ({ ...arm, spread: 0.07 })) as [Limb, Limb],
+        neck: 328,
+        arms: sideArms(upper, forearm).map((arm) => ({ ...arm, spread: 0.07 })) as [Limb, Limb],
         legs: plantedLegs(pelvis, torso, "side", [{ x: 0.712, y: FLOOR }, { x: 0.696, y: FLOOR }], FORWARD),
       };
     }),
     [
       { kind: "floor" },
-      { kind: "slab", at: "pelvis", width: 0.55, height: 0.055, angle: 306 },
+      { kind: "slab", at: "pelvis", width: 0.55, height: 0.055, angle: 318 },
       { kind: "bell", at: "hand0", each: true },
     ],
     "underhand",
+    1,
+    { tempo: { down: 1200, bottom: 700, up: 1500, top: 700 } },
   ),
 } satisfies Record<string, ExercisePose>;
 
