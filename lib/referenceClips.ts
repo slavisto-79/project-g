@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 12: the conditioning movements, which want a CADENCE ---------
+  burpee: {
+    videoId: "Ozqwsv3kggA",
+    title: "Burpee",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four burpees in 10.75 s",
+    prs: [344],
+    date: "2026-09-13",
+    exercises: ["Burpee"],
+    notes:
+      "Measured in the lifter's own trunk lengths (hip to shoulder, 0.271 of the crop standing). The bottom is chest to floor in all three reps it is seen in -- hip and shoulder down at the wrists' height for two frames running, elbows 59-73 -- not a plank. With the hands planted the crouch is high: knees 121-136, hip angle 36-56, heels up, the hip within 0.08 trunk lengths of standing. The press out leads with the chest (shoulders 0.40 up, hips still down, elbows 104-113). At the apex the wrists are 0.32 above the shoulders with the elbows bent 72-91 and the hip 0.28 over standing. 3.25 s a burpee, apex to apex. He turns toward the camera in flight, so the plane the arms rise in is not quotable -- only their height and bend.",
+  },
+
   sledPush: {
     videoId: "rB4LFuZM_i8",
     title: "Sled Push",

@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 96 |
+| authored from a clip (the clip shows the exercise) | 97 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 17 |
-| poses with a clip | 90 of 111 (107 in use) |
+| without a clip yet | 16 |
+| poses with a clip | 91 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bodyweightSquat`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `wallSit`.
 
 ## Every exercise
 
@@ -53,7 +53,7 @@ Poses without a clip yet: `abWheelRollout`, `bodyweightSquat`, `burpee`, `clean`
 | Box Squat | `boxSquat` | authored from the clip | [Box Squat Movement Demo](https://www.youtube.com/watch?v=rMEPHwNhQfo) (The Active Life, side) | #271 |
 | Broad Jump | `broadJump` | authored from the clip | [Broad Jump | Strength & Conditioning Exercise Library](https://www.youtube.com/watch?v=YjFr2OEivz0) (Flow High Performance, side) | #300 |
 | Bulgarian Split Squat | `splitSquat` | authored from the clip | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267 |
-| Burpee | `burpee` | no clip yet |  |  |
+| Burpee | `burpee` | authored from the clip | [Burpee](https://www.youtube.com/watch?v=Ozqwsv3kggA) (OPEX Fitness, side) | #344 |
 | Cable Chest Fly | `cableFly` | authored from the clip | [Cable Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=jtkaC-mq1Xk) (OPEX Fitness, front) | #324 |
 | Cable Crunch | `cableCrunch` | authored from the clip | [Kneeling Cable Crunch](https://www.youtube.com/watch?v=2ndlUfl5JPo) (OPEX Fitness, three-quarter) | #330 |
 | Cable Curl | `cableCurl` | authored from the clip | [Cable Curl](https://www.youtube.com/watch?v=h9DPY5pCaGA) (OPEX Fitness, side) | #326 |
@@ -278,3 +278,4 @@ Poses without a clip yet: `abWheelRollout`, `bodyweightSquat`, `burpee`, `clean`
 | `landminePress` | [Landmine Standing Press](https://www.youtube.com/watch?v=y5RxyrjwKFk) | OPEX Fitness | side | three reps in 12.6 s | #341 | 2026-09-13 | Landmine Press | Pressed with ONE hand while the other hangs, matching the library's unilateral flag; ours cupped the bar with both. Shoulder-to-wrist over a straight arm runs 40% with the bar at the shoulder (elbow 40), 67% at half the extension, 94% locked out (elbow 149), the arm sweeping from 118 degrees off vertical to 56. The trunk leans 8 degrees at the shoulder and 20 locked out. Period 4.2 s: 1.05 s up, 0.7 s locked, 1.75 s down, 0.7 s at the shoulder. The clip offers only 480p. |
 | `battleRopes` | [Battling Ropes](https://www.youtube.com/watch?v=4aT3IyKOo5M) | OPEX Fitness | side | eight wave cycles in 3.5 s | #342 | 2026-09-13 | Battle Ropes | Read at 0.1 s rather than the usual 0.3, because a rope wave is fast enough to alias at the slower rate. The camera was expected to give little and gave a lot. The trunk holds 57 to 63 degrees off vertical, mean 59.5, in every frame -- bent over the ropes. The hands never rise above the shoulder: the up hand turns at 0.29 trunk lengths below it with the elbow at 88, the down hand drives to 1.06 below with the elbow at 145. The two wrists run in clean antiphase, their height difference swinging plus and minus 0.21 of the frame. A full cycle takes 0.44 s -- nine peaks over 3.5 s, 2.3 waves a second. The squat under it matched ours already: hip height over trunk length 1.51. |
 | `sledPush` | [Sled Push](https://www.youtube.com/watch?v=rB4LFuZM_i8) | OPEX Fitness | side | three stride cycles in 3.75 s | #343 | 2026-09-13 | Sled Push | She crosses the frame, so the crop FOLLOWED her, centred on a position read off two probe frames; at a fixed full-frame crop MoveNet found only part of her. The sled does not hide the legs -- ankles score 0.61 to 0.94. One leg drives out to 166-177 while the other folds to 72-84, the recovering foot lifting 0.42 trunk lengths, trading every step. The elbows hold 161 to 179, the arm forward and 24 degrees below horizontal. The trunk leans 67 degrees off vertical. A full stride cycle takes 1.1 s. The projected trunk grows from 0.228 to 0.316 of the frame over the clip because she walks toward the camera, not because of any yaw. |
+| `burpee` | [Burpee](https://www.youtube.com/watch?v=Ozqwsv3kggA) | OPEX Fitness | side | four burpees in 10.75 s | #344 | 2026-09-13 | Burpee | Measured in the lifter's own trunk lengths (hip to shoulder, 0.271 of the crop standing). The bottom is chest to floor in all three reps it is seen in -- hip and shoulder down at the wrists' height for two frames running, elbows 59-73 -- not a plank. With the hands planted the crouch is high: knees 121-136, hip angle 36-56, heels up, the hip within 0.08 trunk lengths of standing. The press out leads with the chest (shoulders 0.40 up, hips still down, elbows 104-113). At the apex the wrists are 0.32 above the shoulders with the elbows bent 72-91 and the hip 0.28 over standing. 3.25 s a burpee, apex to apex. He turns toward the camera in flight, so the plane the arms rise in is not quotable -- only their height and bend. |

@@ -4066,31 +4066,93 @@ export const exercisePoses = {
     { loop: [980, 980] },
   ),
 
-  // Jump, stand, crouch with the hands planted, plank -- played out and back,
-  // which is the full burpee cycle.
+  // Burpee, from a reference clip measured with the pose lab (OPEX "Burpee",
+  // Ozqwsv3kggA, four burpees in 10.75 s; MoveNet on 55 frames at 0.25 s, a
+  // side view). Lengths are in the lifter's own trunk lengths (hip to
+  // shoulder, 0.271 of the crop standing).
+  //
+  // THE BOTTOM IS CHEST TO FLOOR, not a plank. In all three reps the model
+  // puts the hip and the shoulder down at the wrists' height for two frames
+  // running, elbows 59-73. Ours stopped in a straight-armed plank.
+  //
+  // THE CROUCH IS HIGH. With the hands planted the knees read 121-136 and the
+  // hip angle 36-56, the heels up, the hip within 0.08 trunk lengths of its
+  // standing height -- a folded bent-knee reach to the floor. Ours squatted
+  // to knee 69 with the hips 21 cm lower.
+  //
+  // THE JUMP TAKES THE ARMS OVERHEAD. At the apex the wrists are 0.32 trunk
+  // lengths ABOVE the shoulders with the elbows bent 72-91, and the hip
+  // rises 0.28 trunk lengths over standing. Ours held the arms in a V at
+  // chest height and rose 0.20. What the clip cannot say is the plane the
+  // arms rise in -- he turns toward the camera in flight -- so the height
+  // and the bend are taken and the arms rise half out to the sides.
+  //
+  // Cadence, which it did not have: 3.25 s a burpee, apex to apex three
+  // times over. Apex to standing 0.5 s, to the hands planted 0.5, to the
+  // chest down 0.5, held 0.25, feet jumped in 0.75, back in the air 0.75.
+  // The old four keys played out and back; this is a loop, so the figure
+  // never jumps backward out of the plank.
   burpee: pose(
     "side",
-    [
-      // Same low-hop rule as `jump`: arms in a V, not overhead, so the flight
-      // apex doesn't stretch the camera frame and shrink the figure.
-      { pelvis: { x: 0.50, y: 0.445 }, torso: 358, arms: sideArms(305, 325), legs: sideLegs(186, 182, 216) },
-      { pelvis: { x: 0.500, y: 0.494 }, torso: 358, arms: HANG, legs: plantedLegs({ x: 0.500, y: 0.494 }, 358, "side", FEET, FORWARD, [272, 268]) },
-      (() => {
-        const pelvis = { x: 0.545, y: 0.70 };
-        const torso = 285;
-        return {
-          pelvis,
-          torso,
-          neck: torso - 4,
-          arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], FORWARD, [264, 259]),
-          legs: plantedLegs(pelvis, torso, "side", [{ x: 0.62, y: FLOOR }, { x: 0.604, y: FLOOR }], BACK, [272, 268]),
-        };
-      })(),
-      supported({ x: 0.485, y: 0.689 }, 292.3, { x: 0.392, y: 0.855 }, { x: 0.767, y: 0.855 }),
-    ],
+    (() => {
+      // Palms on the floor, the hand bone a few mm above it.
+      const handY = 0.890;
+      const stand = { pelvis: { x: 0.5, y: 0.494 }, torso: 358, arms: HANG, legs: plantedLegs({ x: 0.5, y: 0.494 }, 358, "side", FEET, FORWARD, [272, 268]) };
+      const crouchPelvis = { x: 0.5, y: 0.500 };
+      const crouchTorso = 241;
+      // The hands land a little ahead of the shoulders, arms near straight,
+      // and STAY there: the chest-down key is built round the same spots.
+      const hands = [0, 1].map((side) => {
+        const sh = shoulderAt(crouchPelvis, crouchTorso, side as 0 | 1, "side");
+        return { x: sh.x - 0.09 / ASPECT, y: handY };
+      }) as [Point, Point];
+      const crouch = {
+        pelvis: crouchPelvis,
+        torso: crouchTorso,
+        neck: crouchTorso + 20,
+        arms: reachingArms(crouchPelvis, crouchTorso, "side", hands, FORWARD),
+        // Feet under the hips, up on the toes.
+        legs: plantedLegs(crouchPelvis, crouchTorso, "side", [0, 1].map((side) => ({ x: hipAt(crouchPelvis, crouchTorso, side as 0 | 1, "side").x, y: FLOOR - 0.046 })) as [Point, Point], BACK, [225, 230]),
+      };
+      // Chest down: the pelvis a hip's radius over the floor (as `proneRaise`),
+      // placed so the shoulders sit 0.15 ahead of the planted hands -- which
+      // is what bends the elbows to the clip's 63 and lifts them over the back.
+      const chestTorso = 272;
+      const chestProbe = shoulderAt({ x: 0, y: 0.883 }, chestTorso, 0, "side");
+      const chestPelvis = { x: hands[0].x - 0.15 / ASPECT - chestProbe.x, y: 0.883 };
+      const chest = {
+        pelvis: chestPelvis,
+        torso: chestTorso,
+        neck: 284,
+        arms: reachingArms(chestPelvis, chestTorso, "side", hands, FORWARD),
+        // Legs long on the floor, toes tucked under.
+        legs: lyingLegs(92, 90, 230),
+      };
+      // The press out of it leads with the chest: a quarter second after the
+      // chest leaves the floor the shoulders are 0.40 trunk lengths up, the
+      // hips still down and the elbows at 104-113.
+      const pressTorso = 300;
+      const press = {
+        pelvis: chestPelvis,
+        torso: pressTorso,
+        neck: 312,
+        arms: reachingArms(chestPelvis, pressTorso, "side", hands, FORWARD),
+        legs: lyingLegs(92, 90, 230),
+      };
+      const jump = {
+        pelvis: { x: 0.5, y: 0.424 },
+        torso: 358,
+        // Upper arm 20 degrees under level, forearm upright: elbow 70 and the
+        // wrists 0.086 over the shoulders, the clip's 0.32 trunk lengths.
+        arms: [{ upper: 250, lower: 0, yaw: -30 }, { upper: 255, lower: 5, yaw: -30 }] as [Limb, Limb],
+        legs: sideLegs(186, 182, 226),
+      };
+      return [stand, crouch, chest, press, crouch, jump];
+    })(),
     [{ kind: "floor", mat: true, y: 0.936 }],
     "overhand",
     -1,
+    { loop: [500, 500, 500, 500, 750, 500] },
   ),
 
   // Cable glute kickback, from a reference clip measured with the pose lab
