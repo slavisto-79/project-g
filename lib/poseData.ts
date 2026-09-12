@@ -4311,22 +4311,63 @@ export const exercisePoses = {
     { loop: [220, 220] },
   ),
 
-  // Low lean into the sled's posts, legs driving alternately -- one flat and
-  // planted, one trailing on the toes.
+  // Sled push, from a reference clip measured with the pose lab (OPEX "Sled
+  // Push", rB4LFuZM_i8, three stride cycles in 3.75 s; MoveNet on 26 frames
+  // at 0.15 s, a side view). She crosses the frame, so the crop FOLLOWED her,
+  // centred on a position read off two probe frames.
+  //
+  // When this batch was proposed I warned the sled might hide the legs. It
+  // does not: the ankles score 0.61 to 0.94, and what they show is the
+  // biggest defect in the pose.
+  //
+  // THE LEGS DID NOT DRIVE. Ours held both knees at 90 to 100 degrees in
+  // both keys -- a crouch that shuffled its feet. In the clip one leg drives
+  // out to 166-177 behind her while the other folds to 72-84 and comes
+  // through under the hip, the recovering foot lifting 0.42 trunk lengths
+  // off the floor, and they trade every step.
+  //
+  // THE ARMS WERE BENT AND LOW. Her elbows hold 161 to 179 -- locked out to
+  // the posts -- with the arm pointing forward and 24 degrees below
+  // horizontal. Ours bent them to 105 and pointed them 61 degrees below.
+  //
+  // THE LEAN IS DEEPER: 67 degrees off vertical, mean over 26 frames,
+  // against our 55. And the hip sits lower, 1.22 trunk lengths off the floor
+  // rather than 1.35.
+  //
+  // Cadence, which it did not have: a full cycle -- both legs driving once --
+  // takes 1.1 s, from the knee-angle minima of both legs. Two keys of 550 ms.
   sledPush: pose(
     "side",
     [0, 1].map((phase) => {
-      const pelvis = { x: 0.46, y: phase ? 0.605 : 0.60 };
-      const torso = 55;
-      const feet: [Point, Point] = phase === 0
-        ? [{ x: 0.52, y: FLOOR }, { x: 0.398, y: 0.902 }]
-        : [{ x: 0.402, y: 0.902 }, { x: 0.516, y: FLOOR }];
-      const ends: [number, number] = phase === 0 ? [88, 132] : [132, 92];
+      const torso = 67;
+      const pelvis = { x: 0.46, y: 0.631 };
+      // Each foot off ITS OWN hip -- the far hip sits a girdle-depth away,
+      // and one shared hip left the far driving leg 40 degrees short of the
+      // near one. The driving foot is planted far behind on a near-straight
+      // leg -- 0.211 rather than 0.212, because at 0.212 the IK crosses its
+      // straightening band and snaps the knee to a locked 180, which the clip
+      // never shows; the recovering foot is lifted, just behind the hip.
+      const drive = (side: 0 | 1): Point => ({ x: hipAt(pelvis, torso, side, "side").x - 0.211, y: FLOOR });
+      const recover = (side: 0 | 1): Point => ({ x: hipAt(pelvis, torso, side, "side").x - 0.110, y: FLOOR - 0.103 });
+      const feet: [Point, Point] = phase === 0 ? [recover(0), drive(1)] : [drive(0), recover(1)];
+      const ends: [number, number] = phase === 0 ? [150, 110] : [110, 150];
+      // The arms locked out to the posts: elbow 166, pointing forward and 24
+      // degrees below horizontal.
+      const hands = [0, 1].map((side) => {
+        const sh = shoulderAt(pelvis, torso, side as 0 | 1, "side");
+        return along(sh, 114, 0.285);
+      }) as [Point, Point];
       return {
         pelvis,
         torso,
-        neck: 40,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.68, y: 0.66 }, { x: 0.666, y: 0.672 }], BACK),
+        neck: 50,
+        arms: reachingArms(pelvis, torso, "side", hands, BACK),
+        // Both knees bend forward. The recovering knee then sits low and a
+        // little ahead of the hip with the foot kicked back -- which is not a
+        // choice but what the clip's numbers force: a 78-degree knee with the
+        // foot lifted 0.42 trunk lengths puts the foot 0.195 behind the hip,
+        // and the knee has to come under it. Bent the other way the knee
+        // swung up level with the hip, a donkey kick.
         legs: plantedLegs(pelvis, torso, "side", feet, FORWARD, ends),
       };
     }),
@@ -4336,6 +4377,9 @@ export const exercisePoses = {
       // floating slab of bench upholstery was standing in for it.
       { kind: "slab", at: "hand0", width: 0.44, height: 0.055, sled: true },
     ],
+    "neutral",
+    1,
+    { loop: [550, 550] },
   ),
 
   // One hand braced on a bench, the other rowing a single dumbbell from a

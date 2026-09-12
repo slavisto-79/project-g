@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 12: the conditioning movements, which want a CADENCE ---------
+  sledPush: {
+    videoId: "rB4LFuZM_i8",
+    title: "Sled Push",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three stride cycles in 3.75 s",
+    prs: [343],
+    date: "2026-09-13",
+    exercises: ["Sled Push"],
+    notes:
+      "She crosses the frame, so the crop FOLLOWED her, centred on a position read off two probe frames; at a fixed full-frame crop MoveNet found only part of her. The sled does not hide the legs -- ankles score 0.61 to 0.94. One leg drives out to 166-177 while the other folds to 72-84, the recovering foot lifting 0.42 trunk lengths, trading every step. The elbows hold 161 to 179, the arm forward and 24 degrees below horizontal. The trunk leans 67 degrees off vertical. A full stride cycle takes 1.1 s. The projected trunk grows from 0.228 to 0.316 of the frame over the clip because she walks toward the camera, not because of any yaw.",
+  },
+
   battleRopes: {
     videoId: "4aT3IyKOo5M",
     title: "Battling Ropes",
