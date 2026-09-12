@@ -792,14 +792,56 @@ export const exercisePoses = {
     { tempo: { down: 650, bottom: 0, up: 650, top: 0 }, camera: { azimuth: 0.35 } },
   ),
 
+  // Wall sit, from a reference clip measured with the pose lab (MedBridge
+  // "How to Do a Wall Sit Exercise", cWTZ8Am1Ee0, one sit held about 14 s;
+  // MoveNet on 53 frames at 0.5 s). The video cuts between a side camera
+  // and a front one; the numbers are from the side camera's frames (its
+  // thigh projects 0.15 of the frame, the front camera's 0.09).
+  //
+  // THE THIGHS SIT A LITTLE ABOVE LEVEL. Held, the knee is 101-104 with the
+  // shin plumb (2-3 degrees), the hip 0.13 trunk lengths ABOVE the knee --
+  // thigh 14 degrees under level from the hip -- and the trunk upright
+  // against the wall (3). OPEX's own Wall Sit clip (CoGaiX4P_BQ), filmed
+  // face on, agrees: its knees sit 0.02-0.03 of the frame under the hips,
+  // 0.1 trunk lengths. Ours held the thighs dead level, knee 92.
+  //
+  // SHE SITS BACK ONTO THE WALL. Standing, her hips are over her ankles and
+  // half a trunk length clear of the wall; she slides back and down in
+  // 2.5 s and comes up the same way in 2.5 s. Ours had no standing key,
+  // just a 3 mm bob in the seat, and the wall rode the shoulder.
+  //
+  // THE HANDS REST ON THE THIGHS (shoulder to wrist 28 degrees forward of
+  // plumb, elbows 155); ours hung them down the wall.
+  //
+  // The clip holds the sit for about 14 s, which is a prescription, not a
+  // movement; the card holds it 4 s.
   wallSit: pose(
     "side",
+    (() => {
+      const knee = { x: FEET[0].x, y: FEET[0].y - P.shin };
+      const rad = (14 * Math.PI) / 180;
+      const hip = { x: knee.x - (P.thigh * Math.cos(rad)) / ASPECT, y: knee.y - P.thigh * Math.sin(rad) };
+      const torso = 3;
+      const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      // The hand on the top of the thigh, three quarters of the way to the knee.
+      const onThigh = [0, 1].map((side) => {
+        const h = hipAt(pelvis, torso, side as 0 | 1, "side");
+        return { x: h.x + (knee.x - hip.x) * 0.75, y: h.y + (knee.y - hip.y) * 0.75 - 0.05 };
+      }) as [Point, Point];
+      return [
+        stand({ x: 0.5, y: 0.494 }, 2, HANG),
+        { pelvis, torso, neck: 0, arms: reachingArms(pelvis, torso, "side", onThigh, BACK), legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD) },
+      ];
+    })(),
     [
-      { pelvis: { x: 0.44, y: 0.60 }, torso: 356, arms: sideArms(176, 178), legs: sideLegs(90, 178, 88) },
-      { pelvis: { x: 0.44, y: 0.606 }, torso: 356, arms: sideArms(176, 178), legs: sideLegs(91, 179, 89) },
+      { kind: "floor" },
+      // The wall is the exercise, and it stays put: it rode the shoulder, so
+      // a standing key would have carried it along.
+      { kind: "slab", x: 0.31, y: 0.55, width: 0.045, height: 0.62 },
     ],
-    // The wall is the exercise: without it the figure sat in mid-air.
-    [{ kind: "floor" }, { kind: "slab", at: "shoulder", dx: -0.075, dy: 0.1, width: 0.045, height: 0.62 }],
+    "neutral",
+    1,
+    { tempo: { down: 2500, bottom: 4000, up: 2500, top: 1000 } },
   ),
 
   // Leg extension, from a reference clip measured with the pose lab (OPEX
