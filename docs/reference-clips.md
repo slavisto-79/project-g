@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 88 |
+| authored from a clip (the clip shows the exercise) | 90 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 25 |
-| poses with a clip | 83 of 111 (107 in use) |
+| without a clip yet | 23 |
+| poses with a clip | 84 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `singleLegHinge`, `sledPush`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`, `sledPush`, `wallSit`.
 
 ## Every exercise
 
@@ -158,9 +158,9 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Seated Leg Curl | `legCurl` | authored from the clip | [Prone Hamstring Curl Machine](https://www.youtube.com/watch?v=xKOyGU0AfOE) (OPEX Fitness, side) | #319 |
 | Side Plank | `sidePlank` | authored from the clip | [Side Plank - OPEX Exercise Library](https://www.youtube.com/watch?v=tbWPBOgju9g) (OPEX Fitness, front) | #285 |
 | Single-Leg Calf Raise | `calfRaise` | shares `calfRaise` (the clip shows Bodyweight Calf Raise, Dumbbell Calf Raise) | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
-| Single-Leg Deadlift | `singleLegHinge` | no clip yet |  |  |
+| Single-Leg Deadlift | `singleLegHinge` | authored from the clip | [Dumbbell Single Leg Romanian Deadlift](https://www.youtube.com/watch?v=pJewPISyHjw) (OPEX Fitness, side) | #337 |
 | Single-Leg Glute Bridge | `hipThrust` | shares `hipThrust` (the clip shows Barbell Hip Thrust) | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
-| Single-Leg Romanian Deadlift | `singleLegHinge` | no clip yet |  |  |
+| Single-Leg Romanian Deadlift | `singleLegHinge` | authored from the clip | [Dumbbell Single Leg Romanian Deadlift](https://www.youtube.com/watch?v=pJewPISyHjw) (OPEX Fitness, side) | #337 |
 | Skater Bound | `skaterBound` | authored from the clip | [Skater Jumps](https://www.youtube.com/watch?v=Xqzq9w42-z4) (Exercise Library, front) | #302 |
 | Skull Crusher | `skullCrusher` | authored from the clip | [EZ Bar Skull Crusher - OPEX Exercise Library](https://www.youtube.com/watch?v=eluOhtYkm-0) (OPEX Fitness, head-end) | #281 |
 | Sled Push | `sledPush` | no clip yet |  |  |
@@ -271,3 +271,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `reverseFly` | [Cable Reverse Fly](https://www.youtube.com/watch?v=qDnwFycUW0I) | OPEX Fitness | back | three reps in 10.5 s | #334 | 2026-09-12 | Dumbbell Reverse Fly | A SUBSTITUTION, and the reason is the camera. The two dumbbell clips in the OPEX library (o8x-WppEits, 3cKWQo6tCg0) were measured first and set aside: both are filmed near side on, shoulders only 23 and 30 px apart in frame, so the lateral spread -- the one thing this movement is -- lies along the camera axis and cannot be told apart from one arm forward and one arm back. This one is filmed from BEHIND and settles it: the wrists run 1.0 shoulder widths, hanging straight under the shoulders, to 3.8 wide open, the same to within 0.07 across three reps, with the wrist within 0.005 of shoulder height at every top and the elbow held at 143 to 158, mean 151. It is the STANDING cable version, so it settles nothing about the trunk -- ours stays hinged at 92 -- but the joint doing the work, horizontal abduction of the shoulder, is the same lift. |
 | `inclinePress` | [Incline Barbell Bench Press](https://www.youtube.com/watch?v=PZ7waXzAzZc) | OPEX Fitness | side | three reps in 6 s | #335 | 2026-09-12 | Incline Barbell Bench Press, Incline Dumbbell Press | Square side view -- the projected trunk holds 0.123 to 0.158 of the frame throughout, so the sagittal angles are usable. Shoulder-to-wrist over a straight arm runs 98% at lockout to 50% at the chest, the same to within 2% across three reps, elbow 157 to 48. What it CANNOT give is the trunk: his hip-to-shoulder line sits 31 degrees off vertical while the pad is nearer 50, the difference being his arch, and our trunk is a rigid segment lying on the pad. So the arm angles are taken RELATIVE TO THE TRUNK -- 58 degrees off it at lockout, 121 at the chest -- and re-projected onto ours. |
 | `inclineCurl` | [Incline Dumbbell Curl](https://www.youtube.com/watch?v=aG7CXiKxepw) | OPEX Fitness | side | three reps in 11.2 s | #336 | 2026-09-12 | Incline Dumbbell Curl | Square side view -- the projected trunk holds 0.249 to 0.288 of the frame throughout. The elbow runs 178 straight down to 26 at the top, the same to within 4 degrees across three reps; ours stopped at 87. The upper arm does not quite hold still either: it drifts 23 degrees further behind the torso as the curl closes, 183 to 206. And the trunk measures 41.5 degrees off vertical, mean over 33 frames, against our 54 -- unlike the incline PRESS, whose lifter arches and whose trunk therefore reads 19 degrees more upright than his own pad, nobody arches on a curl, so here the trunk IS the pad. |
+| `singleLegHinge` | [Dumbbell Single Leg Romanian Deadlift](https://www.youtube.com/watch?v=pJewPISyHjw) | OPEX Fitness | side | four reps in 14.8 s | #337 | 2026-09-12 | Single-Leg Romanian Deadlift, Single-Leg Deadlift | Read as fractions of the standing hip height. The hip travels 28% of it BACK -- from 11% in front of the standing ankle to 17% behind -- while the shoulder goes the other way; ours walked the pelvis 20% FORWARD. The standing knee holds 173 to 153, twenty degrees, against our fifty four. The trunk reaches 104 off vertical and the hip gives up only 3% of its height. The FREE LEG is taken by angle, not position: its ankle projects 0.370 of the frame from the hip where a straight leg of hers is 0.481, so it swings a fifth of its length out of the film plane -- but the clip does settle that it hangs plumb at the top, reaches 57 degrees behind plumb at the halfway point, and finishes level with the hip, knee near straight at 158. |
