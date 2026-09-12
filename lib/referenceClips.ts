@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 11: the leftovers, picked by measured defect -----------------
+  seatedCalfRaise: {
+    videoId: "2Q-HQ3mnePg",
+    title: "Seated Calf Raise Machine",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "five reps in 8.4 s",
+    prs: [333],
+    date: "2026-09-12",
+    exercises: ["Seated Calf Raise"],
+    notes:
+      "What it settles beyond argument: the machine puts the ball of the foot on a RAISED PLATE and the heel drops below plate level, which is where the calf is stretched -- ours had the foot flat on the floor, so that half of the range did not exist. It also holds the knee at 83 to 89 degrees in all 37 frames, mean 86. What it CANNOT settle is any travel distance: its hip keypoint rises 8 cm over a rep, which a seated hip on a fixed seat cannot do, so the whole skeleton estimate drifts in phase with the lift and its scale is untrustworthy here. The heel range is therefore authored from the plate geometry and capped by keeping the knee inside the clip's own band at the start.",
+  },
+
   curtsyLunge: {
     videoId: "7ptRZXL5MBs",
     title: "Goblet Curtsy Squat",

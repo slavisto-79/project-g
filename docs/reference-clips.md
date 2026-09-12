@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 83 |
+| authored from a clip (the clip shows the exercise) | 84 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 30 |
-| poses with a clip | 79 of 111 (107 in use) |
+| without a clip yet | 29 |
+| poses with a clip | 80 of 111 (107 in use) |
 
-Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `seatedCalfRaise`, `singleLegHinge`, `sledPush`, `wallSit`.
+Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, `bicycleCrunch`, `bodyweightSquat`, `burpee`, `clean`, `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `inclineCurl`, `inclinePress`, `kickback`, `landminePress`, `legExtension`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `reverseFly`, `ringCurl`, `run`, `singleLegHinge`, `sledPush`, `wallSit`.
 
 ## Every exercise
 
@@ -153,7 +153,7 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | Rotational Med Ball Throw | `medBallThrow` | no clip yet |  |  |
 | Russian Twist | `russianTwist` | authored from the clip | [Russian Twist](https://www.youtube.com/watch?v=Hvtxbidjins) (OPEX Fitness, side) | #289 |
 | Seated Cable Row | `seatedRow` | authored from the clip | [Seated Cable Row - OPEX Exercise Library](https://www.youtube.com/watch?v=4ZbqM_gcgAI) (OPEX Fitness, side) | #276 |
-| Seated Calf Raise | `seatedCalfRaise` | no clip yet |  |  |
+| Seated Calf Raise | `seatedCalfRaise` | authored from the clip | [Seated Calf Raise Machine](https://www.youtube.com/watch?v=2Q-HQ3mnePg) (OPEX Fitness, side) | #333 |
 | Seated Dumbbell Press | `overheadPress` | shares `overheadPress` (the clip shows Barbell Overhead Press) | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
 | Seated Leg Curl | `legCurl` | authored from the clip | [Prone Hamstring Curl Machine](https://www.youtube.com/watch?v=xKOyGU0AfOE) (OPEX Fitness, side) | #319 |
 | Side Plank | `sidePlank` | authored from the clip | [Side Plank - OPEX Exercise Library](https://www.youtube.com/watch?v=tbWPBOgju9g) (OPEX Fitness, front) | #285 |
@@ -267,3 +267,4 @@ Poses without a clip yet: `abWheelRollout`, `bandedLateralWalk`, `battleRopes`, 
 | `cableCrunch` | [Kneeling Cable Crunch](https://www.youtube.com/watch?v=2ndlUfl5JPo) | OPEX Fitness | three-quarter | three reps in 9.6 s | #330 | 2026-09-11 | Cable Crunch | Not square to the lifter -- the projected trunk runs 0.23 to 0.33 of the frame as she turns through the rep -- so the angles are read the projection-proof way, from the VERTICAL drop of the shoulder below the hip over a trunk of 0.330. On those terms the hip-to-shoulder line sweeps 33 to 121 degrees off vertical, the same to within 3 degrees in all three reps, and at the bottom her NOSE IS BELOW HER KNEE. Her hips also rise off the heels as she curls, 0.255 to 0.279 above the knee. Our trunk is one rigid segment and hers rounds, so the pose matches the line her hip and shoulder make, not the shape of her spine. |
 | `cableKickback` | [Cable Glute Kickback](https://www.youtube.com/watch?v=iElJ4Ngx--k) | OPEX Fitness | side | four reps in 12.3 s | #331 | 2026-09-12 | Cable Kickback | Close to square -- the projected trunk holds 0.234 to 0.264 of the frame throughout -- so the sagittal angles are usable. The working KNEE NEVER STRAIGHTENS: 134 at the bottom, 119 at full extension, and the largest reading anywhere in the clip is 151 on a single frame. The trunk is hinged over a bench at 46 degrees at every top position in all four reps. The hands are still, moving 0.014 of the frame horizontally across a whole rep, and sit only 0.085 in front of the pelvis. |
 | `curtsyLunge` | [Goblet Curtsy Squat](https://www.youtube.com/watch?v=7ptRZXL5MBs) | OPEX Fitness | front | three reps in 10.8 s | #332 | 2026-09-12 | Curtsy Lunge | Read as RATIOS of the standing hip height, because his proportions are not the model's -- his thigh is 0.58 of his hip height and ours 0.50. The hip drops 47% of that height (ours 30%); the TRAILING KNEE arrives at the floor, level with the standing ankle, where ours stopped 22% up; the trailing heel lifts to 14% with the knee BELOW it; the trailing foot finishes 1.5 shoulder widths past the standing foot from a stance of 0.72; and the trunk leaves vertical by 15 degrees AWAY from the crossing leg. A front camera cannot read a knee angle in this movement -- the standing shin travels forward, out of the film plane -- so no knee angle is quoted. |
+| `seatedCalfRaise` | [Seated Calf Raise Machine](https://www.youtube.com/watch?v=2Q-HQ3mnePg) | OPEX Fitness | side | five reps in 8.4 s | #333 | 2026-09-12 | Seated Calf Raise | What it settles beyond argument: the machine puts the ball of the foot on a RAISED PLATE and the heel drops below plate level, which is where the calf is stretched -- ours had the foot flat on the floor, so that half of the range did not exist. It also holds the knee at 83 to 89 degrees in all 37 frames, mean 86. What it CANNOT settle is any travel distance: its hip keypoint rises 8 cm over a rep, which a seated hip on a fixed seat cannot do, so the whole skeleton estimate drifts in phase with the lift and its scale is untrustworthy here. The heel range is therefore authored from the plate geometry and capped by keeping the knee inside the clip's own band at the start. |

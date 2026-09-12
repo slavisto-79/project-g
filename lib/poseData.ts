@@ -3657,12 +3657,37 @@ export const exercisePoses = {
     { tempo: { down: 1200, bottom: 0, up: 1200, top: 1200 }, camera: { azimuth: 0.35 } },
   ),
 
-  // Knees stay bent at ninety, which is the whole point: only the ankle moves,
-  // and the ball of the foot stays put while the heel rises. The tiny travel
-  // is the honest range of the movement.
+  // Seated calf raise, from a reference clip measured with the pose lab (OPEX
+  // "Seated Calf Raise Machine", 2Q-HQ3mnePg, five reps in 8.4 s; MoveNet on
+  // 37 frames at 0.3 s, a side view).
+  //
+  // THE FOREFOOT HAD NOTHING TO STAND ON. That is the whole defect. The
+  // machine in the clip puts the ball of the foot on a RAISED PLATE and the
+  // heel drops off the back of it, below plate level, which is where the
+  // calf is actually stretched. Ours had the foot flat on the floor, so the
+  // bottom half of the range did not exist: the heel could only travel from
+  // flat to lifted, 12.7 cm. With the plate under it and the heel dropping
+  // to the floor behind, it travels 21.5 cm, from 5 cm BELOW the ball of the
+  // foot to 10.5 cm above it. The floor is pinned, because the heel now
+  // becomes the lowest point of the body and an unpinned floor would sink
+  // with it and leave the plate hanging in the air.
+  //
+  // The knee is NOT changed and was already right: the clip holds 83 to 89
+  // degrees in every one of its 37 frames, mean 86, and ours runs 85 / 81 /
+  // 80. Knees bent at ninety is the point of the seated version.
+  //
+  // Nor is the shin, and here the clip is left alone deliberately: its shin
+  // sits 16 to 31 degrees back from vertical because that machine's plate is
+  // tucked under the seat, which is a fact about the machine and not about
+  // the lift.
+  //
+  // Tempo, which it did not have: a brisk 1.65 s period, the same to within
+  // 0.15 s across four gaps. At 0.3 s per frame the pauses at either end are
+  // one frame or less, so they are written as 0.25 s and not pretended to be
+  // more precise than that.
   seatedCalfRaise: pose(
     "side",
-    ([[0.567, 0.919, 95], [0.5715, 0.8946, 115], [0.581, 0.874, 135]] as const).map(([ax, ay, end]) => {
+    ([[0.5743, 0.9088, 62], [0.5695, 0.8625, 100], [0.5846, 0.8215, 138]] as const).map(([ax, ay, end]) => {
       const pelvis = { x: 0.42, y: 0.70 };
       return {
         pelvis,
@@ -3674,12 +3699,18 @@ export const exercisePoses = {
       };
     }),
     [
-      { kind: "floor" },
+      { kind: "floor", y: FLOOR },
       { kind: "slab", at: "pelvis", width: 0.15, height: 0.055, dy: 0.08 },
       // The machine pad the hands rest on, riding over the knees -- pressing
       // on the thighs, not cutting into them.
       { kind: "slab", at: "hand0", width: 0.12, height: 0.028, dy: 0.012 },
+      // The plate the ball of the foot stands on. Its top sits at the toe and
+      // it runs down to the floor, so the heel has somewhere to drop past.
+      { kind: "slab", x: 0.6167, y: 0.9025, width: 0.06, height: 0.055 },
     ],
+    "neutral",
+    1,
+    { tempo: { down: 600, bottom: 250, up: 550, top: 250 } },
   ),
 
   // Kneeling, the wheel rolls out ahead; the pelvis is derived from the fixed
