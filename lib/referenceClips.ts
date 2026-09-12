@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 13: bodyweight, on the floor and upside down -----------------
+  wallSit: {
+    videoId: "cWTZ8Am1Ee0",
+    title: "How to Do a Wall Sit Exercise | 30 Seconds | MedBridge",
+    channel: "MedBridge",
+    view: "side",
+    span: "one sit held about 14 s",
+    prs: [348],
+    date: "2026-09-13",
+    exercises: ["Wall Sit"],
+    notes:
+      "The video cuts between a side camera and a front one; numbers are from the side camera (thigh projects 0.15 of the frame there, 0.09 face on). Held: knee 101-104, shin plumb, trunk 3, the hip 0.13 trunk lengths above the knee (thigh 14 degrees under level), hands resting on the thighs (28 degrees forward of plumb, elbows 155). Standing she is half a trunk length clear of the wall with the hips over the ankles; she slides back and down in 2.5 s and up in 2.5 s. OPEX's face-on Wall Sit (CoGaiX4P_BQ) agrees on the thigh: knees 0.1 trunk lengths under the hips. The 14 s hold is a prescription; the card holds 4 s.",
+  },
+
   bodyweightSquat: {
     videoId: "iiKn5FiVUjI",
     title: "Air Squat - OPEX Exercise Library",
