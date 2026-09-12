@@ -3572,21 +3572,65 @@ export const exercisePoses = {
     { tempo: { down: 900, bottom: 300, up: 1200, top: 300 } },
   ),
 
-  // Hinged over, arms sweeping from a hang up and back with soft elbows.
+  // Reverse fly, from a reference clip measured with the pose lab (OPEX
+  // "Cable Reverse Fly", qDnwFycUW0I, three reps in 10.5 s; MoveNet on 37
+  // frames at 0.35 s, filmed from BEHIND, which is the only camera that can
+  // see this movement at all).
+  //
+  // THE SWEEP WAS IN THE WRONG PLANE. A reverse fly is horizontal
+  // abduction: the arms go APART. Ours swung them up and back within the
+  // drawing plane and the hands never separated -- 1.33 shoulder widths in
+  // every one of the three keys, which is just the shoulders themselves. In
+  // the clip the wrists run from 1.0 shoulder widths, hanging straight under
+  // the shoulders, to 3.8 wide open, the same to within 0.07 across all
+  // three reps. That is the whole movement and the old frames did not have
+  // it. It is now authored with `abduct` -- 0 / -30 / -88 degrees, the
+  // sign that swings a hanging arm OUTBOARD -- the same trick the pec deck
+  // uses, because a side view has no other way to say a sweep about the
+  // fore-aft axis.
+  //
+  // Ours opens to 4.33 shoulder widths rather than his 3.8, and that is
+  // deliberate: the ANGLE is matched, not the distance. His arm is 1.42
+  // shoulder widths long and the model's is 1.73, so an arm swung level
+  // with the shoulder -- which is where his finishes, wrist within 0.005 of
+  // shoulder height at every top -- simply reaches further on our figure.
+  //
+  // THE ELBOWS WERE LOCKED. Ours ran 178 / 174 / 170. The clip holds 143 to
+  // 158 through the whole rep, mean 151, on the arm the camera sees
+  // cleanly. Soft elbows, which is what the library's own cue asks for.
+  // They are now 150 and stay there.
+  //
+  // WHAT THIS CLIP CANNOT SETTLE: the trunk. It is a STANDING cable version
+  // and ours is the hinged dumbbell one, so the torso stays at 92 and no
+  // trunk number is taken from it. The joint doing the work is the same in
+  // both -- horizontal abduction of the shoulder -- which is why the sweep
+  // and the elbow transfer and the posture does not.
+  //
+  // The two dumbbell clips in the library cannot settle it either, and were
+  // measured before being set aside: both are filmed near side on, with the
+  // shoulders only 23 and 30 px apart in frame, so the lateral spread lies
+  // along the camera axis and cannot be told apart from one arm forward and
+  // one arm back.
+  //
+  // Tempo, which it did not have: 1.05 s out, 0.70 s held wide, 1.4 s back
+  // and 0.35 s together. Period 3.5 s, 3.35 s mean across the measurable
+  // gaps.
   reverseFly: pose(
     "side",
-    ([[168, 170], [214, 208], [256, 246]] as const).map(([up, low]) => {
+    ([0, -30, -88] as const).map((abduct) => {
       const pelvis = { x: 0.552, y: 0.548 };
       return {
         pelvis,
         torso: 92,
         neck: 78,
-        arms: [{ upper: up, lower: low }, { upper: up + 5, lower: low + 5 }] as [Limb, Limb],
+        arms: [{ upper: 180, lower: 150, abduct }, { upper: 185, lower: 155, abduct }] as [Limb, Limb],
         legs: plantedLegs(pelvis, 92, "side", FEET, FORWARD),
       };
     }),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
     "neutral",
+    1,
+    { tempo: { down: 1050, bottom: 700, up: 1400, top: 350 } },
   ),
 
   // Curtsy lunge, from a reference clip measured with the pose lab (OPEX
