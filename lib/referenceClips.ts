@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 11: the leftovers, picked by measured defect -----------------
+  inclineCurl: {
+    videoId: "aG7CXiKxepw",
+    title: "Incline Dumbbell Curl",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 11.2 s",
+    prs: [336],
+    date: "2026-09-12",
+    exercises: ["Incline Dumbbell Curl"],
+    notes:
+      "Square side view -- the projected trunk holds 0.249 to 0.288 of the frame throughout. The elbow runs 178 straight down to 26 at the top, the same to within 4 degrees across three reps; ours stopped at 87. The upper arm does not quite hold still either: it drifts 23 degrees further behind the torso as the curl closes, 183 to 206. And the trunk measures 41.5 degrees off vertical, mean over 33 frames, against our 54 -- unlike the incline PRESS, whose lifter arches and whose trunk therefore reads 19 degrees more upright than his own pad, nobody arches on a curl, so here the trunk IS the pad.",
+  },
+
   inclinePress: {
     videoId: "PZ7waXzAzZc",
     title: "Incline Barbell Bench Press",
