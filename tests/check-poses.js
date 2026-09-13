@@ -168,7 +168,8 @@ const RIGID_LEGS = {
   pikePushUp: null, plank: null, plankSaw: null,
   plankIYTW: null, sidePlank: null, handstandPushUp: null, ringCurl: null,
   burpee: [[2, 0], [2, 1], [3, 0], [3, 1]],
-  mountainClimber: [[0, 0], [1, 1]],
+  // (mountainClimber left this list when it was authored from its clip: the
+  // planted leg there bends 155-172 at the knee, and the pose carries 163.)
 };
 for (const [name, entries] of Object.entries(RIGID_LEGS)) {
   const frames = exercisePoses[name].frames3d;

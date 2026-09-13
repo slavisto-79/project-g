@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 13: bodyweight, on the floor and upside down -----------------
+  mountainClimber: {
+    videoId: "0Smb04SpyhU",
+    title: "Mountain Climbers",
+    channel: "OPEX Abbotsford",
+    view: "side",
+    span: "eight drives in 4 s at full pace",
+    prs: [352],
+    date: "2026-09-13",
+    exercises: ["Mountain Climbers"],
+    notes:
+      "An unskippable-looking ad plays first; its Skip button appears after a few seconds. MoveNet swaps the legs' labels as they pass, so legs are told apart by shape (the one folded under 60 drives). Driving knee 40-55, hip 59-68, the knee a hand's height off the floor two fifths of the way from hip to shoulders, the foot trailing behind it. Elbows 172-180, shoulders over the hands, trunk within 7 degrees of level; planted knee 155-172, hip 139-156. A drive every 0.5 s, alternating: 1.0 s a full cycle.",
+  },
+
   handstandPushUp: {
     videoId: "ic8cg0SQ8A4",
     title: "Strict Handstand Push Ups",

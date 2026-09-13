@@ -1978,30 +1978,57 @@ export const exercisePoses = {
     { loop: [500, 500, 1000, 900, 800, 500], camera: { azimuth: 1.2 } },
   ),
 
-  // A plank on locked arms with the knees driving alternately to the chest.
-  // Two key positions with the legs swapped; the ping-pong playback IS the
-  // alternation.
+  // Mountain climbers, from a reference clip measured with the pose lab
+  // (OPEX Abbotsford "Mountain Climbers", 0Smb04SpyhU, eight drives in 4 s
+  // at full pace; MoveNet on 61 frames at 0.1 s, a side view). The model
+  // swaps the legs' labels as they pass, so legs are told apart by shape --
+  // the one folded under 60 is the driving leg.
+  //
+  // THE KNEE DRIVES DOWN UNDER THE CHEST, NOT UP. At each drive the knee
+  // folds to 40-55 with the hip at 59-68, the knee a hand's height off the
+  // floor and two fifths of the way from the hip to the shoulders, the foot
+  // trailing back behind it. Ours threw the knee UP -- 10 cm above the
+  // shoulders, the foot 20 cm in the air -- which is a donkey kick.
+  //
+  // THE PLANK IS LEVEL ON LOCKED ARMS. Shoulders over the hands, elbows
+  // 172-180, the trunk within 7 degrees of level with the hips a touch
+  // low; the planted leg 155-172 at the knee with the hip at 139-156. Ours
+  // tipped the trunk 22 degrees head-up on elbows bent to 135.
+  //
+  // Cadence, which it did not have: a drive every half second, alternating
+  // -- a full cycle of both legs in 1.0 s, from the eight tucks between 4.2
+  // and 7.8 s.
   mountainClimber: pose(
     "side",
-    [0, 1].map((phase) => {
-      const pelvis = { x: 0.485, y: 0.689 };
-      const torso = 292.3;
-      const planted = plantedLegs(pelvis, torso, "side", [{ x: 0.767, y: 0.855 }, { x: 0.751, y: 0.855 }], BACK, [130, 135]);
-      // Knee driven UNDER the chest, shin hanging straight down -- and folding
-      // the same anatomical way as the planted leg, so the swap between the
-      // two never carries a joint through hyperextension.
-      const tucked: Limb = { upper: 330, lower: 185, end: 115 };
-      return {
+    (() => {
+      const hands: [Point, Point] = [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }];
+      const torso = 274;
+      // Shoulders 3 cm ahead of the wrists and an arm's length over them.
+      const shoulder = { x: hands[0].x - 0.03 / ASPECT, y: hands[0].y - 0.289 };
+      const rad = (torso * Math.PI) / 180;
+      const pelvis = { x: shoulder.x - (Math.sin(rad) * P.spine) / ASPECT - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: shoulder.y + Math.cos(rad) * P.spine };
+      // The planted foot on its toes, far enough back for a 163 knee; at
+      // 0.436 the IK crosses its straightening band and locks it at 180.
+      const hip = hipAt(pelvis, torso, 0, "side");
+      const span = 0.435;
+      const dy = 0.855 - hip.y;
+      const footX = hip.x + Math.sqrt(span * span - dy * dy) / ASPECT;
+      const planted = plantedLegs(pelvis, torso, "side", [{ x: footX, y: 0.855 }, { x: footX - 0.016, y: 0.855 }], BACK, [130, 135]);
+      // Thigh 63 down from the trunk line, knee folded to 53 with the shin
+      // trailing back and a little up, toes pointing at the floor.
+      const tucked: Limb = { upper: 207, lower: 80, end: 150 };
+      return [0, 1].map((phase) => ({
         pelvis,
         torso,
-        neck: torso - 4,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.392, y: 0.855 }, { x: 0.376, y: 0.855 }], FORWARD, [264, 259]),
-        legs: (phase === 0 ? [planted[0]!, tucked] : [tucked, planted[1]!]) as [Limb, Limb],
-      };
-    }),
+        neck: torso + 6,
+        arms: reachingArms(pelvis, torso, "side", hands, FORWARD, [264, 259]),
+        legs: (phase === 0 ? [planted[0]!, { ...tucked, upper: tucked.upper + 4, lower: tucked.lower + 4 }] : [tucked, planted[1]!]) as [Limb, Limb],
+      }));
+    })(),
     [{ kind: "floor", mat: true }],
     "overhand",
     -1,
+    { loop: [500, 500] },
   ),
 
   quadruped: pose(
