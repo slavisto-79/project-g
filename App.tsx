@@ -6234,7 +6234,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Frog Pump": "frogPump",
   "Lying Leg Curl": "legCurl",
   "Seated Leg Curl": "legCurl",
-  "Nordic Hamstring Curl": "legCurl",
+  "Nordic Hamstring Curl": "nordicCurl",
 
   "Bulgarian Split Squat": "splitSquat",
   "Dumbbell Bulgarian Split Squat": "splitSquat",
