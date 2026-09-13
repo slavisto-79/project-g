@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 104 |
+| authored from a clip (the clip shows the exercise) | 105 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 9 |
-| poses with a clip | 98 of 111 (107 in use) |
+| without a clip yet | 8 |
+| poses with a clip | 99 of 111 (107 in use) |
 
-Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`.
+Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `oneArmRow`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`.
 
 ## Every exercise
 
@@ -125,7 +125,7 @@ Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `med
 | Machine Chest Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
 | Machine Shoulder Press | `overheadPress` | shares `overheadPress` (the clip shows Barbell Overhead Press) | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
 | Medicine Ball Slam | `medBallSlam` | no clip yet |  |  |
-| Mountain Climbers | `mountainClimber` | no clip yet |  |  |
+| Mountain Climbers | `mountainClimber` | authored from the clip | [Mountain Climbers](https://www.youtube.com/watch?v=0Smb04SpyhU) (OPEX Abbotsford, side) | #352 |
 | Negative Pull-Up | `pullUp` | shares `pullUp` (the clip shows Pull-Up) | [Strict Pull Up - OPEX Exercise Library](https://www.youtube.com/watch?v=jgFel4wZl3I) (OPEX Fitness, side) | #274 |
 | Neutral-Grip Dumbbell Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
 | Neutral-Grip Pulldown | `pulldown` | shares `pulldown` (the clip shows Lat Pulldown) | [Cable Lat Pulldown Machine - OPEX Exercise Library](https://www.youtube.com/watch?v=PEv0gTcMY3g) (OPEX Fitness, three-quarter) | #275 |
@@ -286,3 +286,4 @@ Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `med
 | `pistolSquat` | [Pistol Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=D934zSaVtU0) | OPEX Fitness | side | three reps in 11 s | #349 | 2026-09-13 | Pistol Squat | MoveNet trades the left and right legs whenever they cross, so legs are told apart by behaviour (the folding knee is the support) and the trunk is read from shoulder-over-hip height, not the hip keypoint's jumping x. Standing, the free foot hangs just off the floor, knee 132-138; a fifth of the way down it is long at 40-47 forward of plumb, half way 60-75, level at the bottom (85-94) with the knee 153-157 and the heel just off the floor. Bottom: hip at 0.27 of standing height over the ankle, support knee 53-55, trunk 34-41. Arms forward 7-15 under level throughout. 1.3 s down, 0.25 s bottom, 1.0 s up, about 1 s standing. Our leg cannot reach her 0.27 without folding the knee to 46; the bottom takes knee 50 at 0.32. |
 | `pikePushUp` | [How to do a Pike Push-Up](https://www.youtube.com/watch?v=XckEEwa1BPI) | National Academy of Sports Medicine (NASM) | three-quarter | four reps in 14 s | #350 | 2026-09-13 | Pike Push-Up | Three-quarter camera: horizontal distances not quoted. At the bottom the near wrist is hidden (score 0.1-0.2), so the bottom elbow is not quoted either. Top: near-side elbow 174-180, hip angle 63-72. Top to bottom the shoulders fall 0.5 trunk lengths and the hips 0.43, the hip angle opening to 75-78, the nose reaching the height of the hands. Hands at least 1.4 trunk lengths from the feet (projected). 1.0 s down, 0.3 s bottom, 0.8 s up, about 1 s at the top. |
 | `handstandPushUp` | [Strict Handstand Push Ups](https://www.youtube.com/watch?v=ic8cg0SQ8A4) | Functional Bodybuilding | three-quarter | three reps in 5 s | #351 | 2026-09-13 | Handstand Push-Up | Frames ROTATED 180 degrees before MoveNet saw them (it is trained on upright people); every keypoint then scored 0.7-0.9. The camera stands off to the front, so the bottom elbow reads 98-103 on one arm and 143-147 on the other and is not quoted. Back and heels against a wall, legs straight up together (hip angle 170-180, knees locked). Nose ends 0.2 trunk lengths over the hands (crown on the floor); shoulders fall to 0.64 of their locked-out height over the hands. 0.7 s down, touch and go, 0.75 s up, ~0.1 s locked out -- 1.6 s a rep. The video autoplays into another clip after 9.9 s, which ruined one capture: check the title in the capture loop. |
+| `mountainClimber` | [Mountain Climbers](https://www.youtube.com/watch?v=0Smb04SpyhU) | OPEX Abbotsford | side | eight drives in 4 s at full pace | #352 | 2026-09-13 | Mountain Climbers | An unskippable-looking ad plays first; its Skip button appears after a few seconds. MoveNet swaps the legs' labels as they pass, so legs are told apart by shape (the one folded under 60 drives). Driving knee 40-55, hip 59-68, the knee a hand's height off the floor two fifths of the way from hip to shoulders, the foot trailing behind it. Elbows 172-180, shoulders over the hands, trunk within 7 degrees of level; planted knee 155-172, hip 139-156. A drive every 0.5 s, alternating: 1.0 s a full cycle. |
