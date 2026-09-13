@@ -3483,6 +3483,35 @@ export const exercisePoses = {
     { tempo: { down: 1250, bottom: 2500, up: 1250, top: 600 }, camera: { azimuth: 0.9 } },
   ),
 
+  // V-up, from a reference clip measured with the pose lab (OPEX "V-Up",
+  // 4X3xVPrSNNg, three reps in 8 s, a side view; MoveNet on 41 frames at
+  // 0.2 s). It borrowed the hollow hold before -- which never leaves the
+  // bottom of this.
+  //
+  // The bottom is a hollow: the trunk 0-4 degrees up, the straight legs
+  // 6-10 up, the straight arms overhead 10-16 up, nothing but the low back
+  // on the floor. The top is a V on the seat: trunk 57-66 up, thighs 63-65
+  // and shins 43-52 (the knees soften by about 15), the arms reaching for
+  // the shins 27-36 up, the hands within half a trunk of the ankles
+  // (0.27-0.49). Half way up the trunk is at about 40, the thighs 50, the
+  // shins 25 -- the knees bend most on the way.
+  //
+  // Tempo from the three reps, to the 0.2 s frames: up in 0.8-1.0 s,
+  // 0.2 at the top, down in 1.2-1.4 s, 0.4-0.6 in the hollow; tops 2.8 s
+  // apart.
+  vUp: pose(
+    "side",
+    [
+      { pelvis: { x: 0.5, y: 0.735 }, torso: 272, neck: 270, arms: sideArms(283, 283), legs: lyingLegs(82, 82, 352) },
+      { pelvis: { x: 0.5, y: 0.735 }, torso: 310, neck: 306, arms: sideArms(38, 50), legs: lyingLegs(40, 64, 334) },
+      { pelvis: { x: 0.5, y: 0.735 }, torso: 331, neck: 328, arms: sideArms(58, 66), legs: lyingLegs(26, 42, 312) },
+    ],
+    [{ kind: "floor", mat: true, y: 0.792 }],
+    "overhand",
+    1,
+    { tempo: { down: 900, bottom: 200, up: 1300, top: 400 }, camera: { azimuth: 0.9 } },
+  ),
+
   // Side plank, from a reference clip measured with the pose lab (OPEX "Side
   // Plank", tbWPBOgju9g, the camera square on the front of the body; MoveNet
   // on 13 frames at 0.5 s). The clip: one straight line from the stacked
