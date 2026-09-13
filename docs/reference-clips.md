@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 107 |
+| authored from a clip (the clip shows the exercise) | 108 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 6 |
-| poses with a clip | 101 of 111 (107 in use) |
+| without a clip yet | 5 |
+| poses with a clip | 102 of 111 (107 in use) |
 
-Poses without a clip yet: `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `oneArmRow`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
+Poses without a clip yet: `hipAbduction`, `idle`, `medBallSlam`, `medBallThrow`, `oneArmRow`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
 
 ## Every exercise
 
@@ -177,7 +177,7 @@ Poses without a clip yet: `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `me
 | T-Bar Row | `bentRow` | shares `bentRow` (the clip shows Barbell Row) | [How to do a Barbell Bent Over Row Pronated](https://www.youtube.com/watch?v=bm0_q9bR_HA) (National Academy of Sports Medicine (NASM), side) | #273 |
 | Towel Row | `invertedRow` | shares `invertedRow` (the clip shows Inverted Row) | [Ring Row](https://www.youtube.com/watch?v=B90sF7dbP04) (OPEX Fitness, side) | #321 |
 | Trap Bar Deadlift | `trapBarDeadlift` | authored from the clip | [How To Hex Bar Deadlift Correctly](https://www.youtube.com/watch?v=ZJPZQklCSLs) (Motiv8 Fitness, side) | #255, #256 |
-| Triceps Kickback | `kickback` | no clip yet |  |  |
+| Triceps Kickback | `kickback` | authored from the clip | [Single Arm Dumbbell Tricep Kickback](https://www.youtube.com/watch?v=MQOnCts9N9c) (OPEX Fitness, side) | #355 |
 | Triceps Pushdown | `tricepsExtension` | authored from the clip | [Rope Cable Tricep Pushdown - OPEX Exercise Library](https://www.youtube.com/watch?v=y6EdXBdL75A) (OPEX Fitness, side) | #279 |
 | Tuck Jump | `tuckJump` | authored from the clip | [Tuck Jump](https://www.youtube.com/watch?v=w0cI_zLXJFo) (OPEX Bristol - The Future of Personal Training, side) | #306 |
 | V-Up | `hollowHold` | shares `hollowHold` (the clip shows Hollow Hold) | [Hollow Body Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=EsnM8eBtazU) (OPEX Fitness, side) | #291 |
@@ -289,3 +289,4 @@ Poses without a clip yet: `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `me
 | `mountainClimber` | [Mountain Climbers](https://www.youtube.com/watch?v=0Smb04SpyhU) | OPEX Abbotsford | side | eight drives in 4 s at full pace | #352 | 2026-09-13 | Mountain Climbers | An unskippable-looking ad plays first; its Skip button appears after a few seconds. MoveNet swaps the legs' labels as they pass, so legs are told apart by shape (the one folded under 60 drives). Driving knee 40-55, hip 59-68, the knee a hand's height off the floor two fifths of the way from hip to shoulders, the foot trailing behind it. Elbows 172-180, shoulders over the hands, trunk within 7 degrees of level; planted knee 155-172, hip 139-156. A drive every 0.5 s, alternating: 1.0 s a full cycle. |
 | `quadruped` | [2 Point Bird Dog](https://www.youtube.com/watch?v=FWjz8ozyVq8) | OPEX Fitness | side | four reaches in 18 s, alternating | #353 | 2026-09-13 | Bird Dog | Held: reaching thigh straight back 2-5 above level, knee 145-165, reaching arm 5-15 UNDER level with the elbow straight; support arm plumb and locked (166-180), support thigh near plumb, knee 66-80; trunk 9-10 head-up on all fours, 3-6 reaching. Reach 1.0 s, hold 1.0 s (still lengthening: arm 14 to 11 under level, knee 148 to 152), return 0.75 s, 1.75 s on all fours, then the other side. Our trunk is 15-16 because our arm is long against our thigh; flatter bends the support elbow. |
 | `frontRaise` | [Dumbbell Front Raise](https://www.youtube.com/watch?v=E-E0EqERFBg) | OPEX Fitness | front | three reps in 8.4 s | #354 | 2026-09-13 | Dumbbell Front Raise | Face on, so the raise is read from height alone: hanging, the wrists sit 0.220-0.228 of the frame under the shoulders (the arm's full length), and the angle is the arccosine of the wrist's drop over that. Top: wrists 0.05-0.12 OVER the shoulders, 107-120 degrees from plumb, all three reps. The elbow sits 0.01-0.04 over the shoulder at the top where a straight arm puts it 0.035-0.06: about 158. 0.8 s up, 0.2-0.4 s top, 0.8-1.0 s down, 0.8 s hanging. The exercise cue says to shoulder height; the clip goes above it. |
+| `kickback` | [Single Arm Dumbbell Tricep Kickback](https://www.youtube.com/watch?v=MQOnCts9N9c) | OPEX Fitness | side | four reps in 7.8 s | #355 | 2026-09-13 | Triceps Kickback | One arm works, the other hand rests on the thigh. Trunk 61-68 from vertical over knees at 150-155 with the shins plumb. Upper arm 7-25 under level with the elbow folded to 77-87 and the forearm 10-30 forward of plumb, rising to 5-11 above level as the elbow locks out at 163-174 with the forearm straight back. 0.6 s to lock out, 0.3 s held, 0.8 s back, 0.2 s folded. |

@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 14: dumbbells, a medicine ball and a run ---------------------
+  kickback: {
+    videoId: "MQOnCts9N9c",
+    title: "Single Arm Dumbbell Tricep Kickback",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reps in 7.8 s",
+    prs: [355],
+    date: "2026-09-13",
+    exercises: ["Triceps Kickback"],
+    notes:
+      "One arm works, the other hand rests on the thigh. Trunk 61-68 from vertical over knees at 150-155 with the shins plumb. Upper arm 7-25 under level with the elbow folded to 77-87 and the forearm 10-30 forward of plumb, rising to 5-11 above level as the elbow locks out at 163-174 with the forearm straight back. 0.6 s to lock out, 0.3 s held, 0.8 s back, 0.2 s folded.",
+  },
+
   frontRaise: {
     videoId: "E-E0EqERFBg",
     title: "Dumbbell Front Raise",
