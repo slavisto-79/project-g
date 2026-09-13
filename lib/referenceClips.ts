@@ -717,6 +717,20 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  // --- Batch 16: exercises that borrowed a different movement's pose ------
+  backExtension: {
+    videoId: "muPROfbUBeg",
+    title: "Exercise Library:  Back Extensions",
+    channel: "Exercise Library",
+    view: "side",
+    span: "three reps, 15-27.5 s",
+    prs: [370],
+    date: "2026-09-14",
+    exercises: ["Back Extension"],
+    notes:
+      "Borrowed the conventional deadlift before. 45-degree bench: hips on the pad, legs straight (knee 170-180) 53-56 down to the ankle roller, arms folded on the chest. Bottom: trunk 33-40 below level, hip 88-95 (ours 36, 90). Top: trunk 6-20 past the leg line (65-74 up); the cue says no further than straight, so ours takes the clip's least, 6 (trunk 60 up, hip 174). Tempo at 0.25 s: down 2.25-2.5 s, ~0.25 at the bottom, up 1.5-1.75, 0.5 at the top. OPEX's Roman Chair Back Extension (ZaLvgeHC_54) is filmed obliquely from behind and was not measured.",
+  },
+
   // --- Batch 15: exercises that borrowed a different movement's pose ------
   archerPushUp: {
     videoId: "FcttBOkat5M",
