@@ -3005,20 +3005,46 @@ export const exercisePoses = {
     { tempo: { down: 1250, bottom: 250, up: 750, top: 500 }, camera: { azimuth: 0.9 } },
   ),
 
+  // Triceps kickback, from a reference clip measured with the pose lab (OPEX
+  // "Single Arm Dumbbell Tricep Kickback", MQOnCts9N9c, four reps in 7.8 s;
+  // MoveNet on 50 frames at 0.2 s, a side view). Directions are read off
+  // the frame.
+  //
+  // ONE ARM, AND THE HINGE IS NOT FLAT. The exercise is unilateral, and she
+  // works one arm with the other hand resting on the thigh; the trunk holds
+  // 61-68 degrees from vertical over soft knees (150-155, the shins plumb).
+  // Ours kicked BOTH arms back with the trunk tipped 8 degrees past level
+  // and the knees bent to 119.
+  //
+  // THE UPPER ARM STAYS NEAR LEVEL: 7-25 degrees under it with the elbow
+  // folded to 77-87 and the forearm swung 10-30 degrees forward of plumb,
+  // lifting to 5-11 above it as the elbow locks out at 163-174 with the
+  // forearm straight back. Ours held the upper arm dead level.
+  //
+  // Tempo, which it did not have: 0.6 s to lock out, 0.3 s held, 0.8 s back
+  // and a fifth of a second folded -- 1.9 s a rep.
   kickback: pose(
     "side",
-    [180, 222, 264].map((forearm) => {
-      const pelvis = { x: 0.545, y: 0.552 };
+    ([[255, 160], [265, 215], [278, 272]] as const).map(([upper, lower]) => {
+      const torso = 65;
+      const pelvis = { x: FEET[0].x - 0.05, y: 0.505 };
+      const legs = plantedLegs(pelvis, torso, "side", FEET, FORWARD);
+      // The free hand rests on the front of its thigh, a little above the knee.
+      const hip = hipAt(pelvis, torso, 1, "side");
+      const thigh = { x: hip.x + (Math.sin((legs[1]!.upper * Math.PI) / 180) * P.thigh * 0.7) / ASPECT, y: hip.y - Math.cos((legs[1]!.upper * Math.PI) / 180) * P.thigh * 0.7 - 0.06 };
+      const rest = reachingArms(pelvis, torso, "side", [thigh, thigh], FORWARD);
       return {
         pelvis,
-        torso: 98,
-        neck: 84,
-        arms: sideArms(270, forearm),
-        legs: plantedLegs(pelvis, 98, "side", FEET, FORWARD),
+        torso,
+        neck: 30,
+        arms: [{ upper, lower }, rest[1]!] as [Limb, Limb],
+        legs,
       };
     }),
-    [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
+    [{ kind: "floor" }, { kind: "bell", at: "hand0", size: 0.05 }],
     "neutral",
+    1,
+    { tempo: { down: 600, bottom: 300, up: 800, top: 200 } },
   ),
 
   // --- Pulling -------------------------------------------------------------
