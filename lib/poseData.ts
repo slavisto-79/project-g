@@ -321,6 +321,60 @@ function pressUpFrames(
 export const exercisePoses = {
   // --- Squat pattern -------------------------------------------------------
 
+  // Machine hack squat, from a reference clip measured with the pose lab
+  // (Renaissance Periodization "Hack Squat", rYgNArpwE7E, three reps in
+  // 13 s; MoveNet on 50 frames at 0.25 s). It borrowed the barbell back
+  // squat before -- free standing, a bar on the back.
+  //
+  // The camera is a quarter turn off square. A plane seen at an angle only
+  // compresses its horizontal lengths, so the x scale that keeps the thigh
+  // and the shin their own length in every frame undoes it: 0.90 (the
+  // spread of both lengths is least there, 4-6 percent). The angles below
+  // are read with x divided by 0.90.
+  //
+  // The back stays on the pad at 55-62 degrees above level all rep. At the
+  // top the knee is 172-176 and the hip 163-166; at the bottom the knee
+  // closes to 24-32 and the hip to 41-47, the thighs pointing almost
+  // straight up. Half way the knee is at about 60 and the hip 78.
+  //
+  // Solved from the feet: the ankle fixed on the platform, the pelvis
+  // walked back up each key's shin and thigh, the trunk at 58 throughout.
+  // The hips then travel 5 degrees off the line of the back -- a check that
+  // the measured angles agree with a sled on rails.
+  //
+  // A clip of the same machine from Hype Training & Coaching (u_1a0nWG7vQ)
+  // is filmed further round (its thighs read 20 degrees below level at the
+  // top) and squats shallower (knee 48-59); it was not used.
+  //
+  // Tempo from the three reps, to the 0.25 s frames: down in 3.25-3.75 s,
+  // 0.25 at the bottom, up in 1.0-1.25, 0.25-0.5 at the top.
+  hackSquat: (() => {
+    const ankle = { x: 0.66, y: 0.86 };
+    const torso = 328;
+    const figure = (thigh: number, shin: number): Figure => {
+      const pelvis = along(along(ankle, shin + 180, P.shin), thigh + 180, P.thigh);
+      return {
+        pelvis,
+        torso,
+        neck: torso + 20,
+        arms: sideArms(torso + 160, torso + 312),
+        legs: lyingLegs(thigh, shin, 80),
+      };
+    };
+    return pose(
+      "side",
+      [figure(133, 128), figure(47, 167), figure(9, 162)],
+      [
+        { kind: "floor", y: 0.93 },
+        { kind: "slab", at: "pelvis", width: 0.55, height: 0.05, angle: torso },
+        { kind: "slab", x: ankle.x + 0.02, y: ankle.y + 0.045, width: 0.28, height: 0.04 },
+      ],
+      "overhand",
+      1,
+      { tempo: { down: 3300, bottom: 250, up: 1100, top: 300 }, camera: { azimuth: 1.3 } },
+    );
+  })(),
+
   squat: pose(
     "side",
     SQUAT_FRAMES.map(([x, y, torso]) => squatting(stand({ x, y }, torso, napeArms({ x, y }, torso, 0.10)))),
