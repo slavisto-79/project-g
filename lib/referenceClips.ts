@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 16: exercises that borrowed a different movement's pose ------
+  hackSquat: {
+    videoId: "rYgNArpwE7E",
+    title: "Hack Squat",
+    channel: "Renaissance Periodization",
+    view: "side",
+    span: "three reps in 13 s",
+    prs: [371],
+    date: "2026-09-14",
+    exercises: ["Hack Squat"],
+    notes:
+      "Borrowed the barbell back squat before. Camera about 25 degrees off square: horizontal lengths divided by 0.90, the scale at which thigh and shin keep their length across frames. Back on the pad 55-62 above level all rep. Top: knee 172-176, hip 163-166. Bottom: knee 24-32, hip 41-47. Half way: knee ~60, hip ~78. Ours: trunk 58; top knee 175, hip 165; half 60/79; bottom 27/41; ankle fixed, the hips then travel 5 degrees off the back's line. Tempo at 0.25 s: down 3.25-3.75 s, 0.25 at the bottom, up 1.0-1.25, 0.25-0.5 at the top. Hype Training & Coaching (u_1a0nWG7vQ) was more oblique and shallower (knee 48-59) and was not used.",
+  },
   backExtension: {
     videoId: "muPROfbUBeg",
     title: "Exercise Library:  Back Extensions",
@@ -736,7 +748,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     videoId: "FcttBOkat5M",
     title: "Archer Push Up",
     channel: "OPEX Fitness",
-    view: "front",
+    view: "head-end",
     span: "three sides in 9 s, the camera on the head",
     prs: [369],
     date: "2026-09-13",
