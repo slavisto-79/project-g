@@ -6257,7 +6257,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
 
   "Hollow Hold": "hollowHold",
   "Dead Bug": "deadBug",
-  "V-Up": "hollowHold",
+  "V-Up": "vUp",
   "Side Plank": "sidePlank",
   "Copenhagen Plank": "copenhagenPlank",
   "Cable Woodchopper": "woodchop",

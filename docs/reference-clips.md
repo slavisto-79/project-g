@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 116 |
-| sharing a pose that was authored from a clip | 46 |
+| authored from a clip (the clip shows the exercise) | 117 |
+| sharing a pose that was authored from a clip | 45 |
 | without a clip yet | 0 |
-| poses with a clip | 110 of 111 (110 in use) |
+| poses with a clip | 111 of 112 (111 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -180,7 +180,7 @@ Poses without a clip yet: `idle`.
 | Triceps Kickback | `kickback` | authored from the clip | [Single Arm Dumbbell Tricep Kickback](https://www.youtube.com/watch?v=MQOnCts9N9c) (OPEX Fitness, side) | #355 |
 | Triceps Pushdown | `tricepsExtension` | authored from the clip | [Rope Cable Tricep Pushdown - OPEX Exercise Library](https://www.youtube.com/watch?v=y6EdXBdL75A) (OPEX Fitness, side) | #279 |
 | Tuck Jump | `tuckJump` | authored from the clip | [Tuck Jump](https://www.youtube.com/watch?v=w0cI_zLXJFo) (OPEX Bristol - The Future of Personal Training, side) | #306 |
-| V-Up | `hollowHold` | shares `hollowHold` (the clip shows Hollow Hold) | [Hollow Body Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=EsnM8eBtazU) (OPEX Fitness, side) | #291 |
+| V-Up | `vUp` | authored from the clip | [V-Up - OPEX Exercise Library](https://www.youtube.com/watch?v=4X3xVPrSNNg) (OPEX Fitness, side) | #366 |
 | Walking Lunge | `walkingLunge` | authored from the clip | [Walking Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=6wZoPedlpok) (OPEX Fitness, side) | #269 |
 | Wall Sit | `wallSit` | authored from the clip | [How to Do a Wall Sit Exercise | 30 Seconds | MedBridge](https://www.youtube.com/watch?v=cWTZ8Am1Ee0) (MedBridge, side) | #348 |
 
@@ -298,3 +298,4 @@ Poses without a clip yet: `idle`.
 | `gluteBridge` | [Glute Bridge - OPEX Exercise Library](https://www.youtube.com/watch?v=szgXdRA2R6Y) | OPEX Fitness | side | one bridge held 8 s | #363 | 2026-09-13 | Glute Bridge | Borrowed the barbell hip thrust (shoulders on a bench) before. On the floor: at the top the shoulders stay down and the body is one line to the knees (hip 179-180), trunk 25 up from the shoulders, knee 71-73, shin 8 off plumb, arms long on the floor. A second OPEX clip (ayy8owPQ61w) holds a lower bridge, hip 151-154, knee 95-100. Both clips are holds: the rise takes 0.6 s and nothing else of a rep is shown, so no tempo. Our hip line reaches 166 at the top with the ankle on the floor. |
 | `singleLegGluteBridge` | [Single Leg Glute Bridge - OPEX Exercise Library](https://www.youtube.com/watch?v=6pvdY3sXUbo) | OPEX Fitness | side | one bridge held 7 s | #364 | 2026-09-13 | Single-Leg Glute Bridge | Borrowed the barbell hip thrust (shoulders on a bench, both feet down) before. The working side is the glute bridge's: shoulders on the floor, trunk 22-25 up from them, the working thigh on the same line, knee 69-72. The free leg is held straight up (knee 171-176), 10-14 past plumb toward the feet; OPEX's other single-leg bridge (F0JMcMVxJAU) holds the same straight leg. The library cue said the free knee was pulled in; it now says the leg is straight up. Already at the top when the clip starts, so the rise is never shown: no tempo. |
 | `frogPump` | [Frog Pump](https://www.youtube.com/watch?v=KvdJEqifOLk) | Impact Online Fitness Coaching | side | four reps, 25-35 s | #365 | 2026-09-13 | Frog Pump | Borrowed the barbell hip thrust (shoulders on a bench, knees forward) before. Side on: hips on the floor at the bottom (hip 130-142), one line to the knees at the top (171-180), trunk 15-20 up from the shoulders; hip-to-ankle over shoulder-to-hip 0.70-0.77 at the bottom, 0.95-1.04 at the top (ours 0.77, 0.95). The knee width is from a second clip, Colossus Fitness 'How to Do Frog Pumps for Bigger Glutes' (rgljhH1X4vc, 76-81 s, three-quarter view from the feet): ankles 0.6 hip widths apart, knees 1.9-2.4 (ours 0.65, 2.2), a ratio only. Tempo from the four side-on reps at 0.25 s: rise 0.5-0.75 s, hold 0.25-0.5, lower 0.5, rest 0.4-0.75, tops 2.0-2.25 s apart. A new leg `flare` opens the knees about the hip-to-ankle line. Cue: 'pulse the hips up' became a full rep with a squeeze and a controlled lowering, as both clips show. |
+| `vUp` | [V-Up - OPEX Exercise Library](https://www.youtube.com/watch?v=4X3xVPrSNNg) | OPEX Fitness | side | three reps in 8 s | #366 | 2026-09-13 | V-Up | Borrowed the hollow hold before, which never leaves this movement's bottom. Bottom: a hollow, trunk 0-4 up, straight legs 6-10 up, straight arms overhead 10-16 up (ours 2, 8, 13). Top: a V on the seat, trunk 57-66 up, thighs 63-65, shins 43-52, arms 27-36 up toward the shins, hands 0.27-0.49 trunk lengths from the ankles (ours 61, 64, 48, 28, 0.51 -- her arms are longer against her trunk). Half way: trunk about 40, thighs 50, shins 25. Tempo at 0.2 s: up 0.8-1.0 s, 0.2 at the top, down 1.2-1.4, 0.4-0.6 in the hollow; tops 2.8 s apart. |

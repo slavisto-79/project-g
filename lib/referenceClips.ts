@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 15: exercises that borrowed a different movement's pose ------
+  vUp: {
+    videoId: "4X3xVPrSNNg",
+    title: "V-Up - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 8 s",
+    prs: [366],
+    date: "2026-09-13",
+    exercises: ["V-Up"],
+    notes:
+      "Borrowed the hollow hold before, which never leaves this movement's bottom. Bottom: a hollow, trunk 0-4 up, straight legs 6-10 up, straight arms overhead 10-16 up (ours 2, 8, 13). Top: a V on the seat, trunk 57-66 up, thighs 63-65, shins 43-52, arms 27-36 up toward the shins, hands 0.27-0.49 trunk lengths from the ankles (ours 61, 64, 48, 28, 0.51 -- her arms are longer against her trunk). Half way: trunk about 40, thighs 50, shins 25. Tempo at 0.2 s: up 0.8-1.0 s, 0.2 at the top, down 1.2-1.4, 0.4-0.6 in the hollow; tops 2.8 s apart.",
+  },
   frogPump: {
     videoId: "KvdJEqifOLk",
     title: "Frog Pump",
