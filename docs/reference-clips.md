@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 119 |
-| sharing a pose that was authored from a clip | 43 |
+| authored from a clip (the clip shows the exercise) | 120 |
+| sharing a pose that was authored from a clip | 42 |
 | without a clip yet | 0 |
-| poses with a clip | 113 of 114 (113 in use) |
+| poses with a clip | 114 of 115 (114 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -22,7 +22,7 @@ Poses without a clip yet: `idle`.
 | Exercise | Pose | Status | Clip | PR |
 |---|---|---|---|---|
 | Ab Wheel Rollout | `abWheelRollout` | authored from the clip | [Ab Wheel Rollout](https://www.youtube.com/watch?v=4HZCJLM5wBk) (OPEX Fitness, side) | #346 |
-| Archer Push-Up | `pushUp` | shares `pushUp` (the clip shows Push-Up) | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
+| Archer Push-Up | `archerPushUp` | authored from the clip | [Archer Push Up](https://www.youtube.com/watch?v=FcttBOkat5M) (OPEX Fitness, front) | #369 |
 | Arnold Press | `arnoldPress` | authored from the clip | [Standing Arnold Dumbbell Press - OPEX Exercise Library](https://www.youtube.com/watch?v=hHmFzFaSn7U) (OPEX Fitness, front) | #314 |
 | Back Extension | `hinge` | shares `hinge` (the clip shows Conventional Deadlift) | [Conventional Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=TN3DHmd1Fe8) (OPEX Fitness, side) | #316 |
 | Band Chest Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
@@ -301,3 +301,4 @@ Poses without a clip yet: `idle`.
 | `vUp` | [V-Up - OPEX Exercise Library](https://www.youtube.com/watch?v=4X3xVPrSNNg) | OPEX Fitness | side | three reps in 8 s | #366 | 2026-09-13 | V-Up | Borrowed the hollow hold before, which never leaves this movement's bottom. Bottom: a hollow, trunk 0-4 up, straight legs 6-10 up, straight arms overhead 10-16 up (ours 2, 8, 13). Top: a V on the seat, trunk 57-66 up, thighs 63-65, shins 43-52, arms 27-36 up toward the shins, hands 0.27-0.49 trunk lengths from the ankles (ours 61, 64, 48, 28, 0.51 -- her arms are longer against her trunk). Half way: trunk about 40, thighs 50, shins 25. Tempo at 0.2 s: up 0.8-1.0 s, 0.2 at the top, down 1.2-1.4, 0.4-0.6 in the hollow; tops 2.8 s apart. |
 | `nordicCurl` | [Nordic Hamstring Curls](https://www.youtube.com/watch?v=UoR6civMWF8) | OPEX Abbotsford | side | three reps in 14 s | #367 | 2026-09-13 | Nordic Hamstring Curl | Borrowed the lying machine leg curl before. Heels hooked under a dumbbell rack's low bar (drawn as an ankle roller). Kneeling tall: hip 171-176, thigh 1-7 behind plumb, trunk plumb, shins 16-24 up behind the knees throughout, arms along the sides. Half way: thigh 20-23 forward, trunk 28-38, hip 165-174, knee 90-95. Catch: thigh 81-83 forward, trunk 78-83, hip 175-179, knee 158-162, hands on the floor under the chest, elbows 77-81 (ours 77; the hands sit 0.61 trunk lengths back of the shoulders against her 0.39-0.48 -- her arms are shorter against her trunk). Tempo at 0.2 s: down 2.0-2.2 s (slow, then a fall into the hands), 0.2-0.4 on the hands, up 1.0-1.2, kneeling 1.2-1.4; tops 4.6 s apart. Her way up bends the hips (146-159); ours returns along the way down. |
 | `benchDip` | [Bench Dip](https://www.youtube.com/watch?v=yvAzWxRsnqU) | OPEX Fitness | side | three reps in 14 s | #368 | 2026-09-13 | Bench Dip | Borrowed the parallel-bar dip before. Hands on a flat bench's edge behind, legs straight (knee 171-180), heels on the floor. Top: elbow 175-179, upper arm 18-23 back of plumb, trunk 19-27 back, hip 141-146, legs sloping 25-30. Bottom: elbow 88-97, upper arm near level (8-14 below), trunk 13-15 back, hip 115-117, legs 7-9, hips 0.36-0.44 trunk lengths under the hands. Ours: top elbow 179, trunk 23, legs 25; bottom elbow 89, upper arm 17 below level, trunk 14, legs 10 (at her 8 the figure's elbow bends to 81), hips 0.26 under the hands. Tempo at 0.25 s: down 2.75-3.0 s, ~0.25 at the bottom, up 1.0, 0.5 at the top. |
+| `archerPushUp` | [Archer Push Up](https://www.youtube.com/watch?v=FcttBOkat5M) | OPEX Fitness | front | three sides in 9 s, the camera on the head | #369 | 2026-09-13 | Archer Push-Up | Borrowed the push-up before. Hands wide (wrists 2.5-2.7 shoulder widths apart) and fixed. Top: both elbows 178-180, shoulders centred, 1.03 shoulder widths over the wrists. Bottom: the shoulders ride 0.48-0.56 shoulder widths toward one hand, that elbow bends to 40-55 while the other stays straight (163-177), shoulders 0.29-0.35 over the wrists; then the other side. Authored side on with a new world-build `shift` for the trunk and `yaw` on each arm to reach the wide hands. Ours: top straight, the straight arm 38 off plumb as hers (wrists 3.1 shoulder widths apart on the figure's narrower shoulders); bottom elbow 48, shift 0.58, shoulders 0.42 over the wrists; half way elbow 82. Tempo at 0.2 s: down 1.0 s, 0.2-0.4 held, up 0.8, 0.4 at the top, a side every 2.4-2.6 s; the loop cannot hold, so the holds are shared into the legs. Fore-aft hand placement is not visible head-on. |

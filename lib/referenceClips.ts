@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 15: exercises that borrowed a different movement's pose ------
+  archerPushUp: {
+    videoId: "FcttBOkat5M",
+    title: "Archer Push Up",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "three sides in 9 s, the camera on the head",
+    prs: [369],
+    date: "2026-09-13",
+    exercises: ["Archer Push-Up"],
+    notes:
+      "Borrowed the push-up before. Hands wide (wrists 2.5-2.7 shoulder widths apart) and fixed. Top: both elbows 178-180, shoulders centred, 1.03 shoulder widths over the wrists. Bottom: the shoulders ride 0.48-0.56 shoulder widths toward one hand, that elbow bends to 40-55 while the other stays straight (163-177), shoulders 0.29-0.35 over the wrists; then the other side. Authored side on with a new world-build `shift` for the trunk and `yaw` on each arm to reach the wide hands. Ours: top straight, the straight arm 38 off plumb as hers (wrists 3.1 shoulder widths apart on the figure's narrower shoulders); bottom elbow 48, shift 0.58, shoulders 0.42 over the wrists; half way elbow 82. Tempo at 0.2 s: down 1.0 s, 0.2-0.4 held, up 0.8, 0.4 at the top, a side every 2.4-2.6 s; the loop cannot hold, so the holds are shared into the legs. Fore-aft hand placement is not visible head-on.",
+  },
   benchDip: {
     videoId: "yvAzWxRsnqU",
     title: "Bench Dip",
