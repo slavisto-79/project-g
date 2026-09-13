@@ -2406,6 +2406,116 @@ export const exercisePoses = {
     { tempo: { down: 600, bottom: 150, up: 600, top: 300 } },
   ),
 
+  // Archer push-up, from a reference clip measured with the pose lab (OPEX
+  // "Archer Push Up", FcttBOkat5M, three sides in 9 s, the camera square on
+  // the head; MoveNet on 47 frames at 0.2 s). It borrowed the push-up before
+  // -- hands under the shoulders, both elbows bending alike.
+  //
+  // The hands are planted wide, the wrists 2.5-2.7 shoulder widths apart,
+  // and stay put. At the top both arms are straight (elbow 178-180) and the
+  // shoulders are centred between the hands. Going down the shoulders ride
+  // toward one hand -- 0.48-0.56 shoulder widths off centre at the bottom --
+  // and only that elbow bends, to 40-55; the other arm stays straight
+  // (163-177) and ends up nearly level. The shoulders drop from 1.03 to
+  // 0.29-0.35 shoulder widths above the wrists. Then back up, and the other
+  // side.
+  //
+  // Neither drawing plane can say this: the side view has no lateral axis
+  // for the trunk to ride along, the front view has no depth for a body
+  // lying toward the camera. So it is authored side on, like the push-up,
+  // and the world build carries the rest: the figure `shift`s toward the
+  // bent arm, and each arm is solved in the plane to its hand's true
+  // distance, then `yaw`ed round the shoulder to where the hand really is.
+  // The yaw keeps heights, so the drawing's hands stay on the floor. The
+  // straight arm fixes the shoulder height, and its angle out to the side is
+  // hers (38 degrees off plumb at the top); on the figure's narrower
+  // shoulders that sets the wrists 3.1 shoulder widths apart. At the bottom
+  // the shoulders are 7 cm over the wrists (0.42 shoulder widths; hers
+  // 0.29-0.35), ridden 0.58 shoulder widths toward the bent arm (hers
+  // 0.48-0.56), that elbow at 48; half way it is at 82. The shoulders come
+  // 2 cm short of the hands at the top and 5.4 at the bottom, as a body
+  // pivoting on its toes carries them toward the head -- a camera on the
+  // head cannot see that, so it is geometry, not measurement. The hips sit
+  // 16-18 degrees high throughout, the push-up's lockout.
+  //
+  // Tempo, alternating sides, to the 0.2 s frames: down in 1.0 s, 0.2-0.4 at
+  // the bottom, up in 0.8, 0.4 at the top; a side every 2.4-2.6 s. A loop
+  // cannot hold a position, so the holds are shared into the legs either
+  // side of them.
+  archerPushUp: (() => {
+    const hand = { x: 0.392, y: 0.855 };
+    const reach = (P.upperArm + P.forearm) * 0.995;
+    const legLength = (P.thigh + P.shin) * 0.995;
+    // Each wrist's reach out past its shoulder at the top: 0.61 of the arm,
+    // the clip's straight arm at 2.6 shoulder widths.
+    const out0 = 0.177;
+    const rad = (d: number) => (d * Math.PI) / 180;
+    const deg = (r: number) => (r * 180) / Math.PI;
+    const pelvisUnder = (sx: number, sy: number, t: number): Point => ({ x: sx - (Math.sin(rad(t)) * P.spine) / ASPECT, y: sy + Math.cos(rad(t)) * P.spine });
+    const ankleEnd = (h: number) => 120 + ((h - 0.07) / 0.155) * 15;
+    // The toes: where the top's straight legs land, the trunk at the
+    // push-up's lockout angle (279).
+    const topH = Math.sqrt(reach * reach - out0 * out0 - 0.02 * 0.02);
+    const topHip = hipAt(pelvisUnder(hand.x - 0.02 / ASPECT, hand.y - topH, 279), 279, 0, "side");
+    const topAnkleY = 0.86 - 0.069 * Math.cos(rad(ankleEnd(topH) + 180));
+    const toe = along({ x: topHip.x + Math.sqrt(legLength * legLength - (topAnkleY - topHip.y) ** 2) / ASPECT, y: topAnkleY }, ankleEnd(topH), 0.069);
+    // One key: the shoulders `z` short of the hands toward the head and `h`
+    // above them; the straight arm then fixes how far the trunk has ridden
+    // toward the other hand, on the side `sign` says.
+    const key = (z: number, h: number, sign: 1 | -1): Figure => {
+      const far = Math.sqrt(reach * reach - h * h - z * z);
+      const shift = sign * (far - out0);
+      const sx = hand.x - z / ASPECT;
+      const sy = hand.y - h;
+      const end = ankleEnd(h);
+      const ankle = along(toe, end + 180, 0.069);
+      // The trunk angle that leaves the legs straight to the toes. There are
+      // two, mirrored about the line from the shoulders to the ankles; the
+      // flatter one carries the hips a touch high, as the push-up's clip
+      // does, where the steeper one sags them.
+      const miss = (t: number) => {
+        const hip = hipAt(pelvisUnder(sx, sy, t), t, 0, "side");
+        return Math.abs(Math.hypot((hip.x - ankle.x) * ASPECT, hip.y - ankle.y) - legLength);
+      };
+      let first = 250;
+      while (first < 300 && miss(first) > 0.004) first += 0.1;
+      let torso = first;
+      for (let t = first; t <= first + 4; t += 0.05) if (miss(t) < miss(torso)) torso = t;
+      const pelvis = pelvisUnder(sx, sy, torso);
+      // Out past each shoulder, in the world (side 0 is +x; the shift moves
+      // the shoulders, not the hands).
+      const lateral = [out0 - shift, out0 + shift];
+      const planar = lateral.map((x) => Math.sqrt(x * x + z * z - 0.028 * 0.028));
+      const targets = [0, 1].map((side) => ({ x: shoulderAt(pelvis, torso, side as 0 | 1, "side").x + planar[side]! / ASPECT, y: hand.y })) as [Point, Point];
+      const arms = reachingArms(pelvis, torso, "side", targets, FORWARD, [264, 259]).map((arm, side) => {
+        const o = side === 0 ? 1 : -1;
+        const turn = Math.atan2(z, o * lateral[side]!) - Math.atan2(planar[side]!, o * 0.028);
+        return { ...arm, yaw: -o * deg(turn) };
+      }) as [Limb, Limb];
+      return {
+        pelvis,
+        torso,
+        neck: torso - 4,
+        arms,
+        legs: plantedLegs(pelvis, torso, "side", [ankle, { x: ankle.x - 0.016, y: ankle.y }], BACK, [end, end + 5]),
+        shift,
+      };
+    };
+    // The shoulders travel toward the head as they sink (the body pivots on
+    // its toes): 2 cm short of the hands at the top, 5.4 at the bottom.
+    const top = key(0.02, topH, 1);
+    const half = (sign: 1 | -1) => key(0.04, 0.15, sign);
+    const low = (sign: 1 | -1) => key(0.054, 0.07, sign);
+    return pose(
+      "side",
+      [top, half(1), low(1), half(1), top, half(-1), low(-1), half(-1)],
+      [{ kind: "floor", mat: true }],
+      "overhand",
+      -1,
+      { loop: [700, 650, 550, 600, 700, 650, 550, 600] },
+    );
+  })(),
+
   // Decline push-up, from a reference clip measured with the pose lab (OPEX
   // "Decline Push Up", cnsPwJ2f2B4, square side view). The hands stay on the
   // floor where the flat push-up puts them and the ankles sit on the bench,

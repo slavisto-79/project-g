@@ -241,6 +241,11 @@ type Figure = {
   // view); index 1 is the far side.
   arms: [Limb, Limb];
   legs: [Limb, Limb];
+  // Side view, world build only: the whole figure moved along the lateral
+  // axis, positive toward the near side -- an archer push-up's trunk riding
+  // over one hand, which the side drawing has no axis for. The 2D build and
+  // its checks do not see it.
+  shift?: number;
 };
 
 function build(figure: Figure, view: View): { segments: PoseSegment[]; head: { x: number; y: number; r: number }; joints: Record<string, Point> } {
@@ -590,6 +595,16 @@ function build3d(figure: Figure, view: View, facing: 1 | -1 = 1): { bones: PoseB
     bones.push({ part: "foot", side, a: heel, b: toe });
   });
 
+  const shift = view === "side" ? figure.shift ?? 0 : 0;
+  if (shift) {
+    // New points, not moved ones: bones share their joint arrays.
+    const moved = (p: Vec3): Vec3 => [p[0] + shift, p[1], p[2]];
+    return {
+      bones: bones.map((bone) => ({ ...bone, a: moved(bone.a), b: moved(bone.b) })),
+      head: { c: moved(headCentre), r: P.headRadius },
+      hands: [moved(hands[0]!), moved(hands[1]!)],
+    };
+  }
   return { bones, head: { c: headCentre, r: P.headRadius }, hands: [hands[0]!, hands[1]!] };
 }
 
