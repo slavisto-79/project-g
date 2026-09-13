@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 118 |
-| sharing a pose that was authored from a clip | 44 |
+| authored from a clip (the clip shows the exercise) | 119 |
+| sharing a pose that was authored from a clip | 43 |
 | without a clip yet | 0 |
-| poses with a clip | 112 of 113 (112 in use) |
+| poses with a clip | 113 of 114 (113 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -42,7 +42,7 @@ Poses without a clip yet: `idle`.
 | Barbell Walking Lunge | `lunge` | shares `lunge` (the clip shows Bodyweight Reverse Lunge, Dumbbell Lunge) | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
 | Battle Ropes | `battleRopes` | authored from the clip | [Battling Ropes](https://www.youtube.com/watch?v=4aT3IyKOo5M) (OPEX Fitness, side) | #342 |
 | Bear Crawl | `bearCrawl` | authored from the clip | [Crawl - OPEX Exercise Library](https://www.youtube.com/watch?v=w089AXf1f_g) (OPEX Fitness, side) | #304 |
-| Bench Dip | `dip` | shares `dip` (the clip shows Bar Dip) | [Weighted Dip - OPEX Exercise Library](https://www.youtube.com/watch?v=VNa0hX_y6Fk) (OPEX Fitness, three-quarter) | #282 |
+| Bench Dip | `benchDip` | authored from the clip | [Bench Dip](https://www.youtube.com/watch?v=yvAzWxRsnqU) (OPEX Fitness, side) | #368 |
 | Bicycle Crunch | `bicycleCrunch` | authored from the clip | [Bicycle Crunch](https://www.youtube.com/watch?v=cbKIDZ_XyjY) (Wodstar, side) | #340 |
 | Bird Dog | `quadruped` | authored from the clip | [2 Point Bird Dog](https://www.youtube.com/watch?v=FWjz8ozyVq8) (OPEX Fitness, side) | #353 |
 | Bodyweight Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
@@ -300,3 +300,4 @@ Poses without a clip yet: `idle`.
 | `frogPump` | [Frog Pump](https://www.youtube.com/watch?v=KvdJEqifOLk) | Impact Online Fitness Coaching | side | four reps, 25-35 s | #365 | 2026-09-13 | Frog Pump | Borrowed the barbell hip thrust (shoulders on a bench, knees forward) before. Side on: hips on the floor at the bottom (hip 130-142), one line to the knees at the top (171-180), trunk 15-20 up from the shoulders; hip-to-ankle over shoulder-to-hip 0.70-0.77 at the bottom, 0.95-1.04 at the top (ours 0.77, 0.95). The knee width is from a second clip, Colossus Fitness 'How to Do Frog Pumps for Bigger Glutes' (rgljhH1X4vc, 76-81 s, three-quarter view from the feet): ankles 0.6 hip widths apart, knees 1.9-2.4 (ours 0.65, 2.2), a ratio only. Tempo from the four side-on reps at 0.25 s: rise 0.5-0.75 s, hold 0.25-0.5, lower 0.5, rest 0.4-0.75, tops 2.0-2.25 s apart. A new leg `flare` opens the knees about the hip-to-ankle line. Cue: 'pulse the hips up' became a full rep with a squeeze and a controlled lowering, as both clips show. |
 | `vUp` | [V-Up - OPEX Exercise Library](https://www.youtube.com/watch?v=4X3xVPrSNNg) | OPEX Fitness | side | three reps in 8 s | #366 | 2026-09-13 | V-Up | Borrowed the hollow hold before, which never leaves this movement's bottom. Bottom: a hollow, trunk 0-4 up, straight legs 6-10 up, straight arms overhead 10-16 up (ours 2, 8, 13). Top: a V on the seat, trunk 57-66 up, thighs 63-65, shins 43-52, arms 27-36 up toward the shins, hands 0.27-0.49 trunk lengths from the ankles (ours 61, 64, 48, 28, 0.51 -- her arms are longer against her trunk). Half way: trunk about 40, thighs 50, shins 25. Tempo at 0.2 s: up 0.8-1.0 s, 0.2 at the top, down 1.2-1.4, 0.4-0.6 in the hollow; tops 2.8 s apart. |
 | `nordicCurl` | [Nordic Hamstring Curls](https://www.youtube.com/watch?v=UoR6civMWF8) | OPEX Abbotsford | side | three reps in 14 s | #367 | 2026-09-13 | Nordic Hamstring Curl | Borrowed the lying machine leg curl before. Heels hooked under a dumbbell rack's low bar (drawn as an ankle roller). Kneeling tall: hip 171-176, thigh 1-7 behind plumb, trunk plumb, shins 16-24 up behind the knees throughout, arms along the sides. Half way: thigh 20-23 forward, trunk 28-38, hip 165-174, knee 90-95. Catch: thigh 81-83 forward, trunk 78-83, hip 175-179, knee 158-162, hands on the floor under the chest, elbows 77-81 (ours 77; the hands sit 0.61 trunk lengths back of the shoulders against her 0.39-0.48 -- her arms are shorter against her trunk). Tempo at 0.2 s: down 2.0-2.2 s (slow, then a fall into the hands), 0.2-0.4 on the hands, up 1.0-1.2, kneeling 1.2-1.4; tops 4.6 s apart. Her way up bends the hips (146-159); ours returns along the way down. |
+| `benchDip` | [Bench Dip](https://www.youtube.com/watch?v=yvAzWxRsnqU) | OPEX Fitness | side | three reps in 14 s | #368 | 2026-09-13 | Bench Dip | Borrowed the parallel-bar dip before. Hands on a flat bench's edge behind, legs straight (knee 171-180), heels on the floor. Top: elbow 175-179, upper arm 18-23 back of plumb, trunk 19-27 back, hip 141-146, legs sloping 25-30. Bottom: elbow 88-97, upper arm near level (8-14 below), trunk 13-15 back, hip 115-117, legs 7-9, hips 0.36-0.44 trunk lengths under the hands. Ours: top elbow 179, trunk 23, legs 25; bottom elbow 89, upper arm 17 below level, trunk 14, legs 10 (at her 8 the figure's elbow bends to 81), hips 0.26 under the hands. Tempo at 0.25 s: down 2.75-3.0 s, ~0.25 at the bottom, up 1.0, 0.5 at the top. |
