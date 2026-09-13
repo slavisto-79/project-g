@@ -13,9 +13,9 @@ clips are used with is `docs/animation-from-clip.md`.
 | authored from a clip (the clip shows the exercise) | 113 |
 | sharing a pose that was authored from a clip | 49 |
 | without a clip yet | 0 |
-| poses with a clip | 107 of 111 (107 in use) |
+| poses with a clip | 107 of 108 (107 in use) |
 
-Poses without a clip yet: `idle`, `plankIYTW`, `plankSaw`, `ringCurl`.
+Poses without a clip yet: `idle`.
 
 ## Every exercise
 

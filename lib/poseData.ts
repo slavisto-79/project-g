@@ -2462,44 +2462,6 @@ export const exercisePoses = {
     { tempo: { down: 1600, bottom: 300, up: 1600, top: 300 }, camera: { azimuth: 0.9 } },
   ),
 
-  // A forearm plank rocking forward and back over the planted elbows -- the
-  // "saw". The forearms stay put (lower arm flat on the floor throughout);
-  // the shoulders travel past them and back, and the ankles hinge over the
-  // pinned toes. Only the upper-arm angle changes, so the elbow contact
-  // never slides.
-  plankSaw: pose(
-    "side",
-    [
-      { ...supported({ x: 0.607, y: 0.752 }, 272, { x: 0.392, y: 0.855 }, { x: 0.9, y: 0.872 }, 118), neck: 300, arms: [{ upper: 163, lower: 272, end: 272 }, { upper: 168, lower: 277, end: 277 }] },
-      { ...supported({ x: 0.565, y: 0.745 }, 272, { x: 0.392, y: 0.855 }, { x: 0.86, y: 0.87 }), neck: 300, arms: [{ upper: 185, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
-      { ...supported({ x: 0.523, y: 0.752 }, 272, { x: 0.392, y: 0.855 }, { x: 0.82, y: 0.868 }, 150), neck: 300, arms: [{ upper: 207, lower: 272, end: 272 }, { upper: 212, lower: 277, end: 277 }] },
-    ],
-    [{ kind: "floor", mat: true }],
-    "overhand",
-    -1,
-  ),
-
-  // A forearm plank with the near arm cycling through the W-Y-I raises (the
-  // reverse sweep plays on the way back). The T points out of the sagittal
-  // plane, so the demo shows the three shapes that read from the side. The
-  // whole figure sits further right than the plain plank so the fully
-  // extended arm stays on the canvas.
-  plankIYTW: pose(
-    "side",
-    [
-      { ...supported({ x: 0.64, y: 0.745 }, 272, { x: 0.467, y: 0.855 }, { x: 0.935, y: 0.87 }), neck: 300, arms: [{ upper: 185, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
-      // W: elbow drawn back toward the ribs, forearm hovering ahead.
-      { ...supported({ x: 0.64, y: 0.745 }, 272, { x: 0.467, y: 0.855 }, { x: 0.935, y: 0.87 }), neck: 300, arms: [{ upper: 120, lower: 250, end: 250 }, { upper: 190, lower: 277, end: 277 }] },
-      // Y: raised past the ear.
-      { ...supported({ x: 0.64, y: 0.747 }, 272, { x: 0.467, y: 0.855 }, { x: 0.935, y: 0.87 }), neck: 300, arms: [{ upper: 288, lower: 288, end: 288 }, { upper: 190, lower: 277, end: 277 }] },
-      // I: the arm reaches forward in line with the body.
-      { ...supported({ x: 0.64, y: 0.745 }, 272, { x: 0.467, y: 0.855 }, { x: 0.935, y: 0.87 }), neck: 300, arms: [{ upper: 272, lower: 272, end: 272 }, { upper: 190, lower: 277, end: 277 }] },
-    ],
-    [{ kind: "floor", mat: true }],
-    "overhand",
-    -1,
-  ),
-
   // Dip, from a reference clip measured with the pose lab (OPEX "Weighted
   // Dip", VNa0hX_y6Fk, three-quarter side view, four reps in 11 s; MoveNet on
   // 69 frames at 0.25 s -- the belt changes nothing about the shape): at
@@ -3376,33 +3338,6 @@ export const exercisePoses = {
     "underhand",
     1,
     { tempo: { down: 1100, bottom: 300, up: 1500, top: 400 }, camera: { azimuth: 0.75 } },
-  ),
-
-  // A bodyweight curl on suspension rings: the body hangs straight as a
-  // plank, heels planted, hands fixed on the rings -- and the ONLY hinge is
-  // the elbow, which is what pulls the whole body from the lean-back up to
-  // vertical. The lean angle drives the pelvis (heel + a straight leg), the
-  // torso continues the same line, and the rings never move.
-  ringCurl: pose(
-    "side",
-    // The third number is the heel-to-pelvis distance that makes the LEG
-    // solve straight: legs reach from the hip, which sits a depth-offset
-    // toward the feet, so the raw 0.44 leg length left the knees 25 bent.
-    ([[38, 322, 0.4486], [26, 334, 0.4454], [16, 344, 0.4424]] as const).map(([lean, torso, dist]) => {
-      const rad = (lean * Math.PI) / 180;
-      const pelvis = { x: 0.6 - (dist * Math.sin(rad)) / (850 / 567), y: 0.93 - dist * Math.cos(rad) };
-      return {
-        pelvis,
-        torso,
-        neck: torso + 8,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.518, y: 0.335 }, { x: 0.502, y: 0.335 }], DOWN_SIDE),
-        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.6, y: FLOOR }, { x: 0.584, y: FLOOR }], FORWARD),
-      };
-    }),
-    // Just the handle: a strap slab reads as a fat post from the front-on
-    // orbit angles, and the fixed floating handle already says "suspension".
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.1, plates: false }],
-    "underhand",
   ),
 
   // Superman, from a reference clip measured with the pose lab (OPEX
