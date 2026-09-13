@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 103 |
+| authored from a clip (the clip shows the exercise) | 104 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 10 |
-| poses with a clip | 97 of 111 (107 in use) |
+| without a clip yet | 9 |
+| poses with a clip | 98 of 111 (107 in use) |
 
-Poses without a clip yet: `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`.
+Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`.
 
 ## Every exercise
 
@@ -97,7 +97,7 @@ Poses without a clip yet: `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle
 | Good Morning | `goodMorning` | authored from the clip | [High Bar Good Morning](https://www.youtube.com/watch?v=dEJ0FTm-CEk) (Renaissance Periodization, side) | #262 |
 | Hack Squat | `squat` | shares `squat` (the clip shows Barbell Back Squat) | [How to do a Barbell Back Squat](https://www.youtube.com/watch?v=-bJIpOq-LWk) (National Academy of Sports Medicine (NASM), three-quarter) | #254 |
 | Hammer Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
-| Handstand Push-Up | `handstandPushUp` | no clip yet |  |  |
+| Handstand Push-Up | `handstandPushUp` | authored from the clip | [Strict Handstand Push Ups](https://www.youtube.com/watch?v=ic8cg0SQ8A4) (Functional Bodybuilding, three-quarter) | #351 |
 | Hang Clean | `clean` | authored from the clip | [Hang Clean](https://www.youtube.com/watch?v=0u97BVlVib0) (OPEX Fitness, side) | #345 |
 | Hanging Knee Raise | `hangingKneeRaise` | authored from the clip | [Hanging Leg Raises](https://www.youtube.com/watch?v=w0IDQ_05X34) (OPEX San Juan, three-quarter) | #286 |
 | Hanging Leg Raise | `hangingRaise` | authored from the clip | [Hanging Leg Raises](https://www.youtube.com/watch?v=w0IDQ_05X34) (OPEX San Juan, three-quarter) | #286 |
@@ -285,3 +285,4 @@ Poses without a clip yet: `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle
 | `wallSit` | [How to Do a Wall Sit Exercise | 30 Seconds | MedBridge](https://www.youtube.com/watch?v=cWTZ8Am1Ee0) | MedBridge | side | one sit held about 14 s | #348 | 2026-09-13 | Wall Sit | The video cuts between a side camera and a front one; numbers are from the side camera (thigh projects 0.15 of the frame there, 0.09 face on). Held: knee 101-104, shin plumb, trunk 3, the hip 0.13 trunk lengths above the knee (thigh 14 degrees under level), hands resting on the thighs (28 degrees forward of plumb, elbows 155). Standing she is half a trunk length clear of the wall with the hips over the ankles; she slides back and down in 2.5 s and up in 2.5 s. OPEX's face-on Wall Sit (CoGaiX4P_BQ) agrees on the thigh: knees 0.1 trunk lengths under the hips. The 14 s hold is a prescription; the card holds 4 s. |
 | `pistolSquat` | [Pistol Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=D934zSaVtU0) | OPEX Fitness | side | three reps in 11 s | #349 | 2026-09-13 | Pistol Squat | MoveNet trades the left and right legs whenever they cross, so legs are told apart by behaviour (the folding knee is the support) and the trunk is read from shoulder-over-hip height, not the hip keypoint's jumping x. Standing, the free foot hangs just off the floor, knee 132-138; a fifth of the way down it is long at 40-47 forward of plumb, half way 60-75, level at the bottom (85-94) with the knee 153-157 and the heel just off the floor. Bottom: hip at 0.27 of standing height over the ankle, support knee 53-55, trunk 34-41. Arms forward 7-15 under level throughout. 1.3 s down, 0.25 s bottom, 1.0 s up, about 1 s standing. Our leg cannot reach her 0.27 without folding the knee to 46; the bottom takes knee 50 at 0.32. |
 | `pikePushUp` | [How to do a Pike Push-Up](https://www.youtube.com/watch?v=XckEEwa1BPI) | National Academy of Sports Medicine (NASM) | three-quarter | four reps in 14 s | #350 | 2026-09-13 | Pike Push-Up | Three-quarter camera: horizontal distances not quoted. At the bottom the near wrist is hidden (score 0.1-0.2), so the bottom elbow is not quoted either. Top: near-side elbow 174-180, hip angle 63-72. Top to bottom the shoulders fall 0.5 trunk lengths and the hips 0.43, the hip angle opening to 75-78, the nose reaching the height of the hands. Hands at least 1.4 trunk lengths from the feet (projected). 1.0 s down, 0.3 s bottom, 0.8 s up, about 1 s at the top. |
+| `handstandPushUp` | [Strict Handstand Push Ups](https://www.youtube.com/watch?v=ic8cg0SQ8A4) | Functional Bodybuilding | three-quarter | three reps in 5 s | #351 | 2026-09-13 | Handstand Push-Up | Frames ROTATED 180 degrees before MoveNet saw them (it is trained on upright people); every keypoint then scored 0.7-0.9. The camera stands off to the front, so the bottom elbow reads 98-103 on one arm and 143-147 on the other and is not quoted. Back and heels against a wall, legs straight up together (hip angle 170-180, knees locked). Nose ends 0.2 trunk lengths over the hands (crown on the floor); shoulders fall to 0.64 of their locked-out height over the hands. 0.7 s down, touch and go, 0.75 s up, ~0.1 s locked out -- 1.6 s a rep. The video autoplays into another clip after 9.9 s, which ruined one capture: check the title in the capture loop. |

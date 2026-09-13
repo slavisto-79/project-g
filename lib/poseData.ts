@@ -3810,8 +3810,26 @@ export const exercisePoses = {
     { tempo: { down: 1000, bottom: 300, up: 800, top: 1100 } },
   ),
 
-  // Inverted, legs split fore-aft for balance (and to fit the frame); the head
-  // grazes the floor at the bottom, which is full depth.
+  // Handstand push-up, from a reference clip measured with the pose lab
+  // (Functional Bodybuilding "Strict Handstand Push Ups", ic8cg0SQ8A4, three
+  // reps in 5 s before the logo; MoveNet on 43 frames at 0.15 s). The model
+  // is trained on people the right way up, so the frames were ROTATED 180
+  // degrees before it saw them: every keypoint then scored 0.7-0.9. The
+  // camera stands off to the front, so the elbow reads 98-103 on one arm and
+  // 143-147 on the other at the bottom and is not quoted; heights are.
+  //
+  // THE LEGS GO UP TOGETHER, AGAINST THE WALL. Her back is to a wall and
+  // her legs run straight up it side by side, hip angle 170-180 and the
+  // knees locked, in every frame. Ours split them fore-aft "for balance" --
+  // but the exercise is done against a wall, and there was no wall.
+  //
+  // THE HEAD COMES TO THE FLOOR: her nose ends 0.2 trunk lengths over the
+  // hands, crown on the floor, the shoulders falling to 0.64 of their
+  // locked-out height over the hands. Ours already did (0.58), so the depth
+  // is unchanged.
+  //
+  // Tempo, which it did not have: 0.7 s down, touch and go, 0.75 s up, a
+  // tenth of a second locked out -- 1.6 s a rep, the same in all three.
   handstandPushUp: pose(
     "side",
     [0.351, 0.4115, 0.472].map((py) => {
@@ -3821,12 +3839,20 @@ export const exercisePoses = {
         pelvis,
         torso,
         arms: reachingArms(pelvis, torso, "side", [{ x: 0.50, y: 0.885 }, { x: 0.484, y: 0.885 }], BACK, [92, 97]),
-        legs: [{ upper: 310, lower: 305, end: 308 }, { upper: 46, lower: 50, end: 48 }] as [Limb, Limb],
+        // Straight up, together, toes pointed.
+        legs: [{ upper: 358, lower: 358, end: 20 }, { upper: 2, lower: 2, end: 24 }] as [Limb, Limb],
       };
     }),
-    [{ kind: "floor", mat: true }],
+    [
+      { kind: "floor", mat: true },
+      // The wall her back and heels are against.
+      { kind: "slab", x: 0.585, y: 0.40, width: 0.045, height: 1.0 },
+    ],
     "overhand",
     -1,
+    // Opened from in front, the way the clip is filmed: from the usual angle
+    // the wall stood between the camera and the lifter.
+    { tempo: { down: 700, bottom: 100, up: 750, top: 100 }, camera: { azimuth: 2.25 } },
   ),
 
   // Straight-arm pulldown, from a reference clip measured with the pose lab
