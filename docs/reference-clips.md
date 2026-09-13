@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 106 |
+| authored from a clip (the clip shows the exercise) | 107 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 7 |
-| poses with a clip | 100 of 111 (107 in use) |
+| without a clip yet | 6 |
+| poses with a clip | 101 of 111 (107 in use) |
 
-Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `oneArmRow`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
+Poses without a clip yet: `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `oneArmRow`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
 
 ## Every exercise
 
@@ -80,7 +80,7 @@ Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `med
 | Dumbbell Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
 | Dumbbell Floor Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
 | Dumbbell Fly | `fly` | authored from the clip | [Dumbbell Neutral Grip Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=AVIBmE5iQrQ) (OPEX Fitness, head-end) | #283 |
-| Dumbbell Front Raise | `frontRaise` | no clip yet |  |  |
+| Dumbbell Front Raise | `frontRaise` | authored from the clip | [Dumbbell Front Raise](https://www.youtube.com/watch?v=E-E0EqERFBg) (OPEX Fitness, front) | #354 |
 | Dumbbell Front Squat | `gobletSquat` | shares `gobletSquat` (the clip shows Goblet Squat) | [Goblet Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=pEGfGwp6IEA) (OPEX Fitness, three-quarter) | #317 |
 | Dumbbell Lateral Raise | `lateralRaise` | authored from the clip | [Dumbbell Lateral Raise - OPEX Exercise Library](https://www.youtube.com/watch?v=8aUc9snLOxU) (OPEX Fitness, front) | #280 |
 | Dumbbell Lunge | `lunge` | authored from the clip | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
@@ -288,3 +288,4 @@ Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `med
 | `handstandPushUp` | [Strict Handstand Push Ups](https://www.youtube.com/watch?v=ic8cg0SQ8A4) | Functional Bodybuilding | three-quarter | three reps in 5 s | #351 | 2026-09-13 | Handstand Push-Up | Frames ROTATED 180 degrees before MoveNet saw them (it is trained on upright people); every keypoint then scored 0.7-0.9. The camera stands off to the front, so the bottom elbow reads 98-103 on one arm and 143-147 on the other and is not quoted. Back and heels against a wall, legs straight up together (hip angle 170-180, knees locked). Nose ends 0.2 trunk lengths over the hands (crown on the floor); shoulders fall to 0.64 of their locked-out height over the hands. 0.7 s down, touch and go, 0.75 s up, ~0.1 s locked out -- 1.6 s a rep. The video autoplays into another clip after 9.9 s, which ruined one capture: check the title in the capture loop. |
 | `mountainClimber` | [Mountain Climbers](https://www.youtube.com/watch?v=0Smb04SpyhU) | OPEX Abbotsford | side | eight drives in 4 s at full pace | #352 | 2026-09-13 | Mountain Climbers | An unskippable-looking ad plays first; its Skip button appears after a few seconds. MoveNet swaps the legs' labels as they pass, so legs are told apart by shape (the one folded under 60 drives). Driving knee 40-55, hip 59-68, the knee a hand's height off the floor two fifths of the way from hip to shoulders, the foot trailing behind it. Elbows 172-180, shoulders over the hands, trunk within 7 degrees of level; planted knee 155-172, hip 139-156. A drive every 0.5 s, alternating: 1.0 s a full cycle. |
 | `quadruped` | [2 Point Bird Dog](https://www.youtube.com/watch?v=FWjz8ozyVq8) | OPEX Fitness | side | four reaches in 18 s, alternating | #353 | 2026-09-13 | Bird Dog | Held: reaching thigh straight back 2-5 above level, knee 145-165, reaching arm 5-15 UNDER level with the elbow straight; support arm plumb and locked (166-180), support thigh near plumb, knee 66-80; trunk 9-10 head-up on all fours, 3-6 reaching. Reach 1.0 s, hold 1.0 s (still lengthening: arm 14 to 11 under level, knee 148 to 152), return 0.75 s, 1.75 s on all fours, then the other side. Our trunk is 15-16 because our arm is long against our thigh; flatter bends the support elbow. |
+| `frontRaise` | [Dumbbell Front Raise](https://www.youtube.com/watch?v=E-E0EqERFBg) | OPEX Fitness | front | three reps in 8.4 s | #354 | 2026-09-13 | Dumbbell Front Raise | Face on, so the raise is read from height alone: hanging, the wrists sit 0.220-0.228 of the frame under the shoulders (the arm's full length), and the angle is the arccosine of the wrist's drop over that. Top: wrists 0.05-0.12 OVER the shoulders, 107-120 degrees from plumb, all three reps. The elbow sits 0.01-0.04 over the shoulder at the top where a straight arm puts it 0.035-0.06: about 158. 0.8 s up, 0.2-0.4 s top, 0.8-1.0 s down, 0.8 s hanging. The exercise cue says to shoulder height; the clip goes above it. |
