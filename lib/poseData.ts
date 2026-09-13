@@ -3633,24 +3633,66 @@ export const exercisePoses = {
   // view, so the fold shows; the hands are pulled in with a negative spread,
   // because the world build spreads a side view's hands to the shoulder
   // girdle and a 23cm ball needs them 16cm apart, not 22.
+  //
+  // From a reference clip measured with the pose lab (Third Space London
+  // "How To Med Ball Slam", CkO1mfSBvv4, four slams in 8 s; MoveNet on 67
+  // frames at 0.15 s, a side view from a little in front). Heights are
+  // taken over the ankle and angles at the joints; nothing horizontal.
+  //
+  // THE SLAM IS MORE HINGE THAN SQUAT. At the bottom her hip is down only 23%
+  // of its standing height with the hands 0.27 hip-heights over the ankle.
+  // The camera sits a little in front, so at the bottom her trunk and thigh
+  // point partly toward it (projected trunk 0.11-0.14 against 0.16-0.17
+  // standing): the trunk's angle comes from its HEIGHT instead, 50-62
+  // degrees, and the knee angle is not quoted. Ours folded to a trunk of 80
+  // with the hip down 29% and the knees at 91.
+  //
+  // Our arms are long against our trunk but short against our legs, so a
+  // hinge that shallow does not bring the ball down: the bottom takes a
+  // trunk of 65 with the hip down a third, knees 101, the ball released 5 cm
+  // over the floor.
+  //
+  // IT GOES ROUND, NOT OUT AND BACK. After the slam she stands with the
+  // ball held at the belly (elbows 126-135) and presses it back overhead to
+  // near-straight arms (160-168); ours played the slam backwards.
+  //
+  // Cadence, which it did not have: 2.25 s a slam. Overhead she holds about
+  // 0.45 s, the last of it with the knees giving (167) and the trunk tipping
+  // (7-15) -- the load; the slam itself is 0.45 s, a sixth of a second at
+  // the floor, 0.6 s up to the ball at the belly, 0.6 s to press it.
   medBallSlam: pose(
     "side",
-    // Mid-rep the ball is out in front at chest height, arms still long: a
-    // target closer to the shoulder folded the elbows to 163 degrees.
-    ([[0.500, 0.494, 356, 0.58, 0.000], [0.520, 0.550, 40, 0.74, 0.54], [0.550, 0.620, 80, 0.72, 0.86]] as const).map(
-      ([x, y, torso, hx, hy]) => {
+    (() => {
+      const overhead = (x: number, y: number, torso: number): Figure => {
+        const pelvis = { x, y };
+        const sh = shoulderAt(pelvis, torso, 0, "side");
+        const ball = { x: sh.x + 0.02 / ASPECT, y: sh.y - 0.284 };
+        return { pelvis, torso, neck: torso, arms: wide(reachingArms(pelvis, torso, "side", [ball, { x: ball.x - 0.012, y: ball.y }], FORWARD), -0.03), legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD) };
+      };
+      const held = (x: number, y: number, torso: number, hands: Point): Figure => {
         const pelvis = { x, y };
         return {
           pelvis,
           torso,
           neck: torso > 30 ? torso - 20 : torso,
-          arms: wide(reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: hx - 0.012, y: hy }], FORWARD), -0.03),
+          arms: wide(reachingArms(pelvis, torso, "side", [hands, { x: hands.x - 0.012, y: hands.y }], FORWARD), -0.03),
           legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
         };
-      },
-    ),
+      };
+      return [
+        overhead(0.5, 0.494, 0),
+        // The load: knees giving, the trunk tipping, the ball still up.
+        overhead(0.49, 0.499, 9),
+        // The floor: ball between the feet and a little ahead.
+        held(0.41, 0.635, 65, { x: 0.589, y: 0.81 }),
+        // Stood up with the ball at the belly.
+        held(0.49, 0.505, 12, { x: 0.655, y: 0.46 }),
+      ];
+    })(),
     [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }],
     "neutral",
+    1,
+    { loop: [450, 450, 750, 600] },
   ),
 
   // A rotational throw is horizontal: the ball loaded at one hip, driven
