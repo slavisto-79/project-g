@@ -112,7 +112,7 @@ export const exerciseLibrary: LibraryExercise[] = [
   { name: "Hack Squat", pattern: "squat", primaryMuscle: "quads", tiers: GYM_ONLY, implement: "machine", difficulty: "beginner", injurySafe: KNEE_HEAVY, startingKg: 40, cue: "Back flat on the pad, drive through the whole foot." },
   { name: "Smith Machine Squat", pattern: "squat", primaryMuscle: "quads", tiers: GYM_ONLY, implement: "machine", difficulty: "novice", injurySafe: KNEE_HEAVY, startingKg: 30, cue: "Fixed bar path, so you can focus on depth rather than balance." },
   { name: "Leg Extension", pattern: "squat", primaryMuscle: "quads", isolation: true, tiers: GYM_ONLY, implement: "machine", difficulty: "novice", injurySafe: KNEE_HEAVY, startingKg: 20, cue: "Straighten the knees against the pad, squeeze at the top." },
-  { name: "Wall Sit", pattern: "isometric", primaryMuscle: "quads", tiers: ALL_TIERS, implement: "bodyweight", difficulty: "novice", isHold: true, injurySafe: KNEE_HEAVY, bodyweightFraction: 0.75, cue: "Back flat on a wall, thighs parallel, hold." },
+  { name: "Wall Sit", pattern: "isometric", primaryMuscle: "quads", tiers: ALL_TIERS, implement: "bodyweight", difficulty: "novice", isHold: true, injurySafe: KNEE_HEAVY, bodyweightFraction: 0.75, cue: "Back flat on a wall, knees at about a right angle, hold." },
 
   // --- HINGE ---------------------------------------------------------------
   { name: "Conventional Deadlift", pattern: "hinge", primaryMuscle: "hamstrings", tiers: FREE_WEIGHT, implement: "barbell", difficulty: "advanced", injurySafe: BACK_HEAVY, startingKg: 50, cue: "Bar over mid-foot, push the floor away, keep the bar against the legs." },
@@ -175,7 +175,7 @@ export const exerciseLibrary: LibraryExercise[] = [
   { name: "Handstand Push-Up", pattern: "push", primaryMuscle: "shoulders", tiers: ["bodyweight", "bars", "gym"], implement: "bodyweight", difficulty: "advanced", injurySafe: SHOULDER_HEAVY, bodyweightFraction: 0.95, cue: "Inverted against a wall, lower the head to the floor and press up." },
   { name: "Dumbbell Lateral Raise", pattern: "push", primaryMuscle: "shoulders", isolation: true, tiers: DUMBBELL_TIERS, implement: "dumbbell", difficulty: "novice", perHand: true, injurySafe: SHOULDER_HEAVY, startingKg: 5, cue: "Lead with the elbows out to the side, stop at shoulder height." },
   { name: "Cable Lateral Raise", pattern: "push", primaryMuscle: "shoulders", isolation: true, tiers: GYM_ONLY, implement: "cable", difficulty: "beginner", unilateral: true, injurySafe: SHOULDER_HEAVY, startingKg: 5, cue: "One arm at a time, constant tension through the whole range." },
-  { name: "Dumbbell Front Raise", pattern: "push", primaryMuscle: "shoulders", isolation: true, tiers: DUMBBELL_TIERS, implement: "dumbbell", difficulty: "novice", perHand: true, injurySafe: SHOULDER_HEAVY, startingKg: 5, cue: "Raise to shoulder height in front, no swing." },
+  { name: "Dumbbell Front Raise", pattern: "push", primaryMuscle: "shoulders", isolation: true, tiers: DUMBBELL_TIERS, implement: "dumbbell", difficulty: "novice", perHand: true, injurySafe: SHOULDER_HEAVY, startingKg: 5, cue: "Raise in front to just above shoulder height, no swing." },
   { name: "Band Overhead Press", pattern: "push", primaryMuscle: "shoulders", tiers: ["minimal"], implement: "band", difficulty: "beginner", injurySafe: SHOULDER_HEAVY, cue: "Stand on the band, press overhead against increasing tension." },
 
   // --- VERTICAL PULL -------------------------------------------------------
