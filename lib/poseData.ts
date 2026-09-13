@@ -1324,16 +1324,60 @@ export const exercisePoses = {
     { tempo: { down: 600, bottom: 0, up: 600, top: 0 }, camera: { azimuth: 0.9 } },
   ),
 
+  // Running stride, from a reference clip measured with the pose lab (EMU
+  // Running Science Laboratory "Slow motion running - side view",
+  // Jd8Jijb7jZY, a college track athlete on a treadmill at 10 mph -- about
+  // 16 km/h, a fast run rather than a flat-out sprint; MoveNet on 71 frames,
+  // a side view). The model swaps the legs' labels as they pass, so legs are
+  // told apart by what they do.
+  //
+  // THE KNEE DRIVE WAS A HIGH-KNEE DRILL. Ours lifted the front thigh 28
+  // degrees ABOVE level. Hers reaches 44-50 degrees forward of plumb at
+  // most, the knee folded to 56-63 as the swing leg comes through; at
+  // contact the front leg reaches out nearly straight (thigh 34-40 forward,
+  // knee 155-164) while the rear leg has folded behind (thigh 21-25 back,
+  // knee 103-117). Under the body the support knee gives to 137-145.
+  //
+  // THE ARMS DID NOT HANG STRAIGHT. Ours passed through a key with both
+  // elbows locked at 174. Hers swing from 13 degrees forward to 55-64 back
+  // with the elbows at 60-95 the whole way.
+  //
+  // IT FLOATED. The old floor was pinned 5 cm under the lowest foot in every
+  // key. The support foot now stands on it at midstance, and the hips ride
+  // 5 cm higher at contact, as hers do (the hip keypoint rises 0.05 of the
+  // frame between midstance and contact). Trunk 8 forward (hers 5-13).
+  //
+  // A loop of four keys -- contact and midstance on each leg -- instead of
+  // three played out and back.
+  //
+  // WHAT IS NOT MEASURED IS THE CADENCE. The clip was captured at 100 fps
+  // and plays at 30, but read that way it would give her 73 steps a minute
+  // at 16 km/h, which no runner does, so it has been slowed by some other
+  // factor the video does not state. The keys keep the viewer's default
+  // spacing (1.1 s each) that the old pose had; no running tempo is claimed.
   run: pose(
     "side",
-    [
-      { pelvis: { x: 0.5, y: 0.520 }, torso: 8, arms: [{ upper: 142, lower: 52 }, { upper: 214, lower: 140 }], legs: [{ upper: 62, lower: 132, end: 40 }, { upper: 202, lower: 230, end: 150 }] },
-      { pelvis: { x: 0.5, y: 0.535 }, torso: 8, arms: [{ upper: 178, lower: 172 }, { upper: 182, lower: 188 }], legs: [{ upper: 132, lower: 148, end: 60 }, { upper: 232, lower: 285, end: 205 }] },
-      // Arms and legs trade sides, which is the stride -- but every knee and
-      // elbow keeps folding the same anatomical way through the swap.
-      { pelvis: { x: 0.5, y: 0.520 }, torso: 8, arms: [{ upper: 214, lower: 140 }, { upper: 142, lower: 52 }], legs: [{ upper: 202, lower: 230, end: 150 }, { upper: 62, lower: 132, end: 40 }] },
-    ],
-    [{ kind: "floor", y: 0.978 }],
+    (() => {
+      const frontArm: Limb = { upper: 167, lower: 67 };
+      const backArm: Limb = { upper: 235, lower: 140 };
+      const passing = (upper: number): Limb => ({ upper, lower: upper - 95 });
+      const reach: Limb = { upper: 143, lower: 163, end: 100 };
+      const folded: Limb = { upper: 203, lower: 273, end: 200 };
+      const support: Limb = { upper: 175, lower: 214, end: 90 };
+      const swing: Limb = { upper: 138, lower: 258, end: 215 };
+      const contact = { x: 0.5, y: 0.478 };
+      const mid = { x: 0.5, y: 0.528 };
+      return [
+        { pelvis: contact, torso: 8, arms: [backArm, frontArm], legs: [reach, folded] },
+        { pelvis: mid, torso: 8, arms: [passing(195), passing(200)], legs: [support, swing] },
+        { pelvis: contact, torso: 8, arms: [frontArm, backArm], legs: [folded, reach] },
+        { pelvis: mid, torso: 8, arms: [passing(200), passing(195)], legs: [swing, support] },
+      ] as Figure[];
+    })(),
+    [{ kind: "floor" }],
+    "neutral",
+    1,
+    { loop: [1100, 1100, 1100, 1100] },
   ),
 
   // --- Hinge pattern -------------------------------------------------------
