@@ -1906,38 +1906,24 @@ export const exercisePoses = {
   //
   // NO TEMPO: both clips are holds. The rise to the top takes 0.6 s; the
   // lowering and the rep rhythm are never shown, so none is invented.
-  gluteBridge: pose(
+  gluteBridge: pose("side", bridgeFrames(), [{ kind: "floor", y: 0.815, mat: true }], "overhand", 1, { camera: { azimuth: Math.PI / 2 } }),
+
+  // Single-leg glute bridge, from a reference clip measured with the pose lab
+  // (OPEX "Single Leg Glute Bridge", 6pvdY3sXUbo, one bridge held 7 s;
+  // MoveNet on 45 frames at 0.2 s, a side view). It borrowed the barbell hip
+  // thrust before -- shoulders on a bench, both feet down.
+  //
+  // The working side is the glute bridge's: shoulders on the floor, the trunk
+  // 22-25 degrees up from them and the working thigh on the same line
+  // (-23..-26 against the trunk's -22..-25), knee 69-72. The free leg is held
+  // STRAIGHT up at the ceiling (knee 171-176), 10-14 degrees past plumb
+  // toward the feet. OPEX's other single-leg bridge (F0JMcMVxJAU) holds the
+  // same straight free leg.
+  //
+  // NO TEMPO: both clips are holds.
+  singleLegGluteBridge: pose(
     "side",
-    (() => {
-      const floorY = 0.815;
-      const shoulder = { x: 0.3, y: floorY - 0.06 };
-      const at = (torso: number): Point => {
-        const top = shoulderAt({ x: 0, y: 0 }, torso, 0, "side");
-        return { x: shoulder.x - top.x, y: shoulder.y - top.y };
-      };
-      // The top: trunk 25 below level from the hip to the shoulder, thigh on
-      // the same line, knee 72, shin 8 off plumb toward the feet.
-      const topTorso = 245;
-      const topPelvis = at(topTorso);
-      const hip = hipAt(topPelvis, topTorso, 0, "side");
-      const knee = along(hip, 65, P.thigh);
-      const ankle = along(knee, 172, P.shin);
-      // The ankle joint a few mm over the floor, as a standing figure's is:
-      // solved from the knee angle alone it hung 4 cm up.
-      const foot = { x: ankle.x - 0.015, y: floorY - 0.004 };
-      const feet: [Point, Point] = [foot, { x: foot.x - 0.016, y: foot.y }];
-      const figure = (torso: number, pelvis: Point): Figure => ({
-        pelvis,
-        torso,
-        neck: 270,
-        arms: sideArms(93, 95),
-        legs: plantedLegs(pelvis, torso, "side", feet, FORWARD, [88, 93]),
-      });
-      const lowTorso = 271;
-      const lowPelvis = at(lowTorso);
-      const midTorso = 258;
-      return [figure(lowTorso, lowPelvis), figure(midTorso, at(midTorso)), figure(topTorso, topPelvis)];
-    })(),
+    bridgeFrames({ upper: 12, lower: 12, end: 40 }),
     [{ kind: "floor", y: 0.815, mat: true }],
     "overhand",
     1,
@@ -5067,6 +5053,40 @@ export const exercisePoses = {
 } satisfies Record<string, ExercisePose>;
 
 // --- Frame builders --------------------------------------------------------
+
+// A bridge on the floor, head to the left: hips down, half way, top. Solved
+// from the floor up (see `gluteBridge`): the shoulder fixed on the floor, the
+// top's thigh on the trunk's line with the knee at 72 and the shin 8 off plumb,
+// the feet planted where that puts them. `free`, when given, replaces the near
+// leg -- a single-leg bridge's leg held up off the floor.
+function bridgeFrames(free?: Limb): Figure[] {
+  const BRIDGE_FLOOR = 0.815;
+  const shoulder = { x: 0.3, y: BRIDGE_FLOOR - 0.06 };
+  const at = (torso: number): Point => {
+    const top = shoulderAt({ x: 0, y: 0 }, torso, 0, "side");
+    return { x: shoulder.x - top.x, y: shoulder.y - top.y };
+  };
+  const topTorso = 245;
+  const topPelvis = at(topTorso);
+  const hip = hipAt(topPelvis, topTorso, 0, "side");
+  const knee = along(hip, 65, P.thigh);
+  const ankle = along(knee, 172, P.shin);
+  // The ankle joint a few mm over the floor, as a standing figure's is:
+  // solved from the knee angle alone it hung 4 cm up.
+  const foot = { x: ankle.x - 0.015, y: BRIDGE_FLOOR - 0.004 };
+  const feet: [Point, Point] = [foot, { x: foot.x - 0.016, y: foot.y }];
+  const figure = (torso: number, pelvis: Point): Figure => {
+    const legs = plantedLegs(pelvis, torso, "side", feet, FORWARD, [88, 93]);
+    return {
+      pelvis,
+      torso,
+      neck: 270,
+      arms: sideArms(93, 95),
+      legs: free ? [free, legs[1]!] : legs,
+    };
+  };
+  return [figure(271, at(271)), figure(258, at(258)), figure(topTorso, topPelvis)];
+}
 
 // Supine on a flat bench, head to the left, feet planted on the floor. The bar
 // height is the only thing that changes through the press.
