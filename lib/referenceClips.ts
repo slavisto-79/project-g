@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 13: bodyweight, on the floor and upside down -----------------
+  pikePushUp: {
+    videoId: "XckEEwa1BPI",
+    title: "How to do a Pike Push-Up",
+    channel: "National Academy of Sports Medicine (NASM)",
+    view: "three-quarter",
+    span: "four reps in 14 s",
+    prs: [350],
+    date: "2026-09-13",
+    exercises: ["Pike Push-Up"],
+    notes:
+      "Three-quarter camera: horizontal distances not quoted. At the bottom the near wrist is hidden (score 0.1-0.2), so the bottom elbow is not quoted either. Top: near-side elbow 174-180, hip angle 63-72. Top to bottom the shoulders fall 0.5 trunk lengths and the hips 0.43, the hip angle opening to 75-78, the nose reaching the height of the hands. Hands at least 1.4 trunk lengths from the feet (projected). 1.0 s down, 0.3 s bottom, 0.8 s up, about 1 s at the top.",
+  },
+
   pistolSquat: {
     videoId: "D934zSaVtU0",
     title: "Pistol Squat - OPEX Exercise Library",

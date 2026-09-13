@@ -3771,16 +3771,43 @@ export const exercisePoses = {
     { tempo: { down: 1050, bottom: 700, up: 1750, top: 700 } },
   ),
 
-  // A push-up folded into a pike: hips stay the apex, the head travels to the
-  // floor between the hands. Pelvis positions solved so the legs stay long.
+  // Pike push-up, from a reference clip measured with the pose lab (NASM
+  // "How to do a Pike Push-Up", XckEEwa1BPI, four reps in 14 s; MoveNet on
+  // 65 frames at 0.25 s). The camera is three-quarters on, so horizontal
+  // distances are not quoted; the near side's wrist is hidden behind the
+  // body at the bottom (score 0.1-0.2), so the ELBOW there is not quoted
+  // either -- heights and the hip angle carry this one.
+  //
+  // THE ARMS LOCK OUT AT THE TOP. Near-side elbow 174-180 in every rep.
+  // Ours started the rep bent to 140.
+  //
+  // THE HIPS COME DOWN WITH THE HEAD. From the top to the bottom her
+  // shoulders fall 0.5 trunk lengths and her hips 0.43, the hip angle
+  // opening from 63-72 to 75-78, until the nose is at the height of the
+  // hands. Ours dropped the shoulders but left the hips almost where they
+  // were (4 cm) and CLOSED the pike from 98 to 82 -- the head went down,
+  // the body did not.
+  //
+  // Solved from those numbers: the hip angle 66/71/76 and the shoulder
+  // height at 0/0.25/0.5 trunk lengths down, the legs long. With the hands
+  // where they were (1.96 trunk lengths from the feet) that took the elbow
+  // to 54 and laid the forearms flat on the mat behind the hands. Her hands
+  // are at least 1.4 trunk lengths from her feet (a three-quarter view only
+  // shortens that), and at 1.44 the same heights give elbows 179/101/75 with
+  // the forearms 36-39 degrees off vertical and the shoulders ahead of the
+  // hands at the bottom. The hips come down 0.31 trunk lengths.
+  //
+  // Tempo, which it did not have: 1.0 s down, 0.3 s at the bottom, 0.8 s up
+  // and about a second at the top.
   pikePushUp: pose(
     "side",
-    ([[0.578, 0.501, 246], [0.564, 0.515, 234], [0.544, 0.538, 222]] as const).map(([x, y, torso]) =>
-      supported({ x, y }, torso, { x: 0.425, y: 0.872 }, { x: 0.745, y: 0.872 }, 118),
+    ([[0.671, 0.4442, 233.75], [0.6073, 0.4768, 225.5], [0.5603, 0.5189, 219.75]] as const).map(([x, y, torso]) =>
+      supported({ x, y }, torso, { x: 0.51, y: 0.872 }, { x: 0.745, y: 0.872 }, 118),
     ),
     [{ kind: "floor", mat: true }],
     "overhand",
     -1,
+    { tempo: { down: 1000, bottom: 300, up: 800, top: 1100 } },
   ),
 
   // Inverted, legs split fore-aft for balance (and to fit the frame); the head
