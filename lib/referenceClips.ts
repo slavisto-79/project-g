@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 15: exercises that borrowed a different movement's pose ------
+  benchDip: {
+    videoId: "yvAzWxRsnqU",
+    title: "Bench Dip",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 14 s",
+    prs: [368],
+    date: "2026-09-13",
+    exercises: ["Bench Dip"],
+    notes:
+      "Borrowed the parallel-bar dip before. Hands on a flat bench's edge behind, legs straight (knee 171-180), heels on the floor. Top: elbow 175-179, upper arm 18-23 back of plumb, trunk 19-27 back, hip 141-146, legs sloping 25-30. Bottom: elbow 88-97, upper arm near level (8-14 below), trunk 13-15 back, hip 115-117, legs 7-9, hips 0.36-0.44 trunk lengths under the hands. Ours: top elbow 179, trunk 23, legs 25; bottom elbow 89, upper arm 17 below level, trunk 14, legs 10 (at her 8 the figure's elbow bends to 81), hips 0.26 under the hands. Tempo at 0.25 s: down 2.75-3.0 s, ~0.25 at the bottom, up 1.0, 0.5 at the top.",
+  },
   nordicCurl: {
     videoId: "UoR6civMWF8",
     title: "Nordic Hamstring Curls",

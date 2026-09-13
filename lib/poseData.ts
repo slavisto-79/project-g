@@ -2549,6 +2549,56 @@ export const exercisePoses = {
   // elbow at 165), the pelvis walked down the trunk (10 / 13 / 15). The old
   // frames hung the pelvis from 0.526 to 0.685 under an 8-degree trunk with
   // the shins tucked up behind, and had no tempo.
+  // Bench dip, from a reference clip measured with the pose lab (OPEX "Bench
+  // Dip", yvAzWxRsnqU, three reps in 14 s, a side view; MoveNet on 56 frames
+  // at 0.25 s). It borrowed the parallel-bar dip before -- hanging upright
+  // between two bars, feet off the floor.
+  //
+  // Hands on the edge of a flat bench behind, legs straight out (knee
+  // 171-180), heels on the floor. At the top the arms are straight (elbow
+  // 175-179, the upper arm 18-23 degrees back of plumb), the trunk leans
+  // back 19-27, the hip 141-146 and the legs slope 25-30 down to the heels.
+  // At the bottom the elbows are at 88-97 with the upper arm near level, the
+  // trunk leans back 13-15, the hip 115-117, the legs slope 7-9 and the hips
+  // are 0.36-0.44 trunk lengths under the hands.
+  //
+  // Solved from the heels and the hands: the heels fixed on the floor, the
+  // hip up each key's straight leg, the shoulder from the trunk, the hands
+  // where the top's straight arm puts them. On the figure's proportions the
+  // clip's bottom leg slope (8) with its trunk bends the elbow to 81, so
+  // the bottom takes the legs at 10: elbow 89, the upper arm 17 below
+  // level, the hips 0.26 trunk lengths under the hands.
+  //
+  // Tempo from the two full reps, to the 0.25 s frames: down in 2.75-3.0 s,
+  // about 0.25 at the bottom, up in 1.0, 0.5 at the top; tops 4.25-4.5 s
+  // apart.
+  benchDip: (() => {
+    const heel = { x: 0.24, y: 0.915 };
+    const rad = (d: number) => (d * Math.PI) / 180;
+    // The hip at the top of a straight leg sloping `slope` down to the heel.
+    const hipAt_ = (slope: number): Point => ({ x: heel.x + (0.44 * Math.cos(rad(slope))) / ASPECT, y: heel.y - 0.44 * Math.sin(rad(slope)) });
+    const topShoulder = shoulderAt(hipAt_(25), 23, 0, "side");
+    const hand = { x: topShoulder.x + (0.2895 * Math.sin(rad(20))) / ASPECT, y: topShoulder.y + 0.2895 * Math.cos(rad(20)) };
+    const figure = (slope: number, torso: number): Figure => {
+      const pelvis = hipAt_(slope);
+      return {
+        pelvis,
+        torso,
+        neck: torso - 20,
+        arms: reachingArms(pelvis, torso, "side", [hand, hand], FORWARD).map((arm) => ({ ...arm, end: 250 })) as [Limb, Limb],
+        legs: lyingLegs(270 - slope, 270 - slope, 360 - slope),
+      };
+    };
+    return pose(
+      "side",
+      [figure(25, 23), figure(17, 18), figure(10, 14)],
+      [{ kind: "floor" }, { kind: "slab", x: hand.x + 0.05, y: hand.y + 0.045, width: 0.3, height: 0.05 }],
+      "overhand",
+      -1,
+      { tempo: { down: 2900, bottom: 250, up: 1000, top: 500 }, camera: { azimuth: -1.2 } },
+    );
+  })(),
+
   dip: pose(
     "side",
     ([[10, 0.536, 0.543], [13, 0.537, 0.631], [15, 0.542, 0.719]] as const).map(([torso, x, y]) => {
