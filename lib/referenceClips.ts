@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 14: dumbbells, a medicine ball and a run ---------------------
+  run: {
+    videoId: "Jd8Jijb7jZY",
+    title: "Slow motion running - side view",
+    channel: "EMU Running Science Laboratory",
+    view: "side",
+    span: "about three stride cycles of slow motion",
+    prs: [360],
+    date: "2026-09-13",
+    exercises: ["Sprint Intervals"],
+    notes:
+      "A college track athlete on a treadmill at 10 mph (~16 km/h): a fast run, not a flat-out sprint, and no real-time side-on sprint clip was found. MoveNet swaps the leg labels as they pass; legs told apart by what they do. Swing thigh at most 44-50 forward of plumb with the knee folded to 56-63; contact: front thigh 34-40 forward, knee 155-164, rear thigh 21-25 back, knee 103-117; support knee 137-145 under the body. Arms swing 13 forward to 55-64 back, elbows 60-95. Trunk 5-13 forward; hip 0.05 of the frame higher at contact than at midstance. CADENCE NOT MEASURED: the description says 100 fps capture and it plays at 30, but read that way it gives 73 steps a minute at 16 km/h, so the slow-down factor is unknown. A pre-roll ad with a Skip button runs first.",
+  },
+
   medBallThrow: {
     videoId: "PNI1QKiWfiY",
     title: "Standing Med Ball Rotational Throw - Viking Strength Systems",

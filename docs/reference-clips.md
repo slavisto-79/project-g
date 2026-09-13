@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 112 |
+| authored from a clip (the clip shows the exercise) | 113 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 1 |
-| poses with a clip | 106 of 111 (107 in use) |
+| without a clip yet | 0 |
+| poses with a clip | 107 of 111 (107 in use) |
 
-Poses without a clip yet: `idle`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
+Poses without a clip yet: `idle`, `plankIYTW`, `plankSaw`, `ringCurl`.
 
 ## Every exercise
 
@@ -166,7 +166,7 @@ Poses without a clip yet: `idle`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
 | Sled Push | `sledPush` | authored from the clip | [Sled Push](https://www.youtube.com/watch?v=rB4LFuZM_i8) (OPEX Fitness, side) | #343 |
 | Smith Machine Squat | `squat` | shares `squat` (the clip shows Barbell Back Squat) | [How to do a Barbell Back Squat](https://www.youtube.com/watch?v=-bJIpOq-LWk) (National Academy of Sports Medicine (NASM), three-quarter) | #254 |
 | Split Squat | `splitSquatStatic` | authored from the clip | [Split Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=Py2Qeg-D5T0) (OPEX Fitness, side) | #268 |
-| Sprint Intervals | `run` | no clip yet |  |  |
+| Sprint Intervals | `run` | authored from the clip | [Slow motion running - side view](https://www.youtube.com/watch?v=Jd8Jijb7jZY) (EMU Running Science Laboratory, side) | #360 |
 | Standing Hip Abduction | `hipAbduction` | authored from the clip | [Standing Band Hip Abduction](https://www.youtube.com/watch?v=CRpDEFu-a9c) (OPEX Fitness, front) | #357 |
 | Step-Up | `stepUp` | authored from the clip | [Step Up - OPEX Exercise Library](https://www.youtube.com/watch?v=RRuWVDefORg) (OPEX Fitness, three-quarter) | #296 |
 | Stiff-Leg Deadlift | `stiffLegDeadlift` | authored from the clip | [BB Stiff Legged Deadlift](https://www.youtube.com/watch?v=u3krqJlu7uc) (Theory of Motion Exercise Library, side) | #261 |
@@ -294,3 +294,4 @@ Poses without a clip yet: `idle`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
 | `hipAbduction` | [Standing Band Hip Abduction](https://www.youtube.com/watch?v=CRpDEFu-a9c) | OPEX Fitness | front | five reps in 10 s | #357 | 2026-09-13 | Standing Hip Abduction | Square front view; the working leg's projected length holds 0.31-0.33 of the frame all the way out, so it moves in the film plane. A first capture cropped the working ankle out of frame at the top (score 0.1): widen the crop to the side the leg goes. Top: leg 53-61 from plumb, knee 177-180; the working hip hikes 10-13 and the trunk leans away 6-9 more than at rest. Hands on the hips, elbows 84-112. 0.6 s out, a moment at the top, 0.75 s back, ~0.5 s standing -- 2.0 s a rep. |
 | `medBallSlam` | [How To Med Ball Slam](https://www.youtube.com/watch?v=CkO1mfSBvv4) | Third Space London | three-quarter | four slams in 8 s | #358 | 2026-09-13 | Medicine Ball Slam | A 30 s pre-roll ad with a Skip button runs first. The camera is a little in front: at the bottom the trunk and thigh point partly toward it (projected trunk 0.11-0.14 against 0.16-0.17 standing), so the trunk angle is read from its height (50-62) and the knee angle is not quoted. Bottom: hip down 23% of its standing height, hands 0.27 hip-heights over the ankle. Overhead: elbows 160-168. After the slam she stands with the ball at the belly (elbows 126-135) and presses it overhead. 2.25 s a slam: ~0.45 s overhead (the load at its end: knees 161-170, trunk 7-15), 0.45 s slam, 0.15 s at the floor, 0.6 s up, 0.6 s press. Our arms cannot reach the floor from that shallow a hinge: our bottom is trunk 65, hip down a third, knees 101. |
 | `medBallThrow` | [Standing Med Ball Rotational Throw - Viking Strength Systems](https://www.youtube.com/watch?v=PNI1QKiWfiY) | Viking Strength Systems | front | two throws at a wall in 16 s | #359 | 2026-09-13 | Rotational Med Ball Throw | Facing the camera, the wall to one side; distances scaled by her shoulder width (0.15 of the frame). Load: ball just above the back hip, back knee 139-150, front 165-171. Release: hands 0.06-0.10 of the frame under the shoulders, 1.5 shoulder widths across from the hips' centre, elbows 141-155, trunk leaning 10-15 toward the wall. The shoulders turn past side-on (projected width +0.15 through zero to -0.04..-0.09), hips to ~100 degrees: our trunk has no twist about its long axis, so the turn is carried by the arms and lean and the far arm stays folded (97). Throw 0.2-0.4 s, follow-through held ~1 s, return 0.7 s, load ~1 s. |
+| `run` | [Slow motion running - side view](https://www.youtube.com/watch?v=Jd8Jijb7jZY) | EMU Running Science Laboratory | side | about three stride cycles of slow motion | #360 | 2026-09-13 | Sprint Intervals | A college track athlete on a treadmill at 10 mph (~16 km/h): a fast run, not a flat-out sprint, and no real-time side-on sprint clip was found. MoveNet swaps the leg labels as they pass; legs told apart by what they do. Swing thigh at most 44-50 forward of plumb with the knee folded to 56-63; contact: front thigh 34-40 forward, knee 155-164, rear thigh 21-25 back, knee 103-117; support knee 137-145 under the body. Arms swing 13 forward to 55-64 back, elbows 60-95. Trunk 5-13 forward; hip 0.05 of the frame higher at contact than at midstance. CADENCE NOT MEASURED: the description says 100 fps capture and it plays at 30, but read that way it gives 73 steps a minute at 16 km/h, so the slow-down factor is unknown. A pre-roll ad with a Skip button runs first. |
