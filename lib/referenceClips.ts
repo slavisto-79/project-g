@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 13: bodyweight, on the floor and upside down -----------------
+  quadruped: {
+    videoId: "FWjz8ozyVq8",
+    title: "2 Point Bird Dog",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "four reaches in 18 s, alternating",
+    prs: [353],
+    date: "2026-09-13",
+    exercises: ["Bird Dog"],
+    notes:
+      "Held: reaching thigh straight back 2-5 above level, knee 145-165, reaching arm 5-15 UNDER level with the elbow straight; support arm plumb and locked (166-180), support thigh near plumb, knee 66-80; trunk 9-10 head-up on all fours, 3-6 reaching. Reach 1.0 s, hold 1.0 s (still lengthening: arm 14 to 11 under level, knee 148 to 152), return 0.75 s, 1.75 s on all fours, then the other side. Our trunk is 15-16 because our arm is long against our thigh; flatter bends the support elbow.",
+  },
+
   mountainClimber: {
     videoId: "0Smb04SpyhU",
     title: "Mountain Climbers",

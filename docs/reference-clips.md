@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 105 |
+| authored from a clip (the clip shows the exercise) | 106 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 8 |
-| poses with a clip | 99 of 111 (107 in use) |
+| without a clip yet | 7 |
+| poses with a clip | 100 of 111 (107 in use) |
 
-Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `oneArmRow`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`.
+Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `oneArmRow`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
 
 ## Every exercise
 
@@ -44,7 +44,7 @@ Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `med
 | Bear Crawl | `bearCrawl` | authored from the clip | [Crawl - OPEX Exercise Library](https://www.youtube.com/watch?v=w089AXf1f_g) (OPEX Fitness, side) | #304 |
 | Bench Dip | `dip` | shares `dip` (the clip shows Bar Dip) | [Weighted Dip - OPEX Exercise Library](https://www.youtube.com/watch?v=VNa0hX_y6Fk) (OPEX Fitness, three-quarter) | #282 |
 | Bicycle Crunch | `bicycleCrunch` | authored from the clip | [Bicycle Crunch](https://www.youtube.com/watch?v=cbKIDZ_XyjY) (Wodstar, side) | #340 |
-| Bird Dog | `quadruped` | no clip yet |  |  |
+| Bird Dog | `quadruped` | authored from the clip | [2 Point Bird Dog](https://www.youtube.com/watch?v=FWjz8ozyVq8) (OPEX Fitness, side) | #353 |
 | Bodyweight Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
 | Bodyweight Good Morning | `goodMorning` | shares `goodMorning` (the clip shows Good Morning) | [High Bar Good Morning](https://www.youtube.com/watch?v=dEJ0FTm-CEk) (Renaissance Periodization, side) | #262 |
 | Bodyweight Reverse Lunge | `lunge` | authored from the clip | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
@@ -287,3 +287,4 @@ Poses without a clip yet: `frontRaise`, `hipAbduction`, `idle`, `kickback`, `med
 | `pikePushUp` | [How to do a Pike Push-Up](https://www.youtube.com/watch?v=XckEEwa1BPI) | National Academy of Sports Medicine (NASM) | three-quarter | four reps in 14 s | #350 | 2026-09-13 | Pike Push-Up | Three-quarter camera: horizontal distances not quoted. At the bottom the near wrist is hidden (score 0.1-0.2), so the bottom elbow is not quoted either. Top: near-side elbow 174-180, hip angle 63-72. Top to bottom the shoulders fall 0.5 trunk lengths and the hips 0.43, the hip angle opening to 75-78, the nose reaching the height of the hands. Hands at least 1.4 trunk lengths from the feet (projected). 1.0 s down, 0.3 s bottom, 0.8 s up, about 1 s at the top. |
 | `handstandPushUp` | [Strict Handstand Push Ups](https://www.youtube.com/watch?v=ic8cg0SQ8A4) | Functional Bodybuilding | three-quarter | three reps in 5 s | #351 | 2026-09-13 | Handstand Push-Up | Frames ROTATED 180 degrees before MoveNet saw them (it is trained on upright people); every keypoint then scored 0.7-0.9. The camera stands off to the front, so the bottom elbow reads 98-103 on one arm and 143-147 on the other and is not quoted. Back and heels against a wall, legs straight up together (hip angle 170-180, knees locked). Nose ends 0.2 trunk lengths over the hands (crown on the floor); shoulders fall to 0.64 of their locked-out height over the hands. 0.7 s down, touch and go, 0.75 s up, ~0.1 s locked out -- 1.6 s a rep. The video autoplays into another clip after 9.9 s, which ruined one capture: check the title in the capture loop. |
 | `mountainClimber` | [Mountain Climbers](https://www.youtube.com/watch?v=0Smb04SpyhU) | OPEX Abbotsford | side | eight drives in 4 s at full pace | #352 | 2026-09-13 | Mountain Climbers | An unskippable-looking ad plays first; its Skip button appears after a few seconds. MoveNet swaps the legs' labels as they pass, so legs are told apart by shape (the one folded under 60 drives). Driving knee 40-55, hip 59-68, the knee a hand's height off the floor two fifths of the way from hip to shoulders, the foot trailing behind it. Elbows 172-180, shoulders over the hands, trunk within 7 degrees of level; planted knee 155-172, hip 139-156. A drive every 0.5 s, alternating: 1.0 s a full cycle. |
+| `quadruped` | [2 Point Bird Dog](https://www.youtube.com/watch?v=FWjz8ozyVq8) | OPEX Fitness | side | four reaches in 18 s, alternating | #353 | 2026-09-13 | Bird Dog | Held: reaching thigh straight back 2-5 above level, knee 145-165, reaching arm 5-15 UNDER level with the elbow straight; support arm plumb and locked (166-180), support thigh near plumb, knee 66-80; trunk 9-10 head-up on all fours, 3-6 reaching. Reach 1.0 s, hold 1.0 s (still lengthening: arm 14 to 11 under level, knee 148 to 152), return 0.75 s, 1.75 s on all fours, then the other side. Our trunk is 15-16 because our arm is long against our thigh; flatter bends the support elbow. |
