@@ -4817,31 +4817,67 @@ export const exercisePoses = {
 
   // One hand braced on a bench, the other rowing a single dumbbell from a
   // dead hang to the lower ribs -- the brace is what makes it one-arm.
+  // One-arm dumbbell row, from a reference clip measured with the pose lab
+  // (OPEX "Dumbbell Three Point Row", iLhwICt4R9A, three reps in 7.2 s after
+  // a 1.4 s set-up; MoveNet on 54 frames at 0.2 s, a side view). Directions
+  // are read off the frame.
+  //
+  // THE FEET ARE TOGETHER AND THE BACK IS NOT FLAT. Both feet stand side by
+  // side under the hips (ankles 0.07 of the frame apart), knees 143-155 with
+  // the shins near plumb; the trunk is 80 degrees from vertical hanging and
+  // reads 67 as the bell comes up. Ours split the feet 30 cm fore-aft and
+  // held the trunk 6 degrees past level.
+  //
+  // Only part of that rise is pitch: she turns the rowing shoulder up into
+  // the pull, and a turned trunk projects steeper. With the hand fixed on
+  // the bench and the knees holding (as hers do), our trunk can rise 6
+  // degrees before the brace arm runs out of length; it takes 80 -> 74.
+  //
+  // THE ELBOW GOES PAST THE BACK. At the top the upper arm points straight
+  // back along the body, 3-7 degrees above level, the elbow at 65-69 with
+  // the forearm 17-22 forward of plumb. Ours stopped with the upper arm 74
+  // from plumb. The brace arm is not locked: 140-155 at the elbow, the
+  // forearm 25 degrees forward of plumb onto the bench.
+  //
+  // Tempo, which it did not have: 0.8 s up, a quarter second at the top,
+  // 1.0-1.2 s down and half a second hanging.
   oneArmRow: pose(
     "side",
-    ([[0.735, 0.855], [0.720, 0.780], [0.700, 0.700]] as const).map(([hx, hy]) => {
-      const pelvis = { x: 0.55, y: 0.548 };
-      const torso = 96;
-      return {
-        pelvis,
-        torso,
-        neck: 80,
-        // Near arm rows; far arm braces on the bench, nearly straight. The
-        // rowing arm hangs outboard so the dumbbell passes beside the shin,
-        // not through it.
-        arms: (() => {
-          const [near, far] = reachingArms(pelvis, torso, "side", [{ x: hx, y: hy }, { x: 0.75, y: 0.855 }], BACK);
-          return [{ ...near, spread: 0.05 }, far] as [Limb, Limb];
-        })(),
-        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.46, y: FLOOR }, { x: 0.66, y: FLOOR }], FORWARD),
+    (() => {
+      // Pelvis walked back from the planted foot: shin 10 back, thigh 20
+      // forward, knee 150.
+      const knee = along(FEET[0], 10, P.shin);
+      const hip = along(knee, 340, P.thigh);
+      const brace = (torso: number): Point => {
+        const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+        const sh = shoulderAt(pelvis, torso, 1, "side");
+        // Elbow bent on the bench (about 126), which is the slack the trunk uses
+        // as it rises into the pull (it opens to about 160).
+        return along(along(sh, 172, P.upperArm), 132, P.forearm);
       };
-    }),
+      const bench = brace(80);
+      return ([[80, 170, 158], [77, 225, 172], [74, 275, 160]] as const).map(([torso, upper, lower]) => {
+        const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+        const far = reachingArms(pelvis, torso, "side", [bench, bench], FORWARD)[1]!;
+        return {
+          pelvis,
+          torso,
+          neck: torso - 20,
+          // The rowing arm hangs a little outboard so the bell passes beside
+          // the shin, not through it.
+          arms: [{ upper, lower, spread: 0.05 }, far] as [Limb, Limb],
+          legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
+        };
+      });
+    })(),
     [
       { kind: "floor" },
-      { kind: "slab", at: "hand1", width: 0.16, height: 0.035, dy: 0.03 },
+      { kind: "slab", at: "hand1", width: 0.16, height: 0.035, dy: 0.012 },
       { kind: "bell", at: "hand0", size: 0.055 },
     ],
     "neutral",
+    1,
+    { tempo: { down: 800, bottom: 250, up: 1100, top: 500 } },
   ),
 
   // Incline dumbbell curl, from a reference clip measured with the pose lab
