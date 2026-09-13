@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 108 |
+| authored from a clip (the clip shows the exercise) | 109 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 5 |
-| poses with a clip | 102 of 111 (107 in use) |
+| without a clip yet | 4 |
+| poses with a clip | 103 of 111 (107 in use) |
 
-Poses without a clip yet: `hipAbduction`, `idle`, `medBallSlam`, `medBallThrow`, `oneArmRow`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
+Poses without a clip yet: `hipAbduction`, `idle`, `medBallSlam`, `medBallThrow`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
 
 ## Every exercise
 
@@ -130,7 +130,7 @@ Poses without a clip yet: `hipAbduction`, `idle`, `medBallSlam`, `medBallThrow`,
 | Neutral-Grip Dumbbell Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
 | Neutral-Grip Pulldown | `pulldown` | shares `pulldown` (the clip shows Lat Pulldown) | [Cable Lat Pulldown Machine - OPEX Exercise Library](https://www.youtube.com/watch?v=PEv0gTcMY3g) (OPEX Fitness, three-quarter) | #275 |
 | Nordic Hamstring Curl | `legCurl` | shares `legCurl` (the clip shows Lying Leg Curl, Seated Leg Curl) | [Prone Hamstring Curl Machine](https://www.youtube.com/watch?v=xKOyGU0AfOE) (OPEX Fitness, side) | #319 |
-| One-Arm Dumbbell Row | `oneArmRow` | no clip yet |  |  |
+| One-Arm Dumbbell Row | `oneArmRow` | authored from the clip | [Dumbbell Three Point Row](https://www.youtube.com/watch?v=iLhwICt4R9A) (OPEX Fitness, side) | #356 |
 | Overhead Carry | `overheadCarry` | authored from the clip | [Dual Kettlebell Overhead Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=dwGP7RAYtxY) (OPEX Fitness, front) | #295 |
 | Overhead Triceps Extension | `overheadTricepsExtension` | authored from the clip | [Single Dumbbell Overhead Tricep Extension - OPEX Exercise Library](https://www.youtube.com/watch?v=7h3lG2WnLXg) (OPEX Fitness, side) | #297 |
 | Pallof Press | `pallofPress` | authored from the clip | [Cable Standing Pallof Press](https://www.youtube.com/watch?v=syYBcVbEAFk) (OPEX Fitness, three-quarter) | #294 |
@@ -290,3 +290,4 @@ Poses without a clip yet: `hipAbduction`, `idle`, `medBallSlam`, `medBallThrow`,
 | `quadruped` | [2 Point Bird Dog](https://www.youtube.com/watch?v=FWjz8ozyVq8) | OPEX Fitness | side | four reaches in 18 s, alternating | #353 | 2026-09-13 | Bird Dog | Held: reaching thigh straight back 2-5 above level, knee 145-165, reaching arm 5-15 UNDER level with the elbow straight; support arm plumb and locked (166-180), support thigh near plumb, knee 66-80; trunk 9-10 head-up on all fours, 3-6 reaching. Reach 1.0 s, hold 1.0 s (still lengthening: arm 14 to 11 under level, knee 148 to 152), return 0.75 s, 1.75 s on all fours, then the other side. Our trunk is 15-16 because our arm is long against our thigh; flatter bends the support elbow. |
 | `frontRaise` | [Dumbbell Front Raise](https://www.youtube.com/watch?v=E-E0EqERFBg) | OPEX Fitness | front | three reps in 8.4 s | #354 | 2026-09-13 | Dumbbell Front Raise | Face on, so the raise is read from height alone: hanging, the wrists sit 0.220-0.228 of the frame under the shoulders (the arm's full length), and the angle is the arccosine of the wrist's drop over that. Top: wrists 0.05-0.12 OVER the shoulders, 107-120 degrees from plumb, all three reps. The elbow sits 0.01-0.04 over the shoulder at the top where a straight arm puts it 0.035-0.06: about 158. 0.8 s up, 0.2-0.4 s top, 0.8-1.0 s down, 0.8 s hanging. The exercise cue says to shoulder height; the clip goes above it. |
 | `kickback` | [Single Arm Dumbbell Tricep Kickback](https://www.youtube.com/watch?v=MQOnCts9N9c) | OPEX Fitness | side | four reps in 7.8 s | #355 | 2026-09-13 | Triceps Kickback | One arm works, the other hand rests on the thigh. Trunk 61-68 from vertical over knees at 150-155 with the shins plumb. Upper arm 7-25 under level with the elbow folded to 77-87 and the forearm 10-30 forward of plumb, rising to 5-11 above level as the elbow locks out at 163-174 with the forearm straight back. 0.6 s to lock out, 0.3 s held, 0.8 s back, 0.2 s folded. |
+| `oneArmRow` | [Dumbbell Three Point Row](https://www.youtube.com/watch?v=iLhwICt4R9A) | OPEX Fitness | side | three reps in 7.2 s after a 1.4 s set-up | #356 | 2026-09-13 | One-Arm Dumbbell Row | Feet side by side under the hips (ankles 0.07 of the frame apart), knees 143-155, shins near plumb. Trunk 80 from vertical hanging, reading 67 at the top -- partly a turn of the rowing shoulder, which a side camera reads as pitch; our fixed brace hand allows 80 -> 74. Top: upper arm straight back along the body 3-7 above level, elbow 65-69, forearm 17-22 forward of plumb. Brace arm 140-155 at the elbow. 0.8 s up, 0.25 s top, 1.0-1.2 s down, 0.5 s hanging. |

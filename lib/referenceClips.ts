@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 14: dumbbells, a medicine ball and a run ---------------------
+  oneArmRow: {
+    videoId: "iLhwICt4R9A",
+    title: "Dumbbell Three Point Row",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 7.2 s after a 1.4 s set-up",
+    prs: [356],
+    date: "2026-09-13",
+    exercises: ["One-Arm Dumbbell Row"],
+    notes:
+      "Feet side by side under the hips (ankles 0.07 of the frame apart), knees 143-155, shins near plumb. Trunk 80 from vertical hanging, reading 67 at the top -- partly a turn of the rowing shoulder, which a side camera reads as pitch; our fixed brace hand allows 80 -> 74. Top: upper arm straight back along the body 3-7 above level, elbow 65-69, forearm 17-22 forward of plumb. Brace arm 140-155 at the elbow. 0.8 s up, 0.25 s top, 1.0-1.2 s down, 0.5 s hanging.",
+  },
+
   kickback: {
     videoId: "MQOnCts9N9c",
     title: "Single Arm Dumbbell Tricep Kickback",
