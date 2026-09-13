@@ -4595,15 +4595,41 @@ export const exercisePoses = {
   // Standing hip abduction on a loop band: the band goes under the standing
   // foot and round the working ankle, so it is anchored on the other ankle and
   // stretches as the leg travels.
+  //
+  // From a reference clip measured with the pose lab (OPEX "Standing Band
+  // Hip Abduction", CRpDEFu-a9c, five reps in 10 s; MoveNet on 51 frames at
+  // 0.2 s, a square front view -- the working leg's projected length holds
+  // 0.31-0.33 of the frame all the way out, so it moves in the film plane).
+  //
+  // THE LEG GOES FURTHER, AND THE BODY TIPS WITH IT. At the top the working
+  // leg is 53-61 degrees from plumb, knee straight (177-180); ours stopped
+  // at 34. It is not all hip: the working side's hip hikes 10-13 degrees
+  // and the trunk leans away 6-9 more than at rest. Ours held the pelvis
+  // level and the trunk plumb.
+  //
+  // THE HANDS ARE ON THE HIPS (wrists 0.13-0.15 of the frame under the
+  // shoulders, elbows 84-112); ours hung them.
+  //
+  // Tempo, which it did not have: 0.6 s out, a moment at the top, 0.75 s
+  // back and about half a second standing -- 2.0 s a rep, the same in all
+  // five.
   hipAbduction: pose(
     "front",
-    ([180, 163, 146] as const).map((up) => {
-      const pelvis = { x: 0.5, y: 0.494 };
+    ([[180, 0, 0.494], [150, 356, 0.489], [122, 353, 0.484]] as const).map(([up, torso, py]) => {
+      // Lifted as the pelvis tips, so the stance leg stays straight.
+      const pelvis = { x: 0.5, y: py };
+      const onHips = [0, 1].map((side) => {
+        const hip = hipAt(pelvis, torso, side as 0 | 1, "front");
+        return { x: hip.x + (side === 0 ? 0.055 : -0.055), y: hip.y - 0.035 };
+      }) as [Point, Point];
       return {
         pelvis,
-        torso: 0,
-        arms: bothArms(168, 170),
-        legs: [{ upper: up, lower: up - 1 }, plantedLegs(pelvis, 0, "front", FEET_FRONT, OUT)[1]!],
+        torso,
+        // A token yaw: it switches off the guessed front depth, which pushed
+        // the hands 12 cm out in front of the hips.
+        arms: reachingArms(pelvis, torso, "front", onHips, OUT).map((arm) => ({ ...arm, yaw: 1 })) as [Limb, Limb],
+        // Only the stance leg is solved; the working one is swung by angle.
+        legs: [{ upper: up, lower: up - 1 }, plantedLegs(pelvis, torso, "front", [{ x: FEET_FRONT[0].x, y: FLOOR - 0.05 }, FEET_FRONT[1]], OUT)[1]!],
       };
     }),
     [
@@ -4611,6 +4637,8 @@ export const exercisePoses = {
       { kind: "cable", at: "ankle0", anchorAt: "ankle1", band: true },
     ],
     "neutral",
+    1,
+    { tempo: { down: 600, bottom: 100, up: 750, top: 550 } },
   ),
 
   // Banded lateral walk, from a reference clip measured with the pose lab

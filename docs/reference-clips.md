@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 109 |
+| authored from a clip (the clip shows the exercise) | 110 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 4 |
-| poses with a clip | 103 of 111 (107 in use) |
+| without a clip yet | 3 |
+| poses with a clip | 104 of 111 (107 in use) |
 
-Poses without a clip yet: `hipAbduction`, `idle`, `medBallSlam`, `medBallThrow`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
+Poses without a clip yet: `idle`, `medBallSlam`, `medBallThrow`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
 
 ## Every exercise
 
@@ -167,7 +167,7 @@ Poses without a clip yet: `hipAbduction`, `idle`, `medBallSlam`, `medBallThrow`,
 | Smith Machine Squat | `squat` | shares `squat` (the clip shows Barbell Back Squat) | [How to do a Barbell Back Squat](https://www.youtube.com/watch?v=-bJIpOq-LWk) (National Academy of Sports Medicine (NASM), three-quarter) | #254 |
 | Split Squat | `splitSquatStatic` | authored from the clip | [Split Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=Py2Qeg-D5T0) (OPEX Fitness, side) | #268 |
 | Sprint Intervals | `run` | no clip yet |  |  |
-| Standing Hip Abduction | `hipAbduction` | no clip yet |  |  |
+| Standing Hip Abduction | `hipAbduction` | authored from the clip | [Standing Band Hip Abduction](https://www.youtube.com/watch?v=CRpDEFu-a9c) (OPEX Fitness, front) | #357 |
 | Step-Up | `stepUp` | authored from the clip | [Step Up - OPEX Exercise Library](https://www.youtube.com/watch?v=RRuWVDefORg) (OPEX Fitness, three-quarter) | #296 |
 | Stiff-Leg Deadlift | `stiffLegDeadlift` | authored from the clip | [BB Stiff Legged Deadlift](https://www.youtube.com/watch?v=u3krqJlu7uc) (Theory of Motion Exercise Library, side) | #261 |
 | Straight-Arm Pulldown | `straightArmPulldown` | authored from the clip | [Standing Cable Straight Arm Pulldown](https://www.youtube.com/watch?v=nAkTIeJ_Aus) (OPEX Fitness, side) | #328 |
@@ -291,3 +291,4 @@ Poses without a clip yet: `hipAbduction`, `idle`, `medBallSlam`, `medBallThrow`,
 | `frontRaise` | [Dumbbell Front Raise](https://www.youtube.com/watch?v=E-E0EqERFBg) | OPEX Fitness | front | three reps in 8.4 s | #354 | 2026-09-13 | Dumbbell Front Raise | Face on, so the raise is read from height alone: hanging, the wrists sit 0.220-0.228 of the frame under the shoulders (the arm's full length), and the angle is the arccosine of the wrist's drop over that. Top: wrists 0.05-0.12 OVER the shoulders, 107-120 degrees from plumb, all three reps. The elbow sits 0.01-0.04 over the shoulder at the top where a straight arm puts it 0.035-0.06: about 158. 0.8 s up, 0.2-0.4 s top, 0.8-1.0 s down, 0.8 s hanging. The exercise cue says to shoulder height; the clip goes above it. |
 | `kickback` | [Single Arm Dumbbell Tricep Kickback](https://www.youtube.com/watch?v=MQOnCts9N9c) | OPEX Fitness | side | four reps in 7.8 s | #355 | 2026-09-13 | Triceps Kickback | One arm works, the other hand rests on the thigh. Trunk 61-68 from vertical over knees at 150-155 with the shins plumb. Upper arm 7-25 under level with the elbow folded to 77-87 and the forearm 10-30 forward of plumb, rising to 5-11 above level as the elbow locks out at 163-174 with the forearm straight back. 0.6 s to lock out, 0.3 s held, 0.8 s back, 0.2 s folded. |
 | `oneArmRow` | [Dumbbell Three Point Row](https://www.youtube.com/watch?v=iLhwICt4R9A) | OPEX Fitness | side | three reps in 7.2 s after a 1.4 s set-up | #356 | 2026-09-13 | One-Arm Dumbbell Row | Feet side by side under the hips (ankles 0.07 of the frame apart), knees 143-155, shins near plumb. Trunk 80 from vertical hanging, reading 67 at the top -- partly a turn of the rowing shoulder, which a side camera reads as pitch; our fixed brace hand allows 80 -> 74. Top: upper arm straight back along the body 3-7 above level, elbow 65-69, forearm 17-22 forward of plumb. Brace arm 140-155 at the elbow. 0.8 s up, 0.25 s top, 1.0-1.2 s down, 0.5 s hanging. |
+| `hipAbduction` | [Standing Band Hip Abduction](https://www.youtube.com/watch?v=CRpDEFu-a9c) | OPEX Fitness | front | five reps in 10 s | #357 | 2026-09-13 | Standing Hip Abduction | Square front view; the working leg's projected length holds 0.31-0.33 of the frame all the way out, so it moves in the film plane. A first capture cropped the working ankle out of frame at the top (score 0.1): widen the crop to the side the leg goes. Top: leg 53-61 from plumb, knee 177-180; the working hip hikes 10-13 and the trunk leans away 6-9 more than at rest. Hands on the hips, elbows 84-112. 0.6 s out, a moment at the top, 0.75 s back, ~0.5 s standing -- 2.0 s a rep. |
