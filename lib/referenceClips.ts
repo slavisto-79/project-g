@@ -717,6 +717,20 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  // --- Batch 14: dumbbells, a medicine ball and a run ---------------------
+  frontRaise: {
+    videoId: "E-E0EqERFBg",
+    title: "Dumbbell Front Raise",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "three reps in 8.4 s",
+    prs: [354],
+    date: "2026-09-13",
+    exercises: ["Dumbbell Front Raise"],
+    notes:
+      "Face on, so the raise is read from height alone: hanging, the wrists sit 0.220-0.228 of the frame under the shoulders (the arm's full length), and the angle is the arccosine of the wrist's drop over that. Top: wrists 0.05-0.12 OVER the shoulders, 107-120 degrees from plumb, all three reps. The elbow sits 0.01-0.04 over the shoulder at the top where a straight arm puts it 0.035-0.06: about 158. 0.8 s up, 0.2-0.4 s top, 0.8-1.0 s down, 0.8 s hanging. The exercise cue says to shoulder height; the clip goes above it.",
+  },
+
   // --- Batch 13: bodyweight, on the floor and upside down -----------------
   quadruped: {
     videoId: "FWjz8ozyVq8",

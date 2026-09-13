@@ -2730,11 +2730,29 @@ export const exercisePoses = {
     { tempo: { down: 750, bottom: 200, up: 1200, top: 300 } },
   ),
 
+  // Dumbbell front raise, from a reference clip measured with the pose lab
+  // (OPEX "Dumbbell Front Raise", E-E0EqERFBg, three reps in 8.4 s; MoveNet
+  // on 52 frames at 0.2 s). The clip is filmed FACE ON, so the raise is
+  // read from height alone: hanging, the wrists sit 0.220-0.228 of the
+  // frame under the shoulders -- the arm's full length -- and the angle at
+  // any moment is the arccosine of the wrist's drop over that length.
+  //
+  // THE BELLS GO ABOVE THE SHOULDERS. At the top the wrists are 0.05-0.12
+  // of the frame OVER the shoulders, 107-120 degrees from plumb, in all
+  // three reps. Ours stopped at 82-87, just under shoulder height. The
+  // elbow is a little soft at the top: it sits 0.01-0.04 over the
+  // shoulder where a straight arm would put it 0.035-0.06, which makes it
+  // about 158.
+  //
+  // Tempo, which it did not have: 0.8 s up, 0.2-0.4 s at the top, 0.8-1.0 s
+  // down and 0.8 s hanging -- 2.8-3.0 s a rep.
   frontRaise: pose(
     "side",
-    [174, 133, 92].map((arm) => stand({ x: 0.5, y: 0.494 }, 356, wide(sideArms(arm, arm + 2)))),
+    ([[176, 174], [122, 108], [77, 55]] as const).map(([upper, lower]) => stand({ x: 0.5, y: 0.494 }, 356, wide(sideArms(upper, lower)))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
     "neutral",
+    1,
+    { tempo: { down: 800, bottom: 300, up: 900, top: 800 } },
   ),
 
   // --- Cable variants ------------------------------------------------------
