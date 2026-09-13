@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 101 |
+| authored from a clip (the clip shows the exercise) | 102 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 12 |
-| poses with a clip | 95 of 111 (107 in use) |
+| without a clip yet | 11 |
+| poses with a clip | 96 of 111 (107 in use) |
 
-Poses without a clip yet: `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `pistolSquat`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`.
+Poses without a clip yet: `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle`, `kickback`, `medBallSlam`, `medBallThrow`, `mountainClimber`, `oneArmRow`, `pikePushUp`, `plankIYTW`, `plankSaw`, `quadruped`, `ringCurl`, `run`.
 
 ## Every exercise
 
@@ -137,7 +137,7 @@ Poses without a clip yet: `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle
 | Pec Deck | `pecDeck` | authored from the clip | [Chest Fly Machine](https://www.youtube.com/watch?v=X3Nj2ZPwW04) (OPEX Fitness, three-quarter) | #298 |
 | Pendlay Row | `bentRow` | shares `bentRow` (the clip shows Barbell Row) | [How to do a Barbell Bent Over Row Pronated](https://www.youtube.com/watch?v=bm0_q9bR_HA) (National Academy of Sports Medicine (NASM), side) | #273 |
 | Pike Push-Up | `pikePushUp` | no clip yet |  |  |
-| Pistol Squat | `pistolSquat` | no clip yet |  |  |
+| Pistol Squat | `pistolSquat` | authored from the clip | [Pistol Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=D934zSaVtU0) (OPEX Fitness, side) | #349 |
 | Plank | `plank` | authored from the clip | [Front Plank to Forearm Plank](https://www.youtube.com/watch?v=rfPf3HCg2Ac) (OPEX Fitness, side) | #284 |
 | Plyo Push-Up | `pushUp` | shares `pushUp` (the clip shows Push-Up) | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
 | Power Clean | `powerClean` | authored from the clip | [Power Clean (side view)](https://www.youtube.com/watch?v=YEXjyc22Jek) (Fitness Pain Free, side) | #307 |
@@ -283,3 +283,4 @@ Poses without a clip yet: `frontRaise`, `handstandPushUp`, `hipAbduction`, `idle
 | `abWheelRollout` | [Ab Wheel Rollout](https://www.youtube.com/watch?v=4HZCJLM5wBk) | OPEX Fitness | side | three reps in 14 s | #346 | 2026-09-13 | Ab Wheel Rollout | The start sits back: hips behind the knees (thigh 26 back from vertical), trunk 66 forward, hip angle 85-89, arms near plumb. Fully out knee, hip and shoulder make one line (hip angle 165-171), trunk level (87-91), arms reaching forward with the elbows long (142-175), wrists 0.26 trunk lengths under the shoulders. The camera looks down a little: the projected trunk grows 0.40 to 0.53 of the frame as it levels, so the START's trunk angle is the least certain number; hip angle and thigh direction are unaffected. Our wheel handles cannot sit lower than the kneeling knee joint (5 cm minimum wheel radius), so the arms land near 80 from plumb against her 71. 1.75 s out and 1.75 s back in all three reps, about 0.4 s held long and 0.6 s at the start. |
 | `bodyweightSquat` | [Air Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=iiKn5FiVUjI) | OPEX Fitness | side | three reps in 7 s | #347 | 2026-09-13 | Bodyweight Squat | The arms swing: hanging when standing (3 degrees off plumb, elbows 160), 121-125 from up a third of the way down, 106-113 at two thirds, 14 degrees under level at the bottom (elbows 146-149). The bottom is parallel -- hip crease level with the knee, thigh 78-88 from vertical, shin 23-26, knee 69-76, trunk 34-38, hip at 0.45 of its standing height over the ankle. 0.7 s down, 0.4 s at the bottom, 0.7 s up, 0.6 s standing. Model sides alternate frame to frame (near ankle 0.90 of the crop, far 0.85); angles are from the near-side frames. |
 | `wallSit` | [How to Do a Wall Sit Exercise | 30 Seconds | MedBridge](https://www.youtube.com/watch?v=cWTZ8Am1Ee0) | MedBridge | side | one sit held about 14 s | #348 | 2026-09-13 | Wall Sit | The video cuts between a side camera and a front one; numbers are from the side camera (thigh projects 0.15 of the frame there, 0.09 face on). Held: knee 101-104, shin plumb, trunk 3, the hip 0.13 trunk lengths above the knee (thigh 14 degrees under level), hands resting on the thighs (28 degrees forward of plumb, elbows 155). Standing she is half a trunk length clear of the wall with the hips over the ankles; she slides back and down in 2.5 s and up in 2.5 s. OPEX's face-on Wall Sit (CoGaiX4P_BQ) agrees on the thigh: knees 0.1 trunk lengths under the hips. The 14 s hold is a prescription; the card holds 4 s. |
+| `pistolSquat` | [Pistol Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=D934zSaVtU0) | OPEX Fitness | side | three reps in 11 s | #349 | 2026-09-13 | Pistol Squat | MoveNet trades the left and right legs whenever they cross, so legs are told apart by behaviour (the folding knee is the support) and the trunk is read from shoulder-over-hip height, not the hip keypoint's jumping x. Standing, the free foot hangs just off the floor, knee 132-138; a fifth of the way down it is long at 40-47 forward of plumb, half way 60-75, level at the bottom (85-94) with the knee 153-157 and the heel just off the floor. Bottom: hip at 0.27 of standing height over the ankle, support knee 53-55, trunk 34-41. Arms forward 7-15 under level throughout. 1.3 s down, 0.25 s bottom, 1.0 s up, about 1 s standing. Our leg cannot reach her 0.27 without folding the knee to 46; the bottom takes knee 50 at 0.32. |

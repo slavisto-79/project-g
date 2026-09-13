@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 13: bodyweight, on the floor and upside down -----------------
+  pistolSquat: {
+    videoId: "D934zSaVtU0",
+    title: "Pistol Squat - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 11 s",
+    prs: [349],
+    date: "2026-09-13",
+    exercises: ["Pistol Squat"],
+    notes:
+      "MoveNet trades the left and right legs whenever they cross, so legs are told apart by behaviour (the folding knee is the support) and the trunk is read from shoulder-over-hip height, not the hip keypoint's jumping x. Standing, the free foot hangs just off the floor, knee 132-138; a fifth of the way down it is long at 40-47 forward of plumb, half way 60-75, level at the bottom (85-94) with the knee 153-157 and the heel just off the floor. Bottom: hip at 0.27 of standing height over the ankle, support knee 53-55, trunk 34-41. Arms forward 7-15 under level throughout. 1.3 s down, 0.25 s bottom, 1.0 s up, about 1 s standing. Our leg cannot reach her 0.27 without folding the knee to 46; the bottom takes knee 50 at 0.32.",
+  },
+
   wallSit: {
     videoId: "cWTZ8Am1Ee0",
     title: "How to Do a Wall Sit Exercise | 30 Seconds | MedBridge",

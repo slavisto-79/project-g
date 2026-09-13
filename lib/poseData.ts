@@ -3636,21 +3636,50 @@ export const exercisePoses = {
 
   // --- The last seventeen: exercises that only had a written cue -----------
 
-  // One leg does the whole squat while the other holds straight out in front
-  // -- the held-out leg IS the pistol.
+  // Pistol squat, from a reference clip measured with the pose lab (OPEX
+  // "Pistol Squat", D934zSaVtU0, three reps in 11 s; MoveNet on 51 frames
+  // at 0.25 s, a side view). The model trades the left and right legs
+  // whenever they cross, so each frame's legs are told apart by what they
+  // do -- the one with the folding knee is the support -- and the trunk is
+  // read from the height of the shoulder over the hip, not from the hip
+  // keypoint's jumping x.
+  //
+  // THE FREE LEG RISES WITH THE DESCENT; IT DOES NOT START UP. Standing she
+  // carries the free foot just off the floor under her, knee bent 132-138.
+  // A fifth of the way down it is long and 40-47 degrees forward of plumb,
+  // at half way 60-75, and only at the bottom level with the hip (85-94),
+  // knee 153-157, heel a couple of centimetres off the floor. Ours lifted
+  // it to 68 at the first key and level by half way.
+  //
+  // THE BOTTOM IS DEEPER: the hip at 0.27 of its standing height over the
+  // ankle, a shade under the support knee (knee 53-55). Ours stopped at
+  // 0.35. The trunk leans 34-41 through the bottom half, and the arms reach
+  // forward 7-15 degrees under level all the way through.
+  //
+  // Our leg cannot hit all three of her numbers at once: at her 0.27 the
+  // knee folds to 46 and the hip drops 8 cm under the knee, and opening the
+  // knee by sitting further back leaves the shin 12 degrees off plumb, a
+  // figure falling backward. The bottom takes knee 50, the hip at 0.32 and
+  // the shin 26 forward.
+  //
+  // Tempo, which it did not have: 1.3 s down, a quarter second at the
+  // bottom, 1.0 s up and about a second standing -- the same in all three.
   pistolSquat: pose(
     "side",
-    ([[0.500, 0.494, 4, 150, 164, 60], [0.472, 0.590, 22, 112, 128, 30], [0.450, 0.700, 34, 90, 102, 8], [0.438, 0.775, 40, 86, 94, 2]] as const).map(([x, y, torso, up, low, end]) => {
+    ([[0.500, 0.494, 3, 160, 205, 110], [0.472, 0.595, 25, 135, 130, 60], [0.450, 0.705, 35, 115, 107, 30], [0.440, 0.790, 37, 90, 115, 20]] as const).map(([x, y, torso, up, low, end]) => {
       const pelvis = { x, y };
       return {
         pelvis,
         torso,
         neck: torso > 20 ? torso - 12 : torso,
-        arms: sideArms(96, 92),
+        arms: sideArms(100, 97),
         legs: [plantedLegs(pelvis, torso, "side", FEET, FORWARD)[0]!, { upper: up, lower: low, end }] as [Limb, Limb],
       };
     }),
     [{ kind: "floor" }],
+    "neutral",
+    1,
+    { tempo: { down: 1300, bottom: 250, up: 1000, top: 1000 } },
   ),
 
   // 45-degree leg press, from a reference clip measured with the pose lab
