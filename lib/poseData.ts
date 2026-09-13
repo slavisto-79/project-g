@@ -2031,20 +2031,69 @@ export const exercisePoses = {
     { loop: [500, 500] },
   ),
 
+  // Bird dog, from a reference clip measured with the pose lab (OPEX "2 Point
+  // Bird Dog", FWjz8ozyVq8, four reaches in 18 s, alternating sides; MoveNet
+  // on 81 frames at 0.25 s, a side view). Directions below are read off the
+  // frame, so they are the segments' own angles, not projections of a
+  // turned body.
+  //
+  // THE REACH IS LEVEL, NOT UP AND DOWN. Held, the reaching thigh points
+  // straight back 2-5 degrees above level with the knee at 145-165 (the
+  // foot a little higher still), and the reaching arm points forward 5-15
+  // degrees UNDER level. Ours lifted the arm 24 degrees above level and let
+  // the leg hang 31 degrees below the trunk line.
+  //
+  // THE PLANK UNDER IT IS SQUARE. Support arm plumb and locked (elbow
+  // 166-180), support thigh near plumb with the knee under the hip (knee
+  // 66-80), the trunk 9-10 degrees head-up in the tabletop and 3-6 while
+  // reaching. Ours bent the support elbows to 136 and tipped the trunk 18.
+  //
+  // IT ALTERNATES, AND IT HOLDS. Ours reached with one side only, played
+  // out and back. She reaches in 1.0 s, holds a second -- still lengthening
+  // a little: arm 14 to 11 under level, knee 148 to 152 -- comes back in
+  // 0.75 s and waits 1.75 s on all fours before the other side. The two
+  // tabletop keys are her tabletop just before the reach and just after the
+  // return, a degree apart.
+  //
+  // Our trunk is steeper than hers -- 16 on all fours, 15 reaching, against
+  // her 9-10 and 3-6 -- because our arm is long against our thigh: with the
+  // knee on the mat, anything flatter bends the support elbow (to 136 at 10,
+  // 157 at 14), and her support arm is locked.
   quadruped: pose(
     "side",
-    [
-      quadrupedFrame(),
-      {
-        ...quadrupedFrame(),
-        // Opposite arm and leg reach out; the other two stay planted.
-        arms: [{ upper: 292, lower: 296 }, quadrupedFrame().arms[1]!],
-        legs: [quadrupedFrame().legs[0]!, { upper: 96, lower: 92, end: 60 }],
-      },
-    ],
+    (() => {
+      const pelvis = { x: 0.56, y: 0.68 };
+      const kneel: Limb = { upper: 186, lower: 80, end: 100 };
+      const table = (torso: number, reach?: { side: 0 | 1; arm: number; thigh: number; knee: number }): Figure => {
+        const hands = [0, 1].map((side) => {
+          const sh = shoulderAt(pelvis, torso, side as 0 | 1, "side");
+          return { x: sh.x, y: 0.905 };
+        }) as [Point, Point];
+        const support = reachingArms(pelvis, torso, "side", hands, FORWARD);
+        const arms = [support[0]!, support[1]!] as [Limb, Limb];
+        const legs = [kneel, { ...kneel }] as [Limb, Limb];
+        if (reach) {
+          arms[reach.side] = { upper: reach.arm, lower: reach.arm };
+          const leg = reach.side === 0 ? 1 : 0;
+          legs[leg] = { upper: reach.thigh, lower: reach.thigh - (180 - reach.knee), end: 150 };
+        }
+        return { pelvis, torso, neck: torso + 4, arms, legs };
+      };
+      return [
+        table(286),
+        table(285, { side: 0, arm: 256, thigh: 88, knee: 148 }),
+        table(285, { side: 0, arm: 259, thigh: 87, knee: 152 }),
+        table(285),
+        table(286),
+        table(285, { side: 1, arm: 256, thigh: 88, knee: 148 }),
+        table(285, { side: 1, arm: 259, thigh: 87, knee: 152 }),
+        table(285),
+      ];
+    })(),
     [{ kind: "floor", mat: true }],
     "overhand",
     -1,
+    { loop: [1000, 1000, 750, 1750, 1000, 1000, 750, 1750] },
   ),
 
   // Bear crawl, from a reference clip measured with the pose lab (OPEX
@@ -4804,12 +4853,6 @@ export const exercisePoses = {
 } satisfies Record<string, ExercisePose>;
 
 // --- Frame builders --------------------------------------------------------
-
-// Hands and knees. The trunk rides low, because an arm is 0.29 long and it has
-// to reach the ground.
-function quadrupedFrame(): Figure {
-  return supported({ x: 0.560, y: 0.700 }, 288, { x: 0.408, y: 0.893 }, { x: 0.700, y: 0.893 }, 95);
-}
 
 // Supine on a flat bench, head to the left, feet planted on the floor. The bar
 // height is the only thing that changes through the press.
