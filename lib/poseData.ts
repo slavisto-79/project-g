@@ -3708,9 +3708,35 @@ export const exercisePoses = {
     // its own shoulder at a different frame -- the near arm at the middle,
     // the far arm at the end -- so the bend is set per arm per frame, or the
     // checker finds a joint hinging backwards mid-rep.
-    ([[{ x: 0.57, y: 0.50 }, 6, OUT], [{ x: 0.50, y: 0.48 }, 0, BACK], [{ x: 0.40, y: 0.48 }, 352, DOWN]] as const).map(
-      ([hands, torso, elbows]) => {
-        const pelvis = { x: 0.5, y: 0.500 };
+    //
+    // From a reference clip measured with the pose lab (Viking Strength
+    // Systems "Standing Med Ball Rotational Throw", PNI1QKiWfiY, two throws
+    // at a wall in 16 s; MoveNet on 81 frames at 0.2 s, facing the camera
+    // with the wall to one side). Distances are scaled by her shoulder
+    // width (0.15 of the frame) against ours.
+    //
+    // THE BALL IS RELEASED AT CHEST HEIGHT, FAR ACROSS. At release her hands
+    // are 0.06-0.10 of the frame under the shoulders and 1.5 shoulder widths
+    // across from the hips' centre, elbows 141-155, trunk leaning 10-15
+    // toward the wall. Ours let it go at hip height, one shoulder width
+    // across, arms folded to 110 and 145.
+    //
+    // THE LOAD SITS ON THE BACK LEG: ball just above the back hip, the back
+    // knee 139-150 and the front one 165-171. Ours loaded on straight legs.
+    //
+    // WHAT THIS MODEL CANNOT DRAW is the turn itself. Her shoulders rotate
+    // past side-on at release (their projected width goes from +0.15 through
+    // zero to -0.04..-0.09) and the hips follow to about 100 degrees; our
+    // trunk has no twist about its long axis, so the figure faces the camera
+    // throughout and the turn is carried by the arms and the lean. It costs
+    // the far arm: reaching across an unturned chest it stays at 97 where
+    // hers opens to 141-155 (the near arm 130).
+    //
+    // Tempo, which it did not have: the throw takes 0.2-0.4 s, she holds the
+    // follow-through about a second, returns in 0.7 and loads for about a
+    // second before the next.
+    ([[{ x: 0.575, y: 0.47 }, 357, OUT, { x: 0.52, y: 0.506 }], [{ x: 0.43, y: 0.40 }, 354, BACK, { x: 0.5, y: 0.503 }], [{ x: 0.32, y: 0.37 }, 349, BACK, { x: 0.49, y: 0.506 }]] as const).map(
+      ([hands, torso, elbows, pelvis]) => {
         return {
           pelvis,
           torso,
@@ -3723,6 +3749,8 @@ export const exercisePoses = {
     ),
     [{ kind: "floor" }, { kind: "bell", at: "grip", size: 0.085 }],
     "neutral",
+    1,
+    { tempo: { down: 300, bottom: 900, up: 700, top: 1000 } },
   ),
 
   // Loaded carry, from a reference clip measured with the pose lab (OPEX

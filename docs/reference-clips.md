@@ -10,12 +10,12 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 111 |
+| authored from a clip (the clip shows the exercise) | 112 |
 | sharing a pose that was authored from a clip | 49 |
-| without a clip yet | 2 |
-| poses with a clip | 105 of 111 (107 in use) |
+| without a clip yet | 1 |
+| poses with a clip | 106 of 111 (107 in use) |
 
-Poses without a clip yet: `idle`, `medBallThrow`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
+Poses without a clip yet: `idle`, `plankIYTW`, `plankSaw`, `ringCurl`, `run`.
 
 ## Every exercise
 
@@ -150,7 +150,7 @@ Poses without a clip yet: `idle`, `medBallThrow`, `plankIYTW`, `plankSaw`, `ring
 | Rack Pull | `hinge` | shares `hinge` (the clip shows Conventional Deadlift) | [Conventional Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=TN3DHmd1Fe8) (OPEX Fitness, side) | #316 |
 | Reverse Snow Angel | `proneRaise` | shares `proneRaise` (the clip shows Superman) | [Superman Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=W8vlZfmxOpM) (OPEX Fitness, side) | #322 |
 | Romanian Deadlift | `romanianDeadlift` | authored from the clip | [BB RDL (Romanian Deadlift) Side View](https://www.youtube.com/watch?v=ionx2qnNVMo) (Coach Savela, side) | #260 |
-| Rotational Med Ball Throw | `medBallThrow` | no clip yet |  |  |
+| Rotational Med Ball Throw | `medBallThrow` | authored from the clip | [Standing Med Ball Rotational Throw - Viking Strength Systems](https://www.youtube.com/watch?v=PNI1QKiWfiY) (Viking Strength Systems, front) | #359 |
 | Russian Twist | `russianTwist` | authored from the clip | [Russian Twist](https://www.youtube.com/watch?v=Hvtxbidjins) (OPEX Fitness, side) | #289 |
 | Seated Cable Row | `seatedRow` | authored from the clip | [Seated Cable Row - OPEX Exercise Library](https://www.youtube.com/watch?v=4ZbqM_gcgAI) (OPEX Fitness, side) | #276 |
 | Seated Calf Raise | `seatedCalfRaise` | authored from the clip | [Seated Calf Raise Machine](https://www.youtube.com/watch?v=2Q-HQ3mnePg) (OPEX Fitness, side) | #333 |
@@ -293,3 +293,4 @@ Poses without a clip yet: `idle`, `medBallThrow`, `plankIYTW`, `plankSaw`, `ring
 | `oneArmRow` | [Dumbbell Three Point Row](https://www.youtube.com/watch?v=iLhwICt4R9A) | OPEX Fitness | side | three reps in 7.2 s after a 1.4 s set-up | #356 | 2026-09-13 | One-Arm Dumbbell Row | Feet side by side under the hips (ankles 0.07 of the frame apart), knees 143-155, shins near plumb. Trunk 80 from vertical hanging, reading 67 at the top -- partly a turn of the rowing shoulder, which a side camera reads as pitch; our fixed brace hand allows 80 -> 74. Top: upper arm straight back along the body 3-7 above level, elbow 65-69, forearm 17-22 forward of plumb. Brace arm 140-155 at the elbow. 0.8 s up, 0.25 s top, 1.0-1.2 s down, 0.5 s hanging. |
 | `hipAbduction` | [Standing Band Hip Abduction](https://www.youtube.com/watch?v=CRpDEFu-a9c) | OPEX Fitness | front | five reps in 10 s | #357 | 2026-09-13 | Standing Hip Abduction | Square front view; the working leg's projected length holds 0.31-0.33 of the frame all the way out, so it moves in the film plane. A first capture cropped the working ankle out of frame at the top (score 0.1): widen the crop to the side the leg goes. Top: leg 53-61 from plumb, knee 177-180; the working hip hikes 10-13 and the trunk leans away 6-9 more than at rest. Hands on the hips, elbows 84-112. 0.6 s out, a moment at the top, 0.75 s back, ~0.5 s standing -- 2.0 s a rep. |
 | `medBallSlam` | [How To Med Ball Slam](https://www.youtube.com/watch?v=CkO1mfSBvv4) | Third Space London | three-quarter | four slams in 8 s | #358 | 2026-09-13 | Medicine Ball Slam | A 30 s pre-roll ad with a Skip button runs first. The camera is a little in front: at the bottom the trunk and thigh point partly toward it (projected trunk 0.11-0.14 against 0.16-0.17 standing), so the trunk angle is read from its height (50-62) and the knee angle is not quoted. Bottom: hip down 23% of its standing height, hands 0.27 hip-heights over the ankle. Overhead: elbows 160-168. After the slam she stands with the ball at the belly (elbows 126-135) and presses it overhead. 2.25 s a slam: ~0.45 s overhead (the load at its end: knees 161-170, trunk 7-15), 0.45 s slam, 0.15 s at the floor, 0.6 s up, 0.6 s press. Our arms cannot reach the floor from that shallow a hinge: our bottom is trunk 65, hip down a third, knees 101. |
+| `medBallThrow` | [Standing Med Ball Rotational Throw - Viking Strength Systems](https://www.youtube.com/watch?v=PNI1QKiWfiY) | Viking Strength Systems | front | two throws at a wall in 16 s | #359 | 2026-09-13 | Rotational Med Ball Throw | Facing the camera, the wall to one side; distances scaled by her shoulder width (0.15 of the frame). Load: ball just above the back hip, back knee 139-150, front 165-171. Release: hands 0.06-0.10 of the frame under the shoulders, 1.5 shoulder widths across from the hips' centre, elbows 141-155, trunk leaning 10-15 toward the wall. The shoulders turn past side-on (projected width +0.15 through zero to -0.04..-0.09), hips to ~100 degrees: our trunk has no twist about its long axis, so the turn is carried by the arms and lean and the far arm stays folded (97). Throw 0.2-0.4 s, follow-through held ~1 s, return 0.7 s, load ~1 s. |
