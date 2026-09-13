@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 14: dumbbells, a medicine ball and a run ---------------------
+  hipAbduction: {
+    videoId: "CRpDEFu-a9c",
+    title: "Standing Band Hip Abduction",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "five reps in 10 s",
+    prs: [357],
+    date: "2026-09-13",
+    exercises: ["Standing Hip Abduction"],
+    notes:
+      "Square front view; the working leg's projected length holds 0.31-0.33 of the frame all the way out, so it moves in the film plane. A first capture cropped the working ankle out of frame at the top (score 0.1): widen the crop to the side the leg goes. Top: leg 53-61 from plumb, knee 177-180; the working hip hikes 10-13 and the trunk leans away 6-9 more than at rest. Hands on the hips, elbows 84-112. 0.6 s out, a moment at the top, 0.75 s back, ~0.5 s standing -- 2.0 s a rep.",
+  },
+
   oneArmRow: {
     videoId: "iLhwICt4R9A",
     title: "Dumbbell Three Point Row",
