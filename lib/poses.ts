@@ -203,7 +203,9 @@ function step(from: Point, angleDeg: number, length: number): Point {
 // turning it about the shoulder-to-wrist line -- a bench press with the
 // elbows out at 45 degrees. Both bones keep their length and the wrist
 // stays exactly where the plane put it, so the bar and the 2D checks do not
-// move; a straight arm lies on the axis and is unchanged.
+// move; a straight arm lies on the axis and is unchanged. On a LEG, `flare`
+// turns the knee outboard about the hip-to-ankle line the same way -- a frog
+// pump's knees fallen open over feet held together.
 // `abduct` (degrees) swings the whole arm outboard in the frontal plane about
 // the fore-aft axis through the shoulder -- a lying fly's arc, which a side
 // view has no other way to say. Both bones keep their length.
@@ -514,6 +516,34 @@ function build3d(figure: Figure, view: View, facing: 1 | -1 = 1): { bones: PoseB
     const stance = view === "side" ? leg.spread ?? 0 : 0;
     knee[0] += out * (stance / 2);
     ankle[0] += out * stance;
+    if (view === "side" && leg.flare) {
+      // Knee fallen open: the arm's `flare`, on a leg -- the knee turns about
+      // the line from the hip to the ankle, outboard, both bones their length
+      // and the foot where it was. Rodrigues.
+      const h = hip[side]!;
+      const axis = [ankle[0] - h[0], ankle[1] - h[1], ankle[2] - h[2]];
+      const len = Math.hypot(axis[0]!, axis[1]!, axis[2]!) || 1;
+      const k = axis.map((c) => c / len) as Vec3;
+      const v: Vec3 = [knee[0] - h[0], knee[1] - h[1], knee[2] - h[2]];
+      const turned = (theta: number): Vec3 => {
+        const c = Math.cos(theta);
+        const sn = Math.sin(theta);
+        const dot = k[0] * v[0] + k[1] * v[1] + k[2] * v[2];
+        const cross: Vec3 = [k[1] * v[2] - k[2] * v[1], k[2] * v[0] - k[0] * v[2], k[0] * v[1] - k[1] * v[0]];
+        return [
+          v[0] * c + cross[0] * sn + k[0] * dot * (1 - c),
+          v[1] * c + cross[1] * sn + k[1] * dot * (1 - c),
+          v[2] * c + cross[2] * sn + k[2] * dot * (1 - c),
+        ];
+      };
+      const rad = (leg.flare * Math.PI) / 180;
+      const a = turned(rad);
+      const b = turned(-rad);
+      const pick = out * a[0] >= out * b[0] ? a : b;
+      knee[0] = h[0] + pick[0];
+      knee[1] = h[1] + pick[1];
+      knee[2] = h[2] + pick[2];
+    }
     const splay = view === "front" && side === 1 ? 90 : -90;
     const footAngle = leg.end ?? leg.lower + splay;
     bones.push({ part: "thigh", side, a: hip[side]!, b: knee });

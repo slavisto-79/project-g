@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 15: exercises that borrowed a different movement's pose ------
+  frogPump: {
+    videoId: "KvdJEqifOLk",
+    title: "Frog Pump",
+    channel: "Impact Online Fitness Coaching",
+    view: "side",
+    span: "four reps, 25-35 s",
+    prs: [365],
+    date: "2026-09-13",
+    exercises: ["Frog Pump"],
+    notes:
+      "Borrowed the barbell hip thrust (shoulders on a bench, knees forward) before. Side on: hips on the floor at the bottom (hip 130-142), one line to the knees at the top (171-180), trunk 15-20 up from the shoulders; hip-to-ankle over shoulder-to-hip 0.70-0.77 at the bottom, 0.95-1.04 at the top (ours 0.77, 0.95). The knee width is from a second clip, Colossus Fitness 'How to Do Frog Pumps for Bigger Glutes' (rgljhH1X4vc, 76-81 s, three-quarter view from the feet): ankles 0.6 hip widths apart, knees 1.9-2.4 (ours 0.65, 2.2), a ratio only. Tempo from the four side-on reps at 0.25 s: rise 0.5-0.75 s, hold 0.25-0.5, lower 0.5, rest 0.4-0.75, tops 2.0-2.25 s apart. A new leg `flare` opens the knees about the hip-to-ankle line. Cue: 'pulse the hips up' became a full rep with a squeeze and a controlled lowering, as both clips show.",
+  },
   singleLegGluteBridge: {
     videoId: "6pvdY3sXUbo",
     title: "Single Leg Glute Bridge - OPEX Exercise Library",

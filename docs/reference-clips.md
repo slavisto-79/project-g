@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 115 |
-| sharing a pose that was authored from a clip | 47 |
+| authored from a clip (the clip shows the exercise) | 116 |
+| sharing a pose that was authored from a clip | 46 |
 | without a clip yet | 0 |
-| poses with a clip | 109 of 110 (109 in use) |
+| poses with a clip | 110 of 111 (110 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -90,7 +90,7 @@ Poses without a clip yet: `idle`.
 | Dumbbell Step-Up | `stepUp` | shares `stepUp` (the clip shows Step-Up) | [Step Up - OPEX Exercise Library](https://www.youtube.com/watch?v=RRuWVDefORg) (OPEX Fitness, three-quarter) | #296 |
 | Face Pull | `facePull` | authored from the clip | [Cable Rope Face Pull](https://www.youtube.com/watch?v=5ZC4LagfDQ4) (OPEX Fitness, side) | #327 |
 | Farmer's Carry | `carry` | authored from the clip | [Dumbbell Farmer's Carry](https://www.youtube.com/watch?v=K4R8uc1x_OA) (OPEX Fitness, side) | #288 |
-| Frog Pump | `hipThrust` | shares `hipThrust` (the clip shows Barbell Hip Thrust) | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
+| Frog Pump | `frogPump` | authored from the clip | [Frog Pump](https://www.youtube.com/watch?v=KvdJEqifOLk) (Impact Online Fitness Coaching, side) | #365 |
 | Front Rack Carry | `frontRackCarry` | authored from the clip | [Front Rack Kettlebell Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=0OzaglIheOc) (OPEX Fitness, front) | #295 |
 | Glute Bridge | `gluteBridge` | authored from the clip | [Glute Bridge - OPEX Exercise Library](https://www.youtube.com/watch?v=szgXdRA2R6Y) (OPEX Fitness, side) | #363 |
 | Goblet Squat | `gobletSquat` | authored from the clip | [Goblet Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=pEGfGwp6IEA) (OPEX Fitness, three-quarter) | #317 |
@@ -297,3 +297,4 @@ Poses without a clip yet: `idle`.
 | `run` | [Slow motion running - side view](https://www.youtube.com/watch?v=Jd8Jijb7jZY) | EMU Running Science Laboratory | side | about three stride cycles of slow motion | #360 | 2026-09-13 | Sprint Intervals | A college track athlete on a treadmill at 10 mph (~16 km/h): a fast run, not a flat-out sprint, and no real-time side-on sprint clip was found. MoveNet swaps the leg labels as they pass; legs told apart by what they do. Swing thigh at most 44-50 forward of plumb with the knee folded to 56-63; contact: front thigh 34-40 forward, knee 155-164, rear thigh 21-25 back, knee 103-117; support knee 137-145 under the body. Arms swing 13 forward to 55-64 back, elbows 60-95. Trunk 5-13 forward; hip 0.05 of the frame higher at contact than at midstance. CADENCE NOT MEASURED: the description says 100 fps capture and it plays at 30, but read that way it gives 73 steps a minute at 16 km/h, so the slow-down factor is unknown. A pre-roll ad with a Skip button runs first. |
 | `gluteBridge` | [Glute Bridge - OPEX Exercise Library](https://www.youtube.com/watch?v=szgXdRA2R6Y) | OPEX Fitness | side | one bridge held 8 s | #363 | 2026-09-13 | Glute Bridge | Borrowed the barbell hip thrust (shoulders on a bench) before. On the floor: at the top the shoulders stay down and the body is one line to the knees (hip 179-180), trunk 25 up from the shoulders, knee 71-73, shin 8 off plumb, arms long on the floor. A second OPEX clip (ayy8owPQ61w) holds a lower bridge, hip 151-154, knee 95-100. Both clips are holds: the rise takes 0.6 s and nothing else of a rep is shown, so no tempo. Our hip line reaches 166 at the top with the ankle on the floor. |
 | `singleLegGluteBridge` | [Single Leg Glute Bridge - OPEX Exercise Library](https://www.youtube.com/watch?v=6pvdY3sXUbo) | OPEX Fitness | side | one bridge held 7 s | #364 | 2026-09-13 | Single-Leg Glute Bridge | Borrowed the barbell hip thrust (shoulders on a bench, both feet down) before. The working side is the glute bridge's: shoulders on the floor, trunk 22-25 up from them, the working thigh on the same line, knee 69-72. The free leg is held straight up (knee 171-176), 10-14 past plumb toward the feet; OPEX's other single-leg bridge (F0JMcMVxJAU) holds the same straight leg. The library cue said the free knee was pulled in; it now says the leg is straight up. Already at the top when the clip starts, so the rise is never shown: no tempo. |
+| `frogPump` | [Frog Pump](https://www.youtube.com/watch?v=KvdJEqifOLk) | Impact Online Fitness Coaching | side | four reps, 25-35 s | #365 | 2026-09-13 | Frog Pump | Borrowed the barbell hip thrust (shoulders on a bench, knees forward) before. Side on: hips on the floor at the bottom (hip 130-142), one line to the knees at the top (171-180), trunk 15-20 up from the shoulders; hip-to-ankle over shoulder-to-hip 0.70-0.77 at the bottom, 0.95-1.04 at the top (ours 0.77, 0.95). The knee width is from a second clip, Colossus Fitness 'How to Do Frog Pumps for Bigger Glutes' (rgljhH1X4vc, 76-81 s, three-quarter view from the feet): ankles 0.6 hip widths apart, knees 1.9-2.4 (ours 0.65, 2.2), a ratio only. Tempo from the four side-on reps at 0.25 s: rise 0.5-0.75 s, hold 0.25-0.5, lower 0.5, rest 0.4-0.75, tops 2.0-2.25 s apart. A new leg `flare` opens the knees about the hip-to-ankle line. Cue: 'pulse the hips up' became a full rep with a squeeze and a controlled lowering, as both clips show. |
