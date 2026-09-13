@@ -1757,6 +1757,45 @@ export const exercisePoses = {
   // legs nearly straight, hips pushed away), trunk 5/30/55/75, knee
   // 180/171/160/154; the bar stays on the traps (the wide napeArms grip)
   // and over the mid-foot at the bottom; hip height 0.439 -> 0.402.
+  // Back extension on a 45-degree bench, from a reference clip measured with
+  // the pose lab (Exercise Library "Exercise Library:  Back Extensions",
+  // muPROfbUBeg, three reps in 12.5 s, a square side view; MoveNet on 71
+  // frames at 0.25 s, the top positions re-read on 16 full frames because
+  // the first crop cut the shoulders). It borrowed the deadlift before --
+  // standing, a bar pulled from the floor. (OPEX's "Roman Chair Back
+  // Extension", ZaLvgeHC_54, is filmed from behind at an angle, so its
+  // angles were not used.)
+  //
+  // The hips on the pad, the legs straight (knee 170-180) running 53-56
+  // degrees down to the ankles under the roller, the arms folded on the
+  // chest. At the bottom the trunk hangs 33-40 degrees below level with the
+  // hip at 88-95. At the top the trunk rises 6-20 degrees past the line of
+  // the legs (65-74 up); the library cue says "no further" than a straight
+  // line, so the top takes the clip's least, 6.
+  //
+  // Tempo from the three reps, to the 0.25 s frames: down in 2.25-2.5 s,
+  // about 0.25 at the bottom, up in 1.5-1.75, 0.5 at the top; tops 4.75 s
+  // apart.
+  backExtension: pose(
+    "side",
+    [330, 280, 234].map((torso) => ({
+      pelvis: { x: 0.5, y: 0.45 },
+      torso,
+      neck: torso,
+      // Arms folded across the chest.
+      arms: sideArms(torso + 235, torso + 65).map((arm) => ({ ...arm, spread: -0.19 })) as [Limb, Limb],
+      legs: lyingLegs(144, 144, 234),
+    })),
+    [
+      { kind: "floor", y: 0.93 },
+      { kind: "slab", at: "pelvis", width: 0.2, height: 0.06, angle: 144 },
+      { kind: "slab", at: "ankle0", width: 0.16, height: 0.05, dy: -0.045, lever: true },
+    ],
+    "overhand",
+    -1,
+    { tempo: { down: 2500, bottom: 250, up: 1500, top: 500 }, camera: { azimuth: -1.6 } },
+  ),
+
   goodMorning: pose(
     "side",
     ([[0.523, 0.490, 5, 180, 180], [0.485, 0.495, 30, 168, 177], [0.452, 0.510, 55, 156, 176], [0.424, 0.528, 75, 147, 173]] as const).map(
