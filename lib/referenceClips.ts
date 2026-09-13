@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 13: bodyweight, on the floor and upside down -----------------
+  handstandPushUp: {
+    videoId: "ic8cg0SQ8A4",
+    title: "Strict Handstand Push Ups",
+    channel: "Functional Bodybuilding",
+    view: "three-quarter",
+    span: "three reps in 5 s",
+    prs: [351],
+    date: "2026-09-13",
+    exercises: ["Handstand Push-Up"],
+    notes:
+      "Frames ROTATED 180 degrees before MoveNet saw them (it is trained on upright people); every keypoint then scored 0.7-0.9. The camera stands off to the front, so the bottom elbow reads 98-103 on one arm and 143-147 on the other and is not quoted. Back and heels against a wall, legs straight up together (hip angle 170-180, knees locked). Nose ends 0.2 trunk lengths over the hands (crown on the floor); shoulders fall to 0.64 of their locked-out height over the hands. 0.7 s down, touch and go, 0.75 s up, ~0.1 s locked out -- 1.6 s a rep. The video autoplays into another clip after 9.9 s, which ruined one capture: check the title in the capture loop.",
+  },
+
   pikePushUp: {
     videoId: "XckEEwa1BPI",
     title: "How to do a Pike Push-Up",
