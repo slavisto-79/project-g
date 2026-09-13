@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 15: exercises that borrowed a different movement's pose ------
+  singleLegGluteBridge: {
+    videoId: "6pvdY3sXUbo",
+    title: "Single Leg Glute Bridge - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "one bridge held 7 s",
+    prs: [364],
+    date: "2026-09-13",
+    exercises: ["Single-Leg Glute Bridge"],
+    notes:
+      "Borrowed the barbell hip thrust (shoulders on a bench, both feet down) before. The working side is the glute bridge's: shoulders on the floor, trunk 22-25 up from them, the working thigh on the same line, knee 69-72. The free leg is held straight up (knee 171-176), 10-14 past plumb toward the feet; OPEX's other single-leg bridge (F0JMcMVxJAU) holds the same straight leg. The library cue said the free knee was pulled in; it now says the leg is straight up. Already at the top when the clip starts, so the rise is never shown: no tempo.",
+  },
   gluteBridge: {
     videoId: "szgXdRA2R6Y",
     title: "Glute Bridge - OPEX Exercise Library",

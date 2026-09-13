@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 114 |
-| sharing a pose that was authored from a clip | 48 |
+| authored from a clip (the clip shows the exercise) | 115 |
+| sharing a pose that was authored from a clip | 47 |
 | without a clip yet | 0 |
-| poses with a clip | 108 of 109 (108 in use) |
+| poses with a clip | 109 of 110 (109 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -159,7 +159,7 @@ Poses without a clip yet: `idle`.
 | Side Plank | `sidePlank` | authored from the clip | [Side Plank - OPEX Exercise Library](https://www.youtube.com/watch?v=tbWPBOgju9g) (OPEX Fitness, front) | #285 |
 | Single-Leg Calf Raise | `calfRaise` | shares `calfRaise` (the clip shows Bodyweight Calf Raise, Dumbbell Calf Raise) | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
 | Single-Leg Deadlift | `singleLegHinge` | authored from the clip | [Dumbbell Single Leg Romanian Deadlift](https://www.youtube.com/watch?v=pJewPISyHjw) (OPEX Fitness, side) | #337 |
-| Single-Leg Glute Bridge | `hipThrust` | shares `hipThrust` (the clip shows Barbell Hip Thrust) | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
+| Single-Leg Glute Bridge | `singleLegGluteBridge` | authored from the clip | [Single Leg Glute Bridge - OPEX Exercise Library](https://www.youtube.com/watch?v=6pvdY3sXUbo) (OPEX Fitness, side) | #364 |
 | Single-Leg Romanian Deadlift | `singleLegHinge` | authored from the clip | [Dumbbell Single Leg Romanian Deadlift](https://www.youtube.com/watch?v=pJewPISyHjw) (OPEX Fitness, side) | #337 |
 | Skater Bound | `skaterBound` | authored from the clip | [Skater Jumps](https://www.youtube.com/watch?v=Xqzq9w42-z4) (Exercise Library, front) | #302 |
 | Skull Crusher | `skullCrusher` | authored from the clip | [EZ Bar Skull Crusher - OPEX Exercise Library](https://www.youtube.com/watch?v=eluOhtYkm-0) (OPEX Fitness, head-end) | #281 |
@@ -296,3 +296,4 @@ Poses without a clip yet: `idle`.
 | `medBallThrow` | [Standing Med Ball Rotational Throw - Viking Strength Systems](https://www.youtube.com/watch?v=PNI1QKiWfiY) | Viking Strength Systems | front | two throws at a wall in 16 s | #359 | 2026-09-13 | Rotational Med Ball Throw | Facing the camera, the wall to one side; distances scaled by her shoulder width (0.15 of the frame). Load: ball just above the back hip, back knee 139-150, front 165-171. Release: hands 0.06-0.10 of the frame under the shoulders, 1.5 shoulder widths across from the hips' centre, elbows 141-155, trunk leaning 10-15 toward the wall. The shoulders turn past side-on (projected width +0.15 through zero to -0.04..-0.09), hips to ~100 degrees: our trunk has no twist about its long axis, so the turn is carried by the arms and lean and the far arm stays folded (97). Throw 0.2-0.4 s, follow-through held ~1 s, return 0.7 s, load ~1 s. |
 | `run` | [Slow motion running - side view](https://www.youtube.com/watch?v=Jd8Jijb7jZY) | EMU Running Science Laboratory | side | about three stride cycles of slow motion | #360 | 2026-09-13 | Sprint Intervals | A college track athlete on a treadmill at 10 mph (~16 km/h): a fast run, not a flat-out sprint, and no real-time side-on sprint clip was found. MoveNet swaps the leg labels as they pass; legs told apart by what they do. Swing thigh at most 44-50 forward of plumb with the knee folded to 56-63; contact: front thigh 34-40 forward, knee 155-164, rear thigh 21-25 back, knee 103-117; support knee 137-145 under the body. Arms swing 13 forward to 55-64 back, elbows 60-95. Trunk 5-13 forward; hip 0.05 of the frame higher at contact than at midstance. CADENCE NOT MEASURED: the description says 100 fps capture and it plays at 30, but read that way it gives 73 steps a minute at 16 km/h, so the slow-down factor is unknown. A pre-roll ad with a Skip button runs first. |
 | `gluteBridge` | [Glute Bridge - OPEX Exercise Library](https://www.youtube.com/watch?v=szgXdRA2R6Y) | OPEX Fitness | side | one bridge held 8 s | #363 | 2026-09-13 | Glute Bridge | Borrowed the barbell hip thrust (shoulders on a bench) before. On the floor: at the top the shoulders stay down and the body is one line to the knees (hip 179-180), trunk 25 up from the shoulders, knee 71-73, shin 8 off plumb, arms long on the floor. A second OPEX clip (ayy8owPQ61w) holds a lower bridge, hip 151-154, knee 95-100. Both clips are holds: the rise takes 0.6 s and nothing else of a rep is shown, so no tempo. Our hip line reaches 166 at the top with the ankle on the floor. |
+| `singleLegGluteBridge` | [Single Leg Glute Bridge - OPEX Exercise Library](https://www.youtube.com/watch?v=6pvdY3sXUbo) | OPEX Fitness | side | one bridge held 7 s | #364 | 2026-09-13 | Single-Leg Glute Bridge | Borrowed the barbell hip thrust (shoulders on a bench, both feet down) before. The working side is the glute bridge's: shoulders on the floor, trunk 22-25 up from them, the working thigh on the same line, knee 69-72. The free leg is held straight up (knee 171-176), 10-14 past plumb toward the feet; OPEX's other single-leg bridge (F0JMcMVxJAU) holds the same straight leg. The library cue said the free knee was pulled in; it now says the leg is straight up. Already at the top when the clip starts, so the rise is never shown: no tempo. |
