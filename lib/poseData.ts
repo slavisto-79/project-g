@@ -4429,6 +4429,51 @@ export const exercisePoses = {
     { tempo: { down: 1750, bottom: 400, up: 1750, top: 600 } },
   ),
 
+  // Nordic hamstring curl, from a reference clip measured with the pose lab
+  // (OPEX Abbotsford "Nordic Hamstring Curls", UoR6civMWF8, three reps in 14 s, heels
+  // hooked under the low bar of a dumbbell rack; MoveNet on 61 frames at
+  // 0.2 s, a side view). It borrowed the lying machine leg curl before --
+  // face down on a bench, the heels curling up to the seat.
+  //
+  // Kneeling tall: the hip 171-176, the thigh 1-7 degrees BEHIND plumb,
+  // the trunk plumb, the arms hanging along the sides. The shins stay put
+  // the whole rep, the ankles held 16-24 degrees above the knees behind them.
+  // Half way down (1.1 s in): thigh 20-23 forward, trunk 28-38 forward, hip
+  // 165-174 -- it stays close to one line -- and the hands still at the
+  // sides. The bottom is a catch: thigh 81-83 forward, trunk 78-83, hip
+  // 175-179, knee 158-162, and the hands on the floor under the chest (0.39-
+  // 0.48 trunk lengths back from the shoulders), elbows 77-81.
+  //
+  // The anchor is drawn as a roller over the backs of the ankles, as the
+  // lying leg curl's is.
+  //
+  // Tempo from the two full reps, to the 0.2 s frames: down in 2.0-2.2 s --
+  // slow for the first second, then a fall into the hands -- 0.2-0.4 on the
+  // hands, back up in 1.0-1.2, kneeling tall 1.2-1.4 before the next; tops
+  // 4.6 s apart. Her way back up bends the hips (146-159) as she pushes
+  // off; the renderer returns along the way down.
+  nordicCurl: pose(
+    "side",
+    ([[185, 360], [158, 327], [98, 280]] as const).map(([thigh, torso], key) => {
+      const knee = { x: 0.62, y: 0.905 };
+      const pelvis = { x: knee.x - (0.225 * Math.sin((thigh * Math.PI) / 180)) / ASPECT, y: knee.y + 0.225 * Math.cos((thigh * Math.PI) / 180) };
+      const legs: [Limb, Limb] = [{ upper: thigh, lower: 70, end: 160 }, { upper: thigh + 3, lower: 73, end: 163 }];
+      if (key < 2) {
+        return { pelvis, torso, neck: torso, arms: sideArms(key ? 151 : 176, key ? 166 : 190), legs };
+      }
+      // The catch: hands on the floor under the chest, back toward the knees.
+      const hands = [0, 1].map((side) => {
+        const sh = shoulderAt(pelvis, torso, side as 0 | 1, "side");
+        return { x: sh.x + 0.15 / ASPECT, y: 0.93 };
+      }) as [Point, Point];
+      return { pelvis, torso, neck: torso - 5, arms: reachingArms(pelvis, torso, "side", hands, FORWARD).map((arm) => ({ ...arm, end: 270 })) as [Limb, Limb], legs };
+    }),
+    [{ kind: "floor", mat: true, y: 0.95 }, { kind: "slab", at: "ankle0", width: 0.16, height: 0.05, dy: -0.045, lever: true }],
+    "overhand",
+    -1,
+    { tempo: { down: 2100, bottom: 300, up: 1100, top: 1300 }, camera: { azimuth: -1.2 } },
+  ),
+
   // Kneeling cable crunch, from a reference clip measured with the pose lab
   // (OPEX "Kneeling Cable Crunch", 2ndlUfl5JPo, three reps in 9.6 s; MoveNet
   // on 42 frames at 0.3 s).

@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 15: exercises that borrowed a different movement's pose ------
+  nordicCurl: {
+    videoId: "UoR6civMWF8",
+    title: "Nordic Hamstring Curls",
+    channel: "OPEX Abbotsford",
+    view: "side",
+    span: "three reps in 14 s",
+    prs: [367],
+    date: "2026-09-13",
+    exercises: ["Nordic Hamstring Curl"],
+    notes:
+      "Borrowed the lying machine leg curl before. Heels hooked under a dumbbell rack's low bar (drawn as an ankle roller). Kneeling tall: hip 171-176, thigh 1-7 behind plumb, trunk plumb, shins 16-24 up behind the knees throughout, arms along the sides. Half way: thigh 20-23 forward, trunk 28-38, hip 165-174, knee 90-95. Catch: thigh 81-83 forward, trunk 78-83, hip 175-179, knee 158-162, hands on the floor under the chest, elbows 77-81 (ours 77; the hands sit 0.61 trunk lengths back of the shoulders against her 0.39-0.48 -- her arms are shorter against her trunk). Tempo at 0.2 s: down 2.0-2.2 s (slow, then a fall into the hands), 0.2-0.4 on the hands, up 1.0-1.2, kneeling 1.2-1.4; tops 4.6 s apart. Her way up bends the hips (146-159); ours returns along the way down.",
+  },
   vUp: {
     videoId: "4X3xVPrSNNg",
     title: "V-Up - OPEX Exercise Library",
