@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 14: dumbbells, a medicine ball and a run ---------------------
+  medBallSlam: {
+    videoId: "CkO1mfSBvv4",
+    title: "How To Med Ball Slam",
+    channel: "Third Space London",
+    view: "three-quarter",
+    span: "four slams in 8 s",
+    prs: [358],
+    date: "2026-09-13",
+    exercises: ["Medicine Ball Slam"],
+    notes:
+      "A 30 s pre-roll ad with a Skip button runs first. The camera is a little in front: at the bottom the trunk and thigh point partly toward it (projected trunk 0.11-0.14 against 0.16-0.17 standing), so the trunk angle is read from its height (50-62) and the knee angle is not quoted. Bottom: hip down 23% of its standing height, hands 0.27 hip-heights over the ankle. Overhead: elbows 160-168. After the slam she stands with the ball at the belly (elbows 126-135) and presses it overhead. 2.25 s a slam: ~0.45 s overhead (the load at its end: knees 161-170, trunk 7-15), 0.45 s slam, 0.15 s at the floor, 0.6 s up, 0.6 s press. Our arms cannot reach the floor from that shallow a hinge: our bottom is trunk 65, hip down a third, knees 101.",
+  },
+
   hipAbduction: {
     videoId: "CRpDEFu-a9c",
     title: "Standing Band Hip Abduction",
