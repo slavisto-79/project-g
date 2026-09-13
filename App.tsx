@@ -6229,7 +6229,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Single-Leg Romanian Deadlift": "singleLegHinge",
   "Single-Leg Deadlift": "singleLegHinge",
   "Barbell Hip Thrust": "hipThrust",
-  "Glute Bridge": "hipThrust",
+  "Glute Bridge": "gluteBridge",
   "Single-Leg Glute Bridge": "hipThrust",
   "Frog Pump": "hipThrust",
   "Lying Leg Curl": "legCurl",

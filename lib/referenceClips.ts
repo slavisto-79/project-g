@@ -717,6 +717,20 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  // --- Batch 15: exercises that borrowed a different movement's pose ------
+  gluteBridge: {
+    videoId: "szgXdRA2R6Y",
+    title: "Glute Bridge - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "one bridge held 8 s",
+    prs: [363],
+    date: "2026-09-13",
+    exercises: ["Glute Bridge"],
+    notes:
+      "Borrowed the barbell hip thrust (shoulders on a bench) before. On the floor: at the top the shoulders stay down and the body is one line to the knees (hip 179-180), trunk 25 up from the shoulders, knee 71-73, shin 8 off plumb, arms long on the floor. A second OPEX clip (ayy8owPQ61w) holds a lower bridge, hip 151-154, knee 95-100. Both clips are holds: the rise takes 0.6 s and nothing else of a rep is shown, so no tempo. Our hip line reaches 166 at the top with the ankle on the floor.",
+  },
+
   // --- Batch 14: dumbbells, a medicine ball and a run ---------------------
   run: {
     videoId: "Jd8Jijb7jZY",
