@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 113 |
-| sharing a pose that was authored from a clip | 49 |
+| authored from a clip (the clip shows the exercise) | 114 |
+| sharing a pose that was authored from a clip | 48 |
 | without a clip yet | 0 |
-| poses with a clip | 107 of 108 (107 in use) |
+| poses with a clip | 108 of 109 (108 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -92,7 +92,7 @@ Poses without a clip yet: `idle`.
 | Farmer's Carry | `carry` | authored from the clip | [Dumbbell Farmer's Carry](https://www.youtube.com/watch?v=K4R8uc1x_OA) (OPEX Fitness, side) | #288 |
 | Frog Pump | `hipThrust` | shares `hipThrust` (the clip shows Barbell Hip Thrust) | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
 | Front Rack Carry | `frontRackCarry` | authored from the clip | [Front Rack Kettlebell Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=0OzaglIheOc) (OPEX Fitness, front) | #295 |
-| Glute Bridge | `hipThrust` | shares `hipThrust` (the clip shows Barbell Hip Thrust) | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
+| Glute Bridge | `gluteBridge` | authored from the clip | [Glute Bridge - OPEX Exercise Library](https://www.youtube.com/watch?v=szgXdRA2R6Y) (OPEX Fitness, side) | #363 |
 | Goblet Squat | `gobletSquat` | authored from the clip | [Goblet Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=pEGfGwp6IEA) (OPEX Fitness, three-quarter) | #317 |
 | Good Morning | `goodMorning` | authored from the clip | [High Bar Good Morning](https://www.youtube.com/watch?v=dEJ0FTm-CEk) (Renaissance Periodization, side) | #262 |
 | Hack Squat | `squat` | shares `squat` (the clip shows Barbell Back Squat) | [How to do a Barbell Back Squat](https://www.youtube.com/watch?v=-bJIpOq-LWk) (National Academy of Sports Medicine (NASM), three-quarter) | #254 |
@@ -295,3 +295,4 @@ Poses without a clip yet: `idle`.
 | `medBallSlam` | [How To Med Ball Slam](https://www.youtube.com/watch?v=CkO1mfSBvv4) | Third Space London | three-quarter | four slams in 8 s | #358 | 2026-09-13 | Medicine Ball Slam | A 30 s pre-roll ad with a Skip button runs first. The camera is a little in front: at the bottom the trunk and thigh point partly toward it (projected trunk 0.11-0.14 against 0.16-0.17 standing), so the trunk angle is read from its height (50-62) and the knee angle is not quoted. Bottom: hip down 23% of its standing height, hands 0.27 hip-heights over the ankle. Overhead: elbows 160-168. After the slam she stands with the ball at the belly (elbows 126-135) and presses it overhead. 2.25 s a slam: ~0.45 s overhead (the load at its end: knees 161-170, trunk 7-15), 0.45 s slam, 0.15 s at the floor, 0.6 s up, 0.6 s press. Our arms cannot reach the floor from that shallow a hinge: our bottom is trunk 65, hip down a third, knees 101. |
 | `medBallThrow` | [Standing Med Ball Rotational Throw - Viking Strength Systems](https://www.youtube.com/watch?v=PNI1QKiWfiY) | Viking Strength Systems | front | two throws at a wall in 16 s | #359 | 2026-09-13 | Rotational Med Ball Throw | Facing the camera, the wall to one side; distances scaled by her shoulder width (0.15 of the frame). Load: ball just above the back hip, back knee 139-150, front 165-171. Release: hands 0.06-0.10 of the frame under the shoulders, 1.5 shoulder widths across from the hips' centre, elbows 141-155, trunk leaning 10-15 toward the wall. The shoulders turn past side-on (projected width +0.15 through zero to -0.04..-0.09), hips to ~100 degrees: our trunk has no twist about its long axis, so the turn is carried by the arms and lean and the far arm stays folded (97). Throw 0.2-0.4 s, follow-through held ~1 s, return 0.7 s, load ~1 s. |
 | `run` | [Slow motion running - side view](https://www.youtube.com/watch?v=Jd8Jijb7jZY) | EMU Running Science Laboratory | side | about three stride cycles of slow motion | #360 | 2026-09-13 | Sprint Intervals | A college track athlete on a treadmill at 10 mph (~16 km/h): a fast run, not a flat-out sprint, and no real-time side-on sprint clip was found. MoveNet swaps the leg labels as they pass; legs told apart by what they do. Swing thigh at most 44-50 forward of plumb with the knee folded to 56-63; contact: front thigh 34-40 forward, knee 155-164, rear thigh 21-25 back, knee 103-117; support knee 137-145 under the body. Arms swing 13 forward to 55-64 back, elbows 60-95. Trunk 5-13 forward; hip 0.05 of the frame higher at contact than at midstance. CADENCE NOT MEASURED: the description says 100 fps capture and it plays at 30, but read that way it gives 73 steps a minute at 16 km/h, so the slow-down factor is unknown. A pre-roll ad with a Skip button runs first. |
+| `gluteBridge` | [Glute Bridge - OPEX Exercise Library](https://www.youtube.com/watch?v=szgXdRA2R6Y) | OPEX Fitness | side | one bridge held 8 s | #363 | 2026-09-13 | Glute Bridge | Borrowed the barbell hip thrust (shoulders on a bench) before. On the floor: at the top the shoulders stay down and the body is one line to the knees (hip 179-180), trunk 25 up from the shoulders, knee 71-73, shin 8 off plumb, arms long on the floor. A second OPEX clip (ayy8owPQ61w) holds a lower bridge, hip 151-154, knee 95-100. Both clips are holds: the rise takes 0.6 s and nothing else of a rep is shown, so no tempo. Our hip line reaches 166 at the top with the ankle on the floor. |

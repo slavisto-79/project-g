@@ -442,7 +442,7 @@ export const exercisePoses = {
         squatting({
           pelvis: { x, y },
           torso,
-          arms: sideArms(135, 350),
+          arms: sideArms(93, 95),
           legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
         }),
     ),
@@ -1867,7 +1867,7 @@ export const exercisePoses = {
         torso,
         // Chin tucked, face forward -- not trailing off the bench.
         neck: torso + 54,
-        arms: sideArms(122, 132),
+        arms: sideArms(93, 95),
         // Shoulders stay on the bench and the feet stay planted; only the hip
         // travels, which is what makes it a thrust and not a squat lying down.
         legs: plantedLegs(pelvis, torso, "side", [{ x: 0.645, y: 0.735 }, { x: 0.629, y: 0.735 }], FORWARD, [88, 93]),
@@ -1885,6 +1885,63 @@ export const exercisePoses = {
     // The first key position is the BOTTOM, so "down" here is the thrust
     // up, "bottom" the squeeze at the top, "up" the lowering.
     { tempo: { down: 800, bottom: 600, up: 1000, top: 400 }, camera: { azimuth: Math.PI / 2 } },
+  ),
+
+  // Glute bridge, from a reference clip measured with the pose lab (OPEX
+  // "Glute Bridge", szgXdRA2R6Y, one bridge held 8 s; MoveNet on 55 frames at
+  // 0.2 s, a side view). It borrowed the barbell hip thrust before, which
+  // puts the shoulders up on a bench -- a glute bridge is done on the floor.
+  //
+  // At the top her shoulders stay on the floor and the body is one line from
+  // the shoulders to the knees (hip angle 179-180), the trunk rising 25
+  // degrees from the shoulders, the knee at 71-73 with the shin 8 degrees off
+  // plumb, the arms long on the floor toward the feet (elbows 168-174). A
+  // second OPEX bridge clip (ayy8owPQ61w) holds a lower one, hip 151-154,
+  // knee 95-100.
+  //
+  // Solved from the floor up: the shoulder fixed on the floor, the thigh
+  // continuing the trunk's line, the shin from the knee angle -- which lands
+  // the ankle a joint's height over the same floor -- and the feet then stay
+  // where they are while the hips come down.
+  //
+  // NO TEMPO: both clips are holds. The rise to the top takes 0.6 s; the
+  // lowering and the rep rhythm are never shown, so none is invented.
+  gluteBridge: pose(
+    "side",
+    (() => {
+      const floorY = 0.815;
+      const shoulder = { x: 0.3, y: floorY - 0.06 };
+      const at = (torso: number): Point => {
+        const top = shoulderAt({ x: 0, y: 0 }, torso, 0, "side");
+        return { x: shoulder.x - top.x, y: shoulder.y - top.y };
+      };
+      // The top: trunk 25 below level from the hip to the shoulder, thigh on
+      // the same line, knee 72, shin 8 off plumb toward the feet.
+      const topTorso = 245;
+      const topPelvis = at(topTorso);
+      const hip = hipAt(topPelvis, topTorso, 0, "side");
+      const knee = along(hip, 65, P.thigh);
+      const ankle = along(knee, 172, P.shin);
+      // The ankle joint a few mm over the floor, as a standing figure's is:
+      // solved from the knee angle alone it hung 4 cm up.
+      const foot = { x: ankle.x - 0.015, y: floorY - 0.004 };
+      const feet: [Point, Point] = [foot, { x: foot.x - 0.016, y: foot.y }];
+      const figure = (torso: number, pelvis: Point): Figure => ({
+        pelvis,
+        torso,
+        neck: 270,
+        arms: sideArms(93, 95),
+        legs: plantedLegs(pelvis, torso, "side", feet, FORWARD, [88, 93]),
+      });
+      const lowTorso = 271;
+      const lowPelvis = at(lowTorso);
+      const midTorso = 258;
+      return [figure(lowTorso, lowPelvis), figure(midTorso, at(midTorso)), figure(topTorso, topPelvis)];
+    })(),
+    [{ kind: "floor", y: 0.815, mat: true }],
+    "overhand",
+    1,
+    { camera: { azimuth: Math.PI / 2 } },
   ),
 
   // Power clean, from a reference clip measured with the pose lab (Fitness
@@ -3841,7 +3898,7 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso > 20 ? torso - 12 : torso,
-        arms: sideArms(100, 97),
+        arms: sideArms(93, 95),
         legs: [plantedLegs(pelvis, torso, "side", FEET, FORWARD)[0]!, { upper: up, lower: low, end }] as [Limb, Limb],
       };
     }),
@@ -4253,7 +4310,7 @@ export const exercisePoses = {
         torso: 354,
         // Hands a little higher, so the thigh pad they rest on clears the
         // thighs it presses on instead of cutting into them.
-        arms: sideArms(118, 120),
+        arms: sideArms(93, 95),
         legs: plantedLegs(pelvis, 354, "side", [{ x: ax, y: ay }, { x: ax - 0.012, y: ay + 0.008 }], FORWARD, [end, end + 4]),
       };
     }),
