@@ -6231,7 +6231,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Barbell Hip Thrust": "hipThrust",
   "Glute Bridge": "gluteBridge",
   "Single-Leg Glute Bridge": "singleLegGluteBridge",
-  "Frog Pump": "hipThrust",
+  "Frog Pump": "frogPump",
   "Lying Leg Curl": "legCurl",
   "Seated Leg Curl": "legCurl",
   "Nordic Hamstring Curl": "legCurl",

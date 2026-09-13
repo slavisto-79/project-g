@@ -1921,6 +1921,35 @@ export const exercisePoses = {
   // same straight free leg.
   //
   // NO TEMPO: both clips are holds.
+  // Frog pump, from two reference clips measured with the pose lab. It
+  // borrowed the barbell hip thrust before -- shoulders on a bench, feet
+  // apart, knees forward.
+  //
+  // Side on (Impact Online Fitness "Frog Pump", KvdJEqifOLk, 4 reps at
+  // 0.25 s): hips on the floor at the bottom (hip 130-142), one line from
+  // the shoulders to the knees at the top (171-180), the trunk 15-20 degrees
+  // up from the shoulders. Hip-to-ankle distance over shoulder-to-hip 0.70-
+  // 0.77 at the bottom and 0.95-1.04 at the top -- the heels close in; it is
+  // the one length the knees falling open do not change, so it sets the
+  // feet: ours 0.77 and 0.95.
+  //
+  // From the feet (Colossus Fitness "How to Do Frog Pumps", rgljhH1X4vc,
+  // 76-81 s, a three-quarter view): soles together, the ankles 0.6 hip
+  // widths apart, the knees 1.9-2.4 (ours 0.65 and 2.2). A side view cannot
+  // see that width; this clip can only give it as a ratio.
+  //
+  // Tempo from the side-on clip's four reps, to its 0.25 s frames: the hips
+  // rise in 0.5-0.75 s, hold 0.25-0.5, lower in 0.5, rest on the floor
+  // 0.4-0.75; tops 2.0-2.25 s apart.
+  frogPump: pose(
+    "side",
+    bridgeFrames(undefined, { topTorso: 252, knee: 72, legs: (leg) => ({ ...leg, spread: -0.017, flare: 20 }) }),
+    [{ kind: "floor", y: 0.815, mat: true }],
+    "overhand",
+    1,
+    { tempo: { down: 550, bottom: 450, up: 550, top: 600 }, camera: { azimuth: Math.PI / 2 } },
+  ),
+
   singleLegGluteBridge: pose(
     "side",
     bridgeFrames({ upper: 12, lower: 12, end: 40 }),
@@ -5056,36 +5085,42 @@ export const exercisePoses = {
 
 // A bridge on the floor, head to the left: hips down, half way, top. Solved
 // from the floor up (see `gluteBridge`): the shoulder fixed on the floor, the
-// top's thigh on the trunk's line with the knee at 72 and the shin 8 off plumb,
+// top's thigh on the trunk's line (`topTorso`, 245 = 25 up from the shoulders)
+// with the knee bent to `knee` (the glute bridge's 73: the shin 8 off plumb),
 // the feet planted where that puts them. `free`, when given, replaces the near
-// leg -- a single-leg bridge's leg held up off the floor.
-function bridgeFrames(free?: Limb): Figure[] {
+// leg -- a single-leg bridge's leg held up off the floor; `legs` reshapes both
+// planted legs -- a frog pump's knees fallen open.
+function bridgeFrames(
+  free?: Limb,
+  { topTorso = 245, knee: kneeBend = 73, legs: shape = (leg: Limb) => leg }: { topTorso?: number; knee?: number; legs?: (leg: Limb) => Limb } = {},
+): Figure[] {
   const BRIDGE_FLOOR = 0.815;
   const shoulder = { x: 0.3, y: BRIDGE_FLOOR - 0.06 };
   const at = (torso: number): Point => {
     const top = shoulderAt({ x: 0, y: 0 }, torso, 0, "side");
     return { x: shoulder.x - top.x, y: shoulder.y - top.y };
   };
-  const topTorso = 245;
   const topPelvis = at(topTorso);
   const hip = hipAt(topPelvis, topTorso, 0, "side");
-  const knee = along(hip, 65, P.thigh);
-  const ankle = along(knee, 172, P.shin);
+  const thigh = topTorso - 180;
+  const knee = along(hip, thigh, P.thigh);
+  const ankle = along(knee, thigh + 180 - kneeBend, P.shin);
   // The ankle joint a few mm over the floor, as a standing figure's is:
   // solved from the knee angle alone it hung 4 cm up.
   const foot = { x: ankle.x - 0.015, y: BRIDGE_FLOOR - 0.004 };
   const feet: [Point, Point] = [foot, { x: foot.x - 0.016, y: foot.y }];
   const figure = (torso: number, pelvis: Point): Figure => {
-    const legs = plantedLegs(pelvis, torso, "side", feet, FORWARD, [88, 93]);
+    const legs = plantedLegs(pelvis, torso, "side", feet, FORWARD, [88, 93]).map(shape) as [Limb, Limb];
     return {
       pelvis,
       torso,
       neck: 270,
       arms: sideArms(93, 95),
-      legs: free ? [free, legs[1]!] : legs,
+      legs: free ? [free, legs[1]] : legs,
     };
   };
-  return [figure(271, at(271)), figure(258, at(258)), figure(topTorso, topPelvis)];
+  const midTorso = Math.round((271 + topTorso) / 2);
+  return [figure(271, at(271)), figure(midTorso, at(midTorso)), figure(topTorso, topPelvis)];
 }
 
 // Supine on a flat bench, head to the left, feet planted on the floor. The bar
