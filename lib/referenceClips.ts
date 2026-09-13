@@ -718,6 +718,19 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 14: dumbbells, a medicine ball and a run ---------------------
+  medBallThrow: {
+    videoId: "PNI1QKiWfiY",
+    title: "Standing Med Ball Rotational Throw - Viking Strength Systems",
+    channel: "Viking Strength Systems",
+    view: "front",
+    span: "two throws at a wall in 16 s",
+    prs: [359],
+    date: "2026-09-13",
+    exercises: ["Rotational Med Ball Throw"],
+    notes:
+      "Facing the camera, the wall to one side; distances scaled by her shoulder width (0.15 of the frame). Load: ball just above the back hip, back knee 139-150, front 165-171. Release: hands 0.06-0.10 of the frame under the shoulders, 1.5 shoulder widths across from the hips' centre, elbows 141-155, trunk leaning 10-15 toward the wall. The shoulders turn past side-on (projected width +0.15 through zero to -0.04..-0.09), hips to ~100 degrees: our trunk has no twist about its long axis, so the turn is carried by the arms and lean and the far arm stays folded (97). Throw 0.2-0.4 s, follow-through held ~1 s, return 0.7 s, load ~1 s.",
+  },
+
   medBallSlam: {
     videoId: "CkO1mfSBvv4",
     title: "How To Med Ball Slam",
