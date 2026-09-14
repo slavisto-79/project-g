@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 129 |
-| sharing a pose that was authored from a clip | 33 |
+| authored from a clip (the clip shows the exercise) | 130 |
+| sharing a pose that was authored from a clip | 32 |
 | without a clip yet | 0 |
-| poses with a clip | 123 of 124 (123 in use) |
+| poses with a clip | 124 of 125 (124 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -142,7 +142,7 @@ Poses without a clip yet: `idle`.
 | Plyo Push-Up | `plyoPushUp` | authored from the clip | [HOW TO: Plyometric Push Up](https://www.youtube.com/watch?v=Y-uF4F3mQIs) (Goodlife Health Clubs, three-quarter) | #376 |
 | Power Clean | `powerClean` | authored from the clip | [Power Clean (side view)](https://www.youtube.com/watch?v=YEXjyc22Jek) (Fitness Pain Free, side) | #307 |
 | Preacher Curl | `preacherCurl` | authored from the clip | [Preacher Curl - Exercise Library](https://www.youtube.com/watch?v=w1qaVGYTtKk) (Stable Strength Training, three-quarter) | #377 |
-| Prone Y-T-W Raise | `proneRaise` | shares `proneRaise` (the clip shows Superman) | [Superman Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=W8vlZfmxOpM) (OPEX Fitness, side) | #322 |
+| Prone Y-T-W Raise | `proneYTW` | authored from the clip | [Prone Y-T-W](https://www.youtube.com/watch?v=X-b1S-rQc9k) (Cardinal Strength and Conditioning, head-end) | #379 |
 | Pull-Up | `pullUp` | authored from the clip | [Strict Pull Up - OPEX Exercise Library](https://www.youtube.com/watch?v=jgFel4wZl3I) (OPEX Fitness, side) | #274 |
 | Push Jerk | `pushJerk` | authored from the clip | [Push Jerk (Side view)](https://www.youtube.com/watch?v=dboDOX7xY_Q) (Fitness Pain Free, side) | #310 |
 | Push Press | `pushPress` | authored from the clip | [Push press (side view)](https://www.youtube.com/watch?v=xcCYH-UcoZ0) (Armory HPFT, side) | #309 |
@@ -311,3 +311,4 @@ Poses without a clip yet: `idle`.
 | `plyoPushUp` | [HOW TO: Plyometric Push Up](https://www.youtube.com/watch?v=Y-uF4F3mQIs) | Goodlife Health Clubs | three-quarter | two reps, 24-29.6 s | #376 | 2026-09-14 | Plyo Push-Up | Borrowed the push-up before. Down 0.9 s, a 0.9-1.3 s pause at the bottom (shoulders still sinking), the push 0.5-0.7, hands in the air 0.2-0.3 with elbows straight (169-178) and shoulders 0.13 trunk lengths over the plank, landing into the next descent. Bottom elbows read 85-93 but the three-quarter camera opens them; the bottom is the side-on push-up's. Ours: loop of plank, bottom, deeper bottom (the pause), flight; flight elbows 163, legs straight, hands 3.5 cm off the mat, shoulders 3.5 cm over the plank (more air bent the knees). OPEX's Plyometric Push Up (GNVQos5I0qk) is a plate drill with the hips piked and was not used. Loop 900 / 1100 / 700 / 250 ms. |
 | `preacherCurl` | [Preacher Curl - Exercise Library](https://www.youtube.com/watch?v=w1qaVGYTtKk) | Stable Strength Training | three-quarter | five reps in 17 s | #377 | 2026-09-14 | Preacher Curl | Borrowed the standing barbell curl before. Camera about 30 degrees off the side. Seated, trunk 23-39 forward, upper arms on the pad and still at 47-61 below level (as projected). Arms long: elbow 160-172. Curled: elbow 27-39, forearm plumb, bar at shoulder height. Ours: trunk 30, upper arm 36 from plumb, elbow 169 / 100 / 46 (the curled elbow reads wider in 3D for the hands' spread). Pad drawn as a block under the elbows. OPEX EZ Bar Preacher Curl (dgaJQXa0kbg) and Body-Solid's clip are filmed from the front with the arm pointing at the camera and were not used. Tempo at 0.3 s: up 1.2 s, top 0.3-0.6, down 2.1, bottom ~0.3. |
 | `concentrationCurl` | [Seated Concentration Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=Xc47YLxFftQ) | OPEX Fitness | front | two slow reps in 20 s | #378 | 2026-09-14 | Concentration Curl | Borrowed the standing barbell curl before. Seated, knees apart, leaning forward (about 35, from the trunk's projected length against shoulder width). Working upper arm plumb, elbow braced on the inner thigh just above the knee, still all rep: arm long elbow 159-169, curled 13-24 with the forearm straight up. Free hand on its knee, elbow about 100. Ours: trunk 35, working arm swung 20 in so the elbow sits inside the knee, elbow 178 / 91 / 32 (the fold limit stops the curl short of hers), free hand solved onto its knee (elbow 86). Tempo at 0.25 s, a slow demo: up 2.25-2.75 s, top 1.75-2.0, down 1.5, bottom 2.0-2.5. |
+| `proneYTW` | [Prone Y-T-W](https://www.youtube.com/watch?v=X-b1S-rQc9k) | Cardinal Strength and Conditioning | head-end | one Y-T-W round in 15 s | #379 | 2026-09-14 | Prone Y-T-W Raise | Borrowed the superman before. Face down, legs down, arms just off the floor. Y (0.4-6.4 s): straight arms overhead 30-54 out from the body line (near arm). T (6.8-11 s): arms out to the sides; the raised camera stretches it to 121-134 from the head line, taken as square. W (11.8-15.4 s): elbows 40-96, drawn toward the hips, hands beside the shoulders. Ours: Y 51, T 96, W elbow 73 with the upper arm 150 from the head line. Arm height and any pulses within each hold are not measurable from this camera: no tempo. Simone Sports Performance's clip (LSy6R7j3PDc) has two lifters overlapping at an angle and was not used. |
