@@ -2332,6 +2332,17 @@ export class PoseViewer3D {
           this.held.push(this.anchored(sled, i, "slab"));
           continue;
         }
+        if (prop.post) {
+          // A door frame's edge: an upright a hand grips from the side, as
+          // narrow across the body as along it, standing on the floor.
+          const post = new THREE.Mesh(
+            new THREE.BoxGeometry(0.05, prop.height, prop.width),
+            new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.8 }),
+          );
+          this.scene.add(post);
+          this.held.push(this.anchored(post, i, "slab"));
+          continue;
+        }
         const wall = prop.height > 0.3;
         const drop = floorY !== undefined && !wall ? prop.center[1] - floorY : 0;
         if (drop > 0.12 && floorY !== undefined) {

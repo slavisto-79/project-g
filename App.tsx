@@ -6210,7 +6210,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Band Row": "seatedRow",
   "Inverted Row": "invertedRow",
   "Towel Row": "invertedRow",
-  "Doorway Row": "invertedRow",
+  "Doorway Row": "doorwayRow",
   "Hanging Leg Raise": "hangingRaise",
   "Hanging Knee Raise": "hangingKneeRaise",
   "Superman": "proneRaise",
