@@ -121,7 +121,7 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   // just off the floor while the OPPOSITE elbow reaches down the body toward
   // the tucked knee, and the two together are the silhouette. It measures
   // 3.8.
-  const widthCap = name === "plank" ? 5.0 : name === "proneRaise" ? 4.5 : name === "proneYTW" ? 5.6 : name === "hollowHold" || name === "bicycleCrunch" ? 4.0 : 3.4;
+  const widthCap = name === "plank" ? 5.0 : name === "proneRaise" ? 4.5 : name === "proneYTW" ? 5.6 : name === "reverseSnowAngel" ? 7.1 : name === "hollowHold" || name === "bicycleCrunch" ? 4.0 : 3.4;
   if (W / H > widthCap) note(`${name}: lying flat at ${(W / H).toFixed(1)}:1 wide`);
 }
 

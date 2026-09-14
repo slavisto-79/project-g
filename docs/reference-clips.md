@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 130 |
-| sharing a pose that was authored from a clip | 32 |
+| authored from a clip (the clip shows the exercise) | 131 |
+| sharing a pose that was authored from a clip | 31 |
 | without a clip yet | 0 |
-| poses with a clip | 124 of 125 (124 in use) |
+| poses with a clip | 125 of 126 (125 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -148,7 +148,7 @@ Poses without a clip yet: `idle`.
 | Push Press | `pushPress` | authored from the clip | [Push press (side view)](https://www.youtube.com/watch?v=xcCYH-UcoZ0) (Armory HPFT, side) | #309 |
 | Push-Up | `pushUp` | authored from the clip | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
 | Rack Pull | `rackPull` | authored from the clip | [Rack Pull](https://www.youtube.com/watch?v=d9sK2R95MMM) (Testosterone Nation, side) | #372 |
-| Reverse Snow Angel | `proneRaise` | shares `proneRaise` (the clip shows Superman) | [Superman Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=W8vlZfmxOpM) (OPEX Fitness, side) | #322 |
+| Reverse Snow Angel | `reverseSnowAngel` | authored from the clip | [Prone Snow Angels](https://www.youtube.com/watch?v=vSou6Vup5W8) (Functional Bodybuilding, head-end) | #380 |
 | Romanian Deadlift | `romanianDeadlift` | authored from the clip | [BB RDL (Romanian Deadlift) Side View](https://www.youtube.com/watch?v=ionx2qnNVMo) (Coach Savela, side) | #260 |
 | Rotational Med Ball Throw | `medBallThrow` | authored from the clip | [Standing Med Ball Rotational Throw - Viking Strength Systems](https://www.youtube.com/watch?v=PNI1QKiWfiY) (Viking Strength Systems, front) | #359 |
 | Russian Twist | `russianTwist` | authored from the clip | [Russian Twist](https://www.youtube.com/watch?v=Hvtxbidjins) (OPEX Fitness, side) | #289 |
@@ -312,3 +312,4 @@ Poses without a clip yet: `idle`.
 | `preacherCurl` | [Preacher Curl - Exercise Library](https://www.youtube.com/watch?v=w1qaVGYTtKk) | Stable Strength Training | three-quarter | five reps in 17 s | #377 | 2026-09-14 | Preacher Curl | Borrowed the standing barbell curl before. Camera about 30 degrees off the side. Seated, trunk 23-39 forward, upper arms on the pad and still at 47-61 below level (as projected). Arms long: elbow 160-172. Curled: elbow 27-39, forearm plumb, bar at shoulder height. Ours: trunk 30, upper arm 36 from plumb, elbow 169 / 100 / 46 (the curled elbow reads wider in 3D for the hands' spread). Pad drawn as a block under the elbows. OPEX EZ Bar Preacher Curl (dgaJQXa0kbg) and Body-Solid's clip are filmed from the front with the arm pointing at the camera and were not used. Tempo at 0.3 s: up 1.2 s, top 0.3-0.6, down 2.1, bottom ~0.3. |
 | `concentrationCurl` | [Seated Concentration Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=Xc47YLxFftQ) | OPEX Fitness | front | two slow reps in 20 s | #378 | 2026-09-14 | Concentration Curl | Borrowed the standing barbell curl before. Seated, knees apart, leaning forward (about 35, from the trunk's projected length against shoulder width). Working upper arm plumb, elbow braced on the inner thigh just above the knee, still all rep: arm long elbow 159-169, curled 13-24 with the forearm straight up. Free hand on its knee, elbow about 100. Ours: trunk 35, working arm swung 20 in so the elbow sits inside the knee, elbow 178 / 91 / 32 (the fold limit stops the curl short of hers), free hand solved onto its knee (elbow 86). Tempo at 0.25 s, a slow demo: up 2.25-2.75 s, top 1.75-2.0, down 1.5, bottom 2.0-2.5. |
 | `proneYTW` | [Prone Y-T-W](https://www.youtube.com/watch?v=X-b1S-rQc9k) | Cardinal Strength and Conditioning | head-end | one Y-T-W round in 15 s | #379 | 2026-09-14 | Prone Y-T-W Raise | Borrowed the superman before. Face down, legs down, arms just off the floor. Y (0.4-6.4 s): straight arms overhead 30-54 out from the body line (near arm). T (6.8-11 s): arms out to the sides; the raised camera stretches it to 121-134 from the head line, taken as square. W (11.8-15.4 s): elbows 40-96, drawn toward the hips, hands beside the shoulders. Ours: Y 51, T 96, W elbow 73 with the upper arm 150 from the head line. Arm height and any pulses within each hold are not measurable from this camera: no tempo. Simone Sports Performance's clip (LSy6R7j3PDc) has two lifters overlapping at an angle and was not used. |
+| `reverseSnowAngel` | [Prone Snow Angels](https://www.youtube.com/watch?v=vSou6Vup5W8) | Functional Bodybuilding | head-end | three sweeps in 12 s | #380 | 2026-09-14 | Reverse Snow Angel | Borrowed the superman before. Face down, legs down, arms just off the floor swept round the body: overhead, straight (elbow 168-180), 4-8 out from the body line; through the sides with the arms long; to the hips with the elbows bent 82-125 and the hands over the lower back; and back. Ours: overhead 16 out, sides 96, hips elbow 100 with the hand beside the hip. Tempo at 0.2 s: down to the hips 0.8-1.0 s, held 1.4, up 1.2, overhead 0.4-0.6; sweeps 4.4-4.5 s apart. Arm height off the floor is not visible from the raised camera. |
