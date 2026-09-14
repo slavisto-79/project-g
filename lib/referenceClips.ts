@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 17: exercises that borrowed a different movement's pose ------
+  singleLegCalfRaise: {
+    videoId: "a6YrB_aULZY",
+    title: "Single Leg Standing Calf Raise",
+    channel: "OPEX Fitness",
+    view: "back",
+    span: "five reps in 8 s",
+    prs: [381],
+    date: "2026-09-14",
+    exercises: ["Single-Leg Calf Raise"],
+    notes:
+      "Borrowed the two-legged calf raise before. One foot on a low step, the other hooked behind the working ankle, hands flat on a wall. Hips rise 12 percent of hip-to-ankle length, the ankle 14. From behind there is no ankle angle; drawn from the floor with the two-legged raise's range, as that pose is. Added the hooked free foot (4 cm behind the working leg, above its ankle) and the wall. Tempo at 0.15 s: up 0.3-0.45 s, top 0.45-0.75, down 0.45-0.6, bottom 0.3-0.6; tops 1.7-1.8 s apart.",
+  },
   reverseSnowAngel: {
     videoId: "vSou6Vup5W8",
     title: "Prone Snow Angels",

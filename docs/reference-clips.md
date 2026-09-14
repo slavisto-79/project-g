@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 131 |
-| sharing a pose that was authored from a clip | 31 |
+| authored from a clip (the clip shows the exercise) | 132 |
+| sharing a pose that was authored from a clip | 30 |
 | without a clip yet | 0 |
-| poses with a clip | 125 of 126 (125 in use) |
+| poses with a clip | 126 of 127 (126 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -157,7 +157,7 @@ Poses without a clip yet: `idle`.
 | Seated Dumbbell Press | `seatedDumbbellPress` | authored from the clip | [Seated Dumbbell Press - OPEX Exercise Library](https://www.youtube.com/watch?v=RgkzQ008m3I) (OPEX Fitness, front) | #374 |
 | Seated Leg Curl | `legCurl` | authored from the clip | [Prone Hamstring Curl Machine](https://www.youtube.com/watch?v=xKOyGU0AfOE) (OPEX Fitness, side) | #319 |
 | Side Plank | `sidePlank` | authored from the clip | [Side Plank - OPEX Exercise Library](https://www.youtube.com/watch?v=tbWPBOgju9g) (OPEX Fitness, front) | #285 |
-| Single-Leg Calf Raise | `calfRaise` | shares `calfRaise` (the clip shows Bodyweight Calf Raise, Dumbbell Calf Raise) | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
+| Single-Leg Calf Raise | `singleLegCalfRaise` | authored from the clip | [Single Leg Standing Calf Raise](https://www.youtube.com/watch?v=a6YrB_aULZY) (OPEX Fitness, back) | #381 |
 | Single-Leg Deadlift | `singleLegHinge` | authored from the clip | [Dumbbell Single Leg Romanian Deadlift](https://www.youtube.com/watch?v=pJewPISyHjw) (OPEX Fitness, side) | #337 |
 | Single-Leg Glute Bridge | `singleLegGluteBridge` | authored from the clip | [Single Leg Glute Bridge - OPEX Exercise Library](https://www.youtube.com/watch?v=6pvdY3sXUbo) (OPEX Fitness, side) | #364 |
 | Single-Leg Romanian Deadlift | `singleLegHinge` | authored from the clip | [Dumbbell Single Leg Romanian Deadlift](https://www.youtube.com/watch?v=pJewPISyHjw) (OPEX Fitness, side) | #337 |
@@ -313,3 +313,4 @@ Poses without a clip yet: `idle`.
 | `concentrationCurl` | [Seated Concentration Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=Xc47YLxFftQ) | OPEX Fitness | front | two slow reps in 20 s | #378 | 2026-09-14 | Concentration Curl | Borrowed the standing barbell curl before. Seated, knees apart, leaning forward (about 35, from the trunk's projected length against shoulder width). Working upper arm plumb, elbow braced on the inner thigh just above the knee, still all rep: arm long elbow 159-169, curled 13-24 with the forearm straight up. Free hand on its knee, elbow about 100. Ours: trunk 35, working arm swung 20 in so the elbow sits inside the knee, elbow 178 / 91 / 32 (the fold limit stops the curl short of hers), free hand solved onto its knee (elbow 86). Tempo at 0.25 s, a slow demo: up 2.25-2.75 s, top 1.75-2.0, down 1.5, bottom 2.0-2.5. |
 | `proneYTW` | [Prone Y-T-W](https://www.youtube.com/watch?v=X-b1S-rQc9k) | Cardinal Strength and Conditioning | head-end | one Y-T-W round in 15 s | #379 | 2026-09-14 | Prone Y-T-W Raise | Borrowed the superman before. Face down, legs down, arms just off the floor. Y (0.4-6.4 s): straight arms overhead 30-54 out from the body line (near arm). T (6.8-11 s): arms out to the sides; the raised camera stretches it to 121-134 from the head line, taken as square. W (11.8-15.4 s): elbows 40-96, drawn toward the hips, hands beside the shoulders. Ours: Y 51, T 96, W elbow 73 with the upper arm 150 from the head line. Arm height and any pulses within each hold are not measurable from this camera: no tempo. Simone Sports Performance's clip (LSy6R7j3PDc) has two lifters overlapping at an angle and was not used. |
 | `reverseSnowAngel` | [Prone Snow Angels](https://www.youtube.com/watch?v=vSou6Vup5W8) | Functional Bodybuilding | head-end | three sweeps in 12 s | #380 | 2026-09-14 | Reverse Snow Angel | Borrowed the superman before. Face down, legs down, arms just off the floor swept round the body: overhead, straight (elbow 168-180), 4-8 out from the body line; through the sides with the arms long; to the hips with the elbows bent 82-125 and the hands over the lower back; and back. Ours: overhead 16 out, sides 96, hips elbow 100 with the hand beside the hip. Tempo at 0.2 s: down to the hips 0.8-1.0 s, held 1.4, up 1.2, overhead 0.4-0.6; sweeps 4.4-4.5 s apart. Arm height off the floor is not visible from the raised camera. |
+| `singleLegCalfRaise` | [Single Leg Standing Calf Raise](https://www.youtube.com/watch?v=a6YrB_aULZY) | OPEX Fitness | back | five reps in 8 s | #381 | 2026-09-14 | Single-Leg Calf Raise | Borrowed the two-legged calf raise before. One foot on a low step, the other hooked behind the working ankle, hands flat on a wall. Hips rise 12 percent of hip-to-ankle length, the ankle 14. From behind there is no ankle angle; drawn from the floor with the two-legged raise's range, as that pose is. Added the hooked free foot (4 cm behind the working leg, above its ankle) and the wall. Tempo at 0.15 s: up 0.3-0.45 s, top 0.45-0.75, down 0.45-0.6, bottom 0.3-0.6; tops 1.7-1.8 s apart. |

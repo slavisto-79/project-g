@@ -102,7 +102,7 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   // A crawl on the spot steps each hand a hand's length (0.10) and lifts it 8 cm.
   // A glute bridge lifts the hips from the floor to the shoulders-to-knees
   // line and nothing else moves: 11 cm, which is the whole exercise.
-  const floor = { calfRaise: 0.075, seatedCalfRaise: 0.04, bearCrawl: 0.09, gluteBridge: 0.1, singleLegGluteBridge: 0.1, frogPump: 0.075, benchDip: 0.1 }[name] ?? 0.12;
+  const floor = { calfRaise: 0.075, singleLegCalfRaise: 0.075, seatedCalfRaise: 0.04, bearCrawl: 0.09, gluteBridge: 0.1, singleLegGluteBridge: 0.1, frogPump: 0.075, benchDip: 0.1 }[name] ?? 0.12;
   if (!HOLDS.has(name) && travel < floor) note(`${name}: widest joint moves only ${travel.toFixed(3)} -- partial range`);
 
   // Union proportions: a lying figure fitted into a square card is small, but

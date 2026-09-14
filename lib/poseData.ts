@@ -989,6 +989,44 @@ export const exercisePoses = {
     { tempo: { down: 1250, bottom: 300, up: 1000, top: 300 } },
   ),
 
+  // Single-leg calf raise, from a reference clip measured with the pose lab
+  // (OPEX "Single Leg Standing Calf Raise", a6YrB_aULZY, five reps in 8 s,
+  // filmed from behind; MoveNet on 66 frames at 0.15 s). It borrowed the
+  // two-legged calf raise before.
+  //
+  // One foot on the edge of a low step, the other hooked behind the working
+  // ankle, both hands flat on a wall in front. The hips rise 12 percent of
+  // the hip-to-ankle length, the ankle 14.
+  //
+  // Like the two-legged raise, it is drawn from the floor rather than a
+  // ledge, with the same rise (a view from behind has no ankle angle; the
+  // heel's drop below the step is not drawn). Added: the hooked free foot,
+  // and the wall the hands rest on.
+  //
+  // Tempo from the five reps, to the 0.15 s frames: up in 0.3-0.45 s, held
+  // 0.45-0.75 on the toes, down in 0.45-0.6, 0.3-0.6 at the bottom; tops
+  // 1.7-1.8 s apart.
+  singleLegCalfRaise: pose(
+    "side",
+    ([[0.506, 90], [0.479, 112], [0.450, 141]] as const).map(([y, toe]) => {
+      const pelvis = { x: 0.5, y };
+      // Hands flat on the wall at chest height, the elbows soft.
+      const hands = [0, 1].map((side) => ({ x: 0.66, y: shoulderAt(pelvis, 0, side as 0 | 1, "side").y + 0.07 })) as [Point, Point];
+      return {
+        pelvis,
+        torso: 0,
+        arms: reachingArms(pelvis, 0, "side", hands, BACK).map((arm) => ({ ...arm, end: 0 })) as [Limb, Limb],
+        // The working leg rises onto its toes; the free foot is hooked
+        // behind the working ankle.
+        legs: [{ upper: 178, lower: 179, end: toe }, { upper: 155, lower: 220, end: 200 }] as [Limb, Limb],
+      };
+    }),
+    [{ kind: "floor" }, { kind: "slab", x: 0.68, y: 0.5, width: 0.045, height: 0.7 }],
+    "neutral",
+    1,
+    { tempo: { down: 350, bottom: 600, up: 550, top: 300 } },
+  ),
+
   calfRaise: pose(
     "side",
     // Reference: OPEX "Standing Calf Raise" (LnWEIjIls-M), four reps in 11.6
