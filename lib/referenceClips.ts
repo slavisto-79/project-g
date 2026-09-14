@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 16: exercises that borrowed a different movement's pose ------
+  chestSupportedRow: {
+    videoId: "0-DXJiceG-0",
+    title: "Chest Supported Incline Dumbbell Row - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 11.5 s",
+    prs: [375],
+    date: "2026-09-14",
+    exercises: ["Chest-Supported Row"],
+    notes:
+      "Borrowed the seated cable row before. Face down on an incline bench: trunk 25-36 above level, legs near straight (hip 152-176, knee 165-180), toes on the floor. Arms long: bells hang straight down, elbow 158-169, wrists 1.10-1.19 trunk lengths under the shoulders. Rowed: upper arm level and back along the trunk, elbow 65-74, wrists 0.42-0.50 under. Ours: trunk 30, hip 151, knee 163; elbow 175 / 125 / 71, wrists 1.18 and 0.53 under. Tempo at 0.2 s: row 0.8 s, hold 0.8-1.2, lower 1.2, hang 0.4-0.8.",
+  },
   seatedDumbbellPress: {
     videoId: "RgkzQ008m3I",
     title: "Seated Dumbbell Press - OPEX Exercise Library",

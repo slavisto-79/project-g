@@ -3515,6 +3515,44 @@ export const exercisePoses = {
   // (spread -0.06), legs explicit 70/178 with the feet on an upright plate,
   // trunk 356. The old pose swung the trunk 6 -> -7 with the hands at chest
   // height and the legs nearly straight, and had no tempo.
+  // Chest-supported row, from a reference clip measured with the pose lab
+  // (OPEX "Chest Supported Incline Dumbbell Row", 0-DXJiceG-0, three reps in
+  // 11.5 s, a side view; MoveNet on 58 frames at 0.2 s). It borrowed the
+  // seated cable row before -- sitting upright, pulling a cable.
+  //
+  // Face down on an incline bench, the trunk 25-36 degrees above level, the
+  // legs near straight behind (hip 152-176, knee 165-180) with the toes on
+  // the floor. Arms long, the dumbbells hang straight down (elbow 158-169,
+  // wrists 1.10-1.19 trunk lengths under the shoulders). Rowed, the upper arm
+  // is level and back along the trunk (elbow 65-74), the wrists 0.42-0.50
+  // under the shoulders.
+  //
+  // Tempo from the three reps, to the 0.2 s frames: the row in 0.8 s, held
+  // 0.8-1.2, lowered in 1.2, 0.4-0.8 hanging; rows 3.8-4.2 s apart.
+  chestSupportedRow: pose(
+    "side",
+    ([[180, 175], [135, 190], [90, 200]] as const).map(([upper, lower]) => {
+      const pelvis = { x: 0.55, y: 0.5235 };
+      const torso = 300;
+      const feet: [Point, Point] = [{ x: 0.746, y: 0.86 }, { x: 0.734, y: 0.86 }];
+      return {
+        pelvis,
+        torso,
+        neck: torso - 10,
+        arms: [{ upper, lower }, { upper, lower }] as [Limb, Limb],
+        legs: plantedLegs(pelvis, torso, "side", feet, BACK, [150, 154]),
+      };
+    }),
+    [
+      { kind: "floor", y: FLOOR },
+      { kind: "slab", at: "pelvis", width: 0.45, height: 0.055, angle: 300 },
+      { kind: "bell", at: "hand0", each: true },
+    ],
+    "neutral",
+    -1,
+    { tempo: { down: 800, bottom: 1000, up: 1200, top: 700 }, camera: { azimuth: -1.6 } },
+  ),
+
   seatedRow: pose(
     "side",
     ([[115, 85], [150, 70], [182, 55]] as const).map(([upper, lower]) => {
