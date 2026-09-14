@@ -766,6 +766,52 @@ export const exercisePoses = {
     { tempo: { down: 1000, bottom: 250, up: 1000, top: 750 } },
   ),
 
+  // Barbell walking lunge, from a reference clip measured with the pose lab
+  // (OPEX "Barbell Walking Lunge", bdbJ_aRjw-4, three lunges across the
+  // frame in 9 s, a side view; MoveNet on 53 frames at 0.2 s -- the plates
+  // hide the head, the legs read cleanly). It borrowed the dumbbell reverse
+  // lunge before -- dumbbells at the sides, stepping back in place.
+  //
+  // Bar on the back. Each stride steps forward into a lunge and the rear leg
+  // comes through to stand with the feet together before the next. At the
+  // bottom the front knee is at 70-72 with the shin 28 degrees forward, the
+  // rear knee at 70-74 just off the floor with the shin near level, the
+  // trunk 15 degrees forward; the hips drop about half a leg length and the
+  // step is about three quarters of one.
+  //
+  // Walked in place: stand, lunge on one leg, stand, lunge on the other, in
+  // a loop (the figure does not travel). The bottom is the reverse lunge's
+  // geometry with the clip's trunk and depth.
+  //
+  // Tempo from the three strides, to the 0.2 s frames: 0.6 s standing, 1.4
+  // stepping and lowering, 0.2-0.4 at the bottom, 1.2 rising and bringing
+  // the rear leg through -- about 3.4 s a stride. The loop cannot hold, so
+  // the holds are shared into the legs either side.
+  barbellWalkingLunge: (() => {
+    const standing = stand({ x: 0.5, y: 0.494 }, 6, napeArms({ x: 0.5, y: 0.494 }, 6, 0.1));
+    const bottom = (frontSide: 0 | 1): Figure => {
+      const pelvis = { x: 0.49, y: 0.715 };
+      const torso = 15;
+      const rearToe = { x: 0.293, y: FLOOR };
+      const rearAnkle = along(rearToe, REAR_FOOT - 180, 0.069);
+      const [front, rear] = plantedLegs(pelvis, torso, "side", [{ x: 0.605, y: FLOOR }, rearAnkle], FORWARD, [90, REAR_FOOT]);
+      return {
+        pelvis,
+        torso,
+        arms: napeArms(pelvis, torso, 0.1),
+        legs: (frontSide === 0 ? [front, rear] : [rear, front]) as [Limb, Limb],
+      };
+    };
+    return pose(
+      "side",
+      [standing, bottom(0), standing, bottom(1)],
+      [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+      "overhand",
+      1,
+      { loop: [1700, 1800, 1700, 1800] },
+    );
+  })(),
+
   lateralLunge: pose(
     "front",
     [
