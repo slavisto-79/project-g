@@ -3821,6 +3821,55 @@ export const exercisePoses = {
   //
   // Tempo from the five reps, to the 0.3 s frames: up in 1.2 s, 0.3-0.6 at
   // the top, down in 2.1, about 0.3 with the arms long; curls 3.9 s apart.
+  // Concentration curl, from a reference clip measured with the pose lab
+  // (OPEX "Seated Concentration Curl", Xc47YLxFftQ, two slow reps in 20 s,
+  // the camera in front and a little to the side; MoveNet on 81 frames at
+  // 0.25 s). It borrowed the standing barbell curl before.
+  //
+  // Seated with the knees apart, leaning forward. The working upper arm
+  // hangs plumb with the elbow braced against the inner thigh just above the
+  // knee, and does not move: arm long, elbow 159-169; curled, elbow 13-24
+  // with the forearm straight up. The other hand rests on its knee (elbow
+  // about 100). The camera faces the lifter, so the trunk's lean is read
+  // from its projected length against the shoulder width: about 35 degrees
+  // forward.
+  //
+  // The working arm is swung 20 degrees in across the body (`abduct`), which
+  // puts the elbow inside its knee; the free arm is solved to a point just
+  // over its knee. The curled elbow stops at 32: the check-poses fold limit
+  // (152 of bend) is short of her 13-24.
+  //
+  // Tempo from the two reps, to the 0.25 s frames -- a slow teaching demo:
+  // up in 2.25-2.75 s with a pause part way, squeezed 1.75-2.0 at the top,
+  // down in 1.5, 2.0-2.5 with the arm long.
+  concentrationCurl: pose(
+    "side",
+    ([[178], [90], [30]] as const).map(([lower]) => {
+      const pelvis = { x: 0.42, y: 0.68 };
+      const torso = 35;
+      const feet: [Point, Point] = [{ x: 0.6, y: 0.915 }, { x: 0.588, y: 0.915 }];
+      const legs = plantedLegs(pelvis, torso, "side", feet, FORWARD, [90, 94]);
+      // The free hand on its knee: the arm solved to a point just over it.
+      const knee = along(hipAt(pelvis, torso, 1, "side"), legs[1]!.upper, P.thigh);
+      const free = reachingArms(pelvis, torso, "side", [knee, { x: knee.x, y: knee.y - 0.045 }], BACK)[1]!;
+      return {
+        pelvis,
+        torso,
+        neck: torso + 10,
+        arms: [{ upper: 180, lower, abduct: 20 }, free] as [Limb, Limb],
+        legs: legs.map((leg) => ({ ...leg, spread: 0.08 })) as [Limb, Limb],
+      };
+    }),
+    [
+      { kind: "floor", y: FLOOR },
+      { kind: "slab", at: "pelvis", width: 0.3, height: 0.055, dy: 0.08 },
+      { kind: "bell", at: "hand0" },
+    ],
+    "underhand",
+    1,
+    { tempo: { down: 2500, bottom: 1800, up: 1500, top: 2200 } },
+  ),
+
   preacherCurl: pose(
     "side",
     ([[133], [60], [355]] as const).map(([lower]) => {

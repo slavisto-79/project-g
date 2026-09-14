@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 17: exercises that borrowed a different movement's pose ------
+  concentrationCurl: {
+    videoId: "Xc47YLxFftQ",
+    title: "Seated Concentration Curl - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "two slow reps in 20 s",
+    prs: [378],
+    date: "2026-09-14",
+    exercises: ["Concentration Curl"],
+    notes:
+      "Borrowed the standing barbell curl before. Seated, knees apart, leaning forward (about 35, from the trunk's projected length against shoulder width). Working upper arm plumb, elbow braced on the inner thigh just above the knee, still all rep: arm long elbow 159-169, curled 13-24 with the forearm straight up. Free hand on its knee, elbow about 100. Ours: trunk 35, working arm swung 20 in so the elbow sits inside the knee, elbow 178 / 91 / 32 (the fold limit stops the curl short of hers), free hand solved onto its knee (elbow 86). Tempo at 0.25 s, a slow demo: up 2.25-2.75 s, top 1.75-2.0, down 1.5, bottom 2.0-2.5.",
+  },
   preacherCurl: {
     videoId: "w1qaVGYTtKk",
     title: "Preacher Curl - Exercise Library",

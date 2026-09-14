@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 128 |
-| sharing a pose that was authored from a clip | 34 |
+| authored from a clip (the clip shows the exercise) | 129 |
+| sharing a pose that was authored from a clip | 33 |
 | without a clip yet | 0 |
-| poses with a clip | 122 of 123 (122 in use) |
+| poses with a clip | 123 of 124 (123 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -64,7 +64,7 @@ Poses without a clip yet: `idle`.
 | Chest-Supported Row | `chestSupportedRow` | authored from the clip | [Chest Supported Incline Dumbbell Row - OPEX Exercise Library](https://www.youtube.com/watch?v=0-DXJiceG-0) (OPEX Fitness, side) | #375 |
 | Chin-Up | `pullUp` | shares `pullUp` (the clip shows Pull-Up) | [Strict Pull Up - OPEX Exercise Library](https://www.youtube.com/watch?v=jgFel4wZl3I) (OPEX Fitness, side) | #274 |
 | Close-Grip Bench Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
-| Concentration Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
+| Concentration Curl | `concentrationCurl` | authored from the clip | [Seated Concentration Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=Xc47YLxFftQ) (OPEX Fitness, front) | #378 |
 | Conventional Deadlift | `hinge` | authored from the clip | [Conventional Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=TN3DHmd1Fe8) (OPEX Fitness, side) | #316 |
 | Copenhagen Plank | `copenhagenPlank` | authored from the clip | [Copenhagen Plank](https://www.youtube.com/watch?v=tKb76R21AfM) (OPEX Fitness, front) | #293 |
 | Cossack Squat | `lateralLunge` | authored from the clip | [Goblet Cossack Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=rSaWYv37zzE) (OPEX Fitness, front) | #323 |
@@ -310,3 +310,4 @@ Poses without a clip yet: `idle`.
 | `chestSupportedRow` | [Chest Supported Incline Dumbbell Row - OPEX Exercise Library](https://www.youtube.com/watch?v=0-DXJiceG-0) | OPEX Fitness | side | three reps in 11.5 s | #375 | 2026-09-14 | Chest-Supported Row | Borrowed the seated cable row before. Face down on an incline bench: trunk 25-36 above level, legs near straight (hip 152-176, knee 165-180), toes on the floor. Arms long: bells hang straight down, elbow 158-169, wrists 1.10-1.19 trunk lengths under the shoulders. Rowed: upper arm level and back along the trunk, elbow 65-74, wrists 0.42-0.50 under. Ours: trunk 30, hip 151, knee 163; elbow 175 / 125 / 71, wrists 1.18 and 0.53 under. Tempo at 0.2 s: row 0.8 s, hold 0.8-1.2, lower 1.2, hang 0.4-0.8. |
 | `plyoPushUp` | [HOW TO: Plyometric Push Up](https://www.youtube.com/watch?v=Y-uF4F3mQIs) | Goodlife Health Clubs | three-quarter | two reps, 24-29.6 s | #376 | 2026-09-14 | Plyo Push-Up | Borrowed the push-up before. Down 0.9 s, a 0.9-1.3 s pause at the bottom (shoulders still sinking), the push 0.5-0.7, hands in the air 0.2-0.3 with elbows straight (169-178) and shoulders 0.13 trunk lengths over the plank, landing into the next descent. Bottom elbows read 85-93 but the three-quarter camera opens them; the bottom is the side-on push-up's. Ours: loop of plank, bottom, deeper bottom (the pause), flight; flight elbows 163, legs straight, hands 3.5 cm off the mat, shoulders 3.5 cm over the plank (more air bent the knees). OPEX's Plyometric Push Up (GNVQos5I0qk) is a plate drill with the hips piked and was not used. Loop 900 / 1100 / 700 / 250 ms. |
 | `preacherCurl` | [Preacher Curl - Exercise Library](https://www.youtube.com/watch?v=w1qaVGYTtKk) | Stable Strength Training | three-quarter | five reps in 17 s | #377 | 2026-09-14 | Preacher Curl | Borrowed the standing barbell curl before. Camera about 30 degrees off the side. Seated, trunk 23-39 forward, upper arms on the pad and still at 47-61 below level (as projected). Arms long: elbow 160-172. Curled: elbow 27-39, forearm plumb, bar at shoulder height. Ours: trunk 30, upper arm 36 from plumb, elbow 169 / 100 / 46 (the curled elbow reads wider in 3D for the hands' spread). Pad drawn as a block under the elbows. OPEX EZ Bar Preacher Curl (dgaJQXa0kbg) and Body-Solid's clip are filmed from the front with the arm pointing at the camera and were not used. Tempo at 0.3 s: up 1.2 s, top 0.3-0.6, down 2.1, bottom ~0.3. |
+| `concentrationCurl` | [Seated Concentration Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=Xc47YLxFftQ) | OPEX Fitness | front | two slow reps in 20 s | #378 | 2026-09-14 | Concentration Curl | Borrowed the standing barbell curl before. Seated, knees apart, leaning forward (about 35, from the trunk's projected length against shoulder width). Working upper arm plumb, elbow braced on the inner thigh just above the knee, still all rep: arm long elbow 159-169, curled 13-24 with the forearm straight up. Free hand on its knee, elbow about 100. Ours: trunk 35, working arm swung 20 in so the elbow sits inside the knee, elbow 178 / 91 / 32 (the fold limit stops the curl short of hers), free hand solved onto its knee (elbow 86). Tempo at 0.25 s, a slow demo: up 2.25-2.75 s, top 1.75-2.0, down 1.5, bottom 2.0-2.5. |
