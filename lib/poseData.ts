@@ -4673,6 +4673,55 @@ export const exercisePoses = {
   // 0.15 s across four gaps. At 0.3 s per frame the pauses at either end are
   // one frame or less, so they are written as 0.25 s and not pretended to be
   // more precise than that.
+  // Seated dumbbell press, from a reference clip measured with the pose lab
+  // (OPEX "Seated Dumbbell Press", RgkzQ008m3I, three reps in 12 s, the
+  // camera in front and a little to the side; MoveNet on 61 frames at
+  // 0.2 s). It borrowed the standing barbell overhead press before.
+  //
+  // Sitting tall on a flat bench, no backrest, knees at about 100. At the
+  // bottom the bells are at the shoulders (wrists level with them, 1.15-1.24
+  // shoulder widths apart) with the elbows under them, 0.52-0.59 trunk
+  // lengths below the shoulders -- the elbow closed to 15-30. Half way the
+  // elbows swing out to the sides, 1.9-2.0 shoulder widths apart and 0.17-
+  // 0.35 up, elbow 88-105, wrists 0.72-0.88 up. At the top the arms are
+  // straight over the shoulders (elbow 160-180, wrists 1.03-1.09 up, a
+  // shoulder width apart).
+  //
+  // Authored side on: each hand is placed where the clip has it relative to
+  // its shoulder, the arm solved to it in the plane, then `flare` swings the
+  // elbow out round the shoulder-to-hand line -- the half way's wide elbows
+  // -- while the hand stays put.
+  //
+  // Tempo from the three reps, to the 0.2 s frames: down in 1.8-2.0 s, 0.4 at
+  // the bottom, up in 1.0, 0.6-0.8 at the top; tops 4.0-4.3 s apart.
+  seatedDumbbellPress: pose(
+    "side",
+    // [hand up from the shoulder, hand forward of it, elbow flared out, hands wider, elbow fold]
+    ([[0.2895, 0, 0, 0, FORWARD], [0.21, 0.02, 65, 0.02, BACK], [0, 0.076, 15, 0, BACK]] as const).map(([up, ahead, flare, spread, bend]) => {
+      const pelvis = { x: 0.42, y: 0.7 };
+      const feet: [Point, Point] = [{ x: 0.6, y: 0.915 }, { x: 0.588, y: 0.915 }];
+      const hands = [0, 1].map((side) => {
+        const sh = shoulderAt(pelvis, 0, side as 0 | 1, "side");
+        return { x: sh.x + ahead / ASPECT, y: sh.y - up };
+      }) as [Point, Point];
+      return {
+        pelvis,
+        torso: 0,
+        neck: 0,
+        arms: reachingArms(pelvis, 0, "side", hands, bend).map((arm) => ({ ...arm, flare, spread })) as [Limb, Limb],
+        legs: plantedLegs(pelvis, 0, "side", feet, FORWARD, [90, 94]),
+      };
+    }),
+    [
+      { kind: "floor", y: FLOOR },
+      { kind: "slab", at: "pelvis", width: 0.3, height: 0.055, dy: 0.08 },
+      { kind: "bell", at: "hand0", each: true },
+    ],
+    "neutral",
+    1,
+    { tempo: { down: 1900, bottom: 400, up: 1000, top: 700 }, camera: { azimuth: 0.5 } },
+  ),
+
   seatedCalfRaise: pose(
     "side",
     ([[0.5743, 0.9088, 62], [0.5695, 0.8625, 100], [0.5846, 0.8215, 138]] as const).map(([ax, ay, end]) => {

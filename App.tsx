@@ -6144,7 +6144,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Barbell Overhead Press": "overheadPress",
   "Push Press": "pushPress",
   "Dumbbell Shoulder Press": "overheadPress",
-  "Seated Dumbbell Press": "overheadPress",
+  "Seated Dumbbell Press": "seatedDumbbellPress",
   "Arnold Press": "arnoldPress",
   "Machine Shoulder Press": "overheadPress",
 
