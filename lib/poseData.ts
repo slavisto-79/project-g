@@ -3934,6 +3934,43 @@ export const exercisePoses = {
   // Still a compromise: Superman alone would hold the arms at the clip's
   // 5.4 cm, but Prone Y-T-W Raise and Reverse Snow Angel share this pose and
   // both lift them.
+  // Prone Y-T-W raise, from a reference clip measured with the pose lab
+  // (Cardinal Strength and Conditioning "Prone Y-T-W", X-b1S-rQc9k, one
+  // round in 15 s, the camera raised and a quarter round from the head;
+  // MoveNet on 77 frames at 0.2 s). It borrowed the superman before --
+  // arms and legs lifted together, arms straight ahead.
+  //
+  // Face down, legs on the floor, the chest barely up, the arms lifted just
+  // off the floor in three positions, each held a while: Y (0.4-6.4 s), the
+  // straight arms overhead 30-54 degrees out from the line of the body
+  // (the near arm; the far one is foreshortened to 5-13); T (6.8-11 s), the
+  // arms out to the sides; W (11.8-15.4 s), the elbows bent (40-96) and
+  // drawn down toward the hips, the hands out beside the shoulders.
+  //
+  // The raised camera stretches the floor plane: the T reads 121-134 from
+  // the head line there, so it is taken as square to the body (96 in ours).
+  // How high the arms come off the floor, and any pulses within each hold,
+  // this camera cannot give, so no tempo is claimed.
+  //
+  // Authored side on, like the superman: each arm is laid out in the plane
+  // pointing at the head (bent for the W, its elbow swung flat with
+  // `flare`), then turned out round the shoulder with `yaw` -- 45 for the
+  // Y, 90 for the T and the W.
+  proneYTW: pose(
+    "side",
+    // [upper, lower, flare, yaw]: Y, T, W.
+    ([[282, 282, 0, -45], [276, 276, 0, -90], [334, 226, 90, -90]] as const).map(([upper, lower, flare, yaw]) => ({
+      pelvis: { x: 0.5, y: 0.68 },
+      torso: 278,
+      neck: 290,
+      arms: [{ upper, lower, flare, yaw }, { upper, lower, flare, yaw }] as [Limb, Limb],
+      legs: lyingLegs(92, 92, 104),
+    })),
+    [{ kind: "floor", mat: true, y: 0.733 }],
+    "neutral",
+    -1,
+  ),
+
   proneRaise: pose(
     "side",
     [

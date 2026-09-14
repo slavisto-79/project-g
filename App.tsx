@@ -6214,7 +6214,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Hanging Leg Raise": "hangingRaise",
   "Hanging Knee Raise": "hangingKneeRaise",
   "Superman": "proneRaise",
-  "Prone Y-T-W Raise": "proneRaise",
+  "Prone Y-T-W Raise": "proneYTW",
   "Reverse Snow Angel": "proneRaise",
   "Incline Dumbbell Curl": "inclineCurl",
   "Preacher Curl": "preacherCurl",

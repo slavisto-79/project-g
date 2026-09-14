@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 17: exercises that borrowed a different movement's pose ------
+  proneYTW: {
+    videoId: "X-b1S-rQc9k",
+    title: "Prone Y-T-W",
+    channel: "Cardinal Strength and Conditioning",
+    view: "head-end",
+    span: "one Y-T-W round in 15 s",
+    prs: [379],
+    date: "2026-09-14",
+    exercises: ["Prone Y-T-W Raise"],
+    notes:
+      "Borrowed the superman before. Face down, legs down, arms just off the floor. Y (0.4-6.4 s): straight arms overhead 30-54 out from the body line (near arm). T (6.8-11 s): arms out to the sides; the raised camera stretches it to 121-134 from the head line, taken as square. W (11.8-15.4 s): elbows 40-96, drawn toward the hips, hands beside the shoulders. Ours: Y 51, T 96, W elbow 73 with the upper arm 150 from the head line. Arm height and any pulses within each hold are not measurable from this camera: no tempo. Simone Sports Performance's clip (LSy6R7j3PDc) has two lifters overlapping at an angle and was not used.",
+  },
   concentrationCurl: {
     videoId: "Xc47YLxFftQ",
     title: "Seated Concentration Curl - OPEX Exercise Library",
