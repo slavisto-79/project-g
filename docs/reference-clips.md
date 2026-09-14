@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 123 |
-| sharing a pose that was authored from a clip | 39 |
+| authored from a clip (the clip shows the exercise) | 124 |
+| sharing a pose that was authored from a clip | 38 |
 | without a clip yet | 0 |
-| poses with a clip | 117 of 118 (117 in use) |
+| poses with a clip | 118 of 119 (118 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -78,7 +78,7 @@ Poses without a clip yet: `idle`.
 | Dumbbell Biceps Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
 | Dumbbell Bulgarian Split Squat | `splitSquat` | authored from the clip | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267 |
 | Dumbbell Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
-| Dumbbell Floor Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
+| Dumbbell Floor Press | `dumbbellFloorPress` | authored from the clip | [Dumbbell Floor Press - OPEX Exercise Library](https://www.youtube.com/watch?v=jjlekYs1cfQ) (OPEX Fitness, side) | #373 |
 | Dumbbell Fly | `fly` | authored from the clip | [Dumbbell Neutral Grip Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=AVIBmE5iQrQ) (OPEX Fitness, head-end) | #283 |
 | Dumbbell Front Raise | `frontRaise` | authored from the clip | [Dumbbell Front Raise](https://www.youtube.com/watch?v=E-E0EqERFBg) (OPEX Fitness, front) | #354 |
 | Dumbbell Front Squat | `gobletSquat` | shares `gobletSquat` (the clip shows Goblet Squat) | [Goblet Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=pEGfGwp6IEA) (OPEX Fitness, three-quarter) | #317 |
@@ -305,3 +305,4 @@ Poses without a clip yet: `idle`.
 | `backExtension` | [Exercise Library:  Back Extensions](https://www.youtube.com/watch?v=muPROfbUBeg) | Exercise Library | side | three reps, 15-27.5 s | #370 | 2026-09-14 | Back Extension | Borrowed the conventional deadlift before. 45-degree bench: hips on the pad, legs straight (knee 170-180) 53-56 down to the ankle roller, arms folded on the chest. Bottom: trunk 33-40 below level, hip 88-95 (ours 36, 90). Top: trunk 6-20 past the leg line (65-74 up); the cue says no further than straight, so ours takes the clip's least, 6 (trunk 60 up, hip 174). Tempo at 0.25 s: down 2.25-2.5 s, ~0.25 at the bottom, up 1.5-1.75, 0.5 at the top. OPEX's Roman Chair Back Extension (ZaLvgeHC_54) is filmed obliquely from behind and was not measured. |
 | `hackSquat` | [Hack Squat](https://www.youtube.com/watch?v=rYgNArpwE7E) | Renaissance Periodization | side | three reps in 13 s | #371 | 2026-09-14 | Hack Squat | Borrowed the barbell back squat before. Camera about 25 degrees off square: horizontal lengths divided by 0.90, the scale at which thigh and shin keep their length across frames. Back on the pad 55-62 above level all rep. Top: knee 172-176, hip 163-166. Bottom: knee 24-32, hip 41-47. Half way: knee ~60, hip ~78. Ours: trunk 58; top knee 175, hip 165; half 60/79; bottom 27/41; ankle fixed, the hips then travel 5 degrees off the back's line. Tempo at 0.25 s: down 3.25-3.75 s, 0.25 at the bottom, up 1.0-1.25, 0.25-0.5 at the top. Hype Training & Coaching (u_1a0nWG7vQ) was more oblique and shallower (knee 48-59) and was not used. |
 | `rackPull` | [Rack Pull](https://www.youtube.com/watch?v=d9sK2R95MMM) | Testosterone Nation | side | three reps in 11 s | #372 | 2026-09-14 | Rack Pull | Borrowed the conventional deadlift (bar to the floor) before. Bar on pins just above the knee: wrists 0.17-0.23 trunk lengths over the knee, 0.24-0.28 ahead of the ankle; shins plumb, knee 150-164, hip 97-113, trunk 42-58 from vertical. Top: hip and knee 171-180. Half way: trunk ~34, hip 128, knee 163. Elbows 166-179. Ours: pins trunk 54, hip 105, knee 159, bar 0.25 ahead of the ankle and 0.29 over the knee; half 34/128/162; top 0/177/175. Tempo at 0.2 s: down 1.0-1.6 s, dead stop 0.8-1.4 on the pins, up 0.4-0.6, 0.6-0.8 at the top. 360p source. |
+| `dumbbellFloorPress` | [Dumbbell Floor Press - OPEX Exercise Library](https://www.youtube.com/watch?v=jjlekYs1cfQ) | OPEX Fitness | side | three reps in 9.5 s | #373 | 2026-09-14 | Dumbbell Floor Press | Borrowed the barbell bench press before. On the floor, knees 47-58, feet flat, hips down. Top: arms straight up over the shoulders (elbow 173-180, upper arm within 5 of plumb), wrists 0.94-1.01 trunk lengths over the shoulders. Bottom: the upper arm level on the floor, the far elbow 72-91, forearm near plumb, wrists 0.35-0.47 over the shoulders; the near elbow is hidden against the floor. Ours: top elbow 179, wrists 1.18 over (longer arms than hers); bottom elbow 81 on the floor, wrists 0.55. The elbows' 45-degree angle out from the trunk is not visible side on and is the usual floor-press position, not measured. Tempo at 0.2 s: down 1.2-1.4 s, 0.4-0.6 on the floor, up 0.4-0.6, 0.6-0.8 at the top. |

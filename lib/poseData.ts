@@ -2042,7 +2042,39 @@ export const exercisePoses = {
   //
   // NO TEMPO: both clips are holds. The rise to the top takes 0.6 s; the
   // lowering and the rep rhythm are never shown, so none is invented.
-  gluteBridge: pose("side", bridgeFrames(), [{ kind: "floor", y: 0.815, mat: true }], "overhand", 1, { camera: { azimuth: Math.PI / 2 } }),
+  // Dumbbell floor press, from a reference clip measured with the pose lab
+  // (OPEX "Dumbbell Floor Press", jjlekYs1cfQ, three reps in 9.5 s, a side
+  // view; MoveNet on 50 frames at 0.2 s). It borrowed the barbell bench
+  // press before -- on a bench, a bar, the elbows free to drop below it.
+  //
+  // Lying on the floor, knees bent (47-58) and feet flat, the hips down. At
+  // the top the arms stand straight up over the shoulders (elbow 173-180,
+  // the upper arm within 5 degrees of plumb). At the bottom the upper arm
+  // lies level on the floor (the far elbow 72-91, the forearm near plumb)
+  // -- the floor is what stops it. The near elbow's keypoint is hidden
+  // against the floor on those frames and was not read.
+  //
+  // The body and legs are the glute bridge's hips-down key. The upper arm
+  // on the floor is turned 45 degrees out from the trunk with `yaw`, which
+  // leaves the forearm plumb; a side view cannot see that angle, and 45 is
+  // the usual floor-press elbow, not a measurement.
+  //
+  // Tempo from the three reps, to the 0.2 s frames: down in 1.2-1.4 s, 0.4-
+  // 0.6 on the floor, up in 0.4-0.6, 0.6-0.8 at the top; tops 2.9-3.1 s
+  // apart.
+  dumbbellFloorPress: pose(
+    "side",
+    ([[0, 0], [45, 8], [90, 350]] as const).map(([upper, lower]) => ({
+      ...bridgeFrames()[0]!,
+      arms: [{ upper, lower, yaw: -45 }, { upper: upper + 3, lower: lower + 3, yaw: -45 }] as [Limb, Limb],
+    })),
+    [{ kind: "floor", y: 0.815, mat: true }, { kind: "bell", at: "hand0", each: true }],
+    "neutral",
+    1,
+    { tempo: { down: 1300, bottom: 500, up: 500, top: 700 }, camera: { azimuth: Math.PI / 2 } },
+  ),
+
+  gluteBridge: pose("side", bridgeFrames(),[{ kind: "floor", y: 0.815, mat: true }], "overhand", 1, { camera: { azimuth: Math.PI / 2 } }),
 
   // Single-leg glute bridge, from a reference clip measured with the pose lab
   // (OPEX "Single Leg Glute Bridge", 6pvdY3sXUbo, one bridge held 7 s;
