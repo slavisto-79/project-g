@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 16: exercises that borrowed a different movement's pose ------
+  dumbbellFloorPress: {
+    videoId: "jjlekYs1cfQ",
+    title: "Dumbbell Floor Press - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 9.5 s",
+    prs: [373],
+    date: "2026-09-14",
+    exercises: ["Dumbbell Floor Press"],
+    notes:
+      "Borrowed the barbell bench press before. On the floor, knees 47-58, feet flat, hips down. Top: arms straight up over the shoulders (elbow 173-180, upper arm within 5 of plumb), wrists 0.94-1.01 trunk lengths over the shoulders. Bottom: the upper arm level on the floor, the far elbow 72-91, forearm near plumb, wrists 0.35-0.47 over the shoulders; the near elbow is hidden against the floor. Ours: top elbow 179, wrists 1.18 over (longer arms than hers); bottom elbow 81 on the floor, wrists 0.55. The elbows' 45-degree angle out from the trunk is not visible side on and is the usual floor-press position, not measured. Tempo at 0.2 s: down 1.2-1.4 s, 0.4-0.6 on the floor, up 0.4-0.6, 0.6-0.8 at the top.",
+  },
   rackPull: {
     videoId: "d9sK2R95MMM",
     title: "Rack Pull",
