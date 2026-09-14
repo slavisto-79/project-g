@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 125 |
-| sharing a pose that was authored from a clip | 37 |
+| authored from a clip (the clip shows the exercise) | 126 |
+| sharing a pose that was authored from a clip | 36 |
 | without a clip yet | 0 |
-| poses with a clip | 119 of 120 (119 in use) |
+| poses with a clip | 120 of 121 (120 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -61,7 +61,7 @@ Poses without a clip yet: `idle`.
 | Cable Lateral Raise | `cableLateralRaise` | authored from the clip | [Cable Lateral Raise](https://www.youtube.com/watch?v=dQPTeeqgJqA) (OPEX Fitness, front) | #325 |
 | Cable Pull-Through | `cablePullThrough` | authored from the clip | [Cable Pull Through](https://www.youtube.com/watch?v=A30YKvpWGu4) (OPEX Fitness, three-quarter) | #329 |
 | Cable Woodchopper | `woodchop` | authored from the clip | [High to Low Cable Oblique Rotation](https://www.youtube.com/watch?v=KnbgKcvOG_c) (OPEX Fitness, three-quarter) | #287 |
-| Chest-Supported Row | `seatedRow` | shares `seatedRow` (the clip shows Seated Cable Row) | [Seated Cable Row - OPEX Exercise Library](https://www.youtube.com/watch?v=4ZbqM_gcgAI) (OPEX Fitness, side) | #276 |
+| Chest-Supported Row | `chestSupportedRow` | authored from the clip | [Chest Supported Incline Dumbbell Row - OPEX Exercise Library](https://www.youtube.com/watch?v=0-DXJiceG-0) (OPEX Fitness, side) | #375 |
 | Chin-Up | `pullUp` | shares `pullUp` (the clip shows Pull-Up) | [Strict Pull Up - OPEX Exercise Library](https://www.youtube.com/watch?v=jgFel4wZl3I) (OPEX Fitness, side) | #274 |
 | Close-Grip Bench Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
 | Concentration Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
@@ -307,3 +307,4 @@ Poses without a clip yet: `idle`.
 | `rackPull` | [Rack Pull](https://www.youtube.com/watch?v=d9sK2R95MMM) | Testosterone Nation | side | three reps in 11 s | #372 | 2026-09-14 | Rack Pull | Borrowed the conventional deadlift (bar to the floor) before. Bar on pins just above the knee: wrists 0.17-0.23 trunk lengths over the knee, 0.24-0.28 ahead of the ankle; shins plumb, knee 150-164, hip 97-113, trunk 42-58 from vertical. Top: hip and knee 171-180. Half way: trunk ~34, hip 128, knee 163. Elbows 166-179. Ours: pins trunk 54, hip 105, knee 159, bar 0.25 ahead of the ankle and 0.29 over the knee; half 34/128/162; top 0/177/175. Tempo at 0.2 s: down 1.0-1.6 s, dead stop 0.8-1.4 on the pins, up 0.4-0.6, 0.6-0.8 at the top. 360p source. |
 | `dumbbellFloorPress` | [Dumbbell Floor Press - OPEX Exercise Library](https://www.youtube.com/watch?v=jjlekYs1cfQ) | OPEX Fitness | side | three reps in 9.5 s | #373 | 2026-09-14 | Dumbbell Floor Press | Borrowed the barbell bench press before. On the floor, knees 47-58, feet flat, hips down. Top: arms straight up over the shoulders (elbow 173-180, upper arm within 5 of plumb), wrists 0.94-1.01 trunk lengths over the shoulders. Bottom: the upper arm level on the floor, the far elbow 72-91, forearm near plumb, wrists 0.35-0.47 over the shoulders; the near elbow is hidden against the floor. Ours: top elbow 179, wrists 1.18 over (longer arms than hers); bottom elbow 81 on the floor, wrists 0.55. The elbows' 45-degree angle out from the trunk is not visible side on and is the usual floor-press position, not measured. Tempo at 0.2 s: down 1.2-1.4 s, 0.4-0.6 on the floor, up 0.4-0.6, 0.6-0.8 at the top. |
 | `seatedDumbbellPress` | [Seated Dumbbell Press - OPEX Exercise Library](https://www.youtube.com/watch?v=RgkzQ008m3I) | OPEX Fitness | front | three reps in 12 s | #374 | 2026-09-14 | Seated Dumbbell Press | Borrowed the standing barbell overhead press before. Seated tall on a flat bench, no backrest. Bottom: bells at the shoulders, wrists level with them and 1.15-1.24 shoulder widths apart, elbows under them 0.52-0.59 trunk lengths down, elbow 15-30. Half way: elbows out 1.9-2.0 shoulder widths apart, 0.17-0.35 up, elbow 88-105, wrists 0.72-0.88 up. Top: arms straight (160-180), wrists 1.03-1.09 up, a shoulder width apart. Ours: bottom elbow 32, elbows 0.55 down; half 95, elbows 2.3 apart and 0.37 up, wrists 0.86 up; top 179, wrists 1.18 up. The cue said 'back supported'; the clip has no backrest, so the cue now says sit tall. Tempo at 0.2 s: down 1.8-2.0 s, 0.4 at the bottom, up 1.0, 0.6-0.8 at the top. |
+| `chestSupportedRow` | [Chest Supported Incline Dumbbell Row - OPEX Exercise Library](https://www.youtube.com/watch?v=0-DXJiceG-0) | OPEX Fitness | side | three reps in 11.5 s | #375 | 2026-09-14 | Chest-Supported Row | Borrowed the seated cable row before. Face down on an incline bench: trunk 25-36 above level, legs near straight (hip 152-176, knee 165-180), toes on the floor. Arms long: bells hang straight down, elbow 158-169, wrists 1.10-1.19 trunk lengths under the shoulders. Rowed: upper arm level and back along the trunk, elbow 65-74, wrists 0.42-0.50 under. Ours: trunk 30, hip 151, knee 163; elbow 175 / 125 / 71, wrists 1.18 and 0.53 under. Tempo at 0.2 s: row 0.8 s, hold 0.8-1.2, lower 1.2, hang 0.4-0.8. |

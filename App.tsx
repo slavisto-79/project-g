@@ -6206,7 +6206,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Neutral-Grip Pulldown": "pulldown",
   "Band-Assisted Pull-Up": "pullUp",
   "Seated Cable Row": "seatedRow",
-  "Chest-Supported Row": "seatedRow",
+  "Chest-Supported Row": "chestSupportedRow",
   "Band Row": "seatedRow",
   "Inverted Row": "invertedRow",
   "Towel Row": "invertedRow",
