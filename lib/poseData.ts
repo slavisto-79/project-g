@@ -2574,6 +2574,44 @@ export const exercisePoses = {
     { tempo: { down: 600, bottom: 150, up: 600, top: 300 } },
   ),
 
+  // Plyo push-up, from a reference clip measured with the pose lab (Goodlife
+  // Health Clubs "HOW TO: Plyometric Push Up", Y-uF4F3mQIs, two reps at 24-
+  // 29.6 s, the camera three-quarters on; MoveNet on 57 frames at 0.1 s). It
+  // borrowed the push-up before -- hands never leaving the floor.
+  //
+  // OPEX's clip of the name (GNVQos5I0qk) is a different drill -- the hands
+  // popping on and off bumper plates with the hips piked -- and does not
+  // match the library cue ("the hands leave the floor, land soft"), so it
+  // was not used.
+  //
+  // The rep: down in 0.9 s, a pause at the bottom of 0.9-1.3 s in which the
+  // shoulders still sink a little, the push in 0.5-0.7, the hands in the air
+  // for 0.2-0.3 with the elbows straight (169-178) and the shoulders 0.13
+  // trunk lengths higher than the plank, and the landing straight into the
+  // next descent. The camera's angle opens the elbows' projection at the
+  // bottom (85-93 there), so the bottom is the push-up's own, side-on key.
+  //
+  // Four keys in a loop: plank, bottom, a slightly deeper bottom (the pause,
+  // as a real second position), and the flight. In the flight the body stays
+  // straight to the toes and the arms straight, which lets the hands rise
+  // 3.5 cm off the mat and the shoulders 3.5 cm over the plank; more air for
+  // the hands, with the toes fixed, bent the knees to 146.
+  plyoPushUp: pose(
+    "side",
+    // [shoulder x, shoulder y, trunk, ankle angle, hands off the floor]
+    ([[0.357, 0.570, 279, 140, 0], [0.317, 0.765, 269, 120, 0], [0.315, 0.772, 268, 119, 0], [0.358, 0.535, 292, 144, 0.035]] as const).map(([sx, sy, torso, end, lift]) => {
+      const rad = (torso * Math.PI) / 180;
+      const pelvis = { x: sx - (Math.sin(rad) * P.spine) / ASPECT, y: sy + Math.cos(rad) * P.spine };
+      const toe = { x: 0.82, y: 0.86 };
+      const ankle = along(toe, end + 180, 0.069);
+      return supported(pelvis, torso, { x: 0.392, y: 0.855 - lift }, ankle, end);
+    }),
+    [{ kind: "floor", mat: true }],
+    "overhand",
+    -1,
+    { loop: [900, 1100, 700, 250] },
+  ),
+
   // Archer push-up, from a reference clip measured with the pose lab (OPEX
   // "Archer Push Up", FcttBOkat5M, three sides in 9 s, the camera square on
   // the head; MoveNet on 47 frames at 0.2 s). It borrowed the push-up before

@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 126 |
-| sharing a pose that was authored from a clip | 36 |
+| authored from a clip (the clip shows the exercise) | 127 |
+| sharing a pose that was authored from a clip | 35 |
 | without a clip yet | 0 |
-| poses with a clip | 120 of 121 (120 in use) |
+| poses with a clip | 121 of 122 (121 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -139,7 +139,7 @@ Poses without a clip yet: `idle`.
 | Pike Push-Up | `pikePushUp` | authored from the clip | [How to do a Pike Push-Up](https://www.youtube.com/watch?v=XckEEwa1BPI) (National Academy of Sports Medicine (NASM), three-quarter) | #350 |
 | Pistol Squat | `pistolSquat` | authored from the clip | [Pistol Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=D934zSaVtU0) (OPEX Fitness, side) | #349 |
 | Plank | `plank` | authored from the clip | [Front Plank to Forearm Plank](https://www.youtube.com/watch?v=rfPf3HCg2Ac) (OPEX Fitness, side) | #284 |
-| Plyo Push-Up | `pushUp` | shares `pushUp` (the clip shows Push-Up) | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
+| Plyo Push-Up | `plyoPushUp` | authored from the clip | [HOW TO: Plyometric Push Up](https://www.youtube.com/watch?v=Y-uF4F3mQIs) (Goodlife Health Clubs, three-quarter) | #376 |
 | Power Clean | `powerClean` | authored from the clip | [Power Clean (side view)](https://www.youtube.com/watch?v=YEXjyc22Jek) (Fitness Pain Free, side) | #307 |
 | Preacher Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
 | Prone Y-T-W Raise | `proneRaise` | shares `proneRaise` (the clip shows Superman) | [Superman Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=W8vlZfmxOpM) (OPEX Fitness, side) | #322 |
@@ -308,3 +308,4 @@ Poses without a clip yet: `idle`.
 | `dumbbellFloorPress` | [Dumbbell Floor Press - OPEX Exercise Library](https://www.youtube.com/watch?v=jjlekYs1cfQ) | OPEX Fitness | side | three reps in 9.5 s | #373 | 2026-09-14 | Dumbbell Floor Press | Borrowed the barbell bench press before. On the floor, knees 47-58, feet flat, hips down. Top: arms straight up over the shoulders (elbow 173-180, upper arm within 5 of plumb), wrists 0.94-1.01 trunk lengths over the shoulders. Bottom: the upper arm level on the floor, the far elbow 72-91, forearm near plumb, wrists 0.35-0.47 over the shoulders; the near elbow is hidden against the floor. Ours: top elbow 179, wrists 1.18 over (longer arms than hers); bottom elbow 81 on the floor, wrists 0.55. The elbows' 45-degree angle out from the trunk is not visible side on and is the usual floor-press position, not measured. Tempo at 0.2 s: down 1.2-1.4 s, 0.4-0.6 on the floor, up 0.4-0.6, 0.6-0.8 at the top. |
 | `seatedDumbbellPress` | [Seated Dumbbell Press - OPEX Exercise Library](https://www.youtube.com/watch?v=RgkzQ008m3I) | OPEX Fitness | front | three reps in 12 s | #374 | 2026-09-14 | Seated Dumbbell Press | Borrowed the standing barbell overhead press before. Seated tall on a flat bench, no backrest. Bottom: bells at the shoulders, wrists level with them and 1.15-1.24 shoulder widths apart, elbows under them 0.52-0.59 trunk lengths down, elbow 15-30. Half way: elbows out 1.9-2.0 shoulder widths apart, 0.17-0.35 up, elbow 88-105, wrists 0.72-0.88 up. Top: arms straight (160-180), wrists 1.03-1.09 up, a shoulder width apart. Ours: bottom elbow 32, elbows 0.55 down; half 95, elbows 2.3 apart and 0.37 up, wrists 0.86 up; top 179, wrists 1.18 up. The cue said 'back supported'; the clip has no backrest, so the cue now says sit tall. Tempo at 0.2 s: down 1.8-2.0 s, 0.4 at the bottom, up 1.0, 0.6-0.8 at the top. |
 | `chestSupportedRow` | [Chest Supported Incline Dumbbell Row - OPEX Exercise Library](https://www.youtube.com/watch?v=0-DXJiceG-0) | OPEX Fitness | side | three reps in 11.5 s | #375 | 2026-09-14 | Chest-Supported Row | Borrowed the seated cable row before. Face down on an incline bench: trunk 25-36 above level, legs near straight (hip 152-176, knee 165-180), toes on the floor. Arms long: bells hang straight down, elbow 158-169, wrists 1.10-1.19 trunk lengths under the shoulders. Rowed: upper arm level and back along the trunk, elbow 65-74, wrists 0.42-0.50 under. Ours: trunk 30, hip 151, knee 163; elbow 175 / 125 / 71, wrists 1.18 and 0.53 under. Tempo at 0.2 s: row 0.8 s, hold 0.8-1.2, lower 1.2, hang 0.4-0.8. |
+| `plyoPushUp` | [HOW TO: Plyometric Push Up](https://www.youtube.com/watch?v=Y-uF4F3mQIs) | Goodlife Health Clubs | three-quarter | two reps, 24-29.6 s | #376 | 2026-09-14 | Plyo Push-Up | Borrowed the push-up before. Down 0.9 s, a 0.9-1.3 s pause at the bottom (shoulders still sinking), the push 0.5-0.7, hands in the air 0.2-0.3 with elbows straight (169-178) and shoulders 0.13 trunk lengths over the plank, landing into the next descent. Bottom elbows read 85-93 but the three-quarter camera opens them; the bottom is the side-on push-up's. Ours: loop of plank, bottom, deeper bottom (the pause), flight; flight elbows 163, legs straight, hands 3.5 cm off the mat, shoulders 3.5 cm over the plank (more air bent the knees). OPEX's Plyometric Push Up (GNVQos5I0qk) is a plate drill with the hips piked and was not used. Loop 900 / 1100 / 700 / 250 ms. |
