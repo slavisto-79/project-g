@@ -3956,6 +3956,42 @@ export const exercisePoses = {
   // pointing at the head (bent for the W, its elbow swung flat with
   // `flare`), then turned out round the shoulder with `yaw` -- 45 for the
   // Y, 90 for the T and the W.
+  // Reverse snow angel, from a reference clip measured with the pose lab
+  // (Functional Bodybuilding "Prone Snow Angels", vSou6Vup5W8, three sweeps
+  // in 12 s, the camera raised and a quarter round from the head; MoveNet on
+  // 61 frames at 0.2 s). It borrowed the superman before.
+  //
+  // Face down, legs on the floor, the arms held just off it and swept round
+  // the body: overhead, straight (elbow 168-180) and in line with the body
+  // (4-8 degrees out); through the sides with the arms still long; to the
+  // hips, where the elbows bend (82-125) and the hands come in over the
+  // lower back. Then back the same way.
+  //
+  // Authored as the Y-T-W is: each arm laid out in the plane, then turned
+  // round the shoulder with `yaw` (10 overhead, 90 at the sides). At the
+  // hips the arm points at the feet with the elbow bent and swung out flat
+  // by `flare`.
+  //
+  // Tempo from the near-side arm's three sweeps, to the 0.2 s frames:
+  // overhead to the hips in 0.8-1.0 s, 1.4 held at the hips, back up in
+  // 1.2, 0.4-0.6 overhead; sweeps 4.4-4.5 s apart. The raised camera cannot
+  // give how high the arms are off the floor.
+  reverseSnowAngel: pose(
+    "side",
+    // [upper, lower, flare, yaw]: overhead, out to the sides, hands at the hips.
+    ([[276, 276, 0, -10], [276, 276, 0, -90], [52, 132, 90, 0]] as const).map(([upper, lower, flare, yaw]) => ({
+      pelvis: { x: 0.5, y: 0.68 },
+      torso: 278,
+      neck: 290,
+      arms: [{ upper, lower, flare, yaw }, { upper, lower, flare, yaw }] as [Limb, Limb],
+      legs: lyingLegs(92, 92, 104),
+    })),
+    [{ kind: "floor", mat: true, y: 0.733 }],
+    "neutral",
+    -1,
+    { tempo: { down: 1000, bottom: 1500, up: 1300, top: 600 } },
+  ),
+
   proneYTW: pose(
     "side",
     // [upper, lower, flare, yaw]: Y, T, W.

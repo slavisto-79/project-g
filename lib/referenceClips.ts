@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 17: exercises that borrowed a different movement's pose ------
+  reverseSnowAngel: {
+    videoId: "vSou6Vup5W8",
+    title: "Prone Snow Angels",
+    channel: "Functional Bodybuilding",
+    view: "head-end",
+    span: "three sweeps in 12 s",
+    prs: [380],
+    date: "2026-09-14",
+    exercises: ["Reverse Snow Angel"],
+    notes:
+      "Borrowed the superman before. Face down, legs down, arms just off the floor swept round the body: overhead, straight (elbow 168-180), 4-8 out from the body line; through the sides with the arms long; to the hips with the elbows bent 82-125 and the hands over the lower back; and back. Ours: overhead 16 out, sides 96, hips elbow 100 with the hand beside the hip. Tempo at 0.2 s: down to the hips 0.8-1.0 s, held 1.4, up 1.2, overhead 0.4-0.6; sweeps 4.4-4.5 s apart. Arm height off the floor is not visible from the raised camera.",
+  },
   proneYTW: {
     videoId: "X-b1S-rQc9k",
     title: "Prone Y-T-W",
