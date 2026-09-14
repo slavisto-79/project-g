@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 16: exercises that borrowed a different movement's pose ------
+  seatedDumbbellPress: {
+    videoId: "RgkzQ008m3I",
+    title: "Seated Dumbbell Press - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "three reps in 12 s",
+    prs: [374],
+    date: "2026-09-14",
+    exercises: ["Seated Dumbbell Press"],
+    notes:
+      "Borrowed the standing barbell overhead press before. Seated tall on a flat bench, no backrest. Bottom: bells at the shoulders, wrists level with them and 1.15-1.24 shoulder widths apart, elbows under them 0.52-0.59 trunk lengths down, elbow 15-30. Half way: elbows out 1.9-2.0 shoulder widths apart, 0.17-0.35 up, elbow 88-105, wrists 0.72-0.88 up. Top: arms straight (160-180), wrists 1.03-1.09 up, a shoulder width apart. Ours: bottom elbow 32, elbows 0.55 down; half 95, elbows 2.3 apart and 0.37 up, wrists 0.86 up; top 179, wrists 1.18 up. The cue said 'back supported'; the clip has no backrest, so the cue now says sit tall. Tempo at 0.2 s: down 1.8-2.0 s, 0.4 at the bottom, up 1.0, 0.6-0.8 at the top.",
+  },
   dumbbellFloorPress: {
     videoId: "jjlekYs1cfQ",
     title: "Dumbbell Floor Press - OPEX Exercise Library",

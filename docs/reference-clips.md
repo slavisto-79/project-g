@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 124 |
-| sharing a pose that was authored from a clip | 38 |
+| authored from a clip (the clip shows the exercise) | 125 |
+| sharing a pose that was authored from a clip | 37 |
 | without a clip yet | 0 |
-| poses with a clip | 118 of 119 (118 in use) |
+| poses with a clip | 119 of 120 (119 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -154,7 +154,7 @@ Poses without a clip yet: `idle`.
 | Russian Twist | `russianTwist` | authored from the clip | [Russian Twist](https://www.youtube.com/watch?v=Hvtxbidjins) (OPEX Fitness, side) | #289 |
 | Seated Cable Row | `seatedRow` | authored from the clip | [Seated Cable Row - OPEX Exercise Library](https://www.youtube.com/watch?v=4ZbqM_gcgAI) (OPEX Fitness, side) | #276 |
 | Seated Calf Raise | `seatedCalfRaise` | authored from the clip | [Seated Calf Raise Machine](https://www.youtube.com/watch?v=2Q-HQ3mnePg) (OPEX Fitness, side) | #333 |
-| Seated Dumbbell Press | `overheadPress` | shares `overheadPress` (the clip shows Barbell Overhead Press) | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
+| Seated Dumbbell Press | `seatedDumbbellPress` | authored from the clip | [Seated Dumbbell Press - OPEX Exercise Library](https://www.youtube.com/watch?v=RgkzQ008m3I) (OPEX Fitness, front) | #374 |
 | Seated Leg Curl | `legCurl` | authored from the clip | [Prone Hamstring Curl Machine](https://www.youtube.com/watch?v=xKOyGU0AfOE) (OPEX Fitness, side) | #319 |
 | Side Plank | `sidePlank` | authored from the clip | [Side Plank - OPEX Exercise Library](https://www.youtube.com/watch?v=tbWPBOgju9g) (OPEX Fitness, front) | #285 |
 | Single-Leg Calf Raise | `calfRaise` | shares `calfRaise` (the clip shows Bodyweight Calf Raise, Dumbbell Calf Raise) | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
@@ -306,3 +306,4 @@ Poses without a clip yet: `idle`.
 | `hackSquat` | [Hack Squat](https://www.youtube.com/watch?v=rYgNArpwE7E) | Renaissance Periodization | side | three reps in 13 s | #371 | 2026-09-14 | Hack Squat | Borrowed the barbell back squat before. Camera about 25 degrees off square: horizontal lengths divided by 0.90, the scale at which thigh and shin keep their length across frames. Back on the pad 55-62 above level all rep. Top: knee 172-176, hip 163-166. Bottom: knee 24-32, hip 41-47. Half way: knee ~60, hip ~78. Ours: trunk 58; top knee 175, hip 165; half 60/79; bottom 27/41; ankle fixed, the hips then travel 5 degrees off the back's line. Tempo at 0.25 s: down 3.25-3.75 s, 0.25 at the bottom, up 1.0-1.25, 0.25-0.5 at the top. Hype Training & Coaching (u_1a0nWG7vQ) was more oblique and shallower (knee 48-59) and was not used. |
 | `rackPull` | [Rack Pull](https://www.youtube.com/watch?v=d9sK2R95MMM) | Testosterone Nation | side | three reps in 11 s | #372 | 2026-09-14 | Rack Pull | Borrowed the conventional deadlift (bar to the floor) before. Bar on pins just above the knee: wrists 0.17-0.23 trunk lengths over the knee, 0.24-0.28 ahead of the ankle; shins plumb, knee 150-164, hip 97-113, trunk 42-58 from vertical. Top: hip and knee 171-180. Half way: trunk ~34, hip 128, knee 163. Elbows 166-179. Ours: pins trunk 54, hip 105, knee 159, bar 0.25 ahead of the ankle and 0.29 over the knee; half 34/128/162; top 0/177/175. Tempo at 0.2 s: down 1.0-1.6 s, dead stop 0.8-1.4 on the pins, up 0.4-0.6, 0.6-0.8 at the top. 360p source. |
 | `dumbbellFloorPress` | [Dumbbell Floor Press - OPEX Exercise Library](https://www.youtube.com/watch?v=jjlekYs1cfQ) | OPEX Fitness | side | three reps in 9.5 s | #373 | 2026-09-14 | Dumbbell Floor Press | Borrowed the barbell bench press before. On the floor, knees 47-58, feet flat, hips down. Top: arms straight up over the shoulders (elbow 173-180, upper arm within 5 of plumb), wrists 0.94-1.01 trunk lengths over the shoulders. Bottom: the upper arm level on the floor, the far elbow 72-91, forearm near plumb, wrists 0.35-0.47 over the shoulders; the near elbow is hidden against the floor. Ours: top elbow 179, wrists 1.18 over (longer arms than hers); bottom elbow 81 on the floor, wrists 0.55. The elbows' 45-degree angle out from the trunk is not visible side on and is the usual floor-press position, not measured. Tempo at 0.2 s: down 1.2-1.4 s, 0.4-0.6 on the floor, up 0.4-0.6, 0.6-0.8 at the top. |
+| `seatedDumbbellPress` | [Seated Dumbbell Press - OPEX Exercise Library](https://www.youtube.com/watch?v=RgkzQ008m3I) | OPEX Fitness | front | three reps in 12 s | #374 | 2026-09-14 | Seated Dumbbell Press | Borrowed the standing barbell overhead press before. Seated tall on a flat bench, no backrest. Bottom: bells at the shoulders, wrists level with them and 1.15-1.24 shoulder widths apart, elbows under them 0.52-0.59 trunk lengths down, elbow 15-30. Half way: elbows out 1.9-2.0 shoulder widths apart, 0.17-0.35 up, elbow 88-105, wrists 0.72-0.88 up. Top: arms straight (160-180), wrists 1.03-1.09 up, a shoulder width apart. Ours: bottom elbow 32, elbows 0.55 down; half 95, elbows 2.3 apart and 0.37 up, wrists 0.86 up; top 179, wrists 1.18 up. The cue said 'back supported'; the clip has no backrest, so the cue now says sit tall. Tempo at 0.2 s: down 1.8-2.0 s, 0.4 at the bottom, up 1.0, 0.6-0.8 at the top. |
