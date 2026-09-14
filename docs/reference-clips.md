@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 122 |
-| sharing a pose that was authored from a clip | 40 |
+| authored from a clip (the clip shows the exercise) | 123 |
+| sharing a pose that was authored from a clip | 39 |
 | without a clip yet | 0 |
-| poses with a clip | 116 of 117 (116 in use) |
+| poses with a clip | 117 of 118 (117 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -147,7 +147,7 @@ Poses without a clip yet: `idle`.
 | Push Jerk | `pushJerk` | authored from the clip | [Push Jerk (Side view)](https://www.youtube.com/watch?v=dboDOX7xY_Q) (Fitness Pain Free, side) | #310 |
 | Push Press | `pushPress` | authored from the clip | [Push press (side view)](https://www.youtube.com/watch?v=xcCYH-UcoZ0) (Armory HPFT, side) | #309 |
 | Push-Up | `pushUp` | authored from the clip | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
-| Rack Pull | `hinge` | shares `hinge` (the clip shows Conventional Deadlift) | [Conventional Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=TN3DHmd1Fe8) (OPEX Fitness, side) | #316 |
+| Rack Pull | `rackPull` | authored from the clip | [Rack Pull](https://www.youtube.com/watch?v=d9sK2R95MMM) (Testosterone Nation, side) | #372 |
 | Reverse Snow Angel | `proneRaise` | shares `proneRaise` (the clip shows Superman) | [Superman Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=W8vlZfmxOpM) (OPEX Fitness, side) | #322 |
 | Romanian Deadlift | `romanianDeadlift` | authored from the clip | [BB RDL (Romanian Deadlift) Side View](https://www.youtube.com/watch?v=ionx2qnNVMo) (Coach Savela, side) | #260 |
 | Rotational Med Ball Throw | `medBallThrow` | authored from the clip | [Standing Med Ball Rotational Throw - Viking Strength Systems](https://www.youtube.com/watch?v=PNI1QKiWfiY) (Viking Strength Systems, front) | #359 |
@@ -304,3 +304,4 @@ Poses without a clip yet: `idle`.
 | `archerPushUp` | [Archer Push Up](https://www.youtube.com/watch?v=FcttBOkat5M) | OPEX Fitness | head-end | three sides in 9 s, the camera on the head | #369 | 2026-09-13 | Archer Push-Up | Borrowed the push-up before. Hands wide (wrists 2.5-2.7 shoulder widths apart) and fixed. Top: both elbows 178-180, shoulders centred, 1.03 shoulder widths over the wrists. Bottom: the shoulders ride 0.48-0.56 shoulder widths toward one hand, that elbow bends to 40-55 while the other stays straight (163-177), shoulders 0.29-0.35 over the wrists; then the other side. Authored side on with a new world-build `shift` for the trunk and `yaw` on each arm to reach the wide hands. Ours: top straight, the straight arm 38 off plumb as hers (wrists 3.1 shoulder widths apart on the figure's narrower shoulders); bottom elbow 48, shift 0.58, shoulders 0.42 over the wrists; half way elbow 82. Tempo at 0.2 s: down 1.0 s, 0.2-0.4 held, up 0.8, 0.4 at the top, a side every 2.4-2.6 s; the loop cannot hold, so the holds are shared into the legs. Fore-aft hand placement is not visible head-on. |
 | `backExtension` | [Exercise Library:  Back Extensions](https://www.youtube.com/watch?v=muPROfbUBeg) | Exercise Library | side | three reps, 15-27.5 s | #370 | 2026-09-14 | Back Extension | Borrowed the conventional deadlift before. 45-degree bench: hips on the pad, legs straight (knee 170-180) 53-56 down to the ankle roller, arms folded on the chest. Bottom: trunk 33-40 below level, hip 88-95 (ours 36, 90). Top: trunk 6-20 past the leg line (65-74 up); the cue says no further than straight, so ours takes the clip's least, 6 (trunk 60 up, hip 174). Tempo at 0.25 s: down 2.25-2.5 s, ~0.25 at the bottom, up 1.5-1.75, 0.5 at the top. OPEX's Roman Chair Back Extension (ZaLvgeHC_54) is filmed obliquely from behind and was not measured. |
 | `hackSquat` | [Hack Squat](https://www.youtube.com/watch?v=rYgNArpwE7E) | Renaissance Periodization | side | three reps in 13 s | #371 | 2026-09-14 | Hack Squat | Borrowed the barbell back squat before. Camera about 25 degrees off square: horizontal lengths divided by 0.90, the scale at which thigh and shin keep their length across frames. Back on the pad 55-62 above level all rep. Top: knee 172-176, hip 163-166. Bottom: knee 24-32, hip 41-47. Half way: knee ~60, hip ~78. Ours: trunk 58; top knee 175, hip 165; half 60/79; bottom 27/41; ankle fixed, the hips then travel 5 degrees off the back's line. Tempo at 0.25 s: down 3.25-3.75 s, 0.25 at the bottom, up 1.0-1.25, 0.25-0.5 at the top. Hype Training & Coaching (u_1a0nWG7vQ) was more oblique and shallower (knee 48-59) and was not used. |
+| `rackPull` | [Rack Pull](https://www.youtube.com/watch?v=d9sK2R95MMM) | Testosterone Nation | side | three reps in 11 s | #372 | 2026-09-14 | Rack Pull | Borrowed the conventional deadlift (bar to the floor) before. Bar on pins just above the knee: wrists 0.17-0.23 trunk lengths over the knee, 0.24-0.28 ahead of the ankle; shins plumb, knee 150-164, hip 97-113, trunk 42-58 from vertical. Top: hip and knee 171-180. Half way: trunk ~34, hip 128, knee 163. Elbows 166-179. Ours: pins trunk 54, hip 105, knee 159, bar 0.25 ahead of the ankle and 0.29 over the knee; half 34/128/162; top 0/177/175. Tempo at 0.2 s: down 1.0-1.6 s, dead stop 0.8-1.4 on the pins, up 0.4-0.6, 0.6-0.8 at the top. 360p source. |

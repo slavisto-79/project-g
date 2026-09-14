@@ -1483,6 +1483,49 @@ export const exercisePoses = {
     { tempo: { down: 1000, bottom: 750, up: 600, top: 1200 } },
   ),
 
+  // Rack pull, from a reference clip measured with the pose lab (Testosterone
+  // Nation "Rack Pull", d9sK2R95MMM, three reps in 11 s, a side view;
+  // MoveNet on 54 frames at 0.2 s). It borrowed the conventional deadlift
+  // before -- the bar lowered all the way to the floor.
+  //
+  // The bar rests on pins just above the knee (the wrists 0.17-0.23 trunk
+  // lengths over the knee joint, 0.24-0.28 ahead of the ankle). There the
+  // shins are plumb, the knee 150-164, the hip 97-113 and the trunk 42-58
+  // degrees from vertical. At the top the lifter stands tall (hip and knee
+  // 171-180). Half way down the trunk is at about 34, the hip 128, the knee
+  // 163. Arms straight throughout (elbow 166-179).
+  //
+  // Authored as the deadlift is, from the ankle up. The arms hang 17
+  // degrees ahead of plumb at the top (plumber, the bar runs into a heavy
+  // thigh) and 10 behind at the pins, which puts the bar 0.25 trunk lengths
+  // ahead of the ankle as hers is -- and 0.29 over the knee, a little higher
+  // than her 0.17-0.23. The pins are drawn as the rack's crosswise support.
+  //
+  // Tempo from the three reps, to the 0.2 s frames: down in 1.0-1.6 s, a
+  // dead stop of 0.8-1.4 on the pins, up in 0.4-0.6, 0.6-0.8 at the top.
+  rackPull: pose(
+    "side",
+    ([[3, 2, 0, 17], [18, 0, 34, 0], [21, 0, 54, -10]] as const).map(([thighBack, shinAhead, torso, armAhead]) => {
+      const upper = 180 - thighBack;
+      const lower = 180 + shinAhead;
+      const ankle = { x: 0.535, y: FLOOR };
+      const knee = along(ankle, lower + 180, P.shin);
+      const hip = along(knee, upper + 180, P.thigh);
+      const pelvis = { x: hip.x - (hipAt({ x: 0, y: 0 }, 0, 0, "side").x), y: hip.y };
+      return {
+        pelvis,
+        torso: (torso + 360) % 360,
+        neck: torso > 30 ? torso - 16 : torso,
+        arms: wide(sideArms(180 - armAhead, 183 - armAhead)),
+        legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
+      };
+    }),
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }, { kind: "slab", x: 0.555, y: 0.672, width: 0.9, height: 0.03, across: true }],
+    "overhand",
+    1,
+    { tempo: { down: 1400, bottom: 1000, up: 500, top: 700 } },
+  ),
+
   // Romanian deadlift, from a reference clip measured with the pose lab
   // (BB RDL side view, 3 reps in 9.8 s; MoveNet on 40 frames): the trunk
   // goes to 83-91 degrees from vertical at the bottom, the thigh 27-40

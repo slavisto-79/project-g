@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 16: exercises that borrowed a different movement's pose ------
+  rackPull: {
+    videoId: "d9sK2R95MMM",
+    title: "Rack Pull",
+    channel: "Testosterone Nation",
+    view: "side",
+    span: "three reps in 11 s",
+    prs: [372],
+    date: "2026-09-14",
+    exercises: ["Rack Pull"],
+    notes:
+      "Borrowed the conventional deadlift (bar to the floor) before. Bar on pins just above the knee: wrists 0.17-0.23 trunk lengths over the knee, 0.24-0.28 ahead of the ankle; shins plumb, knee 150-164, hip 97-113, trunk 42-58 from vertical. Top: hip and knee 171-180. Half way: trunk ~34, hip 128, knee 163. Elbows 166-179. Ours: pins trunk 54, hip 105, knee 159, bar 0.25 ahead of the ankle and 0.29 over the knee; half 34/128/162; top 0/177/175. Tempo at 0.2 s: down 1.0-1.6 s, dead stop 0.8-1.4 on the pins, up 0.4-0.6, 0.6-0.8 at the top. 360p source.",
+  },
   hackSquat: {
     videoId: "rYgNArpwE7E",
     title: "Hack Squat",

@@ -6130,7 +6130,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Romanian Deadlift": "romanianDeadlift",
   "Dumbbell Romanian Deadlift": "romanianDeadlift",
   "Stiff-Leg Deadlift": "stiffLegDeadlift",
-  "Rack Pull": "hinge",
+  "Rack Pull": "rackPull",
   "Good Morning": "goodMorning",
   "Bodyweight Good Morning": "goodMorning",
   "Kettlebell Swing": "kettlebellSwing",
