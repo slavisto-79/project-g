@@ -6192,7 +6192,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Incline Push-Up": "inclinePushUp",
   "Decline Push-Up": "declinePushUp",
   "Archer Push-Up": "archerPushUp",
-  "Plyo Push-Up": "pushUp",
+  "Plyo Push-Up": "plyoPushUp",
   "Dumbbell Fly": "fly",
   "Cable Chest Fly": "cableFly",
   "Pec Deck": "pecDeck",

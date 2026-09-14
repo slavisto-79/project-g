@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 16: exercises that borrowed a different movement's pose ------
+  plyoPushUp: {
+    videoId: "Y-uF4F3mQIs",
+    title: "HOW TO: Plyometric Push Up",
+    channel: "Goodlife Health Clubs",
+    view: "three-quarter",
+    span: "two reps, 24-29.6 s",
+    prs: [376],
+    date: "2026-09-14",
+    exercises: ["Plyo Push-Up"],
+    notes:
+      "Borrowed the push-up before. Down 0.9 s, a 0.9-1.3 s pause at the bottom (shoulders still sinking), the push 0.5-0.7, hands in the air 0.2-0.3 with elbows straight (169-178) and shoulders 0.13 trunk lengths over the plank, landing into the next descent. Bottom elbows read 85-93 but the three-quarter camera opens them; the bottom is the side-on push-up's. Ours: loop of plank, bottom, deeper bottom (the pause), flight; flight elbows 163, legs straight, hands 3.5 cm off the mat, shoulders 3.5 cm over the plank (more air bent the knees). OPEX's Plyometric Push Up (GNVQos5I0qk) is a plate drill with the hips piked and was not used. Loop 900 / 1100 / 700 / 250 ms.",
+  },
   chestSupportedRow: {
     videoId: "0-DXJiceG-0",
     title: "Chest Supported Incline Dumbbell Row - OPEX Exercise Library",
