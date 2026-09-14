@@ -717,6 +717,20 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  // --- Batch 17: exercises that borrowed a different movement's pose ------
+  preacherCurl: {
+    videoId: "w1qaVGYTtKk",
+    title: "Preacher Curl - Exercise Library",
+    channel: "Stable Strength Training",
+    view: "three-quarter",
+    span: "five reps in 17 s",
+    prs: [377],
+    date: "2026-09-14",
+    exercises: ["Preacher Curl"],
+    notes:
+      "Borrowed the standing barbell curl before. Camera about 30 degrees off the side. Seated, trunk 23-39 forward, upper arms on the pad and still at 47-61 below level (as projected). Arms long: elbow 160-172. Curled: elbow 27-39, forearm plumb, bar at shoulder height. Ours: trunk 30, upper arm 36 from plumb, elbow 169 / 100 / 46 (the curled elbow reads wider in 3D for the hands' spread). Pad drawn as a block under the elbows. OPEX EZ Bar Preacher Curl (dgaJQXa0kbg) and Body-Solid's clip are filmed from the front with the arm pointing at the camera and were not used. Tempo at 0.3 s: up 1.2 s, top 0.3-0.6, down 2.1, bottom ~0.3.",
+  },
+
   // --- Batch 16: exercises that borrowed a different movement's pose ------
   plyoPushUp: {
     videoId: "Y-uF4F3mQIs",

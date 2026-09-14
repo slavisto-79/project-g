@@ -3801,6 +3801,51 @@ export const exercisePoses = {
   // elbows only to 78 with the upper arm pinned at 4 forward, no tempo. Six
   // exercises share it (Barbell, Dumbbell, Hammer, Band, Preacher and
   // Concentration Curl).
+  // Preacher curl, from a reference clip measured with the pose lab (Stable
+  // Strength Training "Preacher Curl - Exercise Library", w1qaVGYTtKk, five
+  // reps in 17 s, the camera about 30 degrees round from the side; MoveNet on
+  // 60 frames at 0.3 s). It borrowed the standing barbell curl before.
+  //
+  // Seated, the trunk 23-39 degrees forward, the upper arms laid on the pad
+  // and still all rep at 47-61 degrees below level as the camera sees them
+  // (both arms agree). Arms long: elbow 160-172, the forearm carrying on
+  // down past the pad, the wrists well below the shoulders. Curled: elbow
+  // 27-39, the forearm plumb, the bar at shoulder height. OPEX's EZ Bar
+  // Preacher Curl (dgaJQXa0kbg) and Body-Solid's were filmed further round
+  // the front, with the arm on the pad pointing at the camera, and were not
+  // used; this camera's angle still leaves the pad angle approximate.
+  //
+  // The pad is drawn as a block under the elbows in front of the chest: the
+  // inclined-bench slab sets its pad a trunk's half-thickness off the line,
+  // which put it behind the back.
+  //
+  // Tempo from the five reps, to the 0.3 s frames: up in 1.2 s, 0.3-0.6 at
+  // the top, down in 2.1, about 0.3 with the arms long; curls 3.9 s apart.
+  preacherCurl: pose(
+    "side",
+    ([[133], [60], [355]] as const).map(([lower]) => {
+      const pelvis = { x: 0.42, y: 0.68 };
+      const torso = 30;
+      const feet: [Point, Point] = [{ x: 0.6, y: 0.915 }, { x: 0.588, y: 0.915 }];
+      return {
+        pelvis,
+        torso,
+        neck: torso - 15,
+        arms: [{ upper: 144, lower, spread: 0.06 }, { upper: 144, lower, spread: 0.06 }] as [Limb, Limb],
+        legs: plantedLegs(pelvis, torso, "side", feet, FORWARD, [90, 94]),
+      };
+    }),
+    [
+      { kind: "floor", y: FLOOR },
+      { kind: "slab", at: "pelvis", width: 0.3, height: 0.055, dy: 0.08 },
+      { kind: "slab", at: "shoulder0", dx: 0.035, dy: 0.17, width: 0.16, height: 0.07 },
+      { kind: "bar", at: "grip", length: 0.14, plates: false },
+    ],
+    "underhand",
+    1,
+    { tempo: { down: 1200, bottom: 450, up: 2100, top: 300 } },
+  ),
+
   curl: pose(
     "side",
     ([[177, 167], [172, 95], [164, 15]] as const).map(([upper, lower]) => stand({ x: 0.5, y: 0.494 }, 358, wide(sideArms(upper, lower)))),
