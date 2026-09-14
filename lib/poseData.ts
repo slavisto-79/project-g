@@ -3835,6 +3835,60 @@ export const exercisePoses = {
     { tempo: { down: 1200, bottom: 300, up: 1200, top: 300 } },
   ),
 
+  // Doorway row, from a reference clip measured with the pose lab (Gymless
+  // Fitness "Single Doorframe Row", aa0yCQqbYaM, three reps in 7 s, side
+  // view; MoveNet on 36 frames at 0.2 s). It borrowed the inverted row --
+  // two hands under a bar, body near horizontal -- before.
+  //
+  // One hand on the frame, the other at the waist (the library counts it
+  // per side). On the near side the trunk hangs 20 degrees behind vertical
+  // with the elbow 156-168 and the knee 162, and comes up to vertical with
+  // the elbow 57-73 and the knee 168-173; the thigh runs 146 -> 164 and the
+  // shin 164 -> 173 while the knee barely moves, so the feet stay put.
+  //
+  // The clip is cut off at the knees, so the feet are placed from those
+  // angles: each key is built up from a fixed ankle through the shin, thigh
+  // and trunk, and the hand is fixed where the hanging arm puts it. Solved
+  // to that one hand, the elbow comes out 160 / 99 / 73 at the three keys
+  // with no other fitting -- the clip's own path. (The legs above the hang
+  // draw straight: reach() locks a limb within 1 percent of full stretch.)
+  //
+  // The frame is a post BESIDE the body at the working hand, not a wall in
+  // front: the hand sits over the ankle, and a wall there went through the
+  // toes.
+  //
+  // Tempo from the three reps, to the 0.2 s frames: the pull 0.6 s, 0.6-0.8
+  // upright at the frame, back in 0.6-0.8, 0.4-0.6 hanging; tops 2.3 s apart.
+  doorwayRow: (() => {
+    const ankle = { x: 0.52, y: FLOOR };
+    const feet: [Point, Point] = [ankle, { x: ankle.x - 0.02, y: FLOOR }];
+    const pelvisFor = (torso: number, thigh: number, shin: number): Point => {
+      const knee = along(ankle, shin + 180, P.shin);
+      const hip = along(knee, thigh + 180, P.thigh);
+      const off = hipAt({ x: 0, y: 0 }, torso, 0, "side");
+      return { x: hip.x - off.x, y: hip.y - off.y };
+    };
+    const hang = pelvisFor(340, 146, 164);
+    const hand = along(along(shoulderAt(hang, 340, 0, "side"), 115, P.upperArm), 94, P.forearm);
+    return pose(
+      "side",
+      ([[340, 146, 164], [350, 155, 169], [0, 164, 173]] as const).map(([torso, thigh, shin]): Figure => {
+        const pelvis = pelvisFor(torso, thigh, shin);
+        const working = reach(shoulderAt(pelvis, torso, 0, "side"), hand, P.upperArm, P.forearm, 1);
+        return {
+          pelvis,
+          torso,
+          arms: [{ ...working, spread: 0.06 }, { upper: torso + 185, lower: torso + 140 }],
+          legs: plantedLegs(pelvis, torso, "side", feet, FORWARD),
+        };
+      }),
+      [{ kind: "floor" }, { kind: "slab", x: hand.x + 0.032, y: 0.475, width: 0.09, height: 0.91, post: true, depth: 0.172 }],
+      "neutral",
+      1,
+      { tempo: { down: 600, bottom: 650, up: 650, top: 400 }, camera: { azimuth: -1.0 } },
+    );
+  })(),
+
   // Hanging raises, from a reference clip measured with the pose lab (OPEX
   // San Juan "Hanging Leg Raises", w0IDQ_05X34, three-quarter view, four
   // reps in 12 s; MoveNet on 48 frames at 0.25 s). The clip: a dead hang

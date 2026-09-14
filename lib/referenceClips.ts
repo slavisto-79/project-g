@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 17: exercises that borrowed a different movement's pose ------
+  doorwayRow: {
+    videoId: "aa0yCQqbYaM",
+    title: "Single Doorframe Row",
+    channel: "Gymless Fitness",
+    view: "side",
+    span: "three reps in 7 s",
+    prs: [383],
+    date: "2026-09-15",
+    exercises: ["Doorway Row"],
+    notes:
+      "Borrowed the inverted row before. One hand on the door frame (the library has the movement per side), the other at the waist. Filmed upright and cut off at the knees, so the ankles are extrapolated from the thigh and knee angles and the feet are not seen. Near side: hanging back, trunk 20 behind vertical, knee 162, elbow 156-168; upright at the top, trunk 0-2, knee 168-173, elbow 57-73 (the forearm foreshortens at the top, so that is the projected angle). A clean full-body clip of the two-handed version (Nomads Playbook, eCojBl6k_HE) was triaged and not used. Ours: trunk 20 / 10 / 0, elbow 160 / 99 / 73, knee 162 at the hang and straight above it, hand fixed on a post beside the body. Tempo at 0.2 s: pull 0.6 s, 0.6-0.8 at the frame, back in 0.6-0.8, 0.4-0.6 hanging, tops 2.3 s apart.",
+  },
   barbellWalkingLunge: {
     videoId: "bdbJ_aRjw-4",
     title: "Barbell Walking Lunge - OPEX Exercise Library",
@@ -1474,7 +1486,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [321],
     date: "2026-09-11",
     exercises: ["Inverted Row"],
-    notes: "Towel Row and Doorway Row borrow this pose. The clip is on rings; the pose draws a fixed bar, which is why the top stops at the shallow end of the clip's elbow band -- on rings the head passes between them, under a bar it does not.",
+    notes: "Towel Row borrows this pose. The clip is on rings; the pose draws a fixed bar, which is why the top stops at the shallow end of the clip's elbow band -- on rings the head passes between them, under a bar it does not.",
   },
 
   calfRaise: {

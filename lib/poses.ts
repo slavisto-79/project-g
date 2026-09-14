@@ -44,7 +44,10 @@ export type PoseProp =
   // above the grip; everything else comes from the hands and the floor.
   // tilt: a tall plate (the leg press's platform) leaning back from vertical
   // by this many degrees, its top away from the figure -- a 45-degree sled.
-  | { kind: "slab"; x: number; y: number; width: number; height: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; depth?: number }
+  // post: an upright a hand grips from the side -- a door frame's edge. Narrow
+  // across the body as well as along it, and in a side view it stands at
+  // `depth` across the view (world x), beside the body, not through the feet.
+  | { kind: "slab"; x: number; y: number; width: number; height: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; depth?: number; post?: boolean }
   // A cable running from a pulley (the anchor, fixed in the world) to the
   // hands; the world build draws the whole machine around the anchor.
   // rope: a battle rope, not a cable -- it runs from a floor anchor to ONE
@@ -111,7 +114,7 @@ export type PoseProp3D =
   // the way a bench is placed for hands or feet on its edge.
   // `lever`: a padded roller against a limb. Width is its length across the
   // body, height its diameter, and it is held up by its arm, not the floor.
-  | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number }
+  | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; post?: boolean }
   // center is the grip (where the cable ends), anchor the pulley.
   | { kind: "cable"; center: Vec3; anchor: Vec3; rope?: boolean; handle?: "rope" | "d"; band?: string; end?: string; arm?: number }
   | { kind: "floor"; y: number; mat?: boolean };
@@ -677,6 +680,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
     }
     const slabCentre = point(prop.x, prop.y);
     if (view === "front" && prop.depth !== undefined) slabCentre[2] = prop.depth;
+    if (view === "side" && prop.post && prop.depth !== undefined) slabCentre[0] = prop.depth;
     return {
       kind: "slab" as const,
       center: slabCentre,
@@ -689,6 +693,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
       ...(prop.lever ? { lever: true } : {}),
       ...(prop.sled ? { sled: true } : {}),
       ...(prop.tilt !== undefined ? { tilt: prop.tilt } : {}),
+      ...(prop.post ? { post: true } : {}),
     };
   });
 }
@@ -697,14 +702,15 @@ type PropSpec =
   | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean; hex?: boolean }
   // swing: see PoseProp -- a kettlebell drawn along the arm's line.
   | { kind: "bell"; at: string; size?: number; each?: boolean; wheel?: boolean; swing?: boolean; hug?: boolean }
-  // depth: FRONT view only -- where the slab stands along the depth axis
+  // depth: FRONT view -- where the slab stands along the depth axis
   // (world z; the figure faces +z). Left out it sits in the figure's own
   // plane; a bench the top foot rests on in a Copenhagen plank stands a
-  // little behind the body, so it does not hide it.
+  // little behind the body, so it does not hide it. On a side-view `post`
+  // it is where the upright stands across the view (world x) instead.
   // A slab rides a joint (`at`, plus dx/dy) or stands in the world (`x`,
   // `y` and no `at`): a box the figure jumps onto does not move with any
   // part of the figure.
-  | { kind: "slab"; at?: string; x?: number; y?: number; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; depth?: number }
+  | { kind: "slab"; at?: string; x?: number; y?: number; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; depth?: number; post?: boolean }
   // anchor: the pulley, in authored coordinates (a high pulley sits above the
   // frame's top edge, which is fine -- it only has to be off the figure).
   // anchorAt: anchor the run on a JOINT instead of a fixed point -- a loop
@@ -774,6 +780,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
         ...(spec.sled ? { sled: true } : {}),
         ...(spec.tilt !== undefined ? { tilt: spec.tilt } : {}),
         ...(spec.depth !== undefined ? { depth: spec.depth } : {}),
+        ...(spec.post ? { post: true } : {}),
       });
     }
   }
