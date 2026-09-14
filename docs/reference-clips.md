@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 132 |
-| sharing a pose that was authored from a clip | 30 |
+| authored from a clip (the clip shows the exercise) | 133 |
+| sharing a pose that was authored from a clip | 29 |
 | without a clip yet | 0 |
-| poses with a clip | 126 of 127 (126 in use) |
+| poses with a clip | 127 of 128 (127 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -39,7 +39,7 @@ Poses without a clip yet: `idle`.
 | Barbell Hip Thrust | `hipThrust` | authored from the clip | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
 | Barbell Overhead Press | `overheadPress` | authored from the clip | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
 | Barbell Row | `bentRow` | authored from the clip | [How to do a Barbell Bent Over Row Pronated](https://www.youtube.com/watch?v=bm0_q9bR_HA) (National Academy of Sports Medicine (NASM), side) | #273 |
-| Barbell Walking Lunge | `lunge` | shares `lunge` (the clip shows Bodyweight Reverse Lunge, Dumbbell Lunge) | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
+| Barbell Walking Lunge | `barbellWalkingLunge` | authored from the clip | [Barbell Walking Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=bdbJ_aRjw-4) (OPEX Fitness, side) | #382 |
 | Battle Ropes | `battleRopes` | authored from the clip | [Battling Ropes](https://www.youtube.com/watch?v=4aT3IyKOo5M) (OPEX Fitness, side) | #342 |
 | Bear Crawl | `bearCrawl` | authored from the clip | [Crawl - OPEX Exercise Library](https://www.youtube.com/watch?v=w089AXf1f_g) (OPEX Fitness, side) | #304 |
 | Bench Dip | `benchDip` | authored from the clip | [Bench Dip](https://www.youtube.com/watch?v=yvAzWxRsnqU) (OPEX Fitness, side) | #368 |
@@ -314,3 +314,4 @@ Poses without a clip yet: `idle`.
 | `proneYTW` | [Prone Y-T-W](https://www.youtube.com/watch?v=X-b1S-rQc9k) | Cardinal Strength and Conditioning | head-end | one Y-T-W round in 15 s | #379 | 2026-09-14 | Prone Y-T-W Raise | Borrowed the superman before. Face down, legs down, arms just off the floor. Y (0.4-6.4 s): straight arms overhead 30-54 out from the body line (near arm). T (6.8-11 s): arms out to the sides; the raised camera stretches it to 121-134 from the head line, taken as square. W (11.8-15.4 s): elbows 40-96, drawn toward the hips, hands beside the shoulders. Ours: Y 51, T 96, W elbow 73 with the upper arm 150 from the head line. Arm height and any pulses within each hold are not measurable from this camera: no tempo. Simone Sports Performance's clip (LSy6R7j3PDc) has two lifters overlapping at an angle and was not used. |
 | `reverseSnowAngel` | [Prone Snow Angels](https://www.youtube.com/watch?v=vSou6Vup5W8) | Functional Bodybuilding | head-end | three sweeps in 12 s | #380 | 2026-09-14 | Reverse Snow Angel | Borrowed the superman before. Face down, legs down, arms just off the floor swept round the body: overhead, straight (elbow 168-180), 4-8 out from the body line; through the sides with the arms long; to the hips with the elbows bent 82-125 and the hands over the lower back; and back. Ours: overhead 16 out, sides 96, hips elbow 100 with the hand beside the hip. Tempo at 0.2 s: down to the hips 0.8-1.0 s, held 1.4, up 1.2, overhead 0.4-0.6; sweeps 4.4-4.5 s apart. Arm height off the floor is not visible from the raised camera. |
 | `singleLegCalfRaise` | [Single Leg Standing Calf Raise](https://www.youtube.com/watch?v=a6YrB_aULZY) | OPEX Fitness | back | five reps in 8 s | #381 | 2026-09-14 | Single-Leg Calf Raise | Borrowed the two-legged calf raise before. One foot on a low step, the other hooked behind the working ankle, hands flat on a wall. Hips rise 12 percent of hip-to-ankle length, the ankle 14. From behind there is no ankle angle; drawn from the floor with the two-legged raise's range, as that pose is. Added the hooked free foot (4 cm behind the working leg, above its ankle) and the wall. Tempo at 0.15 s: up 0.3-0.45 s, top 0.45-0.75, down 0.45-0.6, bottom 0.3-0.6; tops 1.7-1.8 s apart. |
+| `barbellWalkingLunge` | [Barbell Walking Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=bdbJ_aRjw-4) | OPEX Fitness | side | three lunges in 9 s | #382 | 2026-09-14 | Barbell Walking Lunge | Borrowed the dumbbell reverse lunge before. Bar on the back; step forward into a lunge, rear leg through to feet together, repeat. Bottom: front knee 70-72 with the shin 28 forward, rear knee 70-74 just off the floor, trunk 15 forward, hips dropping about half a leg length, step about three quarters of one. Plates hide the head; the legs read cleanly. Ours, walked in place as a loop (stand, lunge one leg, stand, lunge the other): front knee 74, rear 84 (0.7 cm off the floor), trunk 15, hips 22 cm down. Tempo at 0.2 s: stand 0.6 s, step and lower 1.4, bottom 0.2-0.4, rise 1.2, about 3.4 s a stride; loop 1700 / 1800 per half with holds shared in. |

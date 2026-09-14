@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 17: exercises that borrowed a different movement's pose ------
+  barbellWalkingLunge: {
+    videoId: "bdbJ_aRjw-4",
+    title: "Barbell Walking Lunge - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three lunges in 9 s",
+    prs: [382],
+    date: "2026-09-14",
+    exercises: ["Barbell Walking Lunge"],
+    notes:
+      "Borrowed the dumbbell reverse lunge before. Bar on the back; step forward into a lunge, rear leg through to feet together, repeat. Bottom: front knee 70-72 with the shin 28 forward, rear knee 70-74 just off the floor, trunk 15 forward, hips dropping about half a leg length, step about three quarters of one. Plates hide the head; the legs read cleanly. Ours, walked in place as a loop (stand, lunge one leg, stand, lunge the other): front knee 74, rear 84 (0.7 cm off the floor), trunk 15, hips 22 cm down. Tempo at 0.2 s: stand 0.6 s, step and lower 1.4, bottom 0.2-0.4, rise 1.2, about 3.4 s a stride; loop 1700 / 1800 per half with holds shared in.",
+  },
   singleLegCalfRaise: {
     videoId: "a6YrB_aULZY",
     title: "Single Leg Standing Calf Raise",
