@@ -717,6 +717,20 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  // --- Batch 18: the last visibly different borrowers ----------------------
+  towelRow: {
+    videoId: "L2HkSlrAacA",
+    title: "Towel Rows",
+    channel: "Nicolas Sart",
+    view: "side",
+    span: "four reps in 24 s",
+    prs: [386],
+    date: "2026-09-15",
+    exercises: ["Towel Row"],
+    notes:
+      "Borrowed the inverted row (under a bar, near horizontal) before. The clip loops the towel round wall bars, not a door handle; the body and the pull are the same. A rigid body turning about the ankles: hanging 23-27 behind vertical with the elbow 169-178 and knee 170-177; up to 7-10 back with the elbow 66-76. The hands sit over the ankles and drift a couple of centimetres forward and down as the towel swings, so each key's hands are taken from the clip rather than fixed. Ours: trunk 25 / 15 / 8, elbow 180 / 79 / 60, hip 164-169 (clip 171-178). Tempo at 0.25 s: pull 1.0 s, 0.75-1.0 up, back 1.0-1.5, 0.5-0.75 hanging; tops 3.65-3.85 s apart.",
+  },
+
   // --- Batch 17: exercises that borrowed a different movement's pose ------
   machineShoulderPress: {
     videoId: "WvLMauqrnK8",
@@ -1510,7 +1524,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [321],
     date: "2026-09-11",
     exercises: ["Inverted Row"],
-    notes: "Towel Row borrows this pose. The clip is on rings; the pose draws a fixed bar, which is why the top stops at the shallow end of the clip's elbow band -- on rings the head passes between them, under a bar it does not.",
+    notes: "The clip is on rings; the pose draws a fixed bar, which is why the top stops at the shallow end of the clip's elbow band -- on rings the head passes between them, under a bar it does not.",
   },
 
   calfRaise: {

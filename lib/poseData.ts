@@ -4004,6 +4004,64 @@ export const exercisePoses = {
     );
   })(),
 
+  // Towel row, from a reference clip measured with the pose lab (Nicolas
+  // Sart "Towel Rows", L2HkSlrAacA, four reps in 24 s, side view; MoveNet
+  // on 95 frames at 0.25 s). It borrowed the inverted row -- under a bar,
+  // body near horizontal -- before.
+  //
+  // Standing, a towel round a fixed point (wall bars in the clip, a door
+  // handle in the cue), both hands on its ends. The body turns about the
+  // ankles as one piece: hanging 23-27 degrees behind vertical, elbow 169-
+  // 178, knee 170-177; pulled up to 7-10 back, elbow 66-76. The hands sit
+  // over the ankles and drift a couple of centimetres forward and down as
+  // the towel swings in, so each key's hands are placed from the clip
+  // (relative to the ankle, scaled by the ankle-to-shoulder length) rather
+  // than held at one point: held at the hanging hand, the top elbow closed
+  // to 47.
+  //
+  // Measured after, both builds: trunk 25 / 15 / 8 behind vertical, elbow
+  // 180 / 79 / 60, hip 164-169 (the clip's 171-178 reads a little straighter).
+  // The towel is a `towel` cable, drawn for any exercise, from a handle on
+  // the door's line to each hand.
+  //
+  // Tempo from the four reps, to the 0.25 s frames: pull 1.0 s, 0.75-1.0 at
+  // the top, back in 1.0-1.5, 0.5-0.75 hanging; tops 3.65-3.85 s apart.
+  towelRow: (() => {
+    const ankle = { x: 0.55, y: FLOOR };
+    const feet: [Point, Point] = [ankle, { x: ankle.x - 0.02, y: FLOOR }];
+    const pelvisFor = (torso: number, thigh: number, shin: number): Point => {
+      const knee = along(ankle, shin + 180, P.shin);
+      const hip = along(knee, thigh + 180, P.thigh);
+      const off = hipAt({ x: 0, y: 0 }, torso, 0, "side");
+      return { x: hip.x - off.x, y: hip.y - off.y };
+    };
+    const hang = pelvisFor(335, 154, 159);
+    const hung = along(along(shoulderAt(hang, 335, 0, "side"), 103, P.upperArm), 96, P.forearm);
+    // The towel's end on the door handle, on the hanging arms' line.
+    const handle = along(hung, 96, 0.25);
+    return pose(
+      "side",
+      // [torso, thigh, shin, hands]
+      ([[335, 154, 159, hung], [345, 169, 173, { x: 0.552, y: 0.386 }], [352, 183, 184, { x: 0.553, y: 0.394 }]] as const).map(([torso, thigh, shin, hand]): Figure => {
+        const pelvis = pelvisFor(torso, thigh, shin);
+        return {
+          pelvis,
+          torso,
+          arms: reachingArms(pelvis, torso, "side", [hand, { x: hand.x - 0.008, y: hand.y }], BACK).map((arm) => ({ ...arm, spread: -0.03 })) as [Limb, Limb],
+          legs: plantedLegs(pelvis, torso, "side", feet, FORWARD),
+        };
+      }),
+      [
+        { kind: "floor" },
+        { kind: "cable", at: "grip", anchor: handle, towel: true },
+        { kind: "slab", x: handle.x + 0.02, y: 0.475, width: 0.03, height: 0.91 },
+      ],
+      "neutral",
+      1,
+      { tempo: { down: 1000, bottom: 850, up: 1150, top: 650 } },
+    );
+  })(),
+
   // Hanging raises, from a reference clip measured with the pose lab (OPEX
   // San Juan "Hanging Leg Raises", w0IDQ_05X34, three-quarter view, four
   // reps in 12 s; MoveNet on 48 frames at 0.25 s). The clip: a dead hang

@@ -804,7 +804,9 @@ export class PoseViewer3D {
         (p.kind === "cable" && p.handle === "d" && implement === "machine") ||
         ((p.kind === "bell" || (p.kind === "bar" && p.plates)) && implement !== undefined && implement !== "band") ||
         // A band handle is closed on like any other handle.
-        (p.kind === "cable" && !!p.band && implement === "band"),
+        (p.kind === "cable" && !!p.band && implement === "band") ||
+        // So is a towel, whatever the exercise is filed under.
+        (p.kind === "cable" && !!p.towel),
     );
     // The avatar's build, as per-part radius multipliers. `t` is how far the
     // build sits from the reference (negative = leaner). Legs thicken fastest
@@ -1333,10 +1335,11 @@ export class PoseViewer3D {
   // it pulls on. `side` is the hand it ends at, or null when it ends somewhere
   // else -- a foot standing in an assistance loop. A side view authors every
   // prop on the midline, so the end comes from the hands, never the centre.
-  private bands: { propIndex: number; side: 0 | 1 | null; tube: THREE.Mesh; grip: THREE.Mesh | null }[] = [];
+  private bands: { propIndex: number; side: 0 | 1 | null; tube: THREE.Mesh; grip: THREE.Mesh | null; fixed?: boolean }[] = [];
   // Latex, and the one warm colour in a scene of cold greys: a black band on a
   // near-black floor is a band nobody can see.
   private bandMaterial = new THREE.MeshStandardMaterial({ color: 0x9a4b3a, roughness: 0.75, metalness: 0 });
+  private towelMaterial = new THREE.MeshStandardMaterial({ color: 0xd9d4c7, roughness: 0.95, metalness: 0 });
   // The padded cuff a cable or a band ends in when it ends at an ankle, and
   // the shin it wraps, so it can be turned to lie round the leg.
   private cuffs: { propIndex: number; side: 0 | 1; group: THREE.Group }[] = [];
@@ -1428,6 +1431,17 @@ export class PoseViewer3D {
       this.scene.add(grip);
     }
     this.bands.push({ propIndex, side, tube, grip });
+  }
+
+  // A towel round a fixed point: one twisted end from the anchor to each
+  // hand. The anchor stays where it was authored (a door handle is not
+  // walked out under the hand the way a band under the feet is).
+  private towelLine(propIndex: number) {
+    for (const side of [0, 1] as const) {
+      const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 1, 10), this.towelMaterial);
+      this.scene.add(tube);
+      this.bands.push({ propIndex, side, tube, grip: null, fixed: true });
+    }
   }
 
   // The other thing that clips to a cable: a D-handle. One per cable, on the
@@ -2200,6 +2214,10 @@ export class PoseViewer3D {
         // the barbell bench press and the curl with dumbbells, and the seated
         // row's anchor is a cable station for everyone else -- so this branch
         // must not swallow the prop, only claim it when the band is real.
+        if (prop.towel) {
+          this.towelLine(i);
+          continue;
+        }
         if (prop.band && implement === "band") {
           const ownBar = first.props.some((p) => p.kind === "bar" && !p.plates);
           this.bandLine(prop, i, !ownBar);
@@ -3228,7 +3246,7 @@ export class PoseViewer3D {
       // Walked out under the hand it pulls: measured, a fixed half-stance ran
       // the overhead press band up through the shin, because that stance is
       // wider than the offset and the band was inboard of the leg.
-      if (band.side !== null && Math.abs(anchor.x) < 1e-6) anchor.x = Math.sign(end.x) * Math.min(Math.abs(end.x) + BAND_CLEARANCE, BAND_REACH_MAX);
+      if (band.side !== null && !band.fixed && Math.abs(anchor.x) < 1e-6) anchor.x = Math.sign(end.x) * Math.min(Math.abs(end.x) + BAND_CLEARANCE, BAND_REACH_MAX);
       // A loop band sits just ABOVE the ankle bone, not on the shoe: drawn at
       // the joint it read as a stick lying between two trainers.
       if (ankleEnd !== null) { end.y += BAND_ANKLE_LIFT; anchor.y += BAND_ANKLE_LIFT; }
