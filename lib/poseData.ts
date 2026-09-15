@@ -86,6 +86,11 @@ function lyingLegs(upper: number, lower: number, end?: number): [Limb, Limb] {
 const SQUAT_FRAMES = [
   [0.528, 0.492, 5], [0.466, 0.569, 27], [0.452, 0.656, 35], [0.449, 0.748, 36],
 ] as const;
+// The front squat's upright descent (see `frontSquat`): [pelvis x, pelvis y,
+// trunk, thigh, shin] per key, shared by the dumbbell front squat.
+const FRONT_SQUAT_FRAMES = [
+  [0.523, 0.490, 3, 178, 182], [0.455, 0.567, 15, 134, 196], [0.446, 0.639, 26, 115, 204], [0.441, 0.717, 32, 96, 208],
+] as const;
 // The same clip's timing: a second down, a beat at the bottom, a second up,
 // and a longer beat standing before the next rep.
 const SQUAT_TEMPO = { down: 1000, bottom: 400, up: 1000, top: 700 };
@@ -491,7 +496,7 @@ export const exercisePoses = {
   // with the bar carried 16cm in front of the shoulders.
   frontSquat: pose(
     "side",
-    ([[0.523, 0.490, 3, 178, 182], [0.455, 0.567, 15, 134, 196], [0.446, 0.639, 26, 115, 204], [0.441, 0.717, 32, 96, 208]] as const).map(
+    FRONT_SQUAT_FRAMES.map(
       ([x, y, torso, upper, lower]) =>
         squatting({
           pelvis: { x, y },
@@ -504,6 +509,41 @@ export const exercisePoses = {
     "overhand",
     1,
     { tempo: { down: 1400, bottom: 600, up: 900, top: 800 }, camera: SQUAT_CAMERA },
+  ),
+
+  // Dumbbell front squat, from a reference clip measured with the pose lab
+  // (OPEX "Front Rack Dumbbell Squat", 7CuKlSgu1B0, three reps in 10.5 s,
+  // three-quarters on from the front; MoveNet on 60 frames at 0.2 s). It
+  // borrowed the goblet squat -- one bell hugged at the chest -- before.
+  //
+  // The legs and trunk are the barbell front squat's, and the clip confirms
+  // them rather than moving them: the hip crease level with the knee at the
+  // bottom (hip 0.45 of its standing height above the ankle, against the
+  // frames' 0.49), the trunk 25-28 as projected, which three-quarters on is
+  // the frames' 32. What differs is the rack: a dumbbell on each shoulder,
+  // the upper arm held about 40 degrees forward of plumb THROUGHOUT (it does
+  // not follow the trunk down), the forearm folded back up so the wrist sits
+  // level with the shoulder a few centimetres in front of it (elbow 18-28 as
+  // projected; drawn 36, over the fold limit's floor). The bar front squat's
+  // elbows are up level with the shoulders instead.
+  //
+  // Tempo from the three reps, to the 0.2 s frames: down in 1.6 s (2.0 on
+  // the first), 0.2-0.4 at the bottom, up in 0.8-1.0, 0.6-0.8 standing;
+  // tops 3.1-3.6 s apart.
+  dumbbellFrontSquat: pose(
+    "side",
+    FRONT_SQUAT_FRAMES.map(([x, y, torso, upper, lower]) =>
+      squatting({
+        pelvis: { x, y },
+        torso,
+        arms: [{ upper: 140, lower: 345, spread: 0.04 }, { upper: 140, lower: 345, spread: 0.04 }],
+        legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
+      }),
+    ),
+    [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
+    "neutral",
+    1,
+    { tempo: { down: 1600, bottom: 250, up: 950, top: 700 }, camera: SQUAT_CAMERA },
   ),
 
   // A goblet squat hugs the bell against the chest with both hands -- and

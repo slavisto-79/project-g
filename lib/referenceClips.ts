@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 18: the last visibly different borrowers ----------------------
+  dumbbellFrontSquat: {
+    videoId: "7CuKlSgu1B0",
+    title: "Front Rack Dumbbell Squat",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "three reps in 10.5 s",
+    prs: [389],
+    date: "2026-09-16",
+    exercises: ["Dumbbell Front Squat"],
+    notes:
+      "Borrowed the goblet squat (one bell hugged at the chest) before. The legs and trunk reuse the barbell front squat's frames, which the clip confirms: hip crease level with the knee at the bottom (0.45 of standing hip height against the frames' 0.49), trunk 25-28 as projected three-quarters on (the frames' 32). New is the rack: a dumbbell on each shoulder, the upper arm about 40 forward of plumb through the whole rep, the forearm folded back so the wrist sits level with the shoulder just in front (elbow 18-28 projected, drawn 36). Tempo at 0.2 s: down 1.6 s, 0.2-0.4 at the bottom, up 0.8-1.0, 0.6-0.8 standing.",
+  },
   sideLunge: {
     videoId: "MvpBUsQrt_4",
     title: "Lateral Lunges",
