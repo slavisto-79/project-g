@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 17: exercises that borrowed a different movement's pose ------
+  machineShoulderPress: {
+    videoId: "WvLMauqrnK8",
+    title: "Machine Shoulder Press",
+    channel: "Renaissance Periodization",
+    view: "three-quarter",
+    span: "four presses in 12 s",
+    prs: [385],
+    date: "2026-09-15",
+    exercises: ["Machine Shoulder Press"],
+    notes:
+      "Borrowed the standing barbell overhead press before. OPEX's clip of this machine is dark and never shows the arms overhead in the triage frames. One continuous shot from three-quarters in front. Ratios across the body: wrists 1.9-2.2 shoulder widths apart throughout; elbows 2.0-2.3 at the bottom (wrists level with the shoulders), 2.3-2.6 half way (just above the shoulders), 1.5-1.7 at the top with the arms straight (164-180). Not settled: the bottom elbow angle (projected 15-50) and the exact recline (16-20 as projected). Ours: wrists 2.05, elbows 2.16 / 2.57 / 1.52, elbow 41 / 87 / 178, pad 18 back. Tempo at 0.2 s: up 0.6-0.8 s, 0.4-0.6 at the top, down 1.0-1.2, 0.6-1.2 at the bottom; tops 3.0-3.6 s apart. Handles drawn one per hand.",
+  },
   machineChestPress: {
     videoId: "dYF2d_I24uE",
     title: "Seated Chest Press Machine Quick Tips",

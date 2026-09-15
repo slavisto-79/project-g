@@ -2441,6 +2441,10 @@ export class PoseViewer3D {
           if (pose.grip === "neutral") mesh.rotation.y = Math.PI / 2;
         } else if (prop.plates) {
           mesh = this.barbell(prop.length);
+        } else if (prop.handles) {
+          // A machine's grips: a short handle in each hand (the twin rides
+          // the other hand), not a bar across the face.
+          mesh = this.plainBar(0.13);
         } else if (prop.rails) {
           // Parallel dip bars: one rail either side of the body, running
           // fore-aft, instead of a crossbar through the hips.
@@ -2462,7 +2466,7 @@ export class PoseViewer3D {
         this.scene.add(mesh);
         const perHand = implement === "dumbbell" && prop.plates;
         if (perHand) this.fistOutboard = true;
-        const held = this.anchored(mesh, i, "bar", perHand ? "hands" : "centre");
+        const held = this.anchored(mesh, i, "bar", perHand || prop.handles ? "hands" : "centre");
         // A kettlebell in both hands on a bar movement is a swing (or a
         // kettlebell deadlift): it hangs in line with the arms, not
         // plumb -- at the top of a swing that is horizontal.
