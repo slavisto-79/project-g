@@ -3235,6 +3235,64 @@ export const exercisePoses = {
     { tempo: { down: 450, bottom: 0, up: 450, top: 900 }, camera: { azimuth: 0.75 } },
   ),
 
+  // Machine shoulder press, from a reference clip measured with the pose lab
+  // (Renaissance Periodization "Machine Shoulder Press", WvLMauqrnK8, four
+  // presses in 12 s, one continuous shot from three-quarters in front;
+  // MoveNet on 62 frames at 0.2 s). It borrowed the standing barbell
+  // overhead press before.
+  //
+  // Seated against a back pad reclined 16-20 degrees as projected, thighs
+  // level. The handles are wide: the wrists 1.9-2.2 shoulder widths apart
+  // through the whole rep. At the bottom the wrists are level with the
+  // shoulders and the elbows under them and as wide (2.0-2.3); half way the
+  // elbows run wider than the hands (2.3-2.6) and just above shoulder
+  // height; at the top the arms are straight (elbow 164-180) in a V, the
+  // elbows 1.5-1.7 apart. Widths are ratios across the body, which the
+  // three-quarter camera leaves alone; the elbow's own angle at the bottom
+  // it does not (projected 15-50).
+  //
+  // Authored side on, as the seated dumbbell press: each hand placed where
+  // the clip has it against its shoulder, the arm solved to it in the plane,
+  // `spread` carrying both hands out to the clip's width and `flare`
+  // swinging the elbows out round the shoulder-to-hand line. Measured after:
+  // wrists 2.05 apart, elbows 1.52 / 2.57 / 2.16, elbow 178 / 87 / 41.
+  //
+  // The handles are drawn one in each hand (`handles`): a single bar at the
+  // grip ran through the face half way up.
+  //
+  // Tempo from the four presses, to the 0.2 s frames: up in 0.6-0.8 s, 0.4-
+  // 0.6 at the top, down in 1.0-1.2, 0.6-1.2 at the bottom; tops 3.0-3.6 s
+  // apart.
+  machineShoulderPress: (() => {
+    const pelvis = { x: 0.44, y: 0.722 };
+    const torso = 342;
+    return pose(
+      "side",
+      // [hand up from the shoulder, hand ahead of it, elbow flared out, elbow fold]
+      ([[0.287, 0.03, 0, BACK], [0.18, 0.06, 60, BACK], [0, 0.06, 40, BACK]] as const).map(([up, ahead, flare, bend]): Figure => {
+        const hands = [0, 1].map((side) => {
+          const sh = shoulderAt(pelvis, torso, side as 0 | 1, "side");
+          return { x: sh.x + ahead / ASPECT, y: sh.y - up };
+        }) as [Point, Point];
+        return {
+          pelvis,
+          torso,
+          neck: 18,
+          arms: reachingArms(pelvis, torso, "side", hands, bend).map((arm) => ({ ...arm, flare, spread: 0.06 })) as [Limb, Limb],
+          legs: [{ upper: 88, lower: 173, end: 90 }, { upper: 88, lower: 173, end: 90 }],
+        };
+      }),
+      [
+        { kind: "floor", y: FLOOR },
+        { kind: "slab", at: "pelvis", width: 0.55, height: 0.055, angle: torso },
+        { kind: "bar", at: "grip", length: 0.13, plates: false, handles: true },
+      ],
+      "overhand",
+      1,
+      { tempo: { down: 1100, bottom: 800, up: 650, top: 550 }, camera: { azimuth: 0.9 } },
+    );
+  })(),
+
   overheadPress: pose(
     "side",
     ([[355, 150, 5, 350], [358, 95, 0, 352], [0, 5, 355, 0]] as const).map(([torso, upper, lower, neck]) => {

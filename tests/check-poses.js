@@ -322,7 +322,7 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
     const len = Math.hypot(dir[0], dir[1], dir[2]) || 1;
     const c = frame.head.c.map((v, i) => v + (dir[i] / len) * HEAD_RIDE);
     for (const prop of frame.props) {
-      if (prop.kind === "bar" && !prop.rails && !prop.dir && !prop.hex) {
+      if (prop.kind === "bar" && !prop.rails && !prop.dir && !prop.hex && !prop.handles) {
         const dist = Math.hypot(c[1] - prop.center[1], c[2] - prop.center[2]);
         const clash = headR + BAR_RADIUS - dist;
         if (clash > 0) note(name + "[" + fi + "]: bar passes through the head by " + clash.toFixed(3));
