@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 18: the last visibly different borrowers ----------------------
+  pendlayRow: {
+    videoId: "cosDas3E5ok",
+    title: "Pendlay Row - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "three reps in 9.3 s",
+    prs: [390],
+    date: "2026-09-16",
+    exercises: ["Pendlay Row"],
+    notes:
+      "Borrowed the bent-over row (bar hanging at the knees, trunk 60 from vertical) before. Every rep from a dead stop on the floor, arms straight, trunk 7-11 above horizontal as projected; the pull to the lower chest with the upper arm swept back level (elbow 55-59 projected), the trunk rising to 30-38 projected (about 20-25 in the sagittal plane, three-quarters on). Ours: trunk 5 / 12 / 22 above horizontal, bar 12.3 cm up at the floor key (the deadlift's floor: 12.5), elbow 178 / 108 / 72, knee 127. Cue corrected: 'torso parallel throughout' is not what the clip does -- the trunk lifts as the bar reaches the chest. Tempo at 0.15 s: pull 0.6-0.75 s, 0.3-0.45 at the chest, lower 0.9-1.2, 1.2 on the floor.",
+  },
   dumbbellFrontSquat: {
     videoId: "7CuKlSgu1B0",
     title: "Front Rack Dumbbell Squat",

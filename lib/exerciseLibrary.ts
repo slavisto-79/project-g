@@ -189,7 +189,7 @@ export const exerciseLibrary: LibraryExercise[] = [
 
   // --- HORIZONTAL PULL -----------------------------------------------------
   { name: "Barbell Row", pattern: "pull", primaryMuscle: "back", tiers: FREE_WEIGHT, implement: "barbell", difficulty: "intermediate", injurySafe: BACK_HEAVY, startingKg: 30, cue: "Hinged over, bar to the navel, no jerking with the lower back." },
-  { name: "Pendlay Row", pattern: "pull", primaryMuscle: "back", tiers: FREE_WEIGHT, implement: "barbell", difficulty: "advanced", goals: ["strength", "athletic"], injurySafe: BACK_HEAVY, startingKg: 30, cue: "Each rep starts from the floor, torso parallel throughout." },
+  { name: "Pendlay Row", pattern: "pull", primaryMuscle: "back", tiers: FREE_WEIGHT, implement: "barbell", difficulty: "advanced", goals: ["strength", "athletic"], injurySafe: BACK_HEAVY, startingKg: 30, cue: "Each rep starts from the floor, torso close to parallel, pull to the lower chest." },
   { name: "One-Arm Dumbbell Row", pattern: "pull", primaryMuscle: "back", tiers: DUMBBELL_TIERS, implement: "dumbbell", difficulty: "novice", unilateral: true, perHand: true, injurySafe: SAFE_ALL, startingKg: 12, cue: "One hand on a bench, row the dumbbell to the hip." },
   { name: "Chest-Supported Row", pattern: "pull", primaryMuscle: "back", tiers: ["gym", "home-gym"], implement: "dumbbell", difficulty: "novice", perHand: true, injurySafe: SAFE_ALL, startingKg: 10, cue: "Face down on an incline bench, which takes the lower back out entirely." },
   { name: "Seated Cable Row", pattern: "pull", primaryMuscle: "back", tiers: GYM_ONLY, implement: "cable", difficulty: "novice", injurySafe: SAFE_ALL, startingKg: 30, cue: "Sit tall, pull to the stomach, let the shoulder blades travel." },

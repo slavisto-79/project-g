@@ -3805,6 +3805,61 @@ export const exercisePoses = {
 
   // --- Pulling -------------------------------------------------------------
 
+  // Pendlay row, from a reference clip measured with the pose lab (OPEX
+  // "Pendlay Row", cosDas3E5ok, three reps in 9.3 s, three-quarters on from
+  // the front; MoveNet on 73 frames at 0.15 s). It borrowed the bent-over
+  // row -- the bar hanging at the knees between reps, trunk at 60 from
+  // vertical -- before.
+  //
+  // Every rep starts dead on the floor, the arms straight (elbow 165-175),
+  // the trunk 7-11 degrees above horizontal as projected, knees at ~135-145.
+  // The pull takes the bar to the lower chest with the upper arm swept back
+  // level (elbow 55-59 as projected), and the trunk comes UP as it does, to
+  // 30-38 as projected -- three-quarters on from the front a sagittal angle
+  // off horizontal reads large, so something like 20-25. Then back to the
+  // floor.
+  //
+  // Authored from the ankle up, as the deadlift: thigh 38 behind vertical,
+  // shin 15 ahead (knee 127), held through the rep. Floor key: trunk 5
+  // above horizontal with the arms hanging, which puts the bar 12.3 cm up --
+  // the deadlift's bottom has it at 12.5, on the plates. The pull: the
+  // hands solved to a point on the trunk's own frame, as the bent-over row's,
+  // trunk 12 then 22 above horizontal, elbow 108 then 72, the bar at the
+  // lower chest 8 cm ahead of the ankle.
+  //
+  // Tempo from the three reps, to the 0.15 s frames: pull 0.6-0.75 s, 0.3-
+  // 0.45 at the chest, lower 0.9-1.2, 1.2 on the floor; pulls 3.15-3.45 s
+  // apart.
+  pendlayRow: (() => {
+    const ankle = { x: 0.535, y: FLOOR };
+    // [thigh behind vertical, shin ahead, trunk, hands: along the trunk from the shoulder / out toward the belly, or null to hang]
+    const keys = [[38, 15, 85, null], [38, 15, 78, [0.08, 0.22]], [38, 15, 68, [0.12, 0.12]]] as const;
+    return pose(
+      "side",
+      keys.map(([thighBack, shinAhead, torso, hand]): Figure => {
+        const upper = 180 - thighBack;
+        const lower = 180 + shinAhead;
+        const knee = along(ankle, lower + 180, P.shin);
+        const hip = along(knee, upper + 180, P.thigh);
+        const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, 0, 0, "side").x, y: hip.y };
+        const rad = (torso * Math.PI) / 180;
+        const axis = { x: -Math.sin(rad), y: Math.cos(rad) };
+        const belly = { x: Math.cos(rad), y: Math.sin(rad) };
+        const arms: [Limb, Limb] = hand === null
+          ? wide(sideArms(178, 180))
+          : reachingArms(pelvis, torso, "side", [0, 1].map((side) => {
+              const s = shoulderAt(pelvis, torso, side as 0 | 1, "side");
+              return { x: s.x + (hand[0] * axis.x + hand[1] * belly.x) / ASPECT, y: s.y + hand[0] * axis.y + hand[1] * belly.y };
+            }) as [Point, Point], BACK);
+        return { pelvis, torso, neck: torso - 16, arms, legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb] };
+      }),
+      [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
+      "overhand",
+      1,
+      { tempo: { down: 700, bottom: 350, up: 1000, top: 1200 }, camera: { azimuth: 1.0, lying: false } },
+    );
+  })(),
+
   // Bent-over row, from a reference clip measured with the pose lab (NASM
   // "How to do a Barbell Bent Over Row Pronated", bm0_q9bR_HA, side view,
   // three reps after a 6 s hinge down; MoveNet on 72 frames at 0.25 s): the
