@@ -2658,6 +2658,47 @@ export const exercisePoses = {
     { tempo: { down: 600, bottom: 150, up: 600, top: 300 } },
   ),
 
+  // Diamond push-up, from two reference clips measured with the pose lab:
+  // E3 Rehab "Diamond Push Up" (Bhuscxybjf4, four reps in 13 s, side on and
+  // a little in front; MoveNet on 93 frames at 0.15 s) for the profile and
+  // the tempo, and Marcus Filly "Diamond Push Up" (XtU2VQVuLYs, face on, two
+  // reps; 74 frames at 0.15 s) for the widths. It borrowed the push-up.
+  //
+  // Side on it IS the push-up: locked out with the elbow 164-174 and the
+  // hands a little toward the feet from the shoulders, down to the trunk 7-9
+  // head-down, body straight (hip 169-172), elbow 44-48, the upper arm swept
+  // back toward the feet. So the push-up's shoulder, trunk and toe keys are
+  // kept. Face on it is not: the wrists are 0.71-0.74 shoulder widths apart
+  // (the push-up's are 1.33 on the figure), with the hands meeting in a
+  // diamond; the elbows 0.84-0.90 apart at the top, opening to 1.55-1.73 at
+  // the bottom. Drawn with the hands pulled in (`spread`) until the
+  // fingertips meet, turned in 40 degrees (`turn`), and the elbows swung out
+  // round the shoulder-to-hand line (`flare` 0 / 26 / 38): elbows 0.75 /
+  // 1.29 / 1.64 apart. The figure's hand centres are closer than the clip's
+  // wrists (0.50) because the drawn hands point forward from the wrist; at
+  // 0.74 they stood a hand's width apart and did not read as together.
+  //
+  // Tempo from the four reps, to the 0.15 s frames: down in 0.75 s, 0.15-0.3
+  // at the bottom, up in 0.75, 0.15-0.3 locked out; 1.8-1.95 s a rep.
+  //
+  // Lying scenes ignore camera azimuth; the hands show on the orbit's swing.
+  diamondPushUp: pose(
+    "side",
+    // [shoulder x, shoulder y, trunk, ankle angle, elbow flare]
+    ([[0.357, 0.570, 279, 140, 0], [0.331, 0.675, 274, 130, 26], [0.317, 0.765, 269, 120, 38]] as const).map(([sx, sy, torso, end, flare]): Figure => {
+      const rad = (torso * Math.PI) / 180;
+      const pelvis = { x: sx - (Math.sin(rad) * P.spine) / ASPECT, y: sy + Math.cos(rad) * P.spine };
+      const toe = { x: 0.82, y: 0.86 };
+      const ankle = along(toe, end + 180, 0.069);
+      const figure = supported(pelvis, torso, { x: 0.392, y: 0.855 }, ankle, end);
+      return { ...figure, arms: figure.arms.map((arm) => ({ ...arm, spread: -0.07, flare, turn: 40 })) as [Limb, Limb] };
+    }),
+    [{ kind: "floor", mat: true }],
+    "overhand",
+    -1,
+    { tempo: { down: 750, bottom: 200, up: 750, top: 250 } },
+  ),
+
   // Plyo push-up, from a reference clip measured with the pose lab (Goodlife
   // Health Clubs "HOW TO: Plyometric Push Up", Y-uF4F3mQIs, two reps at 24-
   // 29.6 s, the camera three-quarters on; MoveNet on 57 frames at 0.1 s). It

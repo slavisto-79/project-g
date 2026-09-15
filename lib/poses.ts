@@ -485,6 +485,19 @@ function build3d(figure: Figure, view: View, facing: 1 | -1 = 1): { bones: PoseB
     }
     // Walked from the already-shifted wrist, so it carries the splay with it.
     let handTip = walk(wrist, arm.end ?? arm.lower, P.hand);
+    // A hand turned in: side on, the hand yawed about the vertical through
+    // the wrist, fingers toward the midline -- a diamond push-up's hands
+    // meeting under the chest. (On a leg, `turn` points the toes OUT.)
+    if (view === "side" && arm.turn) {
+      const rad = (arm.turn * Math.PI) / 180;
+      const hx = handTip[0] - wrist[0];
+      const hz = handTip[2] - wrist[2];
+      const spun = (theta: number): [number, number] => [hx * Math.cos(theta) - hz * Math.sin(theta), hx * Math.sin(theta) + hz * Math.cos(theta)];
+      const a = spun(rad);
+      const b = spun(-rad);
+      const pick = out * a[0] <= out * b[0] ? a : b;
+      handTip = [wrist[0] + pick[0], handTip[1], wrist[2] + pick[1]];
+    }
     if (view === "front" && arm.forward) {
       // The forearm (and the hand on it) turned about the in-plane axis
       // through the elbow that is square to the forearm, so the wrist swings
