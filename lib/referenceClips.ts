@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 17: exercises that borrowed a different movement's pose ------
+  machineChestPress: {
+    videoId: "dYF2d_I24uE",
+    title: "Seated Chest Press Machine Quick Tips",
+    channel: "Jacob Price",
+    view: "three-quarter",
+    span: "four presses in 17 s",
+    prs: [384],
+    date: "2026-09-15",
+    exercises: ["Machine Chest Press"],
+    notes:
+      "Borrowed the lying barbell bench press before. OPEX's machine clips are all incline variants. One continuous shot from three-quarters in front. Settled: back pad reclined about 10, knees 93-98, near elbow 155-166 at full reach, hands 0.34-0.36 trunk lengths below the shoulders there and 0.17-0.21 at the chest. Not settled: the elbow width at the chest -- the upper arm points half at the camera and its projected length swings by a third, so the bottom is drawn with a 50-degree flare (elbow 68) rather than read. Tempo at 0.25 s: out 1.0 s, 0.5-0.75 at reach, back 1.0, 1.0-1.5 at the chest; presses 4.0 s apart. Handles drawn as one short bar at the grip.",
+  },
   doorwayRow: {
     videoId: "aa0yCQqbYaM",
     title: "Single Doorframe Row",

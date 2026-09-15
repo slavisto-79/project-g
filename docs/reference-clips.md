@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 134 |
-| sharing a pose that was authored from a clip | 28 |
+| authored from a clip (the clip shows the exercise) | 135 |
+| sharing a pose that was authored from a clip | 27 |
 | without a clip yet | 0 |
-| poses with a clip | 128 of 129 (128 in use) |
+| poses with a clip | 129 of 130 (129 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -122,7 +122,7 @@ Poses without a clip yet: `idle`.
 | Leg Extension | `legExtension` | authored from the clip | [Leg Extension Machine](https://www.youtube.com/watch?v=s1JfTvyWdTs) (OPEX Fitness, side) | #338 |
 | Leg Press | `legPress` | authored from the clip | [Leg Press Machine Press - OPEX Exercise Library](https://www.youtube.com/watch?v=B8KqmwdomoU) (OPEX Fitness, side) | #270 |
 | Lying Leg Curl | `legCurl` | authored from the clip | [Prone Hamstring Curl Machine](https://www.youtube.com/watch?v=xKOyGU0AfOE) (OPEX Fitness, side) | #319 |
-| Machine Chest Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
+| Machine Chest Press | `machineChestPress` | authored from the clip | [Seated Chest Press Machine Quick Tips](https://www.youtube.com/watch?v=dYF2d_I24uE) (Jacob Price, three-quarter) | #384 |
 | Machine Shoulder Press | `overheadPress` | shares `overheadPress` (the clip shows Barbell Overhead Press) | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
 | Medicine Ball Slam | `medBallSlam` | authored from the clip | [How To Med Ball Slam](https://www.youtube.com/watch?v=CkO1mfSBvv4) (Third Space London, three-quarter) | #358 |
 | Mountain Climbers | `mountainClimber` | authored from the clip | [Mountain Climbers](https://www.youtube.com/watch?v=0Smb04SpyhU) (OPEX Abbotsford, side) | #352 |
@@ -316,3 +316,4 @@ Poses without a clip yet: `idle`.
 | `singleLegCalfRaise` | [Single Leg Standing Calf Raise](https://www.youtube.com/watch?v=a6YrB_aULZY) | OPEX Fitness | back | five reps in 8 s | #381 | 2026-09-14 | Single-Leg Calf Raise | Borrowed the two-legged calf raise before. One foot on a low step, the other hooked behind the working ankle, hands flat on a wall. Hips rise 12 percent of hip-to-ankle length, the ankle 14. From behind there is no ankle angle; drawn from the floor with the two-legged raise's range, as that pose is. Added the hooked free foot (4 cm behind the working leg, above its ankle) and the wall. Tempo at 0.15 s: up 0.3-0.45 s, top 0.45-0.75, down 0.45-0.6, bottom 0.3-0.6; tops 1.7-1.8 s apart. |
 | `barbellWalkingLunge` | [Barbell Walking Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=bdbJ_aRjw-4) | OPEX Fitness | side | three lunges in 9 s | #382 | 2026-09-14 | Barbell Walking Lunge | Borrowed the dumbbell reverse lunge before. Bar on the back; step forward into a lunge, rear leg through to feet together, repeat. Bottom: front knee 70-72 with the shin 28 forward, rear knee 70-74 just off the floor, trunk 15 forward, hips dropping about half a leg length, step about three quarters of one. Plates hide the head; the legs read cleanly. Ours, walked in place as a loop (stand, lunge one leg, stand, lunge the other): front knee 74, rear 84 (0.7 cm off the floor), trunk 15, hips 22 cm down. Tempo at 0.2 s: stand 0.6 s, step and lower 1.4, bottom 0.2-0.4, rise 1.2, about 3.4 s a stride; loop 1700 / 1800 per half with holds shared in. |
 | `doorwayRow` | [Single Doorframe Row](https://www.youtube.com/watch?v=aa0yCQqbYaM) | Gymless Fitness | side | three reps in 7 s | #383 | 2026-09-15 | Doorway Row | Borrowed the inverted row before. One hand on the door frame (the library has the movement per side), the other at the waist. Filmed upright and cut off at the knees, so the ankles are extrapolated from the thigh and knee angles and the feet are not seen. Near side: hanging back, trunk 20 behind vertical, knee 162, elbow 156-168; upright at the top, trunk 0-2, knee 168-173, elbow 57-73 (the forearm foreshortens at the top, so that is the projected angle). A clean full-body clip of the two-handed version (Nomads Playbook, eCojBl6k_HE) was triaged and not used. Ours: trunk 20 / 10 / 0, elbow 160 / 99 / 73, knee 162 at the hang and straight above it, hand fixed on a post beside the body. Tempo at 0.2 s: pull 0.6 s, 0.6-0.8 at the frame, back in 0.6-0.8, 0.4-0.6 hanging, tops 2.3 s apart. |
+| `machineChestPress` | [Seated Chest Press Machine Quick Tips](https://www.youtube.com/watch?v=dYF2d_I24uE) | Jacob Price | three-quarter | four presses in 17 s | #384 | 2026-09-15 | Machine Chest Press | Borrowed the lying barbell bench press before. OPEX's machine clips are all incline variants. One continuous shot from three-quarters in front. Settled: back pad reclined about 10, knees 93-98, near elbow 155-166 at full reach, hands 0.34-0.36 trunk lengths below the shoulders there and 0.17-0.21 at the chest. Not settled: the elbow width at the chest -- the upper arm points half at the camera and its projected length swings by a third, so the bottom is drawn with a 50-degree flare (elbow 68) rather than read. Tempo at 0.25 s: out 1.0 s, 0.5-0.75 at reach, back 1.0, 1.0-1.5 at the chest; presses 4.0 s apart. Handles drawn as one short bar at the grip. |
