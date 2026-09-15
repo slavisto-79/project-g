@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 18: the last visibly different borrowers ----------------------
+  heelsElevatedGobletSquat: {
+    videoId: "YWrs2r_mYg0",
+    title: "How to: Heels Elevated Goblet Squat",
+    channel: "Core Blend Training",
+    view: "side",
+    span: "six reps between 9 and 33 s",
+    prs: [393],
+    date: "2026-09-16",
+    exercises: ["Heels-Elevated Goblet Squat"],
+    notes:
+      "Borrowed the flat-footed goblet squat before. Heels on a wedge, bell at the chest. At the bottom: shin 45-51 forward of plumb (goblet frames 32), trunk 20-26 from vertical (goblet 36), thigh level, knee 47-51, hip 0.38 of standing height (goblet 0.42); standing knees soft (164-174). Five other clips triaged: The Active Life, Lance Goyke, Josh Bowers, PR Fitness and The Barbell Physio are all three-quarter or front views. Ours: knee 170 / 101 / 51, trunk 0 / 16 / 24, hip 0.39, heels on a 3 cm plate with the toes on the floor. Tempo at 0.3 s: down 1.5-1.8 s, 0.3 at the bottom, up 1.2-1.5, 0.3-0.6 standing.",
+  },
   bodyweightGoodMorning: {
     videoId: "nS_BEj0mjhQ",
     title: "Bodyweight Good Morning | Exercise Demo | Male",

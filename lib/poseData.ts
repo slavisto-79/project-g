@@ -546,6 +546,60 @@ export const exercisePoses = {
     { tempo: { down: 1600, bottom: 250, up: 950, top: 700 }, camera: SQUAT_CAMERA },
   ),
 
+  // Heels-elevated goblet squat, from a reference clip measured with the pose
+  // lab (Core Blend Training "How to: Heels Elevated Goblet Squat",
+  // YWrs2r_mYg0, six reps between 9 and 33 s, side view; MoveNet on 115
+  // frames at 0.3 s). It borrowed the flat-footed goblet squat before.
+  //
+  // What lifting the heels changes, and the clip shows it rep after rep:
+  // the knees travel far forward and the trunk stays tall. At the bottom
+  // the shin is 45-51 degrees forward of plumb (the goblet frames: 32), the
+  // trunk 20-26 from vertical (goblet: 36), the thigh level with the hip a
+  // shade above the knee, the knee 47-51, and the hip at 0.38 of its
+  // standing height above the ankle (goblet: 0.42). Standing, the knees are
+  // soft (164-174).
+  //
+  // Authored from the ankle up with the clip's own joint angles, the ankle
+  // on a 3 cm plate under the heels and the foot pitched toes-down onto the
+  // floor. A narrower stance than the squat's own, so both heels land on
+  // the plate. Measured after: knee 170 / 101 / 51, trunk 0 / 16 / 24, hip
+  // 1.00 / 0.76 / 0.39 of standing height, the toes 6 mm over the floor.
+  //
+  // Tempo from the reps, to the 0.3 s frames: down in 1.5-1.8 s, 0.3 at the
+  // bottom (0.6-0.9 on the first), up in 1.2-1.5, 0.3-0.6 standing; tops
+  // 3.9 s apart.
+  heelsElevatedGobletSquat: (() => {
+    // The heels on a 3 cm plate, the toes on the floor.
+    const ankle = { x: 0.535, y: FLOOR - 0.03 };
+    // [trunk, thigh, shin] as world angles, facing forward (+x)
+    const keys = [[0, 176, 186], [16, 133, 213], [24, 96, 227]] as const;
+    return pose(
+      "side",
+      keys.map(([torso, upper, lower]): Figure => {
+        const knee = along(ankle, lower + 180, P.shin);
+        const hip = along(knee, upper + 180, P.thigh);
+        const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, 0, 0, "side").x, y: hip.y };
+        // Squat-width stance, but narrow enough that both heels land on the
+        // plate (the wide squat stance put them either side of it).
+        return {
+          pelvis,
+          torso,
+          neck: Math.round(torso * 0.6),
+          arms: chestArms(pelvis, torso),
+          legs: [{ upper, lower, end: 115, spread: 0.05, turn: 10 }, { upper, lower, end: 115, spread: 0.05, turn: 10 }] as [Limb, Limb],
+        };
+      }),
+      [
+        { kind: "floor" },
+        { kind: "bell", at: "grip", size: 0.06, hug: true },
+        { kind: "slab", at: "ankle0", dx: -0.02, dy: 0.023, width: 0.1, height: 0.03 },
+      ],
+      "neutral",
+      1,
+      { tempo: { down: 1700, bottom: 300, up: 1400, top: 400 }, camera: SQUAT_CAMERA },
+    );
+  })(),
+
   // A goblet squat hugs the bell against the chest with both hands -- and
   // `hug` is what makes it do that: the bell leans with the chest instead of
   // hanging plumb from the grip.
