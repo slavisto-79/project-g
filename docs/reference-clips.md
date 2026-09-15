@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 139 |
-| sharing a pose that was authored from a clip | 23 |
+| authored from a clip (the clip shows the exercise) | 140 |
+| sharing a pose that was authored from a clip | 22 |
 | without a clip yet | 0 |
-| poses with a clip | 133 of 134 (133 in use) |
+| poses with a clip | 134 of 135 (134 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -81,7 +81,7 @@ Poses without a clip yet: `idle`.
 | Dumbbell Floor Press | `dumbbellFloorPress` | authored from the clip | [Dumbbell Floor Press - OPEX Exercise Library](https://www.youtube.com/watch?v=jjlekYs1cfQ) (OPEX Fitness, side) | #373 |
 | Dumbbell Fly | `fly` | authored from the clip | [Dumbbell Neutral Grip Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=AVIBmE5iQrQ) (OPEX Fitness, head-end) | #283 |
 | Dumbbell Front Raise | `frontRaise` | authored from the clip | [Dumbbell Front Raise](https://www.youtube.com/watch?v=E-E0EqERFBg) (OPEX Fitness, front) | #354 |
-| Dumbbell Front Squat | `gobletSquat` | shares `gobletSquat` (the clip shows Goblet Squat) | [Goblet Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=pEGfGwp6IEA) (OPEX Fitness, three-quarter) | #317 |
+| Dumbbell Front Squat | `dumbbellFrontSquat` | authored from the clip | [Front Rack Dumbbell Squat](https://www.youtube.com/watch?v=7CuKlSgu1B0) (OPEX Fitness, three-quarter) | #389 |
 | Dumbbell Lateral Raise | `lateralRaise` | authored from the clip | [Dumbbell Lateral Raise - OPEX Exercise Library](https://www.youtube.com/watch?v=8aUc9snLOxU) (OPEX Fitness, front) | #280 |
 | Dumbbell Lunge | `lunge` | authored from the clip | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
 | Dumbbell Reverse Fly | `reverseFly` | authored from the clip | [Cable Reverse Fly](https://www.youtube.com/watch?v=qDnwFycUW0I) (OPEX Fitness, back) | #334 |
@@ -321,3 +321,4 @@ Poses without a clip yet: `idle`.
 | `towelRow` | [Towel Rows](https://www.youtube.com/watch?v=L2HkSlrAacA) | Nicolas Sart | side | four reps in 24 s | #386 | 2026-09-15 | Towel Row | Borrowed the inverted row (under a bar, near horizontal) before. The clip loops the towel round wall bars, not a door handle; the body and the pull are the same. A rigid body turning about the ankles: hanging 23-27 behind vertical with the elbow 169-178 and knee 170-177; up to 7-10 back with the elbow 66-76. The hands sit over the ankles and drift a couple of centimetres forward and down as the towel swings, so each key's hands are taken from the clip rather than fixed. Ours: trunk 25 / 15 / 8, elbow 180 / 79 / 60, hip 164-169 (clip 171-178). Tempo at 0.25 s: pull 1.0 s, 0.75-1.0 up, back 1.0-1.5, 0.5-0.75 hanging; tops 3.65-3.85 s apart. |
 | `diamondPushUp` | [Diamond Push Up](https://www.youtube.com/watch?v=Bhuscxybjf4) | E3 Rehab Exercise Library | side | four reps in 13 s | #387 | 2026-09-15 | Diamond Push-Up | Borrowed the push-up before. Widths from a second, face-on clip: Marcus Filly "Diamond Push Up" (XtU2VQVuLYs). Side on the profile matches the push-up (lockout elbow 164-174, bottom trunk 7-9 head-down, elbow 44-48, upper arm swept toward the feet), so its keys are kept. Face on: wrists 0.71-0.74 shoulder widths apart, elbows 0.84-0.90 at the top opening to 1.55-1.73 at the bottom. Ours: hands meeting fingertip to fingertip (centres 0.50, turned in 40), elbows 0.75 / 1.29 / 1.64. Cue corrected: the elbows do not stay tight to the ribs, they travel back toward the feet and open to 1.6 shoulder widths. Tempo at 0.15 s: down 0.75 s, 0.15-0.3 at the bottom, up 0.75, 0.15-0.3 locked out. |
 | `sideLunge` | [Lateral Lunges](https://www.youtube.com/watch?v=MvpBUsQrt_4) | MGHOrthopaedics | front | four lunges, alternating sides, in 13 s (of 28) | #388 | 2026-09-16 | Lateral Lunge | Borrowed the cossack squat's pose before. Feet together, step out to one side, sit into that hip, push back to the middle. Hip height as a fraction of the standing hip-to-ankle height: the hips drop 0.33 (the cossack pose drops 0.41); the ankles land 1.17 apart (cossack 1.04); the trunk leans 9-14 over the bent knee (cossack 6 the other way); the long leg stays straight (172-180). The bent knee reads 122-136 face on, opened by the thigh pointing forward; ours solves to 86 in the plane. Ours: drop 0.33, ankles 1.17, lean 12. The clip alternates sides; the library counts per side, so the pose does one. Tempo at 0.2 s: step out 0.6 s, sink 0.8, 0.4 at the bottom, back to the middle 0.8-1.0, 0.4 standing; about 3.1 s a side. |
+| `dumbbellFrontSquat` | [Front Rack Dumbbell Squat](https://www.youtube.com/watch?v=7CuKlSgu1B0) | OPEX Fitness | three-quarter | three reps in 10.5 s | #389 | 2026-09-16 | Dumbbell Front Squat | Borrowed the goblet squat (one bell hugged at the chest) before. The legs and trunk reuse the barbell front squat's frames, which the clip confirms: hip crease level with the knee at the bottom (0.45 of standing hip height against the frames' 0.49), trunk 25-28 as projected three-quarters on (the frames' 32). New is the rack: a dumbbell on each shoulder, the upper arm about 40 forward of plumb through the whole rep, the forearm folded back so the wrist sits level with the shoulder just in front (elbow 18-28 projected, drawn 36). Tempo at 0.2 s: down 1.6 s, 0.2-0.4 at the bottom, up 0.8-1.0, 0.6-0.8 standing. |
