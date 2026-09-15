@@ -3053,6 +3053,63 @@ export const exercisePoses = {
     { tempo: { down: 2000, bottom: 400, up: 800, top: 700 }, camera: { azimuth: 0.9 } },
   ),
 
+  // Machine chest press, from a reference clip measured with the pose lab
+  // (Jacob Price "Seated Chest Press Machine Quick Tips", dYF2d_I24uE, four
+  // presses in 17 s, one continuous shot from three-quarters in front;
+  // MoveNet on 69 frames at 0.25 s). It borrowed the lying barbell bench
+  // press before.
+  //
+  // Seated against a back pad reclined about 10 degrees, thighs level and
+  // knees at 93-98 with the feet on the floor. On the near arm the press
+  // finishes with the elbow 155-166 -- short of locked -- and the hands
+  // 0.34-0.36 trunk lengths below the shoulders, higher (0.17-0.21) at the
+  // chest.
+  //
+  // What the camera cannot settle: how wide the elbows go at the chest.
+  // The upper arm there points half at the camera (its projected length
+  // varies by a third across the rep, and no horizontal rescale evens it
+  // out), so the projected 84-105 elbow is not the real one. The bottom is
+  // drawn with the hands 15 cm ahead of the shoulders and the elbows
+  // flared 50 degrees out round the shoulder-to-hand line, the way this
+  // machine is used; the elbow comes out at 68. The middle key (134, flare
+  // 25) is placed at the clip's 0.8 of full reach.
+  //
+  // The handles are drawn as one short bar at the grip, so the hands close
+  // on something; the machine's arms are not drawn (as the pec deck's).
+  //
+  // Tempo from the four presses, to the 0.25 s frames: out in 1.0 s, 0.5-
+  // 0.75 at full reach, back in 1.0, 1.0-1.5 at the chest; presses 4.0 s
+  // apart.
+  machineChestPress: (() => {
+    const pelvis = { x: 0.42, y: 0.722 };
+    const torso = 350;
+    return pose(
+      "side",
+      // [hand ahead of the shoulder, hand below it, elbow flared out]
+      ([[0.272, 0.086, 0], [0.255, 0.078, 25], [0.15, 0.047, 50]] as const).map(([ahead, below, flare]): Figure => {
+        const hands = [0, 1].map((side) => {
+          const sh = shoulderAt(pelvis, torso, side as 0 | 1, "side");
+          return { x: sh.x + ahead / ASPECT, y: sh.y + below };
+        }) as [Point, Point];
+        return {
+          pelvis,
+          torso,
+          neck: 10,
+          arms: reachingArms(pelvis, torso, "side", hands, BACK).map((arm) => ({ ...arm, flare, spread: 0.02 })) as [Limb, Limb],
+          legs: [{ upper: 88, lower: 173, end: 90 }, { upper: 88, lower: 173, end: 90 }],
+        };
+      }),
+      [
+        { kind: "floor", y: FLOOR },
+        { kind: "slab", at: "pelvis", width: 0.5, height: 0.055, angle: torso },
+        { kind: "bar", at: "grip", length: 0.34, plates: false },
+      ],
+      "overhand",
+      1,
+      { tempo: { down: 1000, bottom: 1250, up: 1000, top: 750 }, camera: { azimuth: 0.9 } },
+    );
+  })(),
+
   // --- Vertical push -------------------------------------------------------
 
   // Pec deck, from a reference clip measured with the pose lab (OPEX "Chest
