@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 18: the last visibly different borrowers ----------------------
+  wallHinge: {
+    videoId: "cGUhSLyYcpY",
+    title: "Wall Tap Hip Hinge",
+    channel: "Jack Hanrahan Fitness",
+    view: "side",
+    span: "six reps in 35 s, each a little further from the wall",
+    prs: [391],
+    date: "2026-09-16",
+    exercises: ["Hip Hinge Wall Touch"],
+    notes:
+      "Borrowed the conventional deadlift (a loaded barbell) before. No weight: hands folded in front, the hips pushed back until the seat touches the wall behind. The lifter steps further out each rep, so the depth grows (trunk 54 -> 86 from vertical); the pose takes the middle reps, the 'foot from the wall' of the cue: trunk 72-79, knee 131-134, the hip joint 0.3 standing hip heights behind the ankle, the shin near plumb (3-5 ahead). Standing: knees soft (160-166). Ours: trunk 0 / 64 / 76, knee 166 / 143 / 132, hip 14 cm behind the ankle, the wall 7 cm behind the hip joint so the seat meets it. The 3D build of the female figure's hips carries a few millimetres into the (translucent) wall. Tempo at 0.3 s: down 1.8-2.7 s (slow, 2.2), 0.6-0.9 touching, up 0.9, 0.9-1.2 standing.",
+  },
   pendlayRow: {
     videoId: "cosDas3E5ok",
     title: "Pendlay Row - OPEX Exercise Library",
@@ -1632,7 +1644,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [316],
     date: "2026-09-11",
     exercises: ["Conventional Deadlift"],
-    notes: "Rack Pull, Back Extension and Hip Hinge Wall Touch borrow this hinge; the clip lowers the bar to just off the floor rather than setting it down.",
+    notes: "The clip lowers the bar to just off the floor rather than setting it down.",
   },
 
   kneePushUp: {

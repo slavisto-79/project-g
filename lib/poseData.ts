@@ -1639,6 +1639,58 @@ export const exercisePoses = {
     { tempo: { down: 1000, bottom: 750, up: 600, top: 1200 } },
   ),
 
+  // Hip hinge wall touch, from a reference clip measured with the pose lab
+  // (Jack Hanrahan Fitness "Wall Tap Hip Hinge", cGUhSLyYcpY, six reps in
+  // 35 s, side view; MoveNet on 117 frames at 0.3 s). It borrowed the
+  // conventional deadlift -- a loaded barbell -- before.
+  //
+  // No weight: hands folded in front, the hips pushed straight back until
+  // the seat touches the wall behind. The lifter steps a little further out
+  // every rep, so the depth grows from a trunk of 54 degrees off vertical to
+  // 86; the pose takes the middle reps, the cue's "a foot from the wall":
+  // trunk 72-79, knee 131-134, the hip joint 0.3 standing hip heights behind
+  // the ankle, the shin near plumb (3-5 ahead). Standing, the knees stay soft
+  // (160-166). The hands ride with the trunk, the upper arm along it and the
+  // forearm folded forward.
+  //
+  // Authored from the ankle up, as the deadlift: thigh 6 / 30 / 44 behind
+  // vertical, shin 8 / 7 / 4 ahead, trunk 0 / 64 / 76 -- knee 166 / 143 /
+  // 132, the hip 14 cm behind the ankle at the touch. The wall's face stands
+  // 7 cm behind the hip joint there, where the seat meets it (on the female
+  // build a few millimetres into the translucent wall).
+  //
+  // Tempo from the six reps, to the 0.3 s frames: down slowly in 1.8-2.7 s,
+  // 0.6-0.9 touching, up in 0.9, 0.9-1.2 standing.
+  wallHinge: (() => {
+    const ankle = { x: 0.60, y: FLOOR };
+    const keys = [[6, 8, 0], [30, 7, 64], [44, 4, 76]] as const;
+    const figures = keys.map(([thighBack, shinAhead, torso]): Figure => {
+      const upper = 180 - thighBack;
+      const lower = 180 + shinAhead;
+      const knee = along(ankle, lower + 180, P.shin);
+      const hip = along(knee, upper + 180, P.thigh);
+      const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, 0, 0, "side").x, y: hip.y };
+      return {
+        pelvis,
+        torso,
+        neck: torso > 30 ? torso - 20 : 0,
+        // Hands folded in front of the belly, carried with the trunk.
+        arms: sideArms(torso + 178, torso + 75),
+        legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
+      };
+    });
+    // The wall: its face where the seat meets it at the bottom.
+    const wallX = figures[2]!.pelvis.x - 0.07 / ASPECT;
+    return pose(
+      "side",
+      figures,
+      [{ kind: "floor" }, { kind: "slab", x: wallX - 0.02, y: 0.5, width: 0.04, height: 0.86 }],
+      "neutral",
+      1,
+      { tempo: { down: 2200, bottom: 900, up: 900, top: 1000 } },
+    );
+  })(),
+
   // Rack pull, from a reference clip measured with the pose lab (Testosterone
   // Nation "Rack Pull", d9sK2R95MMM, three reps in 11 s, a side view;
   // MoveNet on 54 frames at 0.2 s). It borrowed the conventional deadlift
