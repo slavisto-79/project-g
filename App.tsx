@@ -6240,7 +6240,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Dumbbell Bulgarian Split Squat": "splitSquat",
   "Step-Up": "stepUp",
   "Dumbbell Step-Up": "stepUp",
-  "Lateral Lunge": "lateralLunge",
+  "Lateral Lunge": "sideLunge",
   "Cossack Squat": "lateralLunge",
   "Wall Sit": "wallSit",
   "Single-Leg Calf Raise": "singleLegCalfRaise",
