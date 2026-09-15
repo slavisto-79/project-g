@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 18: the last visibly different borrowers ----------------------
+  diamondPushUp: {
+    videoId: "Bhuscxybjf4",
+    title: "Diamond Push Up",
+    channel: "E3 Rehab Exercise Library",
+    view: "side",
+    span: "four reps in 13 s",
+    prs: [387],
+    date: "2026-09-15",
+    exercises: ["Diamond Push-Up"],
+    notes:
+      "Borrowed the push-up before. Widths from a second, face-on clip: Marcus Filly \"Diamond Push Up\" (XtU2VQVuLYs). Side on the profile matches the push-up (lockout elbow 164-174, bottom trunk 7-9 head-down, elbow 44-48, upper arm swept toward the feet), so its keys are kept. Face on: wrists 0.71-0.74 shoulder widths apart, elbows 0.84-0.90 at the top opening to 1.55-1.73 at the bottom. Ours: hands meeting fingertip to fingertip (centres 0.50, turned in 40), elbows 0.75 / 1.29 / 1.64. Cue corrected: the elbows do not stay tight to the ribs, they travel back toward the feet and open to 1.6 shoulder widths. Tempo at 0.15 s: down 0.75 s, 0.15-0.3 at the bottom, up 0.75, 0.15-0.3 locked out.",
+  },
   towelRow: {
     videoId: "L2HkSlrAacA",
     title: "Towel Rows",

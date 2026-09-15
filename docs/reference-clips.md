@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 137 |
-| sharing a pose that was authored from a clip | 25 |
+| authored from a clip (the clip shows the exercise) | 138 |
+| sharing a pose that was authored from a clip | 24 |
 | without a clip yet | 0 |
-| poses with a clip | 131 of 132 (131 in use) |
+| poses with a clip | 132 of 133 (132 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -72,7 +72,7 @@ Poses without a clip yet: `idle`.
 | Dead Bug | `deadBug` | authored from the clip | [Alternating Dead Bug](https://www.youtube.com/watch?v=-VykQ1HD0Vw) (OPEX Fitness, side) | #290 |
 | Decline Push-Up | `declinePushUp` | authored from the clip | [Decline Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=cnsPwJ2f2B4) (OPEX Fitness, side) | #315 |
 | Depth Jump | `depthJump` | authored from the clip | [Depth Jump | Olympic Weightlifting Exercise Library](https://www.youtube.com/watch?v=GeN0S3XCZnM) (Catalyst Athletics, side) | #312 |
-| Diamond Push-Up | `pushUp` | shares `pushUp` (the clip shows Push-Up) | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) (OPEX Fitness, side) | #277 |
+| Diamond Push-Up | `diamondPushUp` | authored from the clip | [Diamond Push Up](https://www.youtube.com/watch?v=Bhuscxybjf4) (E3 Rehab Exercise Library, side) | #387 |
 | Doorway Row | `doorwayRow` | authored from the clip | [Single Doorframe Row](https://www.youtube.com/watch?v=aa0yCQqbYaM) (Gymless Fitness, side) | #383 |
 | Dumbbell Bench Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
 | Dumbbell Biceps Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
@@ -319,3 +319,4 @@ Poses without a clip yet: `idle`.
 | `machineChestPress` | [Seated Chest Press Machine Quick Tips](https://www.youtube.com/watch?v=dYF2d_I24uE) | Jacob Price | three-quarter | four presses in 17 s | #384 | 2026-09-15 | Machine Chest Press | Borrowed the lying barbell bench press before. OPEX's machine clips are all incline variants. One continuous shot from three-quarters in front. Settled: back pad reclined about 10, knees 93-98, near elbow 155-166 at full reach, hands 0.34-0.36 trunk lengths below the shoulders there and 0.17-0.21 at the chest. Not settled: the elbow width at the chest -- the upper arm points half at the camera and its projected length swings by a third, so the bottom is drawn with a 50-degree flare (elbow 68) rather than read. Tempo at 0.25 s: out 1.0 s, 0.5-0.75 at reach, back 1.0, 1.0-1.5 at the chest; presses 4.0 s apart. Handles drawn as one short bar at the grip. |
 | `machineShoulderPress` | [Machine Shoulder Press](https://www.youtube.com/watch?v=WvLMauqrnK8) | Renaissance Periodization | three-quarter | four presses in 12 s | #385 | 2026-09-15 | Machine Shoulder Press | Borrowed the standing barbell overhead press before. OPEX's clip of this machine is dark and never shows the arms overhead in the triage frames. One continuous shot from three-quarters in front. Ratios across the body: wrists 1.9-2.2 shoulder widths apart throughout; elbows 2.0-2.3 at the bottom (wrists level with the shoulders), 2.3-2.6 half way (just above the shoulders), 1.5-1.7 at the top with the arms straight (164-180). Not settled: the bottom elbow angle (projected 15-50) and the exact recline (16-20 as projected). Ours: wrists 2.05, elbows 2.16 / 2.57 / 1.52, elbow 41 / 87 / 178, pad 18 back. Tempo at 0.2 s: up 0.6-0.8 s, 0.4-0.6 at the top, down 1.0-1.2, 0.6-1.2 at the bottom; tops 3.0-3.6 s apart. Handles drawn one per hand. |
 | `towelRow` | [Towel Rows](https://www.youtube.com/watch?v=L2HkSlrAacA) | Nicolas Sart | side | four reps in 24 s | #386 | 2026-09-15 | Towel Row | Borrowed the inverted row (under a bar, near horizontal) before. The clip loops the towel round wall bars, not a door handle; the body and the pull are the same. A rigid body turning about the ankles: hanging 23-27 behind vertical with the elbow 169-178 and knee 170-177; up to 7-10 back with the elbow 66-76. The hands sit over the ankles and drift a couple of centimetres forward and down as the towel swings, so each key's hands are taken from the clip rather than fixed. Ours: trunk 25 / 15 / 8, elbow 180 / 79 / 60, hip 164-169 (clip 171-178). Tempo at 0.25 s: pull 1.0 s, 0.75-1.0 up, back 1.0-1.5, 0.5-0.75 hanging; tops 3.65-3.85 s apart. |
+| `diamondPushUp` | [Diamond Push Up](https://www.youtube.com/watch?v=Bhuscxybjf4) | E3 Rehab Exercise Library | side | four reps in 13 s | #387 | 2026-09-15 | Diamond Push-Up | Borrowed the push-up before. Widths from a second, face-on clip: Marcus Filly "Diamond Push Up" (XtU2VQVuLYs). Side on the profile matches the push-up (lockout elbow 164-174, bottom trunk 7-9 head-down, elbow 44-48, upper arm swept toward the feet), so its keys are kept. Face on: wrists 0.71-0.74 shoulder widths apart, elbows 0.84-0.90 at the top opening to 1.55-1.73 at the bottom. Ours: hands meeting fingertip to fingertip (centres 0.50, turned in 40), elbows 0.75 / 1.29 / 1.64. Cue corrected: the elbows do not stay tight to the ribs, they travel back toward the feet and open to 1.6 shoulder widths. Tempo at 0.15 s: down 0.75 s, 0.15-0.3 at the bottom, up 0.75, 0.15-0.3 locked out. |
