@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 142 |
-| sharing a pose that was authored from a clip | 20 |
+| authored from a clip (the clip shows the exercise) | 143 |
+| sharing a pose that was authored from a clip | 19 |
 | without a clip yet | 0 |
-| poses with a clip | 136 of 137 (136 in use) |
+| poses with a clip | 137 of 138 (137 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -46,7 +46,7 @@ Poses without a clip yet: `idle`.
 | Bicycle Crunch | `bicycleCrunch` | authored from the clip | [Bicycle Crunch](https://www.youtube.com/watch?v=cbKIDZ_XyjY) (Wodstar, side) | #340 |
 | Bird Dog | `quadruped` | authored from the clip | [2 Point Bird Dog](https://www.youtube.com/watch?v=FWjz8ozyVq8) (OPEX Fitness, side) | #353 |
 | Bodyweight Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
-| Bodyweight Good Morning | `goodMorning` | shares `goodMorning` (the clip shows Good Morning) | [High Bar Good Morning](https://www.youtube.com/watch?v=dEJ0FTm-CEk) (Renaissance Periodization, side) | #262 |
+| Bodyweight Good Morning | `bodyweightGoodMorning` | authored from the clip | [Bodyweight Good Morning | Exercise Demo | Male](https://www.youtube.com/watch?v=nS_BEj0mjhQ) (Exercise Library dot com, side) | #392 |
 | Bodyweight Reverse Lunge | `lunge` | authored from the clip | [Dumbbell Reverse Lunge](https://www.youtube.com/watch?v=Q2k3kYbtOcI) (OPEX Fitness, side) | #318 |
 | Bodyweight Squat | `bodyweightSquat` | authored from the clip | [Air Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=iiKn5FiVUjI) (OPEX Fitness, side) | #347 |
 | Box Jump | `boxJump` | authored from the clip | [Box Jump Step Down - OPEX Exercise Library](https://www.youtube.com/watch?v=W5QzqIbEWvk) (OPEX Fitness, side) | #299 |
@@ -324,3 +324,4 @@ Poses without a clip yet: `idle`.
 | `dumbbellFrontSquat` | [Front Rack Dumbbell Squat](https://www.youtube.com/watch?v=7CuKlSgu1B0) | OPEX Fitness | three-quarter | three reps in 10.5 s | #389 | 2026-09-16 | Dumbbell Front Squat | Borrowed the goblet squat (one bell hugged at the chest) before. The legs and trunk reuse the barbell front squat's frames, which the clip confirms: hip crease level with the knee at the bottom (0.45 of standing hip height against the frames' 0.49), trunk 25-28 as projected three-quarters on (the frames' 32). New is the rack: a dumbbell on each shoulder, the upper arm about 40 forward of plumb through the whole rep, the forearm folded back so the wrist sits level with the shoulder just in front (elbow 18-28 projected, drawn 36). Tempo at 0.2 s: down 1.6 s, 0.2-0.4 at the bottom, up 0.8-1.0, 0.6-0.8 standing. |
 | `pendlayRow` | [Pendlay Row - OPEX Exercise Library](https://www.youtube.com/watch?v=cosDas3E5ok) | OPEX Fitness | three-quarter | three reps in 9.3 s | #390 | 2026-09-16 | Pendlay Row | Borrowed the bent-over row (bar hanging at the knees, trunk 60 from vertical) before. Every rep from a dead stop on the floor, arms straight, trunk 7-11 above horizontal as projected; the pull to the lower chest with the upper arm swept back level (elbow 55-59 projected), the trunk rising to 30-38 projected (about 20-25 in the sagittal plane, three-quarters on). Ours: trunk 5 / 12 / 22 above horizontal, bar 12.3 cm up at the floor key (the deadlift's floor: 12.5), elbow 178 / 108 / 72, knee 127. Cue corrected: 'torso parallel throughout' is not what the clip does -- the trunk lifts as the bar reaches the chest. Tempo at 0.15 s: pull 0.6-0.75 s, 0.3-0.45 at the chest, lower 0.9-1.2, 1.2 on the floor. |
 | `wallHinge` | [Wall Tap Hip Hinge](https://www.youtube.com/watch?v=cGUhSLyYcpY) | Jack Hanrahan Fitness | side | six reps in 35 s, each a little further from the wall | #391 | 2026-09-16 | Hip Hinge Wall Touch | Borrowed the conventional deadlift (a loaded barbell) before. No weight: hands folded in front, the hips pushed back until the seat touches the wall behind. The lifter steps further out each rep, so the depth grows (trunk 54 -> 86 from vertical); the pose takes the middle reps, the 'foot from the wall' of the cue: trunk 72-79, knee 131-134, the hip joint 0.3 standing hip heights behind the ankle, the shin near plumb (3-5 ahead). Standing: knees soft (160-166). Ours: trunk 0 / 64 / 76, knee 166 / 143 / 132, hip 14 cm behind the ankle, the wall 7 cm behind the hip joint so the seat meets it. The 3D build of the female figure's hips carries a few millimetres into the (translucent) wall. Tempo at 0.3 s: down 1.8-2.7 s (slow, 2.2), 0.6-0.9 touching, up 0.9, 0.9-1.2 standing. |
+| `bodyweightGoodMorning` | [Bodyweight Good Morning | Exercise Demo | Male](https://www.youtube.com/watch?v=nS_BEj0mjhQ) | Exercise Library dot com | side | two reps in 17 s | #392 | 2026-09-16 | Bodyweight Good Morning | Borrowed the barbell good morning (bar on the back, trunk to 75, knees bending to 147) before. Hands laced behind the head, elbows out. The trunk goes all the way to level (88-92 from vertical) on knees that stay soft and barely move (165-170, thigh 13-17 behind vertical, shin plumb), the hips 0.15-0.18 standing hip heights back of the ankle. Ours: trunk 0 / 45 / 88, knee 172 / 168 / 167, hands behind the head 4 cm off the midline with the elbows flared out. A slow demonstration: down 4.6 s, 0.6-0.8 at the bottom, up 1.8-2.4, 1.6 standing -- the tempo is the clip's, and it is slow. |
