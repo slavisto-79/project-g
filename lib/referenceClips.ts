@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 18: the last visibly different borrowers ----------------------
+  bodyweightGoodMorning: {
+    videoId: "nS_BEj0mjhQ",
+    title: "Bodyweight Good Morning | Exercise Demo | Male",
+    channel: "Exercise Library dot com",
+    view: "side",
+    span: "two reps in 17 s",
+    prs: [392],
+    date: "2026-09-16",
+    exercises: ["Bodyweight Good Morning"],
+    notes:
+      "Borrowed the barbell good morning (bar on the back, trunk to 75, knees bending to 147) before. Hands laced behind the head, elbows out. The trunk goes all the way to level (88-92 from vertical) on knees that stay soft and barely move (165-170, thigh 13-17 behind vertical, shin plumb), the hips 0.15-0.18 standing hip heights back of the ankle. Ours: trunk 0 / 45 / 88, knee 172 / 168 / 167, hands behind the head 4 cm off the midline with the elbows flared out. A slow demonstration: down 4.6 s, 0.6-0.8 at the bottom, up 1.8-2.4, 1.6 standing -- the tempo is the clip's, and it is slow.",
+  },
   wallHinge: {
     videoId: "cGUhSLyYcpY",
     title: "Wall Tap Hip Hinge",

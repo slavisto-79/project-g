@@ -2101,6 +2101,53 @@ export const exercisePoses = {
     { tempo: { down: 2500, bottom: 250, up: 1500, top: 500 }, camera: { azimuth: -1.6 } },
   ),
 
+  // Bodyweight good morning, from a reference clip measured with the pose
+  // lab (Exercise Library dot com "Bodyweight Good Morning", nS_BEj0mjhQ,
+  // two reps in 17 s, side view; MoveNet on 88 frames at 0.2 s). It borrowed
+  // the barbell good morning -- bar on the back, the trunk to 75 and the
+  // knees bending to 147 -- before.
+  //
+  // Fingers laced behind the head, elbows out. The trunk goes all the way to
+  // level (88-92 from vertical) while the knees stay soft and barely move
+  // (165-170: thigh 13-17 behind vertical, shin plumb), the hips pushed back
+  // to 0.15-0.18 standing hip heights behind the ankle.
+  //
+  // Authored from the ankle up, as the deadlift: thigh 2 / 10 / 15 behind
+  // vertical, shin 6 / 2 / -2, trunk 0 / 45 / 88 -- knee 172 / 168 / 167.
+  // The hands are solved to a point behind the head in the trunk's frame,
+  // pulled in to 4 cm off the midline (`spread`) with the elbows swung out
+  // (`flare` 70) and the fingers turned down the back of the head (`end`).
+  //
+  // Tempo from the clip, to the 0.2 s frames: down in 4.6 s, 0.6-0.8 at the
+  // bottom, up in 1.8-2.4, 1.6 standing. It is a slow demonstration, and
+  // this is its tempo.
+  bodyweightGoodMorning: (() => {
+    const ankle = { x: 0.535, y: FLOOR };
+    // [thigh behind vertical, shin ahead, trunk]
+    const keys = [[2, 6, 0], [10, 2, 45], [15, -2, 88]] as const;
+    return pose(
+      "side",
+      keys.map(([thighBack, shinAhead, torso]): Figure => {
+        const upper = 180 - thighBack;
+        const lower = 180 + shinAhead;
+        const knee = along(ankle, lower + 180, P.shin);
+        const hip = along(knee, upper + 180, P.thigh);
+        const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, 0, 0, "side").x, y: hip.y };
+        // Fingers laced behind the head: a point up the trunk's axis past the
+        // top of the spine and a little behind it, elbows out wide.
+        const top = spineTop(pelvis, torso);
+        const rad = (torso * Math.PI) / 180;
+        const head = { x: top.x + (0.10 * Math.sin(rad) - 0.07 * Math.cos(rad)) / ASPECT, y: top.y - 0.10 * Math.cos(rad) - 0.07 * Math.sin(rad) };
+        const arms = reachingArms(pelvis, torso, "side", [head, head], FORWARD).map((arm) => ({ ...arm, end: torso + 170, spread: -0.07, flare: 70 })) as [Limb, Limb];
+        return { pelvis, torso, neck: torso > 30 ? torso - 20 : 0, arms, legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb] };
+      }),
+      [{ kind: "floor" }],
+      "neutral",
+      1,
+      { tempo: { down: 4600, bottom: 700, up: 2100, top: 1600 } },
+    );
+  })(),
+
   goodMorning: pose(
     "side",
     ([[0.523, 0.490, 5, 180, 180], [0.485, 0.495, 30, 168, 177], [0.452, 0.510, 55, 156, 176], [0.424, 0.528, 75, 147, 173]] as const).map(
