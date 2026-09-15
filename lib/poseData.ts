@@ -812,6 +812,38 @@ export const exercisePoses = {
     );
   })(),
 
+  // Lateral lunge, from a reference clip measured with the pose lab
+  // (MGHOrthopaedics "Lateral Lunges", MvpBUsQrt_4, face on, four lunges
+  // alternating sides in the first 13 s; MoveNet on 66 frames at 0.2 s). It
+  // borrowed the cossack squat's pose (`lateralLunge`, below) before.
+  //
+  // Feet together, step out to one side, sit into that hip, push back to
+  // the middle. Against the standing hip-to-ankle height: the hips drop
+  // 0.33 (the cossack pose drops 0.41), the ankles land 1.17 apart (1.04),
+  // the trunk leans 9-14 over the bent knee, and the long leg stays straight
+  // (172-180). The step lands with both legs straight and the feet not yet
+  // fully apart (0.85 of the final width), then the hips sink.
+  //
+  // Solved, not placed: the standing pelvis is the highest where both legs
+  // reach; the step is a centred straddle with both legs at full stretch;
+  // the bottom pelvis sits 0.35 hip heights in from the bent foot and 0.33
+  // down, nudged until the long leg locks. The bent knee comes out at 86 in
+  // the plane (the clip's face-on 122-136 is opened by the thigh pointing
+  // forward).
+  //
+  // One side, as the library counts it per side (the clip alternates).
+  // Tempo to the 0.2 s frames: out and down 1.4 s (a 0.6 s step, a 0.8 s
+  // sink), 0.4 at the bottom, back to the middle in 0.8-1.0, 0.4 standing.
+  sideLunge: (() => {
+    const planted = { x: 0.66, y: FLOOR };
+    const bent = { x: 0.319, y: FLOOR };
+    const arms = bothArms(158, -48);
+    const standing: Figure = { pelvis: { x: 0.635, y: 0.493 }, torso: 0, arms, legs: plantedLegs({ x: 0.635, y: 0.493 }, 0, "front", [planted, { x: 0.61, y: FLOOR }], OUT, [90, 270]) };
+    const stepped: Figure = { pelvis: { x: 0.515, y: 0.526 }, torso: 2, arms, legs: plantedLegs({ x: 0.515, y: 0.526 }, 2, "front", [planted, { x: 0.37, y: FLOOR }], OUT, [90, 270]) };
+    const bottom: Figure = { pelvis: { x: 0.417, y: 0.637 }, torso: 348, arms, legs: plantedLegs({ x: 0.417, y: 0.637 }, 348, "front", [planted, bent], OUT, [90, 270]) };
+    return pose("front", [standing, stepped, bottom], [{ kind: "floor" }], "neutral", 1, { tempo: { down: 1400, bottom: 400, up: 900, top: 400 } });
+  })(),
+
   lateralLunge: pose(
     "front",
     [

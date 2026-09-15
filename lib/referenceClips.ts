@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 18: the last visibly different borrowers ----------------------
+  sideLunge: {
+    videoId: "MvpBUsQrt_4",
+    title: "Lateral Lunges",
+    channel: "MGHOrthopaedics",
+    view: "front",
+    span: "four lunges, alternating sides, in 13 s (of 28)",
+    prs: [388],
+    date: "2026-09-16",
+    exercises: ["Lateral Lunge"],
+    notes:
+      "Borrowed the cossack squat's pose before. Feet together, step out to one side, sit into that hip, push back to the middle. Hip height as a fraction of the standing hip-to-ankle height: the hips drop 0.33 (the cossack pose drops 0.41); the ankles land 1.17 apart (cossack 1.04); the trunk leans 9-14 over the bent knee (cossack 6 the other way); the long leg stays straight (172-180). The bent knee reads 122-136 face on, opened by the thigh pointing forward; ours solves to 86 in the plane. Ours: drop 0.33, ankles 1.17, lean 12. The clip alternates sides; the library counts per side, so the pose does one. Tempo at 0.2 s: step out 0.6 s, sink 0.8, 0.4 at the bottom, back to the middle 0.8-1.0, 0.4 standing; about 3.1 s a side.",
+  },
   diamondPushUp: {
     videoId: "Bhuscxybjf4",
     title: "Diamond Push Up",
@@ -1512,7 +1524,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [323],
     date: "2026-09-11",
     exercises: ["Cossack Squat"],
-    notes: "Lateral Lunge shares this pose and STEPS OUT from a narrow stance; the clip holds one wide stance throughout and shifts side to side, which is the cossack. What transferred is the depth, the dead-straight trailing leg, the hands and the tempo.",
+    notes: "The pose STEPS OUT from a narrow stance, which Lateral Lunge did while it shared it; the clip holds one wide stance throughout and shifts side to side, which is the cossack. What transferred is the depth, the dead-straight trailing leg, the hands and the tempo. Lateral Lunge has its own pose now (sideLunge).",
   },
 
   proneRaise: {
