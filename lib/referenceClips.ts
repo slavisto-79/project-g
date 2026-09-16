@@ -248,6 +248,20 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [274],
     date: "2026-09-09",
     exercises: ["Pull-Up"],
+    confirmations: [
+      {
+        exercise: "Band-Assisted Pull-Up",
+        videoId: "JpsiZGnlQ_4",
+        title: "How To Do Banded Pull Ups",
+        channel: "PureGym",
+        view: "three-quarter",
+        span: "two reps in 9.4 s",
+        prs: [404],
+        date: "2026-09-16",
+        notes:
+          "Confirms the pull-up with the band: a dead hang (elbow 174-179, the wrists 0.85-0.92 keypoint trunk lengths above the shoulders, grip 1.7-2.0 shoulder widths -- the pose's 2.05) to the chin over the bar (the wrists at or just under the shoulder line, the far elbow 27-42; the near one points at the camera and is not quoted), the trunk 12-18 from vertical, the knees 170-178 with the legs drifting up to 20 behind the hips at the top. The band loops over the bar's middle and under one foot -- the pose hangs it from the hand, which is where the bar's midline is in a side view. Tempo at 0.2 s: pull 0.8-1.0 s, 0.4 at the top, lower 0.8-1.4, 0.6 hanging; the pose's 1.1 / 0.2 / 1.1 / 0.3 stays.",
+      },
+    ],
   },
   pulldown: {
     videoId: "PEv0gTcMY3g",
@@ -288,9 +302,36 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 10 s",
-    prs: [278],
+    prs: [278, 404],
     date: "2026-09-09",
     exercises: ["Barbell Curl"],
+    notes: "Side view: settles the elbow and the tempo, not the hand width -- that came from the two front-view confirmations below (batch 20), which narrowed the grip from 1.81 to 1.15 shoulder widths.",
+    confirmations: [
+      {
+        exercise: "Dumbbell Biceps Curl",
+        videoId: "l1tXK8CzxB4",
+        title: "Dumbbell Curl - OPEX Exercise Library",
+        channel: "OPEX Fitness",
+        view: "front",
+        span: "three reps in 12 s",
+        prs: [404],
+        date: "2026-09-16",
+        notes:
+          "Confirms the curl: elbow 166-173 hanging to 23-34 at the top (a front camera reads the fold tight), the wrists reaching the shoulder line, the upper arm within 15 of plumb. Settles the width: wrists 1.25-1.4 shoulder widths apart hanging, 0.95-1.0 at the top, elbows 1.1-1.4 to 0.85-0.9 -- the pose stood 1.81 wide, now 1.15. Tempo at 0.15 s: curl 1.05 s, 0.6 at the top, lower 1.35, 0.75-1.2 hanging -- slower up and faster down than the EZ bar's 1.5 / 0.4 / 1.1 / 0.3, which the shared pose keeps.",
+      },
+      {
+        exercise: "Band Curl",
+        videoId: "0hZboUNuogA",
+        title: "Banded Bicep Curl",
+        channel: "OPEX Fitness",
+        view: "front",
+        span: "four reps in 10.6 s",
+        prs: [404],
+        date: "2026-09-16",
+        notes:
+          "Confirms the curl: standing on the band with the feet 0.65-0.75 shoulder widths apart, elbow 165-179 hanging to 23-35 at the top, the wrists 0.15-0.2 trunk lengths under the shoulder line at the top, the upper arm within 15 of plumb. Hands 0.7-0.9 shoulder widths apart throughout (the pose's 1.15 sits between this and the dumbbell clip). Tempo at 0.2 s: curl 0.8-1.0 s, 0.4 at the top, lower 0.8, 0.6-0.8 hanging; the shared pose keeps the EZ bar's.",
+      },
+    ],
   },
   tricepsExtension: {
     videoId: "y6EdXBdL75A",

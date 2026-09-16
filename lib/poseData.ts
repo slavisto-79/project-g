@@ -5135,9 +5135,22 @@ export const exercisePoses = {
     { tempo: { down: 700, bottom: 550, up: 1450, top: 800 }, camera: { azimuth: 0.75 } },
   ),
 
+  // The curl's own clip (OPEX "EZ Bar Curl", side view) settles the elbow
+  // and the tempo but not the hand width. Two front-view clips of the
+  // exercises that share it do (batch 20): OPEX "Dumbbell Curl" holds the
+  // wrists 1.25-1.4 shoulder widths apart hanging and 0.95-1.0 at the top,
+  // the elbows tucking from 1.1-1.4 to 0.85-0.9; OPEX "Banded Bicep Curl"
+  // holds them 0.7-0.9 apart throughout. The pose stood 1.81 wide (a
+  // guess); 1.15 now, a hand inside the shoulders, which suits an EZ bar's
+  // inner grip too. Both clips confirm the rest: elbow 165-179 hanging
+  // to 23-35 at the top (a front camera reads the fold tight; the side-on
+  // 41 stands), the wrists reaching the shoulder line, the upper arm
+  // within 15 of plumb. Their tempos differ from the EZ bar's and from
+  // each other (dumbbell: curl 1.05 s, top 0.6, lower 1.35, hang 0.75-1.2;
+  // band: 0.8-1.0, 0.4, 0.8, 0.6-0.8); the EZ bar's stays.
   curl: pose(
     "side",
-    CURL_ARMS.map(([upper, lower]) => stand({ x: 0.5, y: 0.494 }, 358, wide(sideArms(upper, lower)))),
+    CURL_ARMS.map(([upper, lower]) => stand({ x: 0.5, y: 0.494 }, 358, wide(sideArms(upper, lower), -0.016))),
     [
       { kind: "floor" },
       { kind: "bell", at: "hand0", each: true },
