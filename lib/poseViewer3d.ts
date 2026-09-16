@@ -1979,6 +1979,27 @@ export class PoseViewer3D {
     return group;
   }
 
+  // A Smith machine: two uprights either side of the bar with a chrome rail
+  // up each, a crown across the top and feet on the floor. It stands where
+  // the bar is in the first key; the bar rides up and down between them.
+  private smithFrame(center: Vec3, floorY: number): THREE.Group {
+    const g = new THREE.Group();
+    const top = Math.max(center[1] + 0.35, floorY + 1.05);
+    for (const x of [-0.6, 0.6]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.06, top - floorY, 0.06), this.iron);
+      post.position.set(center[0] + x, (top + floorY) / 2, center[2]);
+      const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, top - floorY - 0.12, 10), this.chrome);
+      rail.position.set(center[0] + x * 0.92, (top + floorY) / 2 - 0.02, center[2]);
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.04, 0.6), this.iron);
+      foot.position.set(center[0] + x, floorY + 0.02, center[2]);
+      g.add(post, rail, foot);
+    }
+    const crown = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.06, 0.08), this.iron);
+    crown.position.set(center[0], top - 0.03, center[2]);
+    g.add(crown);
+    return g;
+  }
+
   private plainBar(length: number): THREE.Group {
     const group = new THREE.Group();
     group.add(this.alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, length, 12), this.graphite)));
@@ -2444,6 +2465,10 @@ export class PoseViewer3D {
           this.held.push(group);
           continue;
         }
+        if (prop.smith) {
+          const floor = first.props.find((p) => p.kind === "floor");
+          this.scene.add(this.smithFrame(prop.center, floor && floor.kind === "floor" ? floor.y : 0));
+        }
         let mesh: THREE.Group;
         if (prop.hex) {
           // The handles are wherever the hands are: a hex bar's grips sit
@@ -2656,6 +2681,11 @@ export class PoseViewer3D {
           box.expandByPoint(pivot.clone().add(new THREE.Vector3(-0.1, -LANDMINE_HINGE, -0.1)));
           box.expandByPoint(vec(prop.center).addScalar(0.11));
           box.expandByPoint(vec(prop.center).addScalar(-0.11));
+        } else if (prop.kind === "bar" && prop.smith) {
+          // The Smith machine's uprights stand past the bar's ends and reach
+          // the floor; the crown sits above the highest bar position.
+          box.expandByPoint(vec(prop.center).add(new THREE.Vector3(0.66, 0.38, 0.06)));
+          box.expandByPoint(new THREE.Vector3(prop.center[0] - 0.66, 0.02, prop.center[2] - 0.32));
         } else if (prop.kind === "bar") {
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(prop.length / 2, 0.11, 0)));
           box.expandByPoint(vec(prop.center).add(new THREE.Vector3(-prop.length / 2, -0.11, 0)));

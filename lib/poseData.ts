@@ -600,6 +600,71 @@ export const exercisePoses = {
     );
   })(),
 
+  // Smith machine squat, from a reference clip measured with the pose lab
+  // (OPEX "Smith Machine Back Squat", QcmonZUuumg, three reps in 8 s, the
+  // camera three-quarters on from behind; MoveNet on 65 frames at 0.15 s).
+  // It borrowed the free back squat before -- a bar that travels forward
+  // 3.6 cm over the rep.
+  //
+  // The machine fixes the bar on a vertical track, and that is the one
+  // thing authored here: the legs are built from the ankle up (thigh 4 / 45
+  // / 70 / 88 behind vertical, shin 6 / 20 / 27 / 30 ahead) and the trunk
+  // is SOLVED per key so the bar on the traps stays on the standing bar's
+  // line. It comes out at 5 / 23 / 29 / 30, and the clip, read three-
+  // quarters from behind, has 27-30 as projected at the bottom -- the free
+  // squat's 36 is what the machine takes away. The bottom: thigh level, knee
+  // 56-64 (ours 72 at the fold limit's floor), hip 0.40-0.47 of its standing
+  // height (ours 0.44), the feet a hip-height's quarter ahead of the hips.
+  //
+  // The frame is a `smith` bar: uprights either side of the plates, drawn
+  // where the bar is in the first key.
+  //
+  // Tempo from the three reps, to the 0.15 s frames: down in 1.35-1.5 s,
+  // 0.15-0.3 at the bottom, up in 0.9, 0.3-0.45 standing; reps 2.6-2.7 s
+  // apart.
+  smithSquat: (() => {
+    const ankle = { x: 0.535, y: FLOOR };
+    const pelvisFor = (thighBack: number, shinAhead: number): Point => {
+      const knee = along(ankle, shinAhead + 360, P.shin);
+      const hip = along(knee, 360 - thighBack, P.thigh);
+      return { x: hip.x - hipAt({ x: 0, y: 0 }, 0, 0, "side").x, y: hip.y };
+    };
+    // Where the bar sits on the traps, for a trunk angle (napeArms' target).
+    const napeX = (pelvis: Point, torso: number): number => {
+      const top = spineTop(pelvis, torso);
+      const rad = (torso * Math.PI) / 180;
+      return top.x - (0.03 * Math.cos(rad)) / ASPECT + (0.052 * Math.sin(rad)) / ASPECT;
+    };
+    const barX = napeX(pelvisFor(4, 6), 5);
+    // [thigh behind vertical, shin ahead]; the trunk is solved so the bar
+    // stays on its track.
+    const keys = [[4, 6], [45, 20], [70, 27], [88, 30]] as const;
+    return pose(
+      "side",
+      keys.map(([thighBack, shinAhead]): Figure => {
+        const pelvis = pelvisFor(thighBack, shinAhead);
+        let torso = 0;
+        let miss = Infinity;
+        for (let t = 0; t <= 60; t += 0.5) {
+          const d = Math.abs(napeX(pelvis, t) - barX);
+          if (d < miss) { miss = d; torso = t; }
+        }
+        const upper = 180 - thighBack;
+        const lower = 180 + shinAhead;
+        return squatting({
+          pelvis,
+          torso,
+          arms: napeArms(pelvis, torso, 0.1),
+          legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
+        });
+      }),
+      [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17, smith: true }],
+      "overhand",
+      1,
+      { tempo: { down: 1400, bottom: 250, up: 900, top: 400 }, camera: SQUAT_CAMERA },
+    );
+  })(),
+
   // A goblet squat hugs the bell against the chest with both hands -- and
   // `hug` is what makes it do that: the bell leans with the chest instead of
   // hanging plumb from the grip.
