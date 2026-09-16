@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 18: the last visibly different borrowers ----------------------
+  closeGripBench: {
+    videoId: "FiQUzPtS90E",
+    title: "Narrow Grip Bench Press",
+    channel: "Renaissance Periodization",
+    view: "head-end",
+    span: "four reps in 12 s",
+    prs: [394],
+    date: "2026-09-16",
+    exercises: ["Close-Grip Bench Press"],
+    notes:
+      "Borrowed the barbell bench press (76 cm grip, elbows flared 45 at the chest) before. This clip gives the grip: wrists 1.04-1.18 shoulder widths apart at lockout -- shoulder width, as the cue says -- and the elbows barely wider on the way down (1.2-1.35). OPEX's own \"Close Grip Bench Press\" (CGqKy5wiY8o) was measured too, on the same camera and set as the bench clip whose geometry this pose reuses: its grip is only a tenth narrower than that one's (1.95 against 2.15 shoulder widths, ours draws the bench at 2.26), a moderate grip rather than the cue's, so the width is this clip's and the tempo is OPEX's (down 0.7-0.8 s, a touch, up 0.5, 0.6 locked out). Ours: wrists 1.10, elbows 1.05 / 1.16 / 1.26, elbow 180 / 80 / 52, the bench's own bar path.",
+  },
   heelsElevatedGobletSquat: {
     videoId: "YWrs2r_mYg0",
     title: "How to: Heels Elevated Goblet Squat",
