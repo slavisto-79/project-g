@@ -3909,7 +3909,60 @@ export const exercisePoses = {
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
     "overhand",
     1,
-    { tempo: { down: 2250, bottom: 500, up: 1050, top: 750 }, camera: { azimuth: 0.75 } },
+    // Key 0 is the bottom, so `down` is the press and `up` the lowering.
+    { tempo: { down: 1050, bottom: 750, up: 2250, top: 500 }, camera: { azimuth: 0.75 } },
+  ),
+
+  // Band overhead press, from a reference clip measured with the pose lab
+  // (Wodstar "Banded Overhead Press", nwjQIADavj8, face on, four presses in
+  // the clip's second shot; MoveNet on 95 frames at 0.2 s). It borrowed the
+  // barbell overhead press before, whose bar racks on the clavicles with
+  // the elbow at 48 and fixes the grip at 2.05 shoulder widths.
+  //
+  // Face on, as ratios of the shoulder width: at the bottom the hands are AT
+  // the shoulders -- wrists 1.5-1.8 apart at shoulder height, the elbow
+  // folded to 19-25 with the elbows 1.6-1.9 apart and 0.65-0.75 below the
+  // shoulders; at the top the arms are straight (166-179) in a slight V,
+  // the wrists 1.9-2.05 apart and the elbows 1.5-1.65, the elbows a full
+  // upper arm above the shoulders. The feet stand on the band 1.0-1.3
+  // shoulder widths apart. Not settled by a front camera: how far ahead of
+  // the shoulders the hands sit at the bottom (placed a little ahead, what
+  // lets the in-plane fold drop the elbow).
+  //
+  // Authored as the dumbbell shoulder press is: each hand placed against
+  // its shoulder, `flare` swinging the elbow out, `spread` setting the width
+  // per key -- narrower than the bar at the bottom, the bar's width at the
+  // top. The band runs from under the feet to each hand.
+  //
+  // Tempo from the presses, to the 0.2 s frames: press 0.6-0.8 s, 0.8 at
+  // the top, lower 1.0, 0.6-1.2 at the shoulders.
+  bandOverheadPress: pose(
+    "side",
+    // [hand up from the shoulder, hand ahead of it, elbow flared out, hands wider, elbow fold]
+    ([[0, 0.055, 25, 0.022, BACK], [0.16, 0.03, 20, 0.04, BACK], [0.288, 0, 0, 0.055, FORWARD]] as const).map(([up, ahead, flare, spread, bend]): Figure => {
+      const pelvis = { x: 0.5, y: 0.492 };
+      const hands = [0, 1].map((side) => {
+        const sh = shoulderAt(pelvis, 0, side as 0 | 1, "side");
+        return { x: sh.x + ahead / ASPECT, y: sh.y - up };
+      }) as [Point, Point];
+      return {
+        pelvis,
+        torso: 0,
+        neck: 0,
+        arms: reachingArms(pelvis, 0, "side", hands, bend).map((arm) => ({ ...arm, flare, spread })) as [Limb, Limb],
+        // Standing on the band, the feet a little wider than the girdle.
+        legs: plantedLegs(pelvis, 0, "side", FEET, FORWARD).map((leg) => ({ ...leg, spread: 0.05 })) as [Limb, Limb],
+      };
+    }),
+    [
+      { kind: "floor" },
+      // Stood on: one strand to each hand, off the floor under the feet.
+      { kind: "cable", at: "hand0", anchor: { x: 0.525, y: 0.94 }, band: true },
+      { kind: "cable", at: "hand1", anchor: { x: 0.525, y: 0.94 }, band: true },
+    ],
+    "overhand",
+    1,
+    { tempo: { down: 700, bottom: 800, up: 1000, top: 900 }, camera: { azimuth: 0.75 } },
   ),
 
   // Band chest press, from a reference clip measured with the pose lab
@@ -3973,13 +4026,7 @@ export const exercisePoses = {
         legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
       };
     }),
-    [
-      { kind: "floor" },
-      { kind: "bar", at: "grip", length: 0.40 },
-      // Stood on, one band to each hand, when the press is done on a band.
-      { kind: "cable", at: "hand0", anchor: { x: 0.525, y: 0.94 }, band: true },
-      { kind: "cable", at: "hand1", anchor: { x: 0.525, y: 0.94 }, band: true },
-    ],
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.40 }],
     "overhand",
     1,
     { tempo: { down: 1000, bottom: 400, up: 1100, top: 500 }, camera: { azimuth: 0.75 } },
@@ -4590,6 +4637,38 @@ export const exercisePoses = {
     "neutral",
     1,
     { tempo: { down: 1000, bottom: 500, up: 1500, top: 500 }, camera: { azimuth: 0.9, lying: false } },
+  ),
+
+  // Band row, from a reference clip measured with the pose lab (OPEX "Banded
+  // Row", j7ABJGauUEk, side view, three rows in 12.2 s; MoveNet on 47 frames
+  // at 0.2 s). It borrowed the seated cable row before -- sitting, knees at
+  // 72, feet on a plate -- where the cue has the band anchored in front and
+  // this clip STANDS: the band on a rack at the height of the lower ribs,
+  // the trunk within 5 of vertical, the knees soft (160-175), the hands
+  // travelling level, 0.45 trunk lengths under the shoulders, from 0.8-0.9
+  // trunk lengths ahead of them (upper arm 45-55 up from plumb, elbow
+  // 150-165) to 0.25 ahead with the elbows 15-25 behind plumb, folded to
+  // 65-70.
+  // Authored with the arms as world angles: upper arm 132/165/205, forearm
+  // 108/95/85 -- elbow 156/110/60, the hand 0.15/0.16/0.14 under the
+  // shoulder and 0.25/0.18/0.07 ahead of it; the anchor far ahead at that
+  // height.
+  // Tempo from the three rows, to the 0.2 s frames: pull 0.6-0.8 s, 0.8 at
+  // the ribs, release 0.8-1.0, 0.6-0.8 reaching; 3 s a rep.
+  bandRow: pose(
+    "side",
+    ([[132, 108], [165, 95], [205, 85]] as const).map(([upper, lower]) =>
+      stand({ x: 0.5, y: 0.492 }, 2, sideArms(upper, lower).map((arm) => ({ ...arm, spread: -0.03 })) as [Limb, Limb]),
+    ),
+    [
+      { kind: "floor" },
+      // The band, anchored ahead at the height of the hands, one strand to each.
+      { kind: "cable", at: "hand0", anchor: { x: 0.95, y: 0.40 }, band: true },
+      { kind: "cable", at: "hand1", anchor: { x: 0.95, y: 0.40 }, band: true },
+    ],
+    "neutral",
+    1,
+    { tempo: { down: 700, bottom: 800, up: 900, top: 700 }, camera: { azimuth: 0.75 } },
   ),
 
   // Lat pulldown, from a reference clip measured with the pose lab (OPEX

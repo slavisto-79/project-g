@@ -6199,7 +6199,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Bar Dip": "dip",
   "Bench Dip": "benchDip",
   "Skull Crusher": "skullCrusher",
-  "Band Overhead Press": "overheadPress",
+  "Band Overhead Press": "bandOverheadPress",
   "Push Jerk": "pushJerk",
 
   "Lat Pulldown": "pulldown",
@@ -6207,7 +6207,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Band-Assisted Pull-Up": "pullUp",
   "Seated Cable Row": "seatedRow",
   "Chest-Supported Row": "chestSupportedRow",
-  "Band Row": "seatedRow",
+  "Band Row": "bandRow",
   "Inverted Row": "invertedRow",
   "Towel Row": "towelRow",
   "Doorway Row": "doorwayRow",
