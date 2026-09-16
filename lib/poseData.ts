@@ -2919,6 +2919,44 @@ export const exercisePoses = {
     { tempo: { down: 850, bottom: 600, up: 600, top: 600 }, camera: { azimuth: -0.5 } },
   ),
 
+  // Dumbbell bench press, from a reference clip measured with the pose lab
+  // (OPEX "Dumbbell Bench Press", ZaDlbm8E8Tg, three reps in 9 s, side view;
+  // MoveNet on 75 frames at 0.15 s). It borrowed the barbell bench press
+  // before, whose bar stops on the chest.
+  //
+  // What the dumbbells change: they come lower than a bar can. At the bottom
+  // the wrists are 0.0-0.17 trunk lengths above the shoulder line (the bar
+  // stops 0.32 above it) and the elbows 0.35-0.45 BELOW it, past the bench
+  // -- the cue's "elbows level with the torso" -- with the wrists over the
+  // shoulders (0 +- 0.1 ahead). At the top the elbow is 155-176, the wrists
+  // 1.0-1.3 above. The bottom elbow angle itself is a projection here (the
+  // flared upper arm points at the camera and reads 0-20) and is not used.
+  //
+  // Authored on the bench's own path with the bottom 5.8 cm lower, the
+  // hands solved 4.7 cm toward the feet of the shoulder (a plumb wrist
+  // leaves the in-plane fold no way to put the elbow under the shoulder
+  // line) and the flare opened to 20 / 40 / 60 (the bench's 20 / 35 / 45).
+  // Measured after: elbow 178 / 74 / 45, wrists 2 cm above the shoulder
+  // line and the elbows 11 cm below it at the bottom, 2.34 shoulder widths
+  // apart (the bench's 2.50), the bench's grip.
+  //
+  // Tempo from the three reps, to the 0.15 s frames: down 0.75-0.9 s, 0.5-
+  // 0.75 at the bottom, up 0.45-0.6, 0.6-0.8 locked out; reps 2.9 s apart.
+  dumbbellBenchPress: pose(
+    "side",
+    ([[0.397, 0.304, 20], [0.42, 0.44, 40], [0.44, 0.571, 60]] as const).map(([barX, barY, flare]) =>
+      bench(barX, barY, { flare, spread: 0.078, legSpread: 0.12, feetX: 0.640 }),
+    ),
+    [
+      { kind: "floor" },
+      { kind: "slab", at: "pelvis", width: 0.5, height: 0.055, dx: -0.154, dy: 0.085 },
+      { kind: "bar", at: "grip", length: 0.17 },
+    ],
+    "overhand",
+    1,
+    { tempo: { down: 850, bottom: 600, up: 550, top: 700 }, camera: { azimuth: -0.5 } },
+  ),
+
   closeGripBench: pose(
     "side",
     ([[0.397, 0.304, 0], [0.436, 0.410, 5], [0.475, 0.513, 8]] as const).map(([barX, barY, flare]) =>

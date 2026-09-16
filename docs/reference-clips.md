@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 152 |
-| sharing a pose that was authored from a clip | 10 |
+| authored from a clip (the clip shows the exercise) | 153 |
+| sharing a pose that was authored from a clip | 9 |
 | without a clip yet | 0 |
-| poses with a clip | 146 of 147 (146 in use) |
+| poses with a clip | 147 of 148 (147 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -74,7 +74,7 @@ Poses without a clip yet: `idle`.
 | Depth Jump | `depthJump` | authored from the clip | [Depth Jump | Olympic Weightlifting Exercise Library](https://www.youtube.com/watch?v=GeN0S3XCZnM) (Catalyst Athletics, side) | #312 |
 | Diamond Push-Up | `diamondPushUp` | authored from the clip | [Diamond Push Up](https://www.youtube.com/watch?v=Bhuscxybjf4) (E3 Rehab Exercise Library, side) | #387 |
 | Doorway Row | `doorwayRow` | authored from the clip | [Single Doorframe Row](https://www.youtube.com/watch?v=aa0yCQqbYaM) (Gymless Fitness, side) | #383 |
-| Dumbbell Bench Press | `bench` | shares `bench` (the clip shows Barbell Bench Press) | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
+| Dumbbell Bench Press | `dumbbellBenchPress` | authored from the clip | [Dumbbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ZaDlbm8E8Tg) (OPEX Fitness, side) | #399 |
 | Dumbbell Biceps Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
 | Dumbbell Bulgarian Split Squat | `splitSquat` | authored from the clip | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267 |
 | Dumbbell Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
@@ -334,3 +334,4 @@ Poses without a clip yet: `idle`.
 | `hammerCurl` | [Dumbbell Hammer Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=RIEMoYL_h1Y) | OPEX Fitness | front | three reps in 11 s | #398 | 2026-09-16 | Hammer Curl | Borrowed the curl (underhand) before; the grip is a property of the pose, so the bells drew palms up. Neutral. The curl's own keys: hanging elbow 165-175, the top 45-55 with the wrists 0.27 trunk lengths under the shoulders (from 1.05). Camera from the front, so those are projections and the curl's side-on keys are kept; what this clip gives is the grip and the tempo: curl 0.6-0.75 s, 0.5-0.6 at the top, lower 1.4-1.5, 0.7-0.9 hanging; reps 3.65-3.75 s apart. |
 | `neutralGripPulldown` | [Neutral Grip Lat Pulldown](https://www.youtube.com/watch?v=RMvSbvaoVG4) | OPEX Fitness | back | four reps in 11.5 s | #398 | 2026-09-16 | Neutral-Grip Pulldown | Borrowed the wide overhand pulldown before. From behind: the hands on a V-handle 0.55-0.85 shoulder widths apart (the wide bar's are 2 shoulder widths), the elbows 1.0-1.3; the handle pulled to 0.3-0.45 trunk lengths under the shoulder line (the bar's 4 cm). Ours: the pulldown's seat, lean and top, the hands 0.7 widths apart (spread -0.05) pulled to 9 cm under the shoulders, neutral grip on two fore-aft handles. Tempo at 0.15 s: pull 0.6 s, 1.0 at the chest, release 1.05, 0.6 at the top; reps 3.3 s apart. |
 | `neutralGripDumbbellPress` | [Dumbbell Neutral Grip Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=Q7omzf7Bt1I) | OPEX Fitness | side | three reps in 8.5 s | #398 | 2026-09-16 | Neutral-Grip Dumbbell Press | Borrowed the barbell bench press (wide overhand, elbows flared 45, bar stopping on the chest) before. Side view: at the bottom the elbow closes to 16-32 with the wrists 0.17-0.20 trunk lengths above the shoulder line (the bar stops 0.32 above it) and the elbows 0.27-0.38 BELOW it, past the bench; at the top the elbow is 155-167 with the wrists 1.05-1.3 above. Ours: the bench's bar path with the bottom 3 cm lower, the flare cut to 0 / 10 / 20 so the elbows stay in beside the ribs, palms facing on twin dumbbells (neutral grip). Tempo at 0.15 s: down 0.75-0.9 s, 0.5-0.75 at the bottom, up 0.6, 0.6 locked out; reps 2.7 s apart. |
+| `dumbbellBenchPress` | [Dumbbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ZaDlbm8E8Tg) | OPEX Fitness | side | three reps in 9 s | #399 | 2026-09-16 | Dumbbell Bench Press | Borrowed the barbell bench press before, whose bar stops on the chest. The dumbbells come lower: at the bottom the wrists are 0.0-0.17 trunk lengths above the shoulder line (the bar's 0.32) and the elbows 0.35-0.45 below it, past the bench, the wrists over the shoulders; at the top the elbow is 155-176 with the wrists 1.0-1.3 above. Not used: the bottom elbow angle, a projection of a flared upper arm pointing at the camera (reads 0-20). Ours: the bench's path with the bottom 5.8 cm lower and the hands 4.7 cm toward the feet (an in-plane fold cannot put the elbow under a plumb wrist), flare 20 / 40 / 60; elbow 178 / 74 / 45, elbows 11 cm below the shoulder line and 2.34 shoulder widths apart at the bottom. Tempo at 0.15 s: down 0.75-0.9 s, 0.5-0.75 at the bottom, up 0.45-0.6, 0.6-0.8 locked out; reps 2.9 s apart. |
