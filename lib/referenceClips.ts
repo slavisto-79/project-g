@@ -717,6 +717,20 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  // --- Batch 19: machines, grips and tempos the shared pose could not show --
+  smithSquat: {
+    videoId: "QcmonZUuumg",
+    title: "Smith Machine Back Squat",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "three reps in 8 s",
+    prs: [395],
+    date: "2026-09-16",
+    exercises: ["Smith Machine Squat"],
+    notes:
+      "Borrowed the free back squat before (no rails, the bar travelling forward through the rep). Camera three-quarters from behind. Bottom: thigh level, knee 56-64, hip 0.40-0.47 of standing height, trunk 27-30 as projected, the feet about a quarter hip-height ahead of the hips. Ours: legs from the ankle up, the trunk solved per key so the bar stays plumb on its track (5 / 23 / 29 / 30), knee 72, hip 0.44, feet 12 cm ahead. New bar option `smith` draws the uprights. Tempo at 0.15 s: down 1.35-1.5 s, 0.15-0.3 at the bottom, up 0.9, 0.3-0.45 standing.",
+  },
+
   // --- Batch 18: the last visibly different borrowers ----------------------
   closeGripBench: {
     videoId: "FiQUzPtS90E",

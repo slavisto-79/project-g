@@ -23,7 +23,7 @@ export type PoseSegment = { x1: number; y1: number; x2: number; y2: number; weig
 // Equipment drawn alongside the figure. A back squat and a goblet squat are the
 // same shape; what is being held is most of what tells them apart.
 export type PoseProp =
-  | { kind: "bar"; x: number; y: number; angle: number; length: number; plates: boolean; rails?: boolean; hex?: boolean; handles?: boolean }
+  | { kind: "bar"; x: number; y: number; angle: number; length: number; plates: boolean; rails?: boolean; hex?: boolean; handles?: boolean; smith?: boolean }
   // both: held in both hands (authored at the grip), not a per-hand weight.
   // wheel: an ab wheel -- a wheel on an axle with a handle out either side,
   // not a weight at all; it is authored as a bell because it rides the hands.
@@ -110,7 +110,9 @@ export type PoseProp3D =
   // handles: a machine's two separate grips, one in each hand, instead of a
   // bar through both -- wide handles either side of the head that a single
   // bar would run through the face between.
-  | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean; dir?: Vec3; hex?: boolean; handles?: boolean }
+  // smith: the bar rides a Smith machine -- two uprights either side of it
+  // on a fixed vertical track, drawn where the bar is in the first key.
+  | { kind: "bar"; center: Vec3; length: number; plates: boolean; rails?: boolean; dir?: Vec3; hex?: boolean; handles?: boolean; smith?: boolean }
   | { kind: "bell"; center: Vec3; size: number; both?: boolean; wheel?: boolean; hand?: 0 | 1; swing?: boolean; hug?: boolean }
   // dir: an inclined bench's backrest direction; center is then the hip.
   // `across`: the bench stands crosswise to the figure (its length along x),
@@ -664,6 +666,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
         ...(prop.rails ? { rails: true } : {}),
         ...(prop.hex ? { hex: true } : {}),
         ...(prop.handles ? { handles: true } : {}),
+        ...(prop.smith ? { smith: true } : {}),
         // An authored lean survives into 3D as a direction; the bar is long
         // enough to visibly run down to its floor pivot.
         ...(view === "side" && prop.angle !== 90
@@ -718,7 +721,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
 }
 
 type PropSpec =
-  | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean; hex?: boolean; handles?: boolean }
+  | { kind: "bar"; at: string; angle?: number; length?: number; plates?: boolean; dy?: number; rails?: boolean; hex?: boolean; handles?: boolean; smith?: boolean }
   // swing: see PoseProp -- a kettlebell drawn along the arm's line.
   | { kind: "bell"; at: string; size?: number; each?: boolean; wheel?: boolean; swing?: boolean; hug?: boolean }
   // depth: FRONT view -- where the slab stands along the depth axis
@@ -783,6 +786,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
         ...(spec.rails ? { rails: true } : {}),
         ...(spec.hex ? { hex: true } : {}),
         ...(spec.handles ? { handles: true } : {}),
+        ...(spec.smith ? { smith: true } : {}),
       });
     } else if (spec.kind === "bell") {
       const hand = spec.at === "hand0" ? 0 : spec.at === "hand1" ? 1 : undefined;
