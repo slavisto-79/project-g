@@ -471,6 +471,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [296],
     date: "2026-09-10",
     exercises: ["Step-Up"],
+    notes: "Three-quarters on with the arms hanging behind the hips: the wrist keypoints score 0.1-0.7 and their width swings 0.2-2.1 shoulder widths frame to frame, so the clip cannot settle the hanging arms' width (batch 20 `wide()` review; the pose keeps 1.82).",
   },
 
   overheadTricepsExtension: {
@@ -1003,11 +1004,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "three reps in 9.3 s",
-    prs: [390],
+    prs: [390, 406],
     date: "2026-09-16",
     exercises: ["Pendlay Row"],
     notes:
-      "Borrowed the bent-over row (bar hanging at the knees, trunk 60 from vertical) before. Every rep from a dead stop on the floor, arms straight, trunk 7-11 above horizontal as projected; the pull to the lower chest with the upper arm swept back level (elbow 55-59 projected), the trunk rising to 30-38 projected (about 20-25 in the sagittal plane, three-quarters on). Ours: trunk 5 / 12 / 22 above horizontal, bar 12.3 cm up at the floor key (the deadlift's floor: 12.5), elbow 178 / 108 / 72, knee 127. Cue corrected: 'torso parallel throughout' is not what the clip does -- the trunk lifts as the bar reaches the chest. Tempo at 0.15 s: pull 0.6-0.75 s, 0.3-0.45 at the chest, lower 0.9-1.2, 1.2 on the floor.",
+      "Borrowed the bent-over row (bar hanging at the knees, trunk 60 from vertical) before. Every rep from a dead stop on the floor, arms straight, trunk 7-11 above horizontal as projected; the pull to the lower chest with the upper arm swept back level (elbow 55-59 projected), the trunk rising to 30-38 projected (about 20-25 in the sagittal plane, three-quarters on). Ours: trunk 5 / 12 / 22 above horizontal, bar 12.3 cm up at the floor key (the deadlift's floor: 12.5), elbow 178 / 108 / 72, knee 127. Cue corrected: 'torso parallel throughout' is not what the clip does -- the trunk lifts as the bar reaches the chest. Tempo at 0.15 s: pull 0.6-0.75 s, 0.3-0.45 at the chest, lower 0.9-1.2, 1.2 on the floor. Grip width (#406): with the bar on the floor the wrists are 1.5-1.6 shoulder widths apart (rowed 1.7-1.85, elbows 2.5 -- projections); the pose hung 1.82 on the floor and pulled at 1.33, now 1.55 throughout.",
   },
   dumbbellFrontSquat: {
     videoId: "7CuKlSgu1B0",
@@ -1425,11 +1426,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "three reps in 8.4 s",
-    prs: [354],
+    prs: [354, 406],
     date: "2026-09-13",
     exercises: ["Dumbbell Front Raise"],
     notes:
-      "Face on, so the raise is read from height alone: hanging, the wrists sit 0.220-0.228 of the frame under the shoulders (the arm's full length), and the angle is the arccosine of the wrist's drop over that. Top: wrists 0.05-0.12 OVER the shoulders, 107-120 degrees from plumb, all three reps. The elbow sits 0.01-0.04 over the shoulder at the top where a straight arm puts it 0.035-0.06: about 158. 0.8 s up, 0.2-0.4 s top, 0.8-1.0 s down, 0.8 s hanging. The exercise cue says to shoulder height; the clip goes above it.",
+      "Face on, so the raise is read from height alone: hanging, the wrists sit 0.220-0.228 of the frame under the shoulders (the arm's full length), and the angle is the arccosine of the wrist's drop over that. Top: wrists 0.05-0.12 OVER the shoulders, 107-120 degrees from plumb, all three reps. The elbow sits 0.01-0.04 over the shoulder at the top where a straight arm puts it 0.035-0.06: about 158. 0.8 s up, 0.2-0.4 s top, 0.8-1.0 s down, 0.8 s hanging. The exercise cue says to shoulder height; the clip goes above it. Width (#406): the wrists hang 1.07-1.22 shoulder widths apart and open to 1.56-1.78 at the top, the elbows 1.05-1.17 to 1.45-1.65 -- a slight V; the pose held 1.82 throughout, now 1.15 / 1.45 / 1.65.",
   },
 
   // --- Batch 13: bodyweight, on the floor and upside down -----------------
@@ -1863,7 +1864,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [320],
     date: "2026-09-11",
     exercises: ["Bodyweight Calf Raise", "Dumbbell Calf Raise"],
-    notes: "Filmed from behind and done on a LEDGE with the heels dropping below the step, so it settles the tempo and nothing about the angles; the pose draws the floor version the library cue describes and its range was left alone. Single-Leg Calf Raise borrows this pose.",
+    notes: "Filmed from behind and done on a LEDGE with the heels dropping below the step, so it settles the tempo and nothing about the angles; the pose draws the floor version the library cue describes and its range was left alone. Single-Leg Calf Raise borrows this pose. From behind it does read the hanging arms' width: wrists 1.55-1.75 shoulder widths apart, elbows 1.5-1.65 (the pose's 1.82, set so a bell clears the thigh, kept -- batch 20 `wide()` review).",
   },
 
   legCurl: {

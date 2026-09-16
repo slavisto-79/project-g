@@ -55,6 +55,12 @@ const REAR_FOOT = 200;
 // its inner head between the wrist and the thigh; with the wrist 0.4cm off
 // the thigh's skin (the authored hang) the head sat 2cm inside it on the
 // skinned body. Four centimetres of spread clears it on every build.
+// What that is in clip terms: 1.82 shoulder widths between the wrists.
+// Reviewed against every non-side clip of a `wide()` pose (batch 20): arms
+// hanging beside the body read 1.55-1.75 from behind (calf raise), so the
+// default stays for a bell hanging at the side; where the hands are ahead
+// of the thighs or on a bar the clips read narrower and the pose says so
+// (curls 1.15, front raise 1.15-1.65, Pendlay grip 1.55).
 function wide(arms: [Limb, Limb], spread = 0.04): [Limb, Limb] {
   return arms.map((arm) => ({ ...arm, spread: (arm.spread ?? 0) + spread })) as [Limb, Limb];
 }
@@ -4104,9 +4110,14 @@ export const exercisePoses = {
   //
   // Tempo, which it did not have: 0.8 s up, 0.2-0.4 s at the top, 0.8-1.0 s
   // down and 0.8 s hanging -- 2.8-3.0 s a rep.
+  //
+  // Width, from the same face-on clip (the `wide()` review): the wrists
+  // hang 1.07-1.22 shoulder widths apart and open to 1.56-1.78 at the top
+  // -- the arms rise in a slight V, the elbows 1.05-1.17 to 1.45-1.65. The
+  // pose held `wide()`'s 1.82 throughout; now 1.15 / 1.45 / 1.65 per key.
   frontRaise: pose(
     "side",
-    ([[176, 174], [122, 108], [77, 55]] as const).map(([upper, lower]) => stand({ x: 0.5, y: 0.494 }, 356, wide(sideArms(upper, lower)))),
+    ([[176, 174, -0.016], [122, 108, 0.005], [77, 55, 0.026]] as const).map(([upper, lower, spread]) => stand({ x: 0.5, y: 0.494 }, 356, wide(sideArms(upper, lower), spread))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
     "neutral",
     1,
@@ -4432,6 +4443,13 @@ export const exercisePoses = {
   // Tempo from the three reps, to the 0.15 s frames: pull 0.6-0.75 s, 0.3-
   // 0.45 at the chest, lower 0.9-1.2, 1.2 on the floor; pulls 3.15-3.45 s
   // apart.
+  //
+  // Grip width, from the same clip (the `wide()` review): with the bar on
+  // the floor the wrists are 1.5-1.6 shoulder widths apart (three-quarters
+  // on, the ratio of two widths in the same plane survives the yaw); rowed
+  // they read 1.7-1.85 with the elbows flared to 2.5, a projection. The
+  // floor key hung `wide()`'s 1.82 and the pull keys the girdle's 1.33 --
+  // the grip narrowed 8 cm mid-rep on a rigid bar. Now 1.55 throughout.
   pendlayRow: (() => {
     const ankle = { x: 0.535, y: FLOOR };
     // [thigh behind vertical, shin ahead, trunk, hands: along the trunk from the shoulder / out toward the belly, or null to hang]
@@ -4448,11 +4466,11 @@ export const exercisePoses = {
         const axis = { x: -Math.sin(rad), y: Math.cos(rad) };
         const belly = { x: Math.cos(rad), y: Math.sin(rad) };
         const arms: [Limb, Limb] = hand === null
-          ? wide(sideArms(178, 180))
+          ? wide(sideArms(178, 180), 0.018)
           : reachingArms(pelvis, torso, "side", [0, 1].map((side) => {
               const s = shoulderAt(pelvis, torso, side as 0 | 1, "side");
               return { x: s.x + (hand[0] * axis.x + hand[1] * belly.x) / ASPECT, y: s.y + hand[0] * axis.y + hand[1] * belly.y };
-            }) as [Point, Point], BACK);
+            }) as [Point, Point], BACK).map((arm) => ({ ...arm, spread: 0.018 })) as [Limb, Limb];
         return { pelvis, torso, neck: torso - 16, arms, legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb] };
       }),
       [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
