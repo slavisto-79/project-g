@@ -65,10 +65,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "National Academy of Sports Medicine (NASM)",
     view: "three-quarter",
     span: "three reps in 11.8 s",
-    prs: [254],
+    prs: [254, 407],
     date: "2026-09-08",
     exercises: ["Barbell Back Squat"],
-    notes: "Stance and toe angle read face on; depth to parallel; SQUAT_FRAMES are shared by the goblet and bodyweight squats.",
+    notes: "Stance and toe angle read face on; depth to parallel; SQUAT_FRAMES are shared by the goblet and bodyweight squats. Width (#407, the reachingArms review): the wrists sit behind the head; keypoints score 0.1-0.4 and swing 0.5-2.9, so the grip width cannot be read.",
   },
   trapBarDeadlift: {
     videoId: "ZJPZQklCSLs",
@@ -86,10 +86,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "foot-end",
     span: "three reps in 5.5 s",
-    prs: [257, 258],
+    prs: [257, 258, 407],
     date: "2026-09-08",
     exercises: ["Barbell Bench Press"],
-    notes: "Foot-end camera: bar path, tempo and grip width; the chest-touch depth came from the skinned chest surface.",
+    notes: "Foot-end camera: bar path, tempo and grip width; the chest-touch depth came from the skinned chest surface. Width (#407, the reachingArms review): from the foot end the wrists read 1.85-2.3 shoulder widths apart, elbows 1.5-2.3 (the camera magnifies the bar); the pose's 2.26 kept.",
   },
 
   // --- Batch 2: hinges and squats ---------------------------------------
@@ -269,9 +269,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "four reps in 10.5 s",
-    prs: [275],
+    prs: [275, 407],
     date: "2026-09-09",
     exercises: ["Lat Pulldown"],
+    notes: "Width (#407, the reachingArms review): three-quarters on with the bar overhead the wrist keypoints score 0.2-0.6 and swing 0.2-2.3; the grip width cannot be read; the pose's 3.0 kept.",
   },
   seatedRow: {
     videoId: "4ZbqM_gcgAI",
@@ -360,9 +361,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "head-end",
     span: "three reps in 9 s",
-    prs: [281],
+    prs: [281, 407],
     date: "2026-09-09",
     exercises: ["Skull Crusher"],
+    notes: "Width (#407, the reachingArms review): from the head end the wrists read 0.6-0.9 shoulder widths apart and the elbows 0.55-0.8 -- a camera at the head magnifies the bar, so at most that; the pose had 1.34, now 0.8.",
   },
   dip: {
     videoId: "VNa0hX_y6Fk",
@@ -370,9 +372,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "four reps in 11 s",
-    prs: [282],
+    prs: [282, 407],
     date: "2026-09-09",
     exercises: ["Bar Dip"],
+    notes: "Width confirmed (#407, the reachingArms review): wrists 1.3-1.45 shoulder widths apart on the bars, elbows 1.25-1.35 at the top flaring to ~1.9 at the bottom; the pose's 1.33 stands.",
   },
   fly: {
     videoId: "AVIBmE5iQrQ",
@@ -1114,11 +1117,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "back",
     span: "five reps in 8 s",
-    prs: [381],
+    prs: [381, 407],
     date: "2026-09-14",
     exercises: ["Single-Leg Calf Raise"],
     notes:
-      "Borrowed the two-legged calf raise before. One foot on a low step, the other hooked behind the working ankle, hands flat on a wall. Hips rise 12 percent of hip-to-ankle length, the ankle 14. From behind there is no ankle angle; drawn from the floor with the two-legged raise's range, as that pose is. Added the hooked free foot (4 cm behind the working leg, above its ankle) and the wall. Tempo at 0.15 s: up 0.3-0.45 s, top 0.45-0.75, down 0.45-0.6, bottom 0.3-0.6; tops 1.7-1.8 s apart.",
+      "Borrowed the two-legged calf raise before. One foot on a low step, the other hooked behind the working ankle, hands flat on a wall. Hips rise 12 percent of hip-to-ankle length, the ankle 14. From behind there is no ankle angle; drawn from the floor with the two-legged raise's range, as that pose is. Added the hooked free foot (4 cm behind the working leg, above its ankle) and the wall. Tempo at 0.15 s: up 0.3-0.45 s, top 0.45-0.75, down 0.45-0.6, bottom 0.3-0.6; tops 1.7-1.8 s apart. Width (#407, the reachingArms review): from behind the hands on the wall are 1.75-2.0 shoulder widths apart, the elbows 1.5-1.7; the pose had 1.33, now 1.85.",
   },
   reverseSnowAngel: {
     videoId: "vSou6Vup5W8",
@@ -1176,11 +1179,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Goodlife Health Clubs",
     view: "three-quarter",
     span: "two reps, 24-29.6 s",
-    prs: [376],
+    prs: [376, 407],
     date: "2026-09-14",
     exercises: ["Plyo Push-Up"],
     notes:
-      "Borrowed the push-up before. Down 0.9 s, a 0.9-1.3 s pause at the bottom (shoulders still sinking), the push 0.5-0.7, hands in the air 0.2-0.3 with elbows straight (169-178) and shoulders 0.13 trunk lengths over the plank, landing into the next descent. Bottom elbows read 85-93 but the three-quarter camera opens them; the bottom is the side-on push-up's. Ours: loop of plank, bottom, deeper bottom (the pause), flight; flight elbows 163, legs straight, hands 3.5 cm off the mat, shoulders 3.5 cm over the plank (more air bent the knees). OPEX's Plyometric Push Up (GNVQos5I0qk) is a plate drill with the hips piked and was not used. Loop 900 / 1100 / 700 / 250 ms.",
+      "Borrowed the push-up before. Down 0.9 s, a 0.9-1.3 s pause at the bottom (shoulders still sinking), the push 0.5-0.7, hands in the air 0.2-0.3 with elbows straight (169-178) and shoulders 0.13 trunk lengths over the plank, landing into the next descent. Bottom elbows read 85-93 but the three-quarter camera opens them; the bottom is the side-on push-up's. Ours: loop of plank, bottom, deeper bottom (the pause), flight; flight elbows 163, legs straight, hands 3.5 cm off the mat, shoulders 3.5 cm over the plank (more air bent the knees). OPEX's Plyometric Push Up (GNVQos5I0qk) is a plate drill with the hips piked and was not used. Loop 900 / 1100 / 700 / 250 ms. Width (#407, the reachingArms review): the wrist keypoints score 0.1-0.5 and swing 1.4-5.5; the hand width cannot be read; the pose's 1.33 kept.",
   },
   chestSupportedRow: {
     videoId: "0-DXJiceG-0",
@@ -1200,11 +1203,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "three reps in 12 s",
-    prs: [374],
+    prs: [374, 407],
     date: "2026-09-14",
     exercises: ["Seated Dumbbell Press"],
     notes:
-      "Borrowed the standing barbell overhead press before. Seated tall on a flat bench, no backrest. Bottom: bells at the shoulders, wrists level with them and 1.15-1.24 shoulder widths apart, elbows under them 0.52-0.59 trunk lengths down, elbow 15-30. Half way: elbows out 1.9-2.0 shoulder widths apart, 0.17-0.35 up, elbow 88-105, wrists 0.72-0.88 up. Top: arms straight (160-180), wrists 1.03-1.09 up, a shoulder width apart. Ours: bottom elbow 32, elbows 0.55 down; half 95, elbows 2.3 apart and 0.37 up, wrists 0.86 up; top 179, wrists 1.18 up. The cue said 'back supported'; the clip has no backrest, so the cue now says sit tall. Tempo at 0.2 s: down 1.8-2.0 s, 0.4 at the bottom, up 1.0, 0.6-0.8 at the top.",
+      "Borrowed the standing barbell overhead press before. Seated tall on a flat bench, no backrest. Bottom: bells at the shoulders, wrists level with them and 1.15-1.24 shoulder widths apart, elbows under them 0.52-0.59 trunk lengths down, elbow 15-30. Half way: elbows out 1.9-2.0 shoulder widths apart, 0.17-0.35 up, elbow 88-105, wrists 0.72-0.88 up. Top: arms straight (160-180), wrists 1.03-1.09 up, a shoulder width apart. Ours: bottom elbow 32, elbows 0.55 down; half 95, elbows 2.3 apart and 0.37 up, wrists 0.86 up; top 179, wrists 1.18 up. The cue said 'back supported'; the clip has no backrest, so the cue now says sit tall. Tempo at 0.2 s: down 1.8-2.0 s, 0.4 at the bottom, up 1.0, 0.6-0.8 at the top. Width per key (#407, the reachingArms review): wrists 1.0-1.1 shoulder widths apart at the top, 1.5-1.7 half way, 1.15-1.25 at the shoulders; the pose had 1.33 / 1.57 / 1.33, now 1.05 / 1.57 / 1.19.",
   },
   dumbbellFloorPress: {
     videoId: "jjlekYs1cfQ",
@@ -1387,11 +1390,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "five reps in 10 s",
-    prs: [357],
+    prs: [357, 407],
     date: "2026-09-13",
     exercises: ["Standing Hip Abduction"],
     notes:
-      "Square front view; the working leg's projected length holds 0.31-0.33 of the frame all the way out, so it moves in the film plane. A first capture cropped the working ankle out of frame at the top (score 0.1): widen the crop to the side the leg goes. Top: leg 53-61 from plumb, knee 177-180; the working hip hikes 10-13 and the trunk leans away 6-9 more than at rest. Hands on the hips, elbows 84-112. 0.6 s out, a moment at the top, 0.75 s back, ~0.5 s standing -- 2.0 s a rep.",
+      "Square front view; the working leg's projected length holds 0.31-0.33 of the frame all the way out, so it moves in the film plane. A first capture cropped the working ankle out of frame at the top (score 0.1): widen the crop to the side the leg goes. Top: leg 53-61 from plumb, knee 177-180; the working hip hikes 10-13 and the trunk leans away 6-9 more than at rest. Hands on the hips, elbows 84-112. 0.6 s out, a moment at the top, 0.75 s back, ~0.5 s standing -- 2.0 s a rep. Width (#407, the reachingArms review): hands on the hip crests 1.30-1.37 shoulder widths apart, elbows 1.95-2.1; the pose had 1.89, now 1.35.",
   },
 
   oneArmRow: {
@@ -1466,11 +1469,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Functional Bodybuilding",
     view: "three-quarter",
     span: "three reps in 5 s",
-    prs: [351],
+    prs: [351, 407],
     date: "2026-09-13",
     exercises: ["Handstand Push-Up"],
     notes:
-      "Frames ROTATED 180 degrees before MoveNet saw them (it is trained on upright people); every keypoint then scored 0.7-0.9. The camera stands off to the front, so the bottom elbow reads 98-103 on one arm and 143-147 on the other and is not quoted. Back and heels against a wall, legs straight up together (hip angle 170-180, knees locked). Nose ends 0.2 trunk lengths over the hands (crown on the floor); shoulders fall to 0.64 of their locked-out height over the hands. 0.7 s down, touch and go, 0.75 s up, ~0.1 s locked out -- 1.6 s a rep. The video autoplays into another clip after 9.9 s, which ruined one capture: check the title in the capture loop.",
+      "Frames ROTATED 180 degrees before MoveNet saw them (it is trained on upright people); every keypoint then scored 0.7-0.9. The camera stands off to the front, so the bottom elbow reads 98-103 on one arm and 143-147 on the other and is not quoted. Back and heels against a wall, legs straight up together (hip angle 170-180, knees locked). Nose ends 0.2 trunk lengths over the hands (crown on the floor); shoulders fall to 0.64 of their locked-out height over the hands. 0.7 s down, touch and go, 0.75 s up, ~0.1 s locked out -- 1.6 s a rep. The video autoplays into another clip after 9.9 s, which ruined one capture: check the title in the capture loop. Width (#407, the reachingArms review): wrists 2.0-2.25 shoulder widths apart, elbows 1.7-2.1; the pose had the girdle's 1.33, now 2.1.",
   },
 
   pikePushUp: {
@@ -1479,11 +1482,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "National Academy of Sports Medicine (NASM)",
     view: "three-quarter",
     span: "four reps in 14 s",
-    prs: [350],
+    prs: [350, 407],
     date: "2026-09-13",
     exercises: ["Pike Push-Up"],
     notes:
-      "Three-quarter camera: horizontal distances not quoted. At the bottom the near wrist is hidden (score 0.1-0.2), so the bottom elbow is not quoted either. Top: near-side elbow 174-180, hip angle 63-72. Top to bottom the shoulders fall 0.5 trunk lengths and the hips 0.43, the hip angle opening to 75-78, the nose reaching the height of the hands. Hands at least 1.4 trunk lengths from the feet (projected). 1.0 s down, 0.3 s bottom, 0.8 s up, about 1 s at the top.",
+      "Three-quarter camera: horizontal distances not quoted. At the bottom the near wrist is hidden (score 0.1-0.2), so the bottom elbow is not quoted either. Top: near-side elbow 174-180, hip angle 63-72. Top to bottom the shoulders fall 0.5 trunk lengths and the hips 0.43, the hip angle opening to 75-78, the nose reaching the height of the hands. Hands at least 1.4 trunk lengths from the feet (projected). 1.0 s down, 0.3 s bottom, 0.8 s up, about 1 s at the top. Width (#407, the reachingArms review): wrists 1.4-1.5 shoulder widths apart, elbows 1.3-1.85; the pose had 1.33, now 1.45.",
   },
 
   pistolSquat: {
@@ -1741,10 +1744,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "three reps in 9.6 s",
-    prs: [330],
+    prs: [330, 407],
     date: "2026-09-11",
     exercises: ["Cable Crunch"],
-    notes: "Not square to the lifter -- the projected trunk runs 0.23 to 0.33 of the frame as she turns through the rep -- so the angles are read the projection-proof way, from the VERTICAL drop of the shoulder below the hip over a trunk of 0.330. On those terms the hip-to-shoulder line sweeps 33 to 121 degrees off vertical, the same to within 3 degrees in all three reps, and at the bottom her NOSE IS BELOW HER KNEE. Her hips also rise off the heels as she curls, 0.255 to 0.279 above the knee. Our trunk is one rigid segment and hers rounds, so the pose matches the line her hip and shoulder make, not the shape of her spine.",
+    notes: "Not square to the lifter -- the projected trunk runs 0.23 to 0.33 of the frame as she turns through the rep -- so the angles are read the projection-proof way, from the VERTICAL drop of the shoulder below the hip over a trunk of 0.330. On those terms the hip-to-shoulder line sweeps 33 to 121 degrees off vertical, the same to within 3 degrees in all three reps, and at the bottom her NOSE IS BELOW HER KNEE. Her hips also rise off the heels as she curls, 0.255 to 0.279 above the knee. Our trunk is one rigid segment and hers rounds, so the pose matches the line her hip and shoulder make, not the shape of her spine. Width (#407, the reachingArms review): both hands on the rope at the head, wrists 0.35-0.65 shoulder widths apart, elbows 1.1-1.7 (wrist scores 0.1-0.5); the pose had 1.33, now 0.56.",
   },
 
   cablePullThrough: {
@@ -1753,10 +1756,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "four reps in 12.6 s",
-    prs: [329],
+    prs: [329, 407],
     date: "2026-09-11",
     exercises: ["Cable Pull-Through"],
-    notes: "NOT square to the lifter: the trunk projects 0.268 of the frame standing and 0.181 at the bottom, and a rigid trunk cannot lose a third of its length to a square side camera. So no horizontal distance from this clip is quotable. What it does settle is anything measured in HEIGHT -- the hip stays level (0.432 to 0.430 above the ankle), the trunk reaches 104 from vertical, the arm swings from 9 degrees forward of straight down to 66 behind it -- plus the DIRECTION of hip and shoulder travel, which no projection reverses, plus the tempo.",
+    notes: "NOT square to the lifter: the trunk projects 0.268 of the frame standing and 0.181 at the bottom, and a rigid trunk cannot lose a third of its length to a square side camera. So no horizontal distance from this clip is quotable. What it does settle is anything measured in HEIGHT -- the hip stays level (0.432 to 0.430 above the ankle), the trunk reaches 104 from vertical, the arm swings from 9 degrees forward of straight down to 66 behind it -- plus the DIRECTION of hip and shoulder travel, which no projection reverses, plus the tempo. Width (#407, the reachingArms review): both hands on the rope, wrists 0.5-0.7 shoulder widths apart; the pose had the girdle's 1.33, now 0.62.",
   },
 
   straightArmPulldown: {

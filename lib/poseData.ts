@@ -1354,7 +1354,10 @@ export const exercisePoses = {
       return {
         pelvis,
         torso: 0,
-        arms: reachingArms(pelvis, 0, "side", hands, BACK).map((arm) => ({ ...arm, end: 0 })) as [Limb, Limb],
+        // Wide on the wall: from behind the wrists are 1.75-2.0 shoulder
+        // widths apart, the elbows 1.5-1.7 (the `reachingArms` review,
+        // batch 20; the girdle's 1.33 before).
+        arms: reachingArms(pelvis, 0, "side", hands, BACK).map((arm) => ({ ...arm, end: 0, spread: 0.044 })) as [Limb, Limb],
         // The working leg rises onto its toes; the free foot is hooked
         // behind the working ankle.
         legs: [{ upper: 178, lower: 179, end: toe }, { upper: 155, lower: 220, end: 200 }] as [Limb, Limb],
@@ -3147,7 +3150,11 @@ export const exercisePoses = {
     // closer to its shoulders than the lifter's.
     ([[356, 340], [340, 280], [322, 222]] as const).map(([upper, lower]) => ({
       ...bench(0.397, 0.304),
-      arms: [{ upper, lower }, { upper: upper + 5, lower: lower + 5 }] as [Limb, Limb],
+      // The EZ bar's inner grip: from the head end the wrists read 0.6-0.9
+      // shoulder widths apart and the elbows 0.55-0.8 (a camera at the head
+      // magnifies the bar, so the truth is at most that); 0.8 here, from
+      // the girdle's 1.34 (the `reachingArms` review, batch 20).
+      arms: [{ upper, lower, spread: -0.045 }, { upper: upper + 5, lower: lower + 5, spread: -0.045 }] as [Limb, Limb],
     })),
     [
       { kind: "floor" },
@@ -4303,7 +4310,10 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso > 30 ? torso - 16 : torso,
-        arms: reachingArms(pelvis, torso, "side", [wrist, { x: wrist.x - 0.016, y: wrist.y }], BACK),
+        // Both hands on one rope handle between the thighs: the clip (three-
+        // quarters on) has the wrists 0.5-0.7 shoulder widths apart, not
+        // the girdle's 1.33 (the `reachingArms` review, batch 20).
+        arms: reachingArms(pelvis, torso, "side", [wrist, { x: wrist.x - 0.016, y: wrist.y }], BACK).map((arm) => ({ ...arm, spread: -0.06 })) as [Limb, Limb],
         legs: [{ upper: 180 - thighBack, lower: 180, end: 90 }, { upper: 180 - thighBack, lower: 180, end: 90 }] as [Limb, Limb],
       };
     }),
@@ -5917,9 +5927,12 @@ export const exercisePoses = {
   // and about a second at the top.
   pikePushUp: pose(
     "side",
-    ([[0.671, 0.4442, 233.75], [0.6073, 0.4768, 225.5], [0.5603, 0.5189, 219.75]] as const).map(([x, y, torso]) =>
-      supported({ x, y }, torso, { x: 0.51, y: 0.872 }, { x: 0.745, y: 0.872 }, 118),
-    ),
+    ([[0.671, 0.4442, 233.75], [0.6073, 0.4768, 225.5], [0.5603, 0.5189, 219.75]] as const).map(([x, y, torso]) => {
+      const figure = supported({ x, y }, torso, { x: 0.51, y: 0.872 }, { x: 0.745, y: 0.872 }, 118);
+      // Hands a little outside the shoulders: the clip has the wrists
+      // 1.4-1.5 shoulder widths apart (the `reachingArms` review, batch 20).
+      return { ...figure, arms: figure.arms.map((arm) => ({ ...arm, spread: 0.01 })) as [Limb, Limb] };
+    }),
     [{ kind: "floor", mat: true }],
     "overhand",
     -1,
@@ -5954,7 +5967,10 @@ export const exercisePoses = {
       return {
         pelvis,
         torso,
-        arms: reachingArms(pelvis, torso, "side", [{ x: 0.50, y: 0.885 }, { x: 0.484, y: 0.885 }], BACK, [92, 97]),
+        // Hands wide: the clip has the wrists 2.0-2.25 shoulder widths
+        // apart and the elbows 1.7-2.1 (the `reachingArms` review, batch 20;
+        // the girdle's 1.33 before).
+        arms: reachingArms(pelvis, torso, "side", [{ x: 0.50, y: 0.885 }, { x: 0.484, y: 0.885 }], BACK, [92, 97]).map((arm) => ({ ...arm, spread: 0.065 })) as [Limb, Limb],
         // Straight up, together, toes pointed.
         legs: [{ upper: 358, lower: 358, end: 20 }, { upper: 2, lower: 2, end: 24 }] as [Limb, Limb],
       };
@@ -6215,7 +6231,10 @@ export const exercisePoses = {
   seatedDumbbellPress: pose(
     "side",
     // [hand up from the shoulder, hand forward of it, elbow flared out, hands wider, elbow fold]
-    ([[0.2895, 0, 0, 0, FORWARD], [0.21, 0.02, 65, 0.02, BACK], [0, 0.076, 15, 0, BACK]] as const).map(([up, ahead, flare, spread, bend]) => {
+    // Widths from the clip (the `reachingArms` review, batch 20): wrists
+    // 1.0-1.1 shoulder widths apart at the top, 1.5-1.7 half way, 1.15-1.25
+    // at the shoulders; the pose had the girdle's 1.33 top and bottom.
+    ([[0.2895, 0, 0, -0.024, FORWARD], [0.21, 0.02, 65, 0.02, BACK], [0, 0.076, 15, -0.012, BACK]] as const).map(([up, ahead, flare, spread, bend]) => {
       const pelvis = { x: 0.42, y: 0.7 };
       const feet: [Point, Point] = [{ x: 0.6, y: 0.915 }, { x: 0.588, y: 0.915 }];
       const hands = [0, 1].map((side) => {
@@ -6428,7 +6447,10 @@ export const exercisePoses = {
           const vy = CRUNCH_ANCHOR.y - head.y;
           const len = Math.hypot(vx, vy);
           const rope = { x: head.x + (0.12 * vx) / len / ASPECT, y: head.y + (0.12 * vy) / len };
-          return reachingArms(pelvis, torso, "side", [rope, rope], FORWARD);
+          // Both hands on the rope at the head: the clip has the wrists
+          // 0.35-0.65 shoulder widths apart, the elbows 1.1-1.7 (the
+          // `reachingArms` review, batch 20; the girdle's 1.33 before).
+          return reachingArms(pelvis, torso, "side", [rope, rope], FORWARD).map((arm) => ({ ...arm, spread: -0.065 })) as [Limb, Limb];
         })(),
         legs: [{ upper: thigh, lower: 90, end: 98 }, { upper: thigh + 4, lower: 94, end: 102 }] as [Limb, Limb],
       };
@@ -6710,7 +6732,10 @@ export const exercisePoses = {
       const pelvis = { x: 0.5, y: py };
       const onHips = [0, 1].map((side) => {
         const hip = hipAt(pelvis, torso, side as 0 | 1, "front");
-        return { x: hip.x + (side === 0 ? 0.055 : -0.055), y: hip.y - 0.035 };
+        // On the hip crests: face on, the clip has the wrists 1.30-1.37
+        // shoulder widths apart, the elbows 1.95-2.1 (the `reachingArms`
+        // review, batch 20; at 0.055 out they stood 1.89 apart).
+        return { x: hip.x + (side === 0 ? 0.025 : -0.025), y: hip.y - 0.035 };
       }) as [Point, Point];
       return {
         pelvis,
