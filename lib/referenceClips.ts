@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 19: machines, grips and tempos the shared pose could not show --
+  tBarRow: {
+    videoId: "hYo72r8Ivso",
+    title: "How To Do T Bar Rows (Landmine Rows)",
+    channel: "PureGym",
+    view: "side",
+    span: "four reps in 10 s",
+    prs: [396],
+    date: "2026-09-16",
+    exercises: ["T-Bar Row"],
+    notes:
+      "Borrowed the barbell bent-over row (a free bar) before. Straddling a landmine bar, both hands on the handle. Trunk 36-44 from vertical on the near side (the far side reads 15-25 behind the trunk and is not used), knees soft at 164-173, the handle from 0.68-0.73 of the hip height to 0.87-0.95; the elbows are hidden by the plates and not quoted. Ours: trunk 50 (the keypoints read shallow on a bent trunk; the frame looks 45-50), knee 166, hands 0.70 -> 0.96, elbow 180 / 106 / 75, a landmine bar pivoting on the floor ahead. Also triaged: RP (chest-supported machine, three-quarter) and OPEX landmine row (one hand, bar beside the lifter). Tempo at 0.15 s: pull 0.6-0.75 s, 0.45-0.6 at the ribs, lower 0.75-0.9, 0.45-0.6 hanging.",
+  },
   smithSquat: {
     videoId: "QcmonZUuumg",
     title: "Smith Machine Back Squat",

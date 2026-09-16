@@ -10,10 +10,10 @@ clips are used with is `docs/animation-from-clip.md`.
 | | |
 |---|---|
 | library exercises | 162 |
-| authored from a clip (the clip shows the exercise) | 146 |
-| sharing a pose that was authored from a clip | 16 |
+| authored from a clip (the clip shows the exercise) | 147 |
+| sharing a pose that was authored from a clip | 15 |
 | without a clip yet | 0 |
-| poses with a clip | 140 of 141 (140 in use) |
+| poses with a clip | 141 of 142 (141 in use) |
 
 Poses without a clip yet: `idle`.
 
@@ -174,7 +174,7 @@ Poses without a clip yet: `idle`.
 | Suitcase Carry | `suitcaseCarry` | authored from the clip | [Single Arm Farmers Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=28BIZccT5fs) (OPEX Fitness, front) | #295 |
 | Sumo Deadlift | `sumoDeadlift` | authored from the clip | [Sumo Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=OKMDYjnK8m8) (OPEX Fitness, three-quarter) | #265 |
 | Superman | `proneRaise` | authored from the clip | [Superman Hold - OPEX Exercise Library](https://www.youtube.com/watch?v=W8vlZfmxOpM) (OPEX Fitness, side) | #322 |
-| T-Bar Row | `bentRow` | shares `bentRow` (the clip shows Barbell Row) | [How to do a Barbell Bent Over Row Pronated](https://www.youtube.com/watch?v=bm0_q9bR_HA) (National Academy of Sports Medicine (NASM), side) | #273 |
+| T-Bar Row | `tBarRow` | authored from the clip | [How To Do T Bar Rows (Landmine Rows)](https://www.youtube.com/watch?v=hYo72r8Ivso) (PureGym, side) | #396 |
 | Towel Row | `towelRow` | authored from the clip | [Towel Rows](https://www.youtube.com/watch?v=L2HkSlrAacA) (Nicolas Sart, side) | #386 |
 | Trap Bar Deadlift | `trapBarDeadlift` | authored from the clip | [How To Hex Bar Deadlift Correctly](https://www.youtube.com/watch?v=ZJPZQklCSLs) (Motiv8 Fitness, side) | #255, #256 |
 | Triceps Kickback | `kickback` | authored from the clip | [Single Arm Dumbbell Tricep Kickback](https://www.youtube.com/watch?v=MQOnCts9N9c) (OPEX Fitness, side) | #355 |
@@ -328,3 +328,4 @@ Poses without a clip yet: `idle`.
 | `heelsElevatedGobletSquat` | [How to: Heels Elevated Goblet Squat](https://www.youtube.com/watch?v=YWrs2r_mYg0) | Core Blend Training | side | six reps between 9 and 33 s | #393 | 2026-09-16 | Heels-Elevated Goblet Squat | Borrowed the flat-footed goblet squat before. Heels on a wedge, bell at the chest. At the bottom: shin 45-51 forward of plumb (goblet frames 32), trunk 20-26 from vertical (goblet 36), thigh level, knee 47-51, hip 0.38 of standing height (goblet 0.42); standing knees soft (164-174). Five other clips triaged: The Active Life, Lance Goyke, Josh Bowers, PR Fitness and The Barbell Physio are all three-quarter or front views. Ours: knee 170 / 101 / 51, trunk 0 / 16 / 24, hip 0.39, heels on a 3 cm plate with the toes on the floor. Tempo at 0.3 s: down 1.5-1.8 s, 0.3 at the bottom, up 1.2-1.5, 0.3-0.6 standing. |
 | `closeGripBench` | [Narrow Grip Bench Press](https://www.youtube.com/watch?v=FiQUzPtS90E) | Renaissance Periodization | head-end | four reps in 12 s | #394 | 2026-09-16 | Close-Grip Bench Press | Borrowed the barbell bench press (76 cm grip, elbows flared 45 at the chest) before. This clip gives the grip: wrists 1.04-1.18 shoulder widths apart at lockout -- shoulder width, as the cue says -- and the elbows barely wider on the way down (1.2-1.35). OPEX's own "Close Grip Bench Press" (CGqKy5wiY8o) was measured too, on the same camera and set as the bench clip whose geometry this pose reuses: its grip is only a tenth narrower than that one's (1.95 against 2.15 shoulder widths, ours draws the bench at 2.26), a moderate grip rather than the cue's, so the width is this clip's and the tempo is OPEX's (down 0.7-0.8 s, a touch, up 0.5, 0.6 locked out). Ours: wrists 1.10, elbows 1.05 / 1.16 / 1.26, elbow 180 / 80 / 52, the bench's own bar path. |
 | `smithSquat` | [Smith Machine Back Squat](https://www.youtube.com/watch?v=QcmonZUuumg) | OPEX Fitness | three-quarter | three reps in 8 s | #395 | 2026-09-16 | Smith Machine Squat | Borrowed the free back squat before (no rails, the bar travelling forward through the rep). Camera three-quarters from behind. Bottom: thigh level, knee 56-64, hip 0.40-0.47 of standing height, trunk 27-30 as projected, the feet about a quarter hip-height ahead of the hips. Ours: legs from the ankle up, the trunk solved per key so the bar stays plumb on its track (5 / 23 / 29 / 30), knee 72, hip 0.44, feet 12 cm ahead. New bar option `smith` draws the uprights. Tempo at 0.15 s: down 1.35-1.5 s, 0.15-0.3 at the bottom, up 0.9, 0.3-0.45 standing. |
+| `tBarRow` | [How To Do T Bar Rows (Landmine Rows)](https://www.youtube.com/watch?v=hYo72r8Ivso) | PureGym | side | four reps in 10 s | #396 | 2026-09-16 | T-Bar Row | Borrowed the barbell bent-over row (a free bar) before. Straddling a landmine bar, both hands on the handle. Trunk 36-44 from vertical on the near side (the far side reads 15-25 behind the trunk and is not used), knees soft at 164-173, the handle from 0.68-0.73 of the hip height to 0.87-0.95; the elbows are hidden by the plates and not quoted. Ours: trunk 50 (the keypoints read shallow on a bent trunk; the frame looks 45-50), knee 166, hands 0.70 -> 0.96, elbow 180 / 106 / 75, a landmine bar pivoting on the floor ahead. Also triaged: RP (chest-supported machine, three-quarter) and OPEX landmine row (one hand, bar beside the lifter). Tempo at 0.15 s: pull 0.6-0.75 s, 0.45-0.6 at the ribs, lower 0.75-0.9, 0.45-0.6 hanging. |

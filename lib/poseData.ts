@@ -4116,6 +4116,59 @@ export const exercisePoses = {
     );
   })(),
 
+  // T-bar row, from a reference clip measured with the pose lab (PureGym
+  // "How To Do T Bar Rows (Landmine Rows)", hYo72r8Ivso, four reps in 10 s,
+  // side view; MoveNet on 68 frames at 0.15 s). It borrowed the barbell
+  // bent-over row -- a free bar hanging from the shoulders -- before.
+  //
+  // Straddling a bar whose far end pivots on the floor ahead, both hands on
+  // a handle at the near end. The trunk holds about 40-45 from vertical
+  // (the near-side keypoints read 36-44; the far side, half hidden behind
+  // the trunk, 15-25, and is not used) over knees that stay soft at
+  // 164-173; the handle rises straight up from 0.68-0.73 of the hip height
+  // to 0.87-0.95. The elbow keypoints are hidden by the plates for most of
+  // the pull (scores 0.4-0.6) and are not quoted. Also triaged: RP (a
+  // chest-supported machine, three-quarter view) and OPEX's landmine row
+  // (the bar beside the lifter, one hand).
+  //
+  // Authored from the ankle up: thigh 13 behind vertical, shin 2 ahead
+  // (knee 166), trunk 50 -- a touch past the keypoints' 44, which read
+  // shallow on a bent trunk (the frame itself looks 45-50) and which is
+  // what lets the hang reach 0.70 with the arm straight. The handle is a
+  // landmine bar (`angle`) pivoting ahead on the floor. The hands travel
+  // 0.70 -> 0.96 of the hip height (11 cm), which is the movement's whole
+  // range, so check-poses carries a 0.10 floor for it.
+  //
+  // Tempo from the four reps, to the 0.15 s frames: pull 0.6-0.75 s,
+  // 0.45-0.6 at the ribs, lower 0.75-0.9, 0.45-0.6 hanging; reps 2.6-2.8 s
+  // apart.
+  tBarRow: (() => {
+    const ankle = { x: 0.535, y: FLOOR };
+    const torso = 50;
+    const knee = along(ankle, 362, P.shin);
+    const hip = along(knee, 347, P.thigh);
+    const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, 0, 0, "side").x, y: hip.y };
+    const hipH = FLOOR - pelvis.y;
+    // The handle rises straight up from a hang to the lower ribs.
+    return pose(
+      "side",
+      ([0.70, 0.83, 0.96] as const).map((up): Figure => {
+        const hand = { x: shoulderAt(pelvis, torso, 0, "side").x - 0.02 / ASPECT, y: FLOOR - up * hipH };
+        return {
+          pelvis,
+          torso,
+          neck: torso - 20,
+          arms: reachingArms(pelvis, torso, "side", [hand, { x: hand.x - 0.012, y: hand.y }], BACK).map((arm) => ({ ...arm, spread: -0.04 })) as [Limb, Limb],
+          legs: [{ upper: 167, lower: 182, end: 90, spread: 0.12 }, { upper: 167, lower: 182, end: 90, spread: 0.12 }],
+        };
+      }),
+      [{ kind: "floor" }, { kind: "bar", at: "grip", angle: 112, length: 0.3, plates: false }],
+      "neutral",
+      1,
+      { tempo: { down: 800, bottom: 500, up: 700, top: 500 }, camera: { azimuth: 0.9 } },
+    );
+  })(),
+
   // Bent-over row, from a reference clip measured with the pose lab (NASM
   // "How to do a Barbell Bent Over Row Pronated", bm0_q9bR_HA, side view,
   // three reps after a 6 s hinge down; MoveNet on 72 frames at 0.25 s): the
