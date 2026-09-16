@@ -57,7 +57,7 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
       // stand on, under the lowest point of the rep.
       // ...and a step-up stands on its box at the top of the rep, a box jump
       // flies up onto its box and stands there, a broad jump flies.
-      if (-deepest > 0.16 && name !== "legExtension" && name !== "dip" && name !== "stepUp" && name !== "boxJump" && name !== "broadJump" && name !== "tuckJump" && name !== "jumpSquat" && name !== "depthJump") note(`${where}: floats ${(-deepest).toFixed(3)} above the floor`);
+      if (-deepest > 0.16 && name !== "legExtension" && name !== "dip" && name !== "stepUp" && name !== "dumbbellStepUp" && name !== "boxJump" && name !== "broadJump" && name !== "tuckJump" && name !== "jumpSquat" && name !== "depthJump") note(`${where}: floats ${(-deepest).toFixed(3)} above the floor`);
     }
   });
 

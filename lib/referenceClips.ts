@@ -430,7 +430,6 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [296],
     date: "2026-09-10",
     exercises: ["Step-Up"],
-    notes: "Dumbbell Step-Up shares the pose with the bells drawn in the hands.",
   },
 
   overheadTricepsExtension: {
@@ -737,6 +736,30 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 20: the last nine sharers, measured against their own clips ----
+  dumbbellRomanianDeadlift: {
+    videoId: "6USOovx8pYI",
+    title: "Dumbbell Romanian Deadlift - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 12.4 s",
+    prs: [402],
+    date: "2026-09-16",
+    exercises: ["Dumbbell Romanian Deadlift"],
+    notes:
+      "Borrowed the barbell RDL before, which stops at the knee. Deeper: the trunk reads 88-98 from vertical at the bottom (the barbell clip 83-91), the hands end 0.19-0.27 hip heights above the floor -- mid-shin -- plumb over the ankles; the knee 150-158 with the shin vertical and the thigh 20-28 back; standing the trunk reads 2-11 back. Tempo at 0.2 s: lower 1.6-1.8 s, 0.4 at the bottom, stand 0.8-1.0, 1.0-1.2 standing.",
+  },
+  dumbbellStepUp: {
+    videoId: "Zp7RG4jFScw",
+    title: "Dumbbell Step Up - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "seven step-ups in 17.5 s",
+    prs: [402],
+    date: "2026-09-16",
+    exercises: ["Dumbbell Step-Up"],
+    notes:
+      "Borrowed the step-up before (knee-high box, trunk 25 with the foot up). A higher box, 0.65-0.75 of the hip height: standing tall on the floor with the lead foot up, the hip 0.28-0.35 hip heights above the lead ankle, lead knee 54-63, trailing knee 165-176, trunk within 10 of vertical; the lean (15-25) comes in the drive as the trailing foot leaves the floor; upright on the box with the trailing foot beside the lead. Arms straight, bells at the sides. Tempo at 0.2 s: drive 0.4-0.6 s, 0.4-0.6 on the box, step down 0.6-0.8, 0.6-0.8 on the floor; a rep every 2.2 s.",
+  },
   dumbbellShoulderPress: {
     videoId: "OM23fjJB3-0",
     title: "Standing Dumbbell Press - OPEX Exercise Library",

@@ -521,6 +521,53 @@ export const exercisePoses = {
     { tempo: { down: 1000, bottom: 500, up: 1000, top: 500 }, camera: { azimuth: 0.9 } },
   ),
 
+  // Dumbbell step-up, from a reference clip measured with the pose lab (OPEX
+  // "Dumbbell Step Up", Zp7RG4jFScw, side view, seven step-ups in 17.5 s;
+  // MoveNet on 87 frames at 0.2 s). It borrowed the step-up before, whose
+  // box is knee high and whose trunk leans 25 with the foot up on it. This
+  // clip's box is HIGHER -- 0.65-0.75 of the hip height, well above the knee
+  // -- and the lifter stands tall on the floor with the lead foot up on it:
+  // the hip 0.28-0.35 hip heights above the lead ankle, the lead knee 54-63,
+  // the trailing knee straight (165-176), the trunk within 10 of vertical.
+  // The lean comes in the DRIVE, not before it: trunk 15-25 as the trailing
+  // foot leaves the floor (lead knee 70-100), upright again on the box
+  // (knees 170-178, the trailing foot brought up beside the lead). Arms hang
+  // straight (elbow 170-179) with the bells at the sides.
+  // Box 0.28 (0.56 m), its top 3 cm under the lead ankle. Bottom key: the
+  // hip 0.126 above the lead ankle (0.29 of the leg), 0.12 of the frame
+  // behind it, on a straight trailing leg -- the lead knee solves to 60;
+  // drive key: the trailing leg hanging, trunk 20; top: standing on the box.
+  // Tempo from the seven reps, to the 0.2 s frames: drive 0.4-0.6 s, 0.4-0.6
+  // standing on the box, step down 0.6-0.8, 0.6-0.8 on the floor; a rep
+  // every 2.2 s where the step-up clip took 3.
+  dumbbellStepUp: pose(
+    "side",
+    ([
+      [{ x: 0.50, y: 0.496 }, 8, "floor"],
+      [{ x: 0.57, y: 0.32 }, 20, "hanging"],
+      [{ x: 0.62, y: 0.184 }, 2, "box"],
+    ] as const).map(([pelvis, torso, trail]) => {
+      const lead = { x: 0.62, y: 0.62 };
+      const hips = [0, 1].map((side) => hipAt(pelvis, torso, side as 0 | 1, "side"));
+      const leadLeg: Limb = { ...reach(hips[0]!, lead, P.thigh, P.shin, -1), end: 90 };
+      const trailLeg: Limb =
+        trail === "floor"
+          ? { ...reach(hips[1]!, { x: 0.515, y: 0.93 }, P.thigh, P.shin, -1), end: 90 }
+          : trail === "hanging"
+            ? { upper: 200, lower: 205, end: 160 }
+            : { ...reach(hips[1]!, { x: 0.60, y: 0.62 }, P.thigh, P.shin, -1), end: 90 };
+      return { pelvis, torso, neck: torso > 10 ? torso - 15 : 0, arms: wide(HANG), legs: [leadLeg, trailLeg] as [Limb, Limb] };
+    }),
+    [
+      { kind: "floor" },
+      { kind: "bell", at: "hand0", each: true },
+      { kind: "slab", at: "ankle0", dx: 0.02, dy: 0.055, width: 0.25, height: 0.05 },
+    ],
+    "neutral",
+    1,
+    { tempo: { down: 500, bottom: 500, up: 700, top: 700 }, camera: { azimuth: 0.9 } },
+  ),
+
   // A front squat racks the bar on the front delts with high elbows -- the
   // clean's catch -- and the trunk stays far more upright than a back squat,
   // which is the entire point of the front rack.
@@ -1932,6 +1979,41 @@ export const exercisePoses = {
     "overhand",
     1,
     { tempo: { down: 1700, bottom: 200, up: 1000, top: 300 }, camera: { azimuth: Math.PI / 2 } },
+  ),
+
+  // Dumbbell Romanian deadlift, from a reference clip measured with the pose
+  // lab (OPEX "Dumbbell Romanian Deadlift", 6USOovx8pYI, side view, three
+  // reps in 12.4 s; MoveNet on 62 frames at 0.2 s). It borrowed the barbell
+  // RDL before, which stops at the knee. This clip goes further: the trunk
+  // reads 88-98 from vertical at the bottom (the barbell clip read 83-91,
+  // and the keypoint trunk reads ~8 high, so 88 here against the RDL's 75),
+  // the hands end 0.19-0.27 hip heights above the floor -- mid-shin, where
+  // the RDL's bar stops at 0.48, the knee -- and plumb over the ankles (the
+  // bells at the sides of the shins, not out in front of them). The knee is
+  // the RDL's: 150-158 at the bottom, the shin vertical, the thigh 20-28
+  // back; standing the trunk reads 2-11 back of vertical as the RDL's does.
+  // Authored from the joints: thigh back 4/12/22/27, shin 4/2/0/2, trunk
+  // 4/32/62/88, arms as ropes from 10 ahead of plumb standing to 8 behind
+  // at the bottom. Hand at the bottom ~0.13 above the floor (the RDL's 0.21);
+  // hip height 0.439 -> 0.415.
+  // Tempo from the reps, to the 0.2 s frames: lower 1.6-1.8 s, 0.4 at the
+  // bottom, stand 0.8-1.0, 1.0-1.2 standing -- a longer stand between reps
+  // than the barbell clip's 0.3.
+  dumbbellRomanianDeadlift: pose(
+    "side",
+    ([[0.523, 0.491, 4, 176, 184, -10], [0.497, 0.495, 32, 168, 182, 0], [0.467, 0.506, 62, 158, 180, 12], [0.460, 0.515, 90, 153, 182, 22]] as const).map(
+      ([x, y, torso, upper, lower, armBack]) => ({
+        pelvis: { x, y },
+        torso,
+        neck: torso > 30 ? torso - 20 : torso,
+        arms: [{ upper: 180 + armBack, lower: 180 + armBack }, { upper: 180 + armBack, lower: 180 + armBack }] as [Limb, Limb],
+        legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
+      }),
+    ),
+    [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
+    "overhand",
+    1,
+    { tempo: { down: 1700, bottom: 400, up: 900, top: 1100 }, camera: { azimuth: Math.PI / 2 } },
   ),
 
   // Stiff-leg deadlift, from a reference clip measured with the pose lab
