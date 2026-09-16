@@ -2543,9 +2543,11 @@ export class PoseViewer3D {
       // handle that runs on past the hand: the outboard shove that lets a
       // dumbbell's bar pass through the fist opens a 9cm gap between two
       // hands that are supposed to be holding one object between them.
-      // The exception is a goblet hold: a dumbbell or kettlebell cupped in
-      // both hands is still a hand weight, and its handle does run past them.
-      const twoHanded = !!prop.wheel || (bellCount === 1 && !!prop.both && implement !== "dumbbell" && implement !== "kettlebell");
+      // A dumbbell or kettlebell held in both hands is still a hand weight
+      // whose handle runs past them -- except hugged (a goblet hold), where
+      // the hands are authored together under the bell's head and the shove
+      // pulled them 9 cm off it either side.
+      const twoHanded = !!prop.wheel || (bellCount === 1 && !!prop.both && (!!prop.hug || (implement !== "dumbbell" && implement !== "kettlebell")));
       const ground = first.props.find((p) => p.kind === "floor");
       let mesh =
         prop.wheel
@@ -2565,8 +2567,10 @@ export class PoseViewer3D {
       if (implement === "dumbbell" && bellCount === 1 && prop.both) {
         // Upright, its top head cupped in both hands and the rest hanging
         // below them. Laid flat it ran back through the chest (and the bust).
+        // The head's centre sits 2.5 cm above the hands, so the palms are
+        // under it rather than through it.
         mesh.rotation.z = Math.PI / 2;
-        mesh.position.y = -0.072;
+        mesh.position.y = -0.047;
         const carrier = new THREE.Group();
         carrier.add(mesh);
         mesh = carrier;

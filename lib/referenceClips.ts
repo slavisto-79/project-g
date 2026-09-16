@@ -834,7 +834,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Core Blend Training",
     view: "side",
     span: "six reps between 9 and 33 s",
-    prs: [393],
+    prs: [393, 400],
     date: "2026-09-16",
     exercises: ["Heels-Elevated Goblet Squat"],
     notes:
@@ -1763,7 +1763,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "three reps in 11.2 s",
-    prs: [317],
+    prs: [317, 400],
     date: "2026-09-11",
     exercises: ["Goblet Squat"],
     notes: "Confirms the shared squat frames (parallel bottom, same hip drop) rather than correcting them; a three-quarter camera cannot settle the trunk angle. What it settled was the tempo and the fact that the bell stays ON the chest.",
