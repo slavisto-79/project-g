@@ -160,7 +160,10 @@ function chestArms(pelvis: Point, torso: number): [Limb, Limb] {
     x: top.x + (0.14 * Math.cos(rad)) / (850 / 567) + (0.062 * Math.sin(rad)) / (850 / 567),
     y: top.y + 0.14 * Math.sin(rad) + 0.062 * Math.cos(rad),
   };
-  return reachingArms(pelvis, torso, "side", [chest, { x: chest.x - 0.012, y: chest.y + 0.01 }], DOWN_SIDE);
+  // Both hands come in to the midline to cup the bell (8 cm apart in the
+  // world build): at girdle width they stood 22 cm apart with the bell
+  // hanging between them, held by nothing.
+  return reachingArms(pelvis, torso, "side", [chest, { x: chest.x - 0.012, y: chest.y + 0.01 }], DOWN_SIDE).map((arm) => ({ ...arm, spread: -0.07 })) as [Limb, Limb];
 }
 
 // Standing on both feet, seen from the side.
