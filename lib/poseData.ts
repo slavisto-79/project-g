@@ -3783,6 +3783,102 @@ export const exercisePoses = {
     );
   })(),
 
+  // Standing dumbbell shoulder press, from a reference clip measured with
+  // the pose lab (OPEX "Standing Dumbbell Press", OM23fjJB3-0, four presses
+  // in 13.7 s, face on; MoveNet on 109 frames at 0.15 s). It borrowed the
+  // barbell overhead press before, whose grip the bar fixes at 2.05
+  // shoulder widths top and bottom.
+  //
+  // Face on, as ratios of the shoulder width: at the bottom the wrists are
+  // 1.55-1.8 apart at shoulder height, the elbows 1.85-2.0 apart and 0.7-0.8
+  // below the shoulders; at the top the wrists converge to 1.05-1.15 over
+  // the shoulders with the elbows 1.1-1.2 and the arms straight (170-179).
+  // What the front camera cannot settle is the sagittal plane -- how far
+  // ahead of the shoulders the bells sit -- so the hands are placed a little
+  // ahead (9 cm at the bottom, which is what lets the in-plane fold put the
+  // elbow below the shoulder) and over the shoulders at the top.
+  //
+  // Authored as the seated dumbbell press: each hand placed against its
+  // shoulder, the arm solved in the plane, `flare` swinging the elbow out
+  // and `spread` setting the width per key. Measured after: wrists 1.69 /
+  // 1.57 / 1.10 apart, elbows 2.15 / 2.31 / 1.05, elbows 0.65 below the
+  // shoulders at the bottom, elbow 43 / 76 / 180.
+  //
+  // Tempo from the four presses, to the 0.15 s frames: press 1.05 s, 0.75
+  // at the top, lower 2.25 -- slow -- 0.45-0.6 at the shoulders; presses
+  // 4.35 s apart.
+  dumbbellShoulderPress: pose(
+    "side",
+    // [hand up from the shoulder, hand ahead of it, elbow flared out, hands wider, elbow fold]
+    ([[0.02, 0.09, 35, 0.03, BACK], [0.17, 0.04, 50, 0.02, BACK], [0.288, 0, 0, -0.02, FORWARD]] as const).map(([up, ahead, flare, spread, bend]): Figure => {
+      const pelvis = { x: 0.5, y: 0.492 };
+      const hands = [0, 1].map((side) => {
+        const sh = shoulderAt(pelvis, 0, side as 0 | 1, "side");
+        return { x: sh.x + ahead / ASPECT, y: sh.y - up };
+      }) as [Point, Point];
+      return {
+        pelvis,
+        torso: 0,
+        neck: 0,
+        arms: reachingArms(pelvis, 0, "side", hands, bend).map((arm) => ({ ...arm, flare, spread })) as [Limb, Limb],
+        legs: plantedLegs(pelvis, 0, "side", FEET, FORWARD),
+      };
+    }),
+    [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
+    "overhand",
+    1,
+    { tempo: { down: 2250, bottom: 500, up: 1050, top: 750 }, camera: { azimuth: 0.75 } },
+  ),
+
+  // Band chest press, from a reference clip measured with the pose lab
+  // (RADCENTRE "Banded Chest Press", 9NGo4lZd65o, six presses in the clip's
+  // side-view half, 12-26 s; MoveNet on 70 frames at 0.2 s). It borrowed the
+  // barbell bench press before -- lying on a bench -- where the cue stands
+  // with the band anchored behind and the press going forward.
+  //
+  // Standing, trunk within 5-10 of vertical, knees soft (167-175). Start:
+  // the hands at the chest, 0.2-0.3 trunk lengths ahead of the shoulders and
+  // 0.5 below them, the elbow 55-70 with the upper arm 25-30 behind plumb.
+  // Pressed: the elbow 164-172, the hands 0.95-1.2 ahead and 0.1-0.2 below
+  // the shoulders, the upper arm 15-20 below level.
+  //
+  // Authored with the hands placed against the shoulders and the arms solved
+  // in the plane, elbows folding back (BACK), a light flare. Measured after:
+  // elbow 58 / 82 / 163, hands 0.24 / 0.69 / 1.16 trunk lengths ahead and
+  // 0.49 / 0.33 / 0.14 below, the upper arm 34 behind plumb at the chest.
+  // The band runs from an anchor behind at shoulder height to each hand.
+  //
+  // Tempo from the six presses, to the 0.2 s frames: press 0.6-0.8 s,
+  // 0.6-0.8 pressed, return 0.6-0.8, 0.4-0.6 at the chest; 2.5 s a rep.
+  bandChestPress: pose(
+    "side",
+    // [hand ahead of the shoulder, hand below it]
+    ([[0.06, 0.12], [0.17, 0.08], [0.285, 0.03]] as const).map(([ahead, below]): Figure => {
+      const pelvis = { x: 0.5, y: 0.492 };
+      const torso = 355;
+      const hands = [0, 1].map((side) => {
+        const sh = shoulderAt(pelvis, torso, side as 0 | 1, "side");
+        return { x: sh.x + ahead / ASPECT, y: sh.y + below };
+      }) as [Point, Point];
+      return {
+        pelvis,
+        torso,
+        neck: 0,
+        arms: reachingArms(pelvis, torso, "side", hands, BACK).map((arm) => ({ ...arm, spread: 0.02, flare: 20 })) as [Limb, Limb],
+        legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
+      };
+    }),
+    [
+      { kind: "floor" },
+      // The band, anchored behind at shoulder height, one strand to each hand.
+      { kind: "cable", at: "hand0", anchor: { x: 0.30, y: 0.27 }, band: true },
+      { kind: "cable", at: "hand1", anchor: { x: 0.30, y: 0.27 }, band: true },
+    ],
+    "overhand",
+    1,
+    { tempo: { down: 700, bottom: 700, up: 700, top: 500 }, camera: { azimuth: 0.75 } },
+  ),
+
   overheadPress: pose(
     "side",
     ([[355, 150, 5, 350], [358, 95, 0, 352], [0, 5, 355, 0]] as const).map(([torso, upper, lower, neck]) => {

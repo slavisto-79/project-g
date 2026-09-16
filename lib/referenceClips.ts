@@ -20,6 +20,21 @@ import type { PoseName } from "./poseData";
 // the record should say so rather than call it a side view.
 export type ReferenceView = "side" | "three-quarter" | "front" | "back" | "head-end" | "foot-end";
 
+// An exercise that shares a pose and was measured against a clip of its
+// own, which CONFIRMED the shared pose rather than earning a new one. The
+// record says what was checked and what the clip could not settle.
+export type Confirmation = {
+  exercise: string;
+  videoId: string;
+  title: string;
+  channel: string;
+  view: ReferenceView;
+  span: string;
+  prs: number[];
+  date: string;
+  notes?: string;
+};
+
 export type ReferenceClip = {
   // YouTube video id; the URL is https://www.youtube.com/watch?v=<id>.
   videoId: string;
@@ -36,6 +51,10 @@ export type ReferenceClip = {
   // mapped to the pose borrows it, and the generated doc says so.
   exercises: string[];
   notes?: string;
+  // Sharers of this pose that were measured against their own clip and
+  // found to match it (batch 20). Still not "authored from" the pose's
+  // clip, but no longer an assumption either.
+  confirmations?: Confirmation[];
 };
 
 export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
@@ -717,6 +736,32 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
   },
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
+  // --- Batch 20: the last nine sharers, measured against their own clips ----
+  dumbbellShoulderPress: {
+    videoId: "OM23fjJB3-0",
+    title: "Standing Dumbbell Press - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "four presses in 13.7 s",
+    prs: [401],
+    date: "2026-09-16",
+    exercises: ["Dumbbell Shoulder Press"],
+    notes:
+      "Borrowed the barbell overhead press before, whose grip is fixed by the bar. Face on, as ratios of the shoulder width: at the bottom the wrists are 1.55-1.8 apart at shoulder height with the elbows 1.85-2.0 apart and 0.7-0.8 below the shoulders; at the top the wrists converge to 1.05-1.15 over the shoulders (the bar pose keeps 2.05), the elbows 1.1-1.2, the arms straight (170-179). Not settled: the sagittal plane (how far ahead of the shoulders the bells sit). Tempo at 0.15 s: press 1.05 s, 0.75 at the top, lower 2.25 -- slow -- 0.45-0.6 at the shoulders; presses 4.35 s apart.",
+  },
+  bandChestPress: {
+    videoId: "9NGo4lZd65o",
+    title: "Banded Chest Press",
+    channel: "RADCENTRE",
+    view: "side",
+    span: "six presses in 14 s (the side-view half of the clip)",
+    prs: [401],
+    date: "2026-09-16",
+    exercises: ["Band Chest Press"],
+    notes:
+      "Borrowed the barbell bench press before -- lying on a bench, where the cue stands. Standing, the band anchored behind at shoulder height. Start: the hands at the chest, 0.2-0.3 trunk lengths ahead of the shoulders and 0.5 below them, elbow 55-70 with the upper arm 25-30 behind plumb; pressed: elbow 164-172, the hands 0.95-1.2 ahead and 0.1-0.2 below the shoulders, the upper arm 15-20 below level; trunk within 5-10 of vertical, knees soft (167-175). Tempo at 0.2 s: press 0.6-0.8 s, 0.6-0.8 pressed, return 0.6-0.8, 0.4-0.6 at the chest; 2.5 s a rep.",
+  },
+
   // --- Batch 19: machines, grips and tempos the shared pose could not show --
   dumbbellBenchPress: {
     videoId: "ZaDlbm8E8Tg",
