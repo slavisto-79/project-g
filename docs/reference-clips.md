@@ -11,8 +11,8 @@ clips are used with is `docs/animation-from-clip.md`.
 |---|---|
 | library exercises | 162 |
 | authored from a clip (the clip shows the exercise) | 159 |
-| sharing a pose, confirmed against a clip of its own | 0 |
-| sharing a pose that was authored from a clip, unconfirmed | 3 |
+| sharing a pose, confirmed against a clip of its own | 3 |
+| sharing a pose that was authored from a clip, unconfirmed | 0 |
 | without a clip yet | 0 |
 | poses with a clip | 153 of 154 (153 in use) |
 
@@ -27,15 +27,15 @@ Poses without a clip yet: `idle`.
 | Arnold Press | `arnoldPress` | authored from the clip | [Standing Arnold Dumbbell Press - OPEX Exercise Library](https://www.youtube.com/watch?v=hHmFzFaSn7U) (OPEX Fitness, front) | #314 |
 | Back Extension | `backExtension` | authored from the clip | [Exercise Library:  Back Extensions](https://www.youtube.com/watch?v=muPROfbUBeg) (Exercise Library, side) | #370 |
 | Band Chest Press | `bandChestPress` | authored from the clip | [Banded Chest Press](https://www.youtube.com/watch?v=9NGo4lZd65o) (RADCENTRE, side) | #401 |
-| Band Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
+| Band Curl | `curl` | shares `curl`, confirmed against its own clip | [Banded Bicep Curl](https://www.youtube.com/watch?v=0hZboUNuogA) (OPEX Fitness, front) | #404 |
 | Band Overhead Press | `bandOverheadPress` | authored from the clip | [Banded Overhead Press](https://www.youtube.com/watch?v=nwjQIADavj8) (Wodstar, front) | #403 |
 | Band Row | `bandRow` | authored from the clip | [Banded Row - OPEX Exercise Library](https://www.youtube.com/watch?v=j7ABJGauUEk) (OPEX Fitness, side) | #403 |
-| Band-Assisted Pull-Up | `pullUp` | shares `pullUp` (the clip shows Pull-Up) | [Strict Pull Up - OPEX Exercise Library](https://www.youtube.com/watch?v=jgFel4wZl3I) (OPEX Fitness, side) | #274 |
+| Band-Assisted Pull-Up | `pullUp` | shares `pullUp`, confirmed against its own clip | [How To Do Banded Pull Ups](https://www.youtube.com/watch?v=JpsiZGnlQ_4) (PureGym, three-quarter) | #404 |
 | Banded Lateral Walk | `bandedLateralWalk` | authored from the clip | [Banded Lateral Walks](https://www.youtube.com/watch?v=pzQ2M_iY0D8) (OPEX Fitness, front) | #339 |
 | Bar Dip | `dip` | authored from the clip | [Weighted Dip - OPEX Exercise Library](https://www.youtube.com/watch?v=VNa0hX_y6Fk) (OPEX Fitness, three-quarter) | #282 |
 | Barbell Back Squat | `squat` | authored from the clip | [How to do a Barbell Back Squat](https://www.youtube.com/watch?v=-bJIpOq-LWk) (National Academy of Sports Medicine (NASM), three-quarter) | #254 |
 | Barbell Bench Press | `bench` | authored from the clip | [Barbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ejI1Nlsul9k) (OPEX Fitness, foot-end) | #257, #258 |
-| Barbell Curl | `curl` | authored from the clip | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
+| Barbell Curl | `curl` | authored from the clip | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278, #404 |
 | Barbell Front Squat | `frontSquat` | authored from the clip | [How To Do A Barbell front squat](https://www.youtube.com/watch?v=Q1Ypb8ZNzI4) (PureGym, side) | #266 |
 | Barbell Hip Thrust | `hipThrust` | authored from the clip | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) (My PT Hub, side) | #264 |
 | Barbell Overhead Press | `overheadPress` | authored from the clip | [How to Overhead Press Correctly (Military Press)](https://www.youtube.com/watch?v=0YYeELi896g) (TylerPath, three-quarter) | #272 |
@@ -76,7 +76,7 @@ Poses without a clip yet: `idle`.
 | Diamond Push-Up | `diamondPushUp` | authored from the clip | [Diamond Push Up](https://www.youtube.com/watch?v=Bhuscxybjf4) (E3 Rehab Exercise Library, side) | #387 |
 | Doorway Row | `doorwayRow` | authored from the clip | [Single Doorframe Row](https://www.youtube.com/watch?v=aa0yCQqbYaM) (Gymless Fitness, side) | #383 |
 | Dumbbell Bench Press | `dumbbellBenchPress` | authored from the clip | [Dumbbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ZaDlbm8E8Tg) (OPEX Fitness, side) | #399 |
-| Dumbbell Biceps Curl | `curl` | shares `curl` (the clip shows Barbell Curl) | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) (OPEX Fitness, side) | #278 |
+| Dumbbell Biceps Curl | `curl` | shares `curl`, confirmed against its own clip | [Dumbbell Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=l1tXK8CzxB4) (OPEX Fitness, front) | #404 |
 | Dumbbell Bulgarian Split Squat | `splitSquat` | authored from the clip | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267 |
 | Dumbbell Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
 | Dumbbell Floor Press | `dumbbellFloorPress` | authored from the clip | [Dumbbell Floor Press - OPEX Exercise Library](https://www.youtube.com/watch?v=jjlekYs1cfQ) (OPEX Fitness, side) | #373 |
@@ -210,7 +210,7 @@ Poses without a clip yet: `idle`.
 | `pulldown` | [Cable Lat Pulldown Machine - OPEX Exercise Library](https://www.youtube.com/watch?v=PEv0gTcMY3g) | OPEX Fitness | three-quarter | four reps in 10.5 s | #275 | 2026-09-09 | Lat Pulldown |  |
 | `seatedRow` | [Seated Cable Row - OPEX Exercise Library](https://www.youtube.com/watch?v=4ZbqM_gcgAI) | OPEX Fitness | side | three reps in 9.5 s | #276 | 2026-09-09 | Seated Cable Row |  |
 | `pushUp` | [Push Up - OPEX Exercise Library](https://www.youtube.com/watch?v=Ql8PKKsDE70) | OPEX Fitness | side | three reps in 4.8 s | #277 | 2026-09-09 | Push-Up | Knee, Incline and Decline Push-Up have their own poses, each from its own clip. |
-| `curl` | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) | OPEX Fitness | side | three reps in 10 s | #278 | 2026-09-09 | Barbell Curl |  |
+| `curl` | [EZ Bar Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=-gSM-kqNlUw) | OPEX Fitness | side | three reps in 10 s | #278, #404 | 2026-09-09 | Barbell Curl | Side view: settles the elbow and the tempo, not the hand width -- that came from the two front-view confirmations below (batch 20), which narrowed the grip from 1.81 to 1.15 shoulder widths. |
 | `tricepsExtension` | [Rope Cable Tricep Pushdown - OPEX Exercise Library](https://www.youtube.com/watch?v=y6EdXBdL75A) | OPEX Fitness | side | five reps in 11.6 s | #279 | 2026-09-09 | Triceps Pushdown | Overhead Triceps Extension borrows this pushdown; it needs its own overhead pose. |
 | `lateralRaise` | [Dumbbell Lateral Raise - OPEX Exercise Library](https://www.youtube.com/watch?v=8aUc9snLOxU) | OPEX Fitness | front | five reps in 9 s | #280 | 2026-09-09 | Dumbbell Lateral Raise |  |
 | `skullCrusher` | [EZ Bar Skull Crusher - OPEX Exercise Library](https://www.youtube.com/watch?v=eluOhtYkm-0) | OPEX Fitness | head-end | three reps in 9 s | #281 | 2026-09-09 | Skull Crusher |  |
