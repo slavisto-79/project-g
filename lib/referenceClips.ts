@@ -869,11 +869,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "three reps in 11 s",
-    prs: [398],
+    prs: [398, 405],
     date: "2026-09-16",
     exercises: ["Hammer Curl"],
     notes:
-      "Borrowed the curl (underhand) before; the grip is a property of the pose, so the bells drew palms up. Neutral. The curl's own keys: hanging elbow 165-175, the top 45-55 with the wrists 0.27 trunk lengths under the shoulders (from 1.05). Camera from the front, so those are projections and the curl's side-on keys are kept; what this clip gives is the grip and the tempo: curl 0.6-0.75 s, 0.5-0.6 at the top, lower 1.4-1.5, 0.7-0.9 hanging; reps 3.65-3.75 s apart.",
+      "Borrowed the curl (underhand) before; the grip is a property of the pose, so the bells drew palms up. Neutral. The curl's own keys: hanging elbow 165-175, the top 45-55 with the wrists 0.27 trunk lengths under the shoulders (from 1.05). Camera from the front, so those are projections and the curl's side-on keys are kept; what this clip gives is the grip and the tempo: curl 0.6-0.75 s, 0.5-0.6 at the top, lower 1.4-1.5, 0.7-0.9 hanging; reps 3.65-3.75 s apart. Measured again for width (#405): wrists 1.2-1.37 shoulder widths apart hanging, 1.0-1.08 at the top, elbows 1.15-1.25 to 1.27-1.4 -- the pose narrowed from 1.81 to 1.15, as the curl.",
   },
   neutralGripPulldown: {
     videoId: "RMvSbvaoVG4",
