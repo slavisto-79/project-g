@@ -6168,7 +6168,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
 
   "Barbell Curl": "curl",
   "Dumbbell Biceps Curl": "curl",
-  "Hammer Curl": "curl",
+  "Hammer Curl": "hammerCurl",
   "Cable Curl": "cableCurl",
   "Band Curl": "curl",
 
@@ -6186,7 +6186,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Farmer's Carry": "carry",
   "Incline Barbell Bench Press": "inclinePress",
   "Incline Dumbbell Press": "inclinePress",
-  "Neutral-Grip Dumbbell Press": "bench",
+  "Neutral-Grip Dumbbell Press": "neutralGripDumbbellPress",
   "Band Chest Press": "bench",
   "Knee Push-Up": "kneePushUp",
   "Incline Push-Up": "inclinePushUp",
@@ -6203,7 +6203,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Push Jerk": "pushJerk",
 
   "Lat Pulldown": "pulldown",
-  "Neutral-Grip Pulldown": "pulldown",
+  "Neutral-Grip Pulldown": "neutralGripPulldown",
   "Band-Assisted Pull-Up": "pullUp",
   "Seated Cable Row": "seatedRow",
   "Chest-Supported Row": "chestSupportedRow",
