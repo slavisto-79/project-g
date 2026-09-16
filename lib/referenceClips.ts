@@ -760,13 +760,37 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     notes:
       "Borrowed the step-up before (knee-high box, trunk 25 with the foot up). A higher box, 0.65-0.75 of the hip height: standing tall on the floor with the lead foot up, the hip 0.28-0.35 hip heights above the lead ankle, lead knee 54-63, trailing knee 165-176, trunk within 10 of vertical; the lean (15-25) comes in the drive as the trailing foot leaves the floor; upright on the box with the trailing foot beside the lead. Arms straight, bells at the sides. Tempo at 0.2 s: drive 0.4-0.6 s, 0.4-0.6 on the box, step down 0.6-0.8, 0.6-0.8 on the floor; a rep every 2.2 s.",
   },
+  bandOverheadPress: {
+    videoId: "nwjQIADavj8",
+    title: "Banded Overhead Press",
+    channel: "Wodstar",
+    view: "front",
+    span: "four presses in the clip's second shot (6.6-16.6 s)",
+    prs: [403],
+    date: "2026-09-16",
+    exercises: ["Band Overhead Press"],
+    notes:
+      "Borrowed the barbell overhead press before (bar racked on the clavicles, elbow 48, grip fixed at 2.05 shoulder widths). Face on, as ratios of the shoulder width: at the bottom the hands are at the shoulders -- wrists 1.5-1.8 apart at shoulder height, elbow 19-25, elbows 1.6-1.9 apart and 0.65-0.75 below the shoulders; at the top the arms straight (166-179) in a slight V, wrists 1.9-2.05 apart, elbows 1.5-1.65. Feet on the band 1.0-1.3 apart. Not settled: how far ahead of the shoulders the hands sit at the bottom. Tempo at 0.2 s: press 0.6-0.8 s, 0.8 at the top, lower 1.0, 0.6-1.2 at the shoulders.",
+  },
+  bandRow: {
+    videoId: "j7ABJGauUEk",
+    title: "Banded Row - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three rows in 12.2 s",
+    prs: [403],
+    date: "2026-09-16",
+    exercises: ["Band Row"],
+    notes:
+      "Borrowed the seated cable row before; this stands, the band on a rack at the height of the lower ribs. Trunk within 5 of vertical, knees soft (160-175); the hands travel level, 0.45 trunk lengths under the shoulders, from 0.8-0.9 trunk lengths ahead (upper arm 45-55 up from plumb, elbow 150-165) to 0.25 ahead with the elbows 15-25 behind plumb, folded to 65-70. Tempo at 0.2 s: pull 0.6-0.8 s, 0.8 at the ribs, release 0.8-1.0, 0.6-0.8 reaching; 3 s a rep.",
+  },
   dumbbellShoulderPress: {
     videoId: "OM23fjJB3-0",
     title: "Standing Dumbbell Press - OPEX Exercise Library",
     channel: "OPEX Fitness",
     view: "front",
     span: "four presses in 13.7 s",
-    prs: [401],
+    prs: [401, 403],
     date: "2026-09-16",
     exercises: ["Dumbbell Shoulder Press"],
     notes:
