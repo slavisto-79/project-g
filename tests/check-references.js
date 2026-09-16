@@ -35,6 +35,17 @@ for (const [pose, clip] of Object.entries(REFERENCE_CLIPS)) {
     if (!libraryNames.has(ex)) note(`${pose}: "${ex}" is not a library exercise`);
     else if (POSE_FOR_EXERCISE[ex] !== pose) note(`${pose}: "${ex}" is mapped to ${POSE_FOR_EXERCISE[ex] ?? "no pose"}, not to ${pose}`);
   }
+  for (const c of clip.confirmations ?? []) {
+    const tag = `${pose} confirmation "${c.exercise}"`;
+    if (!libraryNames.has(c.exercise)) note(`${tag}: not a library exercise`);
+    else if (POSE_FOR_EXERCISE[c.exercise] !== pose) note(`${tag}: mapped to ${POSE_FOR_EXERCISE[c.exercise] ?? "no pose"}, not to ${pose}`);
+    if ((clip.exercises ?? []).includes(c.exercise)) note(`${tag}: already listed as shown by the pose's own clip`);
+    if (!/^[A-Za-z0-9_-]{11}$/.test(c.videoId)) note(`${tag}: video id "${c.videoId}" is not a YouTube id`);
+    for (const k of ["title", "channel", "view", "span", "date"]) {
+      if (!c[k]) note(`${tag}: missing ${k}`);
+    }
+    if (!Array.isArray(c.prs) || !c.prs.length) note(`${tag}: no pull request listed`);
+  }
 }
 for (const [ex, pose] of Object.entries(POSE_FOR_EXERCISE)) {
   if (!poseNames.has(pose)) note(`App.tsx maps "${ex}" to ${pose}, which is not a pose`);
@@ -43,10 +54,11 @@ for (const [ex, pose] of Object.entries(POSE_FOR_EXERCISE)) {
 // --- The document -----------------------------------------------------------
 const url = (clip) => `https://www.youtube.com/watch?v=${clip.videoId}`;
 const rows = [];
-let authored = 0, shared = 0, none = 0;
+let authored = 0, confirmed = 0, shared = 0, none = 0;
 for (const ex of exerciseLibrary.map((e) => e.name).sort((a, b) => a.localeCompare(b))) {
   const pose = POSE_FOR_EXERCISE[ex];
   const clip = pose ? REFERENCE_CLIPS[pose] : undefined;
+  const confirmation = clip && (clip.confirmations ?? []).find((c) => c.exercise === ex);
   let status, clipCell, prCell;
   if (!pose) {
     status = "no pose"; clipCell = ""; prCell = "";
@@ -58,6 +70,10 @@ for (const ex of exerciseLibrary.map((e) => e.name).sort((a, b) => a.localeCompa
     status = "authored from the clip"; authored++;
     clipCell = `[${clip.title}](${url(clip)}) (${clip.channel}, ${clip.view})`;
     prCell = clip.prs.map((n) => `#${n}`).join(", ");
+  } else if (confirmation) {
+    status = `shares \`${pose}\`, confirmed against its own clip`; confirmed++;
+    clipCell = `[${confirmation.title}](${url(confirmation)}) (${confirmation.channel}, ${confirmation.view})`;
+    prCell = confirmation.prs.map((n) => `#${n}`).join(", ");
   } else {
     status = `shares \`${pose}\` (the clip shows ${clip.exercises.join(", ")})`; shared++;
     clipCell = `[${clip.title}](${url(clip)}) (${clip.channel}, ${clip.view})`;
@@ -89,7 +105,8 @@ clips are used with is \`docs/animation-from-clip.md\`.
 |---|---|
 | library exercises | ${exerciseLibrary.length} |
 | authored from a clip (the clip shows the exercise) | ${authored} |
-| sharing a pose that was authored from a clip | ${shared} |
+| sharing a pose, confirmed against a clip of its own | ${confirmed} |
+| sharing a pose that was authored from a clip, unconfirmed | ${shared} |
 | without a clip yet | ${none} |
 | poses with a clip | ${posesWithClip.length} of ${poseNames.size} (${usedPoses.size} in use) |
 
@@ -114,5 +131,5 @@ if (problems.length) {
   process.exit(1);
 }
 fs.writeFileSync("docs/reference-clips.md", doc);
-console.log(`${exerciseLibrary.length} exercises: ${authored} authored from a clip, ${shared} sharing an authored pose, ${none} without a clip`);
+console.log(`${exerciseLibrary.length} exercises: ${authored} authored from a clip, ${confirmed} sharing a pose confirmed by their own clip, ${shared} sharing an authored pose unconfirmed, ${none} without a clip`);
 console.log(`${posesWithClip.length} of ${poseNames.size} poses have a clip; docs/reference-clips.md written`);

@@ -6143,7 +6143,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
 
   "Barbell Overhead Press": "overheadPress",
   "Push Press": "pushPress",
-  "Dumbbell Shoulder Press": "overheadPress",
+  "Dumbbell Shoulder Press": "dumbbellShoulderPress",
   "Seated Dumbbell Press": "seatedDumbbellPress",
   "Arnold Press": "arnoldPress",
   "Machine Shoulder Press": "machineShoulderPress",
@@ -6187,7 +6187,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Incline Barbell Bench Press": "inclinePress",
   "Incline Dumbbell Press": "inclinePress",
   "Neutral-Grip Dumbbell Press": "neutralGripDumbbellPress",
-  "Band Chest Press": "bench",
+  "Band Chest Press": "bandChestPress",
   "Knee Push-Up": "kneePushUp",
   "Incline Push-Up": "inclinePushUp",
   "Decline Push-Up": "declinePushUp",
