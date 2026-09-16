@@ -718,6 +718,30 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 19: machines, grips and tempos the shared pose could not show --
+  chinUp: {
+    videoId: "QGSYnup3-u4",
+    title: "Supinated Pull Up",
+    channel: "OPEX Fitness",
+    view: "three-quarter",
+    span: "three reps in 11 s",
+    prs: [397],
+    date: "2026-09-16",
+    exercises: ["Chin-Up"],
+    notes:
+      "Borrowed the pull-up (overhand) before -- the grip is a property of the pose, not the exercise, so the fists drew overhand. Underhand. Dead hang with the elbow 160-179 and the shoulder 3.4-4.1 shoulder widths under the bar; at the top the elbow closes to 17-28 with the nose 0.3-1.0 shoulder widths over the bar and the shoulder within 0.35 of it. The hang, the path and the top match the pull-up pose, which is kept: what changes is the grip and the hands a shade closer. The grip width itself is not read from this clip (the shoulders project 17-25 px three-quarters on). Tempo at 0.15 s: pull 0.75 s, 0.3 at the top, lower 1.05, 0.9-1.0 hanging; reps 2.9-3.1 s apart.",
+  },
+  negativePullUp: {
+    videoId: "jBSMDqs7OzM",
+    title: "How To Do Negative Pull Ups",
+    channel: "PureGym",
+    view: "three-quarter",
+    span: "two negatives in 12.6 s",
+    prs: [397],
+    date: "2026-09-16",
+    exercises: ["Negative Pull-Up"],
+    notes:
+      "Borrowed the pull-up before, which pulls up and drops down at the same speed. The positions are the pull-up's; what the clip gives is the tempo. Starts at the top (elbow 6-33, nose over the bar) and lowers under control to a dead hang (elbow 172-180) in 3.2-3.6 s, twice; a step back up from a box and a 0.6 s pull to the top between them. Bulldog Gear's clip (EkpJkHpJXmM) was measured too: one negative of about 8 s, 'as slowly as you can' taken literally. The pose runs the pull-up's keys top-first: 0.4 s at the top, 3.5 s down, 0.5 s hanging, 0.6 s back up (the cue's jump, which the clip does off a box).",
+  },
   tBarRow: {
     videoId: "hYo72r8Ivso",
     title: "How To Do T Bar Rows (Landmine Rows)",

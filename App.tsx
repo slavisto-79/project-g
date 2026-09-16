@@ -6163,8 +6163,8 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Diamond Push-Up": "diamondPushUp",
 
   "Pull-Up": "pullUp",
-  "Chin-Up": "pullUp",
-  "Negative Pull-Up": "pullUp",
+  "Chin-Up": "chinUp",
+  "Negative Pull-Up": "negativePullUp",
 
   "Barbell Curl": "curl",
   "Dumbbell Biceps Curl": "curl",

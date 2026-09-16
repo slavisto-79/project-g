@@ -216,6 +216,29 @@ function hangingFigure(torso: number, thigh: number, shin: number): Figure {
   };
 }
 
+// The pull-up's three keys (see `pullUp` for the clip), hang to chin over
+// the bar, shared by the grip and tempo variants: `spread` is how far the
+// hands sit outside the shoulders.
+// [trunk lean, shoulder below the bar, shoulder behind the bar, thigh, shin]
+// -- the face passes BEHIND the bar on the way up, so the shoulder sits
+// 10 cm back of it mid-pull and 8 cm at the top, where the chin is over.
+function pullUpFrames(spread: number): Figure[] {
+  return ([[2, 0.290, 0.02, 185, 195], [8, 0.132, 0.10, 188, 198], [15, 0.026, 0.08, 192, 202]] as const).map(([torso, below, behind, upper, lower]) => {
+    const bar = { x: 0.512, y: 0.186 };
+    const shoulder = { x: bar.x - behind / ASPECT, y: bar.y + below };
+    const rad = (torso * Math.PI) / 180;
+    const pelvis = { x: shoulder.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x - (P.spine * Math.sin(rad)) / ASPECT, y: shoulder.y + P.spine * Math.cos(rad) };
+    return {
+      pelvis,
+      torso,
+      neck: torso > 10 ? 350 : 0,
+      // The bar is fixed; the body climbs to it.
+      arms: reachingArms(pelvis, torso, "side", grip(bar, 0, "side"), FORWARD).map((arm) => ({ ...arm, spread })) as [Limb, Limb],
+      legs: [{ upper, lower, end: 150 }, { upper, lower, end: 150 }] as [Limb, Limb],
+    };
+  });
+}
+
 // The farmer's stride (OPEX "Dumbbell Farmer's Carry", K4R8uc1x_OA), shared
 // by every loaded carry: heel strike -> feet passing -> the next heel strike,
 // in place; only the arms differ between the carries.
@@ -4355,23 +4378,7 @@ export const exercisePoses = {
   // the midline in a side view, the hand is outboard of the girdle.
   pullUp: pose(
     "side",
-    // [trunk lean, shoulder below the bar, shoulder behind the bar, thigh, shin]
-    // -- the face passes BEHIND the bar on the way up, so the shoulder sits
-    // 10 cm back of it mid-pull and 8 cm at the top, where the chin is over.
-    ([[2, 0.290, 0.02, 185, 195], [8, 0.132, 0.10, 188, 198], [15, 0.026, 0.08, 192, 202]] as const).map(([torso, below, behind, upper, lower]) => {
-      const bar = { x: 0.512, y: 0.186 };
-      const shoulder = { x: bar.x - behind / ASPECT, y: bar.y + below };
-      const rad = (torso * Math.PI) / 180;
-      const pelvis = { x: shoulder.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x - (P.spine * Math.sin(rad)) / ASPECT, y: shoulder.y + P.spine * Math.cos(rad) };
-      return {
-        pelvis,
-        torso,
-        neck: torso > 10 ? 350 : 0,
-        // The bar is fixed; the body climbs to it.
-        arms: reachingArms(pelvis, torso, "side", grip(bar, 0, "side"), FORWARD).map((arm) => ({ ...arm, spread: 0.06 })) as [Limb, Limb],
-        legs: [{ upper, lower, end: 150 }, { upper, lower, end: 150 }] as [Limb, Limb],
-      };
-    }),
+    pullUpFrames(0.06),
     [
       { kind: "bar", at: "grip", length: 0.44, plates: false },
       // The assistance band: looped over the bar by the hand, a foot in it.
@@ -4380,6 +4387,55 @@ export const exercisePoses = {
     "overhand",
     1,
     { tempo: { down: 1100, bottom: 200, up: 1100, top: 300 }, camera: { azimuth: 0.9 } },
+  ),
+
+  // Chin-up, from a reference clip measured with the pose lab (OPEX
+  // "Supinated Pull Up", QGSYnup3-u4, three reps in 11 s, three-quarters on;
+  // MoveNet on 92 frames at 0.15 s). It borrowed the pull-up before, and the
+  // grip is a property of the pose, not the exercise, so the fists drew
+  // overhand.
+  //
+  // What the clip settles is that the body does what the pull-up's does: a
+  // dead hang (elbow 160-179, the shoulder 3.4-4.1 shoulder widths under the
+  // bar) to the chin over the bar (elbow 17-28, the nose 0.3-1.0 widths
+  // above it, the shoulder within 0.35 of it). So the keys are the
+  // pull-up's, underhand, the hands a shade closer than the pull-up's wide
+  // grip. The grip width is NOT read from this clip: three-quarters on the
+  // shoulders project to 17-25 px and any ratio on them is noise.
+  //
+  // Tempo from the three reps, to the 0.15 s frames: pull 0.75 s, 0.3 at
+  // the top, lower 1.05, 0.9-1.0 hanging; reps 2.9-3.1 s apart.
+  chinUp: pose(
+    "side",
+    pullUpFrames(0.0),
+    [{ kind: "bar", at: "grip", length: 0.44, plates: false }],
+    "underhand",
+    1,
+    { tempo: { down: 750, bottom: 300, up: 1050, top: 950 }, camera: { azimuth: 0.9 } },
+  ),
+
+  // Negative pull-up, from a reference clip measured with the pose lab
+  // (PureGym "How To Do Negative Pull Ups", jBSMDqs7OzM, two negatives in
+  // 12.6 s, three-quarters on; MoveNet on 62 frames at 0.2 s). It borrowed
+  // the pull-up before, which goes up and comes down at the same speed.
+  //
+  // The positions are the pull-up's. What the clip gives is the tempo: from
+  // the top (elbow 6-33, nose over the bar) down to a dead hang (elbow
+  // 172-180) in 3.2-3.6 s, twice, with a step back up from a box and a
+  // 0.6 s pull to the top between them. Bulldog Gear's clip (EkpJkHpJXmM)
+  // was measured too: one negative of about 8 s -- "as slowly as you can"
+  // taken literally; the 3.5 s one is the tempo here.
+  //
+  // The keys run top-first, so the tempo's first leg IS the lowering: 0.4 s
+  // at the top, 3.5 s down, 0.5 s hanging, then 0.6 s back to the top --
+  // the cue's jump, which the clip does off a box that is not drawn.
+  negativePullUp: pose(
+    "side",
+    pullUpFrames(0.06).reverse(),
+    [{ kind: "bar", at: "grip", length: 0.44, plates: false }],
+    "overhand",
+    1,
+    { tempo: { down: 3500, bottom: 500, up: 600, top: 400 }, camera: { azimuth: 0.9 } },
   ),
 
   // Inverted row, from a reference clip measured with the pose lab (OPEX
