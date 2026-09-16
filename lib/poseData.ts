@@ -5126,9 +5126,13 @@ export const exercisePoses = {
   // are kept; what this clip gives is the grip -- neutral, the bells turned
   // fore-aft -- and the tempo: curl 0.6-0.75 s, 0.5-0.6 at the top, lower
   // 1.4-1.5, 0.7-0.9 hanging; reps 3.65-3.75 s apart.
+  // And, measured for width after the curl was narrowed (batch 20): the
+  // wrists 1.2-1.37 shoulder widths apart hanging, 1.0-1.08 at the top, the
+  // elbows 1.15-1.25 hanging and 1.27-1.4 at the top -- the same 1.15 the
+  // curl now stands at, not `wide()`'s 1.81.
   hammerCurl: pose(
     "side",
-    CURL_ARMS.map(([upper, lower]) => stand({ x: 0.5, y: 0.494 }, 358, wide(sideArms(upper, lower)))),
+    CURL_ARMS.map(([upper, lower]) => stand({ x: 0.5, y: 0.494 }, 358, wide(sideArms(upper, lower), -0.016))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
     "neutral",
     1,
