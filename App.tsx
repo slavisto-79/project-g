@@ -6151,7 +6151,7 @@ const POSE_FOR_EXERCISE: Record<string, PoseName> = {
   "Barbell Row": "bentRow",
   "Pendlay Row": "pendlayRow",
   "One-Arm Dumbbell Row": "oneArmRow",
-  "T-Bar Row": "bentRow",
+  "T-Bar Row": "tBarRow",
 
   "Bodyweight Reverse Lunge": "lunge",
   "Walking Lunge": "walkingLunge",
