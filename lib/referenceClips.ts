@@ -718,6 +718,18 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 19: machines, grips and tempos the shared pose could not show --
+  dumbbellBenchPress: {
+    videoId: "ZaDlbm8E8Tg",
+    title: "Dumbbell Bench Press - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 9 s",
+    prs: [399],
+    date: "2026-09-16",
+    exercises: ["Dumbbell Bench Press"],
+    notes:
+      "Borrowed the barbell bench press before, whose bar stops on the chest. The dumbbells come lower: at the bottom the wrists are 0.0-0.17 trunk lengths above the shoulder line (the bar's 0.32) and the elbows 0.35-0.45 below it, past the bench, the wrists over the shoulders; at the top the elbow is 155-176 with the wrists 1.0-1.3 above. Not used: the bottom elbow angle, a projection of a flared upper arm pointing at the camera (reads 0-20). Ours: the bench's path with the bottom 5.8 cm lower and the hands 4.7 cm toward the feet (an in-plane fold cannot put the elbow under a plumb wrist), flare 20 / 40 / 60; elbow 178 / 74 / 45, elbows 11 cm below the shoulder line and 2.34 shoulder widths apart at the bottom. Tempo at 0.15 s: down 0.75-0.9 s, 0.5-0.75 at the bottom, up 0.45-0.6, 0.6-0.8 locked out; reps 2.9 s apart.",
+  },
   hammerCurl: {
     videoId: "RIEMoYL_h1Y",
     title: "Dumbbell Hammer Curl - OPEX Exercise Library",
