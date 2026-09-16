@@ -239,6 +239,29 @@ function pullUpFrames(spread: number): Figure[] {
   });
 }
 
+// The curl's three arm keys (hang, half way, top), shared by the grip
+// variants: [upper arm, forearm] world angles.
+const CURL_ARMS = [[177, 167], [172, 95], [164, 15]] as const;
+
+// One lat-pulldown key (see `pulldown` for the clip): seated, leaning back
+// 10, the hands solved to shoulder-relative targets with the elbows breaking
+// back; `spread` is the grip's width beyond the shoulders.
+function pulldownFigure(above: number, ahead: number, spread: number): Figure {
+  const torso = 350;
+  const pelvis = { x: 0.50, y: 0.693 };
+  const targets = [0, 1].map((side) => {
+    const s = shoulderAt(pelvis, torso, side as 0 | 1, "side");
+    return { x: s.x + ahead / ASPECT, y: s.y - above };
+  }) as [Point, Point];
+  return {
+    pelvis,
+    torso,
+    neck: 0,
+    arms: reachingArms(pelvis, torso, "side", targets, BACK).map((arm) => ({ ...arm, spread })) as [Limb, Limb],
+    legs: [{ upper: 100, lower: 203, end: 90 }, { upper: 100, lower: 203, end: 90 }] as [Limb, Limb],
+  };
+}
+
 // The farmer's stride (OPEX "Dumbbell Farmer's Carry", K4R8uc1x_OA), shared
 // by every loaded carry: heel strike -> feet passing -> the next heel strike,
 // in place; only the arms differ between the carries.
@@ -2862,6 +2885,40 @@ export const exercisePoses = {
   // (`spread` -0.02 against the bench's 0.078) and the flare cut to 0 / 5 /
   // 8 (the bench's 20 / 35 / 45). Measured after: wrists 1.10 shoulder
   // widths apart, elbows 1.05 / 1.16 / 1.26, elbow 180 / 80 / 52.
+  // Neutral-grip dumbbell press, from a reference clip measured with the
+  // pose lab (OPEX "Dumbbell Neutral Grip Bench Press", Q7omzf7Bt1I, three
+  // reps in 8.5 s, side view; MoveNet on 74 frames at 0.15 s). It borrowed
+  // the barbell bench press before: wide overhand, elbows flared 45, the bar
+  // stopping on the chest.
+  //
+  // Side on: at the bottom the elbow closes to 16-32 with the wrists 0.17-
+  // 0.20 trunk lengths above the shoulder line (the bar stops 0.32 above it)
+  // and the elbows 0.27-0.38 BELOW it, past the bench -- the arms are in
+  // beside the ribs, not flared. At the top the elbow is 155-167 with the
+  // wrists 1.05-1.3 above.
+  //
+  // Authored on the bench's own bar path with the bottom 3 cm lower (the
+  // bells pass the chest), the flare cut to 0 / 10 / 20 (the bench's 20 /
+  // 35 / 45) so the elbows drop beside the ribs, a narrow grip, twin
+  // dumbbells turned palms-facing by the neutral grip.
+  //
+  // Tempo from the three reps, to the 0.15 s frames: down 0.75-0.9 s, 0.5-
+  // 0.75 at the bottom, up 0.6, 0.6 locked out; reps 2.7 s apart.
+  neutralGripDumbbellPress: pose(
+    "side",
+    ([[0.397, 0.304, 0], [0.418, 0.425, 10], [0.44, 0.543, 20]] as const).map(([barX, barY, flare]) =>
+      bench(barX, barY, { flare, spread: 0.02, legSpread: 0.12, feetX: 0.640 }),
+    ),
+    [
+      { kind: "floor" },
+      { kind: "slab", at: "pelvis", width: 0.5, height: 0.055, dx: -0.154, dy: 0.085 },
+      { kind: "bar", at: "grip", length: 0.17 },
+    ],
+    "neutral",
+    1,
+    { tempo: { down: 850, bottom: 600, up: 600, top: 600 }, camera: { azimuth: -0.5 } },
+  ),
+
   closeGripBench: pose(
     "side",
     ([[0.397, 0.304, 0], [0.436, 0.410, 5], [0.475, 0.513, 8]] as const).map(([barX, barY, flare]) =>
@@ -4335,21 +4392,7 @@ export const exercisePoses = {
     "side",
     // [hand above the shoulder, hand ahead of it]: the top reach is 98% of
     // the arm, which two-link IK draws at ~160 -- the clip's 160-175.
-    ([[0.272, 0.085], [0.10, 0.08], [-0.04, 0.079]] as const).map(([above, ahead]) => {
-      const torso = 350;
-      const pelvis = { x: 0.50, y: 0.693 };
-      const targets = [0, 1].map((side) => {
-        const s = shoulderAt(pelvis, torso, side as 0 | 1, "side");
-        return { x: s.x + ahead / ASPECT, y: s.y - above };
-      }) as [Point, Point];
-      return {
-        pelvis,
-        torso,
-        neck: 0,
-        arms: reachingArms(pelvis, torso, "side", targets, BACK).map((arm) => ({ ...arm, spread: 0.14 })) as [Limb, Limb],
-        legs: [{ upper: 100, lower: 203, end: 90 }, { upper: 100, lower: 203, end: 90 }] as [Limb, Limb],
-      };
-    }),
+    ([[0.272, 0.085], [0.10, 0.08], [-0.04, 0.079]] as const).map(([above, ahead]) => pulldownFigure(above, ahead, 0.14)),
     [
       { kind: "floor" },
       { kind: "slab", at: "pelvis", width: 0.16, height: 0.055, dy: 0.075 },
@@ -4361,6 +4404,41 @@ export const exercisePoses = {
     "overhand",
     1,
     { tempo: { down: 1000, bottom: 150, up: 1500, top: 200 }, camera: { azimuth: 0.9 } },
+  ),
+
+  // Neutral-grip pulldown, from a reference clip measured with the pose lab
+  // (OPEX "Neutral Grip Lat Pulldown", RMvSbvaoVG4, four reps in 11.5 s,
+  // from behind; MoveNet on 93 frames at 0.15 s). It borrowed the wide
+  // overhand pulldown before.
+  //
+  // From behind the widths are what survive: the hands on a V-handle
+  // 0.55-0.85 shoulder widths apart (the wide bar's are 2 widths), the
+  // elbows 1.0-1.3. The handle comes lower than the bar does: 0.3-0.45
+  // trunk lengths under the shoulder line, where the bar stops 4 cm under
+  // it. The seat, the lean and the top reach are the pulldown's own.
+  //
+  // Authored on `pulldownFigure` with the hands 0.7 widths apart (spread
+  // -0.05) and the bottom pulled to 9 cm under the shoulders; two fore-aft
+  // handles (`handles`, turned for the neutral grip) on the pulldown's
+  // cable.
+  //
+  // Tempo from the four reps, to the 0.15 s frames: pull 0.6 s, 1.0 at the
+  // chest, release 1.05, 0.6 at the top; reps 3.3 s apart.
+  neutralGripPulldown: pose(
+    "side",
+    ([[0.272, 0.085, 0], [0.10, 0.08, 12], [-0.09, 0.079, 15]] as const).map(([above, ahead, flare]) => {
+      const figure = pulldownFigure(above, ahead, -0.05);
+      return { ...figure, arms: figure.arms.map((arm) => ({ ...arm, flare })) as [Limb, Limb] };
+    }),
+    [
+      { kind: "floor" },
+      { kind: "slab", at: "pelvis", width: 0.16, height: 0.055, dy: 0.075 },
+      { kind: "bar", at: "grip", length: 0.13, plates: false, handles: true },
+      { kind: "cable", at: "grip", anchor: { x: 0.57, y: 0.02 }, arm: 0.55 },
+    ],
+    "neutral",
+    1,
+    { tempo: { down: 600, bottom: 1000, up: 1050, top: 600 }, camera: { azimuth: 0.9 } },
   ),
 
   // Pull-up, from a reference clip measured with the pose lab (OPEX "Strict
@@ -4739,9 +4817,29 @@ export const exercisePoses = {
     { tempo: { down: 1200, bottom: 450, up: 2100, top: 300 } },
   ),
 
+  // Hammer curl, from a reference clip measured with the pose lab (OPEX
+  // "Dumbbell Hammer Curl", RIEMoYL_h1Y, three reps in 11 s, from the front;
+  // MoveNet on 86 frames at 0.15 s). It borrowed the curl before, and the
+  // grip is a property of the pose, so the bells drew palms up.
+  //
+  // The curl's own keys: hanging with the elbow at 165-175, the top at 45-55
+  // with the wrists 0.27 trunk lengths under the shoulders (from 1.05). The
+  // camera is in front, so those are projections and the curl's side-on keys
+  // are kept; what this clip gives is the grip -- neutral, the bells turned
+  // fore-aft -- and the tempo: curl 0.6-0.75 s, 0.5-0.6 at the top, lower
+  // 1.4-1.5, 0.7-0.9 hanging; reps 3.65-3.75 s apart.
+  hammerCurl: pose(
+    "side",
+    CURL_ARMS.map(([upper, lower]) => stand({ x: 0.5, y: 0.494 }, 358, wide(sideArms(upper, lower)))),
+    [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
+    "neutral",
+    1,
+    { tempo: { down: 700, bottom: 550, up: 1450, top: 800 }, camera: { azimuth: 0.75 } },
+  ),
+
   curl: pose(
     "side",
-    ([[177, 167], [172, 95], [164, 15]] as const).map(([upper, lower]) => stand({ x: 0.5, y: 0.494 }, 358, wide(sideArms(upper, lower)))),
+    CURL_ARMS.map(([upper, lower]) => stand({ x: 0.5, y: 0.494 }, 358, wide(sideArms(upper, lower)))),
     [
       { kind: "floor" },
       { kind: "bell", at: "hand0", each: true },

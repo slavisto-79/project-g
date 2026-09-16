@@ -2488,6 +2488,8 @@ export class PoseViewer3D {
           // A machine's grips: a short handle in each hand (the twin rides
           // the other hand), not a bar across the face.
           mesh = this.plainBar(0.13);
+          // A neutral grip holds a fore-aft handle (a V-bar's arms).
+          if (pose.grip === "neutral") mesh.rotation.y = Math.PI / 2;
         } else if (prop.rails) {
           // Parallel dip bars: one rail either side of the body, running
           // fore-aft, instead of a crossbar through the hips.

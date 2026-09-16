@@ -718,6 +718,42 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
 
   // --- Batch 9: the highest-reach poses never authored from a clip --------
   // --- Batch 19: machines, grips and tempos the shared pose could not show --
+  hammerCurl: {
+    videoId: "RIEMoYL_h1Y",
+    title: "Dumbbell Hammer Curl - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "front",
+    span: "three reps in 11 s",
+    prs: [398],
+    date: "2026-09-16",
+    exercises: ["Hammer Curl"],
+    notes:
+      "Borrowed the curl (underhand) before; the grip is a property of the pose, so the bells drew palms up. Neutral. The curl's own keys: hanging elbow 165-175, the top 45-55 with the wrists 0.27 trunk lengths under the shoulders (from 1.05). Camera from the front, so those are projections and the curl's side-on keys are kept; what this clip gives is the grip and the tempo: curl 0.6-0.75 s, 0.5-0.6 at the top, lower 1.4-1.5, 0.7-0.9 hanging; reps 3.65-3.75 s apart.",
+  },
+  neutralGripPulldown: {
+    videoId: "RMvSbvaoVG4",
+    title: "Neutral Grip Lat Pulldown",
+    channel: "OPEX Fitness",
+    view: "back",
+    span: "four reps in 11.5 s",
+    prs: [398],
+    date: "2026-09-16",
+    exercises: ["Neutral-Grip Pulldown"],
+    notes:
+      "Borrowed the wide overhand pulldown before. From behind: the hands on a V-handle 0.55-0.85 shoulder widths apart (the wide bar's are 2 shoulder widths), the elbows 1.0-1.3; the handle pulled to 0.3-0.45 trunk lengths under the shoulder line (the bar's 4 cm). Ours: the pulldown's seat, lean and top, the hands 0.7 widths apart (spread -0.05) pulled to 9 cm under the shoulders, neutral grip on two fore-aft handles. Tempo at 0.15 s: pull 0.6 s, 1.0 at the chest, release 1.05, 0.6 at the top; reps 3.3 s apart.",
+  },
+  neutralGripDumbbellPress: {
+    videoId: "Q7omzf7Bt1I",
+    title: "Dumbbell Neutral Grip Bench Press - OPEX Exercise Library",
+    channel: "OPEX Fitness",
+    view: "side",
+    span: "three reps in 8.5 s",
+    prs: [398],
+    date: "2026-09-16",
+    exercises: ["Neutral-Grip Dumbbell Press"],
+    notes:
+      "Borrowed the barbell bench press (wide overhand, elbows flared 45, bar stopping on the chest) before. Side view: at the bottom the elbow closes to 16-32 with the wrists 0.17-0.20 trunk lengths above the shoulder line (the bar stops 0.32 above it) and the elbows 0.27-0.38 BELOW it, past the bench; at the top the elbow is 155-167 with the wrists 1.05-1.3 above. Ours: the bench's bar path with the bottom 3 cm lower, the flare cut to 0 / 10 / 20 so the elbows stay in beside the ribs, palms facing on twin dumbbells (neutral grip). Tempo at 0.15 s: down 0.75-0.9 s, 0.5-0.75 at the bottom, up 0.6, 0.6 locked out; reps 2.7 s apart.",
+  },
   chinUp: {
     videoId: "QGSYnup3-u4",
     title: "Supinated Pull Up",
