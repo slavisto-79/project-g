@@ -204,10 +204,24 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "The Active Life",
     view: "side",
     span: "two reps after a 14 s setup",
-    prs: [267],
+    prs: [267, 414],
     date: "2026-09-09",
     exercises: ["Bulgarian Split Squat", "Dumbbell Bulgarian Split Squat"],
-    notes: "Step-Up and Dumbbell Step-Up still borrow this pose; a step-up's box is in FRONT of the lifter.",
+    secondClips: [
+      {
+        videoId: "O0rhrqTTzu0",
+        title: "Bulgarian Split Squat",
+        channel: "Pike Fitness",
+        view: "side",
+        span: "three reps in 17 s, bodyweight on a 20-inch box",
+        prs: [414],
+        date: "2026-09-18",
+        read: "box height, rear-foot placement, bottom depth",
+        notes:
+          "As fractions of the front leg's length: the rear ankle 0.65-0.72 up and 0.6-0.65 behind the front ankle; top: front knee 170-178, rear 86-94; bottom: hip 0.68 up, front knee 85-90, trunk 20-24 (reads high), the rear knee folded with the thigh near vertical (scores 0.2-0.5 there, not quoted). The pose's rear foot went from 12 cm up to a box 50 cm high with the ankle at its front edge, foot angle 200; the bottom from thigh 70 / shin 31 (hip 0.6 up, below the box top) to 55 / 37 (knee 88, hip 0.68 up). Solved rear knee 76 / 63 / 57.",
+      },
+    ],
+    notes: "The bench in this clip is 45 cm high; the pose kept the rear foot 12 cm up until #414 (a reach-back limit at the time), when the second clip below set the box at 50 cm and the bottom depth with it.",
   },
   splitSquatStatic: {
     videoId: "Py2Qeg-D5T0",

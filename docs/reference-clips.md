@@ -15,7 +15,7 @@ clips are used with is `docs/animation-from-clip.md`.
 | sharing a pose that was authored from a clip, unconfirmed | 0 |
 | without a clip yet | 0 |
 | poses with a clip | 153 of 154 (153 in use) |
-| second clips, read for what the first could not settle | 10 |
+| second clips, read for what the first could not settle | 11 |
 
 Poses without a clip yet: `idle`.
 
@@ -54,7 +54,7 @@ Poses without a clip yet: `idle`.
 | Box Jump | `boxJump` | authored from the clip | [Box Jump Step Down - OPEX Exercise Library](https://www.youtube.com/watch?v=W5QzqIbEWvk) (OPEX Fitness, side) | #299 |
 | Box Squat | `boxSquat` | authored from the clip | [Box Squat Movement Demo](https://www.youtube.com/watch?v=rMEPHwNhQfo) (The Active Life, side) | #271 |
 | Broad Jump | `broadJump` | authored from the clip | [Broad Jump | Strength & Conditioning Exercise Library](https://www.youtube.com/watch?v=YjFr2OEivz0) (Flow High Performance, side) | #300 |
-| Bulgarian Split Squat | `splitSquat` | authored from the clip | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267 |
+| Bulgarian Split Squat | `splitSquat` | authored from the clip | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267, #414 |
 | Burpee | `burpee` | authored from the clip | [Burpee](https://www.youtube.com/watch?v=Ozqwsv3kggA) (OPEX Fitness, side) | #344 |
 | Cable Chest Fly | `cableFly` | authored from the clip | [Cable Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=jtkaC-mq1Xk) (OPEX Fitness, front) | #324 |
 | Cable Crunch | `cableCrunch` | authored from the clip | [Kneeling Cable Crunch](https://www.youtube.com/watch?v=2ndlUfl5JPo) (OPEX Fitness, three-quarter) | #330, #407 |
@@ -78,7 +78,7 @@ Poses without a clip yet: `idle`.
 | Doorway Row | `doorwayRow` | authored from the clip | [Single Doorframe Row](https://www.youtube.com/watch?v=aa0yCQqbYaM) (Gymless Fitness, side) | #383 |
 | Dumbbell Bench Press | `dumbbellBenchPress` | authored from the clip | [Dumbbell Bench Press - OPEX Exercise Library](https://www.youtube.com/watch?v=ZaDlbm8E8Tg) (OPEX Fitness, side) | #399 |
 | Dumbbell Biceps Curl | `curl` | shares `curl`, confirmed against its own clip | [Dumbbell Curl - OPEX Exercise Library](https://www.youtube.com/watch?v=l1tXK8CzxB4) (OPEX Fitness, front) | #404 |
-| Dumbbell Bulgarian Split Squat | `splitSquat` | authored from the clip | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267 |
+| Dumbbell Bulgarian Split Squat | `splitSquat` | authored from the clip | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) (The Active Life, side) | #267, #414 |
 | Dumbbell Calf Raise | `calfRaise` | authored from the clip | [Standing Calf Raise](https://www.youtube.com/watch?v=LnWEIjIls-M) (OPEX Fitness, back) | #320 |
 | Dumbbell Floor Press | `dumbbellFloorPress` | authored from the clip | [Dumbbell Floor Press - OPEX Exercise Library](https://www.youtube.com/watch?v=jjlekYs1cfQ) (OPEX Fitness, side) | #373 |
 | Dumbbell Fly | `fly` | authored from the clip | [Dumbbell Neutral Grip Fly - OPEX Exercise Library](https://www.youtube.com/watch?v=AVIBmE5iQrQ) (OPEX Fitness, head-end) | #283 |
@@ -200,7 +200,7 @@ Poses without a clip yet: `idle`.
 | `hipThrust` | [Barbell Hip Thrust](https://www.youtube.com/watch?v=TSz4XEoFSFw) | My PT Hub | side | shoulders on a bench, three reps | #264 | 2026-09-09 | Barbell Hip Thrust |  | The OPEX clip in the batch list was a floor thrust with no bench, so this one was used instead. |
 | `sumoDeadlift` | [Sumo Deadlift - OPEX Exercise Library](https://www.youtube.com/watch?v=OKMDYjnK8m8) | OPEX Fitness | three-quarter | four reps in 16 s | #265 | 2026-09-09 | Sumo Deadlift |  | The plates hide the knees at the bottom; knee angles were read off the overlays. |
 | `frontSquat` | [How To Do A Barbell front squat](https://www.youtube.com/watch?v=Q1Ypb8ZNzI4) | PureGym | side | the first 8 s, two reps before the cut to a close-up | #266 | 2026-09-09 | Barbell Front Squat |  |  |
-| `splitSquat` | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) | The Active Life | side | two reps after a 14 s setup | #267 | 2026-09-09 | Bulgarian Split Squat, Dumbbell Bulgarian Split Squat |  | Step-Up and Dumbbell Step-Up still borrow this pose; a step-up's box is in FRONT of the lifter. |
+| `splitSquat` | [Bulgarian Split Squat with Dumbbells](https://www.youtube.com/watch?v=Fmjj7wFJWRE) | The Active Life | side | two reps after a 14 s setup | #267, #414 | 2026-09-09 | Bulgarian Split Squat, Dumbbell Bulgarian Split Squat | [Bulgarian Split Squat](https://www.youtube.com/watch?v=O0rhrqTTzu0) (Pike Fitness, side, #414): box height, rear-foot placement, bottom depth | The bench in this clip is 45 cm high; the pose kept the rear foot 12 cm up until #414 (a reach-back limit at the time), when the second clip below set the box at 50 cm and the bottom depth with it. |
 | `splitSquatStatic` | [Split Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=Py2Qeg-D5T0) | OPEX Fitness | side | three reps in 11 s | #268 | 2026-09-09 | Split Squat |  |  |
 | `walkingLunge` | [Walking Lunge - OPEX Exercise Library](https://www.youtube.com/watch?v=6wZoPedlpok) | OPEX Fitness | side | two steps in 6.4 s | #269 | 2026-09-09 | Walking Lunge |  |  |
 | `legPress` | [Leg Press Machine Press - OPEX Exercise Library](https://www.youtube.com/watch?v=B8KqmwdomoU) | OPEX Fitness | side | four reps in 12 s | #270 | 2026-09-09 | Leg Press |  | The program builder never puts the leg press in a session; the pose is reachable only through the library. |
