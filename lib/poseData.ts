@@ -519,7 +519,13 @@ export const exercisePoses = {
           : trail === "hanging"
             ? { upper: 200, lower: 205, end: 160 }
             : { ...reach(hips[1]!, { x: 0.60, y: 0.658 }, P.thigh, P.shin, -1), end: 90 };
-      return { pelvis, torso, neck: torso > 10 ? torso - 15 : 0, arms: wide(HANG), legs: [leadLeg, trailLeg] as [Limb, Limb] };
+      // Width from a second, face-on clip (Triangle CrossFit "Box Step Ups /
+      // Bodyweight Alternating Box Step Ups Demo", rPrKLs6xCGA; batch 21):
+      // with the arms hanging between steps the wrists are 1.3-1.4 shoulder
+      // widths apart, the elbows 1.1-1.3; in the drive the arms swing out
+      // to 1.5-2.5 and are not what this hang draws. `wide()`'s 1.82
+      // before; 1.35 now -- no bell to clear a thigh here.
+      return { pelvis, torso, neck: torso > 10 ? torso - 15 : 0, arms: wide(HANG, 0.002), legs: [leadLeg, trailLeg] as [Limb, Limb] };
     }),
     [
       { kind: "floor" },
