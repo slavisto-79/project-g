@@ -476,7 +476,7 @@ export const exercisePoses = {
     [
       { kind: "floor" },
       { kind: "bar", at: "grip", length: 0.17 },
-      { kind: "slab", at: "ankle1", dx: -0.075, dy: -0.167, width: 0.2, height: 0.05 },
+      { kind: "slab", at: "ankle1", dx: -0.075, dy: -0.167, width: 0.2, height: 0.05, box: true },
     ],
     "overhand",
     1,
@@ -532,7 +532,7 @@ export const exercisePoses = {
       { kind: "bell", at: "hand0", each: true },
       // The box: its top 3 cm under the lead ankle, centred a little ahead
       // of it, 0.25 deep, on posts to the floor.
-      { kind: "slab", at: "ankle0", dx: 0.02, dy: 0.055, width: 0.25, height: 0.05 },
+      { kind: "slab", at: "ankle0", dx: 0.02, dy: 0.055, width: 0.25, height: 0.05, box: true },
     ],
     "neutral",
     1,
@@ -585,7 +585,7 @@ export const exercisePoses = {
     [
       { kind: "floor" },
       { kind: "bell", at: "hand0", each: true },
-      { kind: "slab", at: "ankle0", dx: 0.02, dy: 0.055, width: 0.25, height: 0.05 },
+      { kind: "slab", at: "ankle0", dx: 0.02, dy: 0.055, width: 0.25, height: 0.05, box: true },
     ],
     "neutral",
     1,
@@ -1504,7 +1504,7 @@ export const exercisePoses = {
     })(),
     [
       { kind: "floor" },
-      { kind: "slab", x: 0.625, y: 0.713, width: 0.25, height: 0.05 },
+      { kind: "slab", x: 0.625, y: 0.713, width: 0.25, height: 0.05, box: true },
     ],
     "neutral",
     1,
@@ -1615,7 +1615,7 @@ export const exercisePoses = {
       { kind: "floor" },
       // Centred under the feet standing on it: at 0.66 the foot sat on the
       // front edge with 16 cm of box behind it.
-      { kind: "slab", x: 0.61, y: 0.713, width: 0.25, height: 0.05 },
+      { kind: "slab", x: 0.61, y: 0.713, width: 0.25, height: 0.05, box: true },
     ],
     "neutral",
     1,
