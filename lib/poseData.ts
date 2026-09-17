@@ -913,7 +913,7 @@ export const exercisePoses = {
       { kind: "floor" },
       // The box top sits a sole and an ankle below the ankle joint; any
       // higher and the shin's round sinks into it.
-      { kind: "slab", at: "ankle1", width: 0.17, height: 0.042, dy: 0.058 },
+      { kind: "slab", at: "ankle1", width: 0.17, height: 0.042, dy: 0.058, box: true },
       { kind: "bell", at: "hand0", each: true },
     ],
     "neutral",
