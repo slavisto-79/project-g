@@ -46,6 +46,15 @@ for (const [pose, clip] of Object.entries(REFERENCE_CLIPS)) {
     }
     if (!Array.isArray(c.prs) || !c.prs.length) note(`${tag}: no pull request listed`);
   }
+  for (const s of clip.secondClips ?? []) {
+    const tag = `${pose} second clip "${s.videoId}"`;
+    if (!/^[A-Za-z0-9_-]{11}$/.test(s.videoId)) note(`${tag}: not a YouTube id`);
+    if (s.videoId === clip.videoId) note(`${tag}: is the pose's own clip`);
+    for (const k of ["title", "channel", "view", "span", "date", "read"]) {
+      if (!s[k]) note(`${tag}: missing ${k}`);
+    }
+    if (!Array.isArray(s.prs) || !s.prs.length) note(`${tag}: no pull request listed`);
+  }
 }
 for (const [ex, pose] of Object.entries(POSE_FOR_EXERCISE)) {
   if (!poseNames.has(pose)) note(`App.tsx maps "${ex}" to ${pose}, which is not a pose`);
@@ -89,8 +98,9 @@ const usedPoses = new Set(Object.values(POSE_FOR_EXERCISE));
 const clipRows = Object.entries(REFERENCE_CLIPS)
   .sort((a, b) => Math.min(...a[1].prs) - Math.min(...b[1].prs))
   .map(([pose, c]) =>
-    `| \`${pose}\` | [${c.title}](${url(c)}) | ${c.channel} | ${c.view} | ${c.span} | ${c.prs.map((n) => `#${n}`).join(", ")} | ${c.date} | ${c.exercises.join(", ")} | ${c.notes ?? ""} |`,
+    `| \`${pose}\` | [${c.title}](${url(c)}) | ${c.channel} | ${c.view} | ${c.span} | ${c.prs.map((n) => `#${n}`).join(", ")} | ${c.date} | ${c.exercises.join(", ")} | ${(c.secondClips ?? []).map((s) => `[${s.title}](${url(s)}) (${s.channel}, ${s.view}, ${s.prs.map((n) => `#${n}`).join(", ")}): ${s.read}`).join("; ")} | ${c.notes ?? ""} |`,
   );
+const secondClips = Object.values(REFERENCE_CLIPS).reduce((n, c) => n + (c.secondClips ?? []).length, 0);
 
 const doc = `# Reference clips
 
@@ -109,6 +119,7 @@ clips are used with is \`docs/animation-from-clip.md\`.
 | sharing a pose that was authored from a clip, unconfirmed | ${shared} |
 | without a clip yet | ${none} |
 | poses with a clip | ${posesWithClip.length} of ${poseNames.size} (${usedPoses.size} in use) |
+| second clips, read for what the first could not settle | ${secondClips} |
 
 Poses without a clip yet: ${posesWithout.map((p) => `\`${p}\``).join(", ")}.
 
@@ -120,8 +131,8 @@ ${rows.join("\n")}
 
 ## Every clip
 
-| Pose | Clip | Channel | View | Measured | PR | Merged | Shows | Notes |
-|---|---|---|---|---|---|---|---|---|
+| Pose | Clip | Channel | View | Measured | PR | Merged | Shows | Second clip | Notes |
+|---|---|---|---|---|---|---|---|---|---|
 ${clipRows.join("\n")}
 `;
 
@@ -132,4 +143,4 @@ if (problems.length) {
 }
 fs.writeFileSync("docs/reference-clips.md", doc);
 console.log(`${exerciseLibrary.length} exercises: ${authored} authored from a clip, ${confirmed} sharing a pose confirmed by their own clip, ${shared} sharing an authored pose unconfirmed, ${none} without a clip`);
-console.log(`${posesWithClip.length} of ${poseNames.size} poses have a clip; docs/reference-clips.md written`);
+console.log(`${posesWithClip.length} of ${poseNames.size} poses have a clip, ${secondClips} second clips; docs/reference-clips.md written`);

@@ -35,6 +35,22 @@ export type Confirmation = {
   notes?: string;
 };
 
+// A second clip of the pose's OWN exercise, read for one thing the first
+// clip's camera could not give -- a hand width face on after a side-view
+// authoring (batch 21). The pose stays authored from its first clip; `read`
+// says what this one settled, the notes what it measured.
+export type SecondClip = {
+  videoId: string;
+  title: string;
+  channel: string;
+  view: ReferenceView;
+  span: string;
+  prs: number[];
+  date: string;
+  read: string;
+  notes?: string;
+};
+
 export type ReferenceClip = {
   // YouTube video id; the URL is https://www.youtube.com/watch?v=<id>.
   videoId: string;
@@ -55,6 +71,9 @@ export type ReferenceClip = {
   // found to match it (batch 20). Still not "authored from" the pose's
   // clip, but no longer an assumption either.
   confirmations?: Confirmation[];
+  // Further clips of the same exercise, each read for what the first could
+  // not settle (batch 21: widths from a face-on camera).
+  secondClips?: SecondClip[];
 };
 
 export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
@@ -65,9 +84,23 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "National Academy of Sports Medicine (NASM)",
     view: "three-quarter",
     span: "three reps in 11.8 s",
-    prs: [254, 407],
+    prs: [254, 407, 408],
     date: "2026-09-08",
     exercises: ["Barbell Back Squat"],
+    secondClips: [
+      {
+        videoId: "KB_r0K3Ce2E",
+        title: "Barbell Back Squat | Exercise Demo",
+        channel: "Fit Father Project",
+        view: "front",
+        span: "three squats in 25 s, face on",
+        prs: [408],
+        date: "2026-09-17",
+        read: "grip width",
+        notes:
+          "Wrists 1.72-1.9 shoulder widths apart on the bar, elbows 1.55-1.78 (frames with wrist scores above 0.5). The pose's grip went from 2.52 to 1.8 (napeArms spread 0.10 -> 0.04); the elbow folds to 35-38, inside check-poses' floor.",
+      },
+    ],
     notes: "Stance and toe angle read face on; depth to parallel; SQUAT_FRAMES are shared by the goblet and bodyweight squats. Width (#407, the reachingArms review): the wrists sit behind the head; keypoints score 0.1-0.4 and swing 0.5-2.9, so the grip width cannot be read.",
   },
   trapBarDeadlift: {
@@ -269,9 +302,23 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "four reps in 10.5 s",
-    prs: [275, 407],
+    prs: [275, 407, 408],
     date: "2026-09-09",
     exercises: ["Lat Pulldown"],
+    secondClips: [
+      {
+        videoId: "zMAMA9_Ehn8",
+        title: "Lat Pulldown Demo",
+        channel: "EKU Campus Recreation",
+        view: "front",
+        span: "two reps at 11-24 s, face on",
+        prs: [408],
+        date: "2026-09-17",
+        read: "grip width, confirmed",
+        notes:
+          "Wrists 2.75-3.0 shoulder widths apart with the arms up, 2.5-2.6 pulled to the chest (a perspective change on a fixed bar); the pose's 3.0 stands.",
+      },
+    ],
     notes: "Width (#407, the reachingArms review): three-quarters on with the bar overhead the wrist keypoints score 0.2-0.6 and swing 0.2-2.3; the grip width cannot be read; the pose's 3.0 kept.",
   },
   seatedRow: {
@@ -474,7 +521,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [296],
     date: "2026-09-10",
     exercises: ["Step-Up"],
-    notes: "Three-quarters on with the arms hanging behind the hips: the wrist keypoints score 0.1-0.7 and their width swings 0.2-2.1 shoulder widths frame to frame, so the clip cannot settle the hanging arms' width (batch 20 `wide()` review; the pose keeps 1.82).",
+    notes: "Three-quarters on with the arms hanging behind the hips: the wrist keypoints score 0.1-0.7 and their width swings 0.2-2.1 shoulder widths frame to frame, so the clip cannot settle the hanging arms' width (batch 20 `wide()` review; the pose keeps 1.82). The dumbbell step-up's face-on clip (9ZknEYboBOQ, batch 21) reads hanging bells at 1.15-1.3 shoulder widths; this bodyweight pose keeps its free hang (the deadlift clip reads free-hanging arms at 1.5-1.8).",
   },
 
   overheadTricepsExtension: {
@@ -718,9 +765,23 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "2.6 s of walking in frame",
-    prs: [288],
+    prs: [288, 408],
     date: "2026-09-09",
     exercises: ["Farmer's Carry"],
+    secondClips: [
+      {
+        videoId: "8OtwXwrJizk",
+        title: "How To Do A Farmer's Walk (Farmer's Carry)",
+        channel: "Barbell Logic",
+        view: "front",
+        span: "a 15 s walk toward the camera, kettlebells",
+        prs: [408],
+        date: "2026-09-17",
+        read: "hanging-arm width",
+        notes:
+          "Wrists 1.45-1.55 shoulder widths apart walking, elbows 1.2-1.3 (kettlebells, not dumbbells -- the hang is the same). The pose went from wide()'s 1.82 to 1.5.",
+      },
+    ],
     notes: "Suitcase, Front Rack and Overhead Carry walk the same way; their loads differ and are not drawn differently yet.",
   },
   russianTwist: {
@@ -799,9 +860,23 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "seven step-ups in 17.5 s",
-    prs: [402],
+    prs: [402, 408],
     date: "2026-09-16",
     exercises: ["Dumbbell Step-Up"],
+    secondClips: [
+      {
+        videoId: "9ZknEYboBOQ",
+        title: "Dumbbell Step-up - How To",
+        channel: "Fit Father Project",
+        view: "front",
+        span: "standing with the bells before the steps, 3.6-7.5 s",
+        prs: [408],
+        date: "2026-09-17",
+        read: "hanging-arm width",
+        notes:
+          "Standing with the bells at the sides the wrists are 1.15-1.3 shoulder widths apart, the elbows 1.0-1.15 (the steps themselves score 0.1-0.5 and are not read). The pose went from wide()'s 1.82 to 1.5 -- the nearest this build's bell clears its thigh; the clip's 1.2 would put the bell's inner head inside the thigh.",
+      },
+    ],
     notes:
       "Borrowed the step-up before (knee-high box, trunk 25 with the foot up). A higher box, 0.65-0.75 of the hip height: standing tall on the floor with the lead foot up, the hip 0.28-0.35 hip heights above the lead ankle, lead knee 54-63, trailing knee 165-176, trunk within 10 of vertical; the lean (15-25) comes in the drive as the trailing foot leaves the floor; upright on the box with the trailing foot beside the lead. Arms straight, bells at the sides. Tempo at 0.2 s: drive 0.4-0.6 s, 0.4-0.6 on the box, step down 0.6-0.8, 0.6-0.8 on the floor; a rep every 2.2 s.",
   },
@@ -909,9 +984,23 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "three reps in 11 s",
-    prs: [397],
+    prs: [397, 408],
     date: "2026-09-16",
     exercises: ["Chin-Up"],
+    secondClips: [
+      {
+        videoId: "mTRT9O5r8Wg",
+        title: "Chin Up Demo",
+        channel: "Ryan Hurst",
+        view: "front",
+        span: "one hang and rep in 6 s, face on",
+        prs: [408],
+        date: "2026-09-17",
+        read: "grip width",
+        notes:
+          "Hanging, the wrists 1.05-1.18 shoulder widths apart with the elbows inside them at 0.55-0.67. The pose's grip went from the girdle's 1.33 to 1.1.",
+      },
+    ],
     notes:
       "Borrowed the pull-up (overhand) before -- the grip is a property of the pose, not the exercise, so the fists drew overhand. Underhand. Dead hang with the elbow 160-179 and the shoulder 3.4-4.1 shoulder widths under the bar; at the top the elbow closes to 17-28 with the nose 0.3-1.0 shoulder widths over the bar and the shoulder within 0.35 of it. The hang, the path and the top match the pull-up pose, which is kept: what changes is the grip and the hands a shade closer. The grip width itself is not read from this clip (the shoulders project 17-25 px three-quarters on). Tempo at 0.15 s: pull 0.75 s, 0.3 at the top, lower 1.05, 0.9-1.0 hanging; reps 2.9-3.1 s apart.",
   },
@@ -1183,7 +1272,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     date: "2026-09-14",
     exercises: ["Plyo Push-Up"],
     notes:
-      "Borrowed the push-up before. Down 0.9 s, a 0.9-1.3 s pause at the bottom (shoulders still sinking), the push 0.5-0.7, hands in the air 0.2-0.3 with elbows straight (169-178) and shoulders 0.13 trunk lengths over the plank, landing into the next descent. Bottom elbows read 85-93 but the three-quarter camera opens them; the bottom is the side-on push-up's. Ours: loop of plank, bottom, deeper bottom (the pause), flight; flight elbows 163, legs straight, hands 3.5 cm off the mat, shoulders 3.5 cm over the plank (more air bent the knees). OPEX's Plyometric Push Up (GNVQos5I0qk) is a plate drill with the hips piked and was not used. Loop 900 / 1100 / 700 / 250 ms. Width (#407, the reachingArms review): the wrist keypoints score 0.1-0.5 and swing 1.4-5.5; the hand width cannot be read; the pose's 1.33 kept.",
+      "Borrowed the push-up before. Down 0.9 s, a 0.9-1.3 s pause at the bottom (shoulders still sinking), the push 0.5-0.7, hands in the air 0.2-0.3 with elbows straight (169-178) and shoulders 0.13 trunk lengths over the plank, landing into the next descent. Bottom elbows read 85-93 but the three-quarter camera opens them; the bottom is the side-on push-up's. Ours: loop of plank, bottom, deeper bottom (the pause), flight; flight elbows 163, legs straight, hands 3.5 cm off the mat, shoulders 3.5 cm over the plank (more air bent the knees). OPEX's Plyometric Push Up (GNVQos5I0qk) is a plate drill with the hips piked and was not used. Loop 900 / 1100 / 700 / 250 ms. Width (#407, the reachingArms review): the wrist keypoints score 0.1-0.5 and swing 1.4-5.5; the hand width cannot be read; the pose's 1.33 kept. Second clip tried for the hand width (\"PLYO PUSH UP\", hDP-oskzYUs, three-quarters from behind): scores 0.3-0.6, the width swings 1.3-2.0 with the jumps -- not readable (batch 21).",
   },
   chestSupportedRow: {
     videoId: "0-DXJiceG-0",
@@ -1231,7 +1320,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     date: "2026-09-14",
     exercises: ["Rack Pull"],
     notes:
-      "Borrowed the conventional deadlift (bar to the floor) before. Bar on pins just above the knee: wrists 0.17-0.23 trunk lengths over the knee, 0.24-0.28 ahead of the ankle; shins plumb, knee 150-164, hip 97-113, trunk 42-58 from vertical. Top: hip and knee 171-180. Half way: trunk ~34, hip 128, knee 163. Elbows 166-179. Ours: pins trunk 54, hip 105, knee 159, bar 0.25 ahead of the ankle and 0.29 over the knee; half 34/128/162; top 0/177/175. Tempo at 0.2 s: down 1.0-1.6 s, dead stop 0.8-1.4 on the pins, up 0.4-0.6, 0.6-0.8 at the top. 360p source.",
+      "Borrowed the conventional deadlift (bar to the floor) before. Bar on pins just above the knee: wrists 0.17-0.23 trunk lengths over the knee, 0.24-0.28 ahead of the ankle; shins plumb, knee 150-164, hip 97-113, trunk 42-58 from vertical. Top: hip and knee 171-180. Half way: trunk ~34, hip 128, knee 163. Elbows 166-179. Ours: pins trunk 54, hip 105, knee 159, bar 0.25 ahead of the ankle and 0.29 over the knee; half 34/128/162; top 0/177/175. Tempo at 0.2 s: down 1.0-1.6 s, dead stop 0.8-1.4 on the pins, up 0.4-0.6, 0.6-0.8 at the top. 360p source. Second clip tried for the grip (Kettlebell Kings \"Rack Pull Demo\", TdqIS3CXXN4): side on, dark; the wrist keypoints score 0.2-0.5 and their width swings 0.3-6 -- not readable (batch 21). The grip stays at wide()'s 1.82; the deadlift's face-on clip reads 1.2-1.45.",
   },
   hackSquat: {
     videoId: "rYgNArpwE7E",
@@ -1891,7 +1980,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [318],
     date: "2026-09-11",
     exercises: ["Bodyweight Reverse Lunge", "Dumbbell Lunge"],
-    notes: "Barbell Walking Lunge borrows this pose; the split stance is held throughout rather than stepped, which is the library convention for the lunge family.",
+    notes: "Barbell Walking Lunge borrows this pose; the split stance is held throughout rather than stepped, which is the library convention for the lunge family. Second clip tried for the hanging-arm width (Live Lean TV \"Alternating Dumbbell Reverse Lunge\", UoQcIFYTN_o, face on): the lifter is small in the frame and MoveNet collapses the shoulders in every crop tried; not readable (batch 21). The dumbbell step-up's face-on clip reads hanging bells at 1.15-1.3.",
   },
 
   gobletSquat: {
@@ -1912,9 +2001,23 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 13.8 s",
-    prs: [316],
+    prs: [316, 408],
     date: "2026-09-11",
     exercises: ["Conventional Deadlift"],
+    secondClips: [
+      {
+        videoId: "1nvAUJVmFZY",
+        title: "Movement Demo - The Conventional Deadlift",
+        channel: "Hybrid Performance Method",
+        view: "front",
+        span: "the lift at 47-58 s, face on",
+        prs: [408],
+        date: "2026-09-17",
+        read: "grip width",
+        notes:
+          "Through the pull the wrists are 1.2-1.45 shoulder widths apart and the elbows 1.15-1.25, just outside the shins (feet 0.5 apart); standing free before the lift the hands hang 1.5-1.8 apart. The pose's grip went from wide()'s 1.82 to 1.3.",
+      },
+    ],
     notes: "The clip lowers the bar to just off the floor rather than setting it down.",
   },
 
