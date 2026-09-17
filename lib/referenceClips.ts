@@ -1268,9 +1268,23 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Goodlife Health Clubs",
     view: "three-quarter",
     span: "two reps, 24-29.6 s",
-    prs: [376, 407],
+    prs: [376, 407, 410],
     date: "2026-09-14",
     exercises: ["Plyo Push-Up"],
+    secondClips: [
+      {
+        videoId: "AgG9tUMo28w",
+        title: "Exercise Library: Bodyweight Plyometric Push Ups",
+        channel: "Fibre Active",
+        view: "three-quarter",
+        span: "the reps at 0.3-10.8 s, three-quarters on from the head end",
+        prs: [410],
+        date: "2026-09-17",
+        read: "hand width (an upper bound)",
+        notes:
+          "In the frames scoring above 0.6 the wrists read 1.3-1.75 shoulder widths apart (median 1.5), the elbows 1.25-1.6; the hands are nearer this camera than the shoulders, so that is an upper bound. The pose went from the girdle's 1.33 to 1.45 (the pike push-up's measured width). OPEX's Clapping Push Up (zmQ3D6BKyqE) was tried too: filmed along the body from the head end, the shoulder width foreshortens to a few pixels and the ratios read 2-3 with the shoulders 4-8 widths from the wrists -- not usable.",
+      },
+    ],
     notes:
       "Borrowed the push-up before. Down 0.9 s, a 0.9-1.3 s pause at the bottom (shoulders still sinking), the push 0.5-0.7, hands in the air 0.2-0.3 with elbows straight (169-178) and shoulders 0.13 trunk lengths over the plank, landing into the next descent. Bottom elbows read 85-93 but the three-quarter camera opens them; the bottom is the side-on push-up's. Ours: loop of plank, bottom, deeper bottom (the pause), flight; flight elbows 163, legs straight, hands 3.5 cm off the mat, shoulders 3.5 cm over the plank (more air bent the knees). OPEX's Plyometric Push Up (GNVQos5I0qk) is a plate drill with the hips piked and was not used. Loop 900 / 1100 / 700 / 250 ms. Width (#407, the reachingArms review): the wrist keypoints score 0.1-0.5 and swing 1.4-5.5; the hand width cannot be read; the pose's 1.33 kept. Second clip tried for the hand width (\"PLYO PUSH UP\", hDP-oskzYUs, three-quarters from behind): scores 0.3-0.6, the width swings 1.3-2.0 with the jumps -- not readable (batch 21).",
   },

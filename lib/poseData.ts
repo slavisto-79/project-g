@@ -3299,7 +3299,15 @@ export const exercisePoses = {
       const pelvis = { x: sx - (Math.sin(rad) * P.spine) / ASPECT, y: sy + Math.cos(rad) * P.spine };
       const toe = { x: 0.82, y: 0.86 };
       const ankle = along(toe, end + 180, 0.069);
-      return supported(pelvis, torso, { x: 0.392, y: 0.855 - lift }, ankle, end);
+      const figure = supported(pelvis, torso, { x: 0.392, y: 0.855 - lift }, ankle, end);
+      // Hand width from a second clip (Fibre Active "Exercise Library:
+      // Bodyweight Plyometric Push Ups", AgG9tUMo28w, three-quarters on from
+      // the head end; batch 21): in the frames that score above 0.6 the
+      // wrists read 1.3-1.75 shoulder widths apart, median 1.5, the elbows
+      // 1.25-1.6 -- an upper bound, the hands being nearer that camera than
+      // the shoulders. 1.45, from the girdle's 1.33; the pike push-up's
+      // measured 1.45.
+      return { ...figure, arms: figure.arms.map((arm) => ({ ...arm, spread: 0.01 })) as [Limb, Limb] };
     }),
     [{ kind: "floor", mat: true }],
     "overhand",
