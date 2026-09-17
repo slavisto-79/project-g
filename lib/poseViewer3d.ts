@@ -1282,6 +1282,9 @@ export class PoseViewer3D {
   private graphite = new THREE.MeshStandardMaterial({ color: 0x4c565c, roughness: 0.4, metalness: 0.7 });
   // Vinyl: a little sheen, unlike the matte floor.
   private padMaterial = new THREE.MeshStandardMaterial({ color: BENCH, roughness: 0.55, metalness: 0.05 });
+  // A plyo box's birch plywood: the sides, and a paler top the feet land on.
+  private plywood = new THREE.MeshStandardMaterial({ color: 0xc9ad7f, roughness: 0.85, metalness: 0 });
+  private plywoodTop = new THREE.MeshStandardMaterial({ color: 0xd9c096, roughness: 0.8, metalness: 0 });
   private rubber = new THREE.MeshStandardMaterial({ color: 0x0b0d0c, roughness: 0.9 });
   // Mat and medicine ball are both dead-matte foam rubber -- the one surface
   // in the scene with no sheen at all. Measured against the floor (0x181c1a):
@@ -2380,6 +2383,31 @@ export class PoseViewer3D {
           );
           this.scene.add(post);
           this.held.push(this.anchored(post, i, "slab"));
+          continue;
+        }
+        if (prop.box && floorY !== undefined) {
+          // A plyo box: a plywood block standing on the floor, its top the
+          // slab's top surface, as long as the slab along the movement and
+          // 60 cm across -- the box a step-up, a box jump or a box squat is
+          // done on, not a bench pad on posts. The group's origin is the
+          // slab's centre, so the block hangs below it to the floor; a hand
+          // hole sits high on each side, the way the boxes are cut.
+          const top = prop.height / 2;
+          const height = prop.center[1] + top - floorY;
+          const across = 0.28;
+          const group = new THREE.Group();
+          const block = new THREE.Mesh(new THREE.BoxGeometry(across, height, prop.width), [
+            this.plywood, this.plywood, this.plywoodTop, this.plywood, this.plywood, this.plywood,
+          ]);
+          block.position.y = top - height / 2;
+          group.add(block);
+          for (const s of [-1, 1]) {
+            const hole = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.026, Math.min(0.08, prop.width * 0.3)), this.iron);
+            hole.position.set(s * (across / 2), top - Math.min(0.09, height * 0.35), 0);
+            group.add(hole);
+          }
+          this.scene.add(group);
+          this.held.push(this.anchored(group, i, "slab"));
           continue;
         }
         const wall = prop.height > 0.3;
