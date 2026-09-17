@@ -1029,7 +1029,12 @@ export const exercisePoses = {
       return {
         pelvis,
         torso: 4,
-        arms: wide(HANG),
+        // Width from a second, face-on clip (Howcast "How to Do Dumbbell
+        // Lunges", G4gAK8Bhyro; batch 21): the wrists 1.33-1.4 shoulder
+        // widths apart standing with the bells, 1.45-1.55 in the lunge, the
+        // elbows 1.15-1.3. `wide()`'s 1.82 before; 1.5 now -- the top of the
+        // clip's range, where this build's bell still clears its thigh.
+        arms: wide(HANG, 0.013),
         legs: plantedLegs(pelvis, 4, "side", [{ x: 0.605, y: FLOOR }, rearAnkle], FORWARD, [90, REAR_FOOT]),
       };
     }),
@@ -1965,7 +1970,11 @@ export const exercisePoses = {
         pelvis,
         torso: (torso + 360) % 360,
         neck: torso > 30 ? torso - 16 : torso,
-        arms: wide(sideArms(180 - armAhead, 183 - armAhead)),
+        // Grip width from a second, face-on clip (Kaizen Strength "Rack
+        // Pull: Demonstration", _u6dwwYIsx0; batch 21): six reps with the
+        // wrists 1.33-1.47 shoulder widths apart, the elbows 1.2-1.3.
+        // `wide()`'s 1.82 before; 1.4 now.
+        arms: wide(sideArms(180 - armAhead, 183 - armAhead), 0.005),
         legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
       };
     }),

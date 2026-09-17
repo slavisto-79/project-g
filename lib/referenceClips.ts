@@ -1316,9 +1316,23 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Testosterone Nation",
     view: "side",
     span: "three reps in 11 s",
-    prs: [372],
+    prs: [372, 409],
     date: "2026-09-14",
     exercises: ["Rack Pull"],
+    secondClips: [
+      {
+        videoId: "_u6dwwYIsx0",
+        title: "Rack Pull: Demonstration",
+        channel: "Kaizen Strength",
+        view: "front",
+        span: "six reps in 22 s, face on",
+        prs: [409],
+        date: "2026-09-17",
+        read: "grip width",
+        notes:
+          "Wrists 1.33-1.47 shoulder widths apart through six reps, elbows 1.2-1.3 (scores 0.5-0.87). The pose's grip went from wide()'s 1.82 to 1.4. The Kettlebell Kings clip tried first (TdqIS3CXXN4) was side on and not readable.",
+      },
+    ],
     notes:
       "Borrowed the conventional deadlift (bar to the floor) before. Bar on pins just above the knee: wrists 0.17-0.23 trunk lengths over the knee, 0.24-0.28 ahead of the ankle; shins plumb, knee 150-164, hip 97-113, trunk 42-58 from vertical. Top: hip and knee 171-180. Half way: trunk ~34, hip 128, knee 163. Elbows 166-179. Ours: pins trunk 54, hip 105, knee 159, bar 0.25 ahead of the ankle and 0.29 over the knee; half 34/128/162; top 0/177/175. Tempo at 0.2 s: down 1.0-1.6 s, dead stop 0.8-1.4 on the pins, up 0.4-0.6, 0.6-0.8 at the top. 360p source. Second clip tried for the grip (Kettlebell Kings \"Rack Pull Demo\", TdqIS3CXXN4): side on, dark; the wrist keypoints score 0.2-0.5 and their width swings 0.3-6 -- not readable (batch 21). The grip stays at wide()'s 1.82; the deadlift's face-on clip reads 1.2-1.45.",
   },
@@ -1977,9 +1991,23 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 11.7 s",
-    prs: [318],
+    prs: [318, 409],
     date: "2026-09-11",
     exercises: ["Bodyweight Reverse Lunge", "Dumbbell Lunge"],
+    secondClips: [
+      {
+        videoId: "G4gAK8Bhyro",
+        title: "How to Do Dumbbell Lunges",
+        channel: "Howcast",
+        view: "front",
+        span: "standing and lunging with the bells, 4-31 s and 36-48 s, face on",
+        prs: [409],
+        date: "2026-09-17",
+        read: "hanging-arm width",
+        notes:
+          "Wrists 1.33-1.4 shoulder widths apart standing with the bells, 1.45-1.55 in the lunge, elbows 1.15-1.3 (wrist scores 0.6-0.89). The pose went from wide()'s 1.82 to 1.5 -- the top of the clip's range, where this build's bell still clears its thigh. The Live Lean TV clip tried first (UoQcIFYTN_o) was not readable.",
+      },
+    ],
     notes: "Barbell Walking Lunge borrows this pose; the split stance is held throughout rather than stepped, which is the library convention for the lunge family. Second clip tried for the hanging-arm width (Live Lean TV \"Alternating Dumbbell Reverse Lunge\", UoQcIFYTN_o, face on): the lifter is small in the frame and MoveNet collapses the shoulders in every crop tried; not readable (batch 21). The dumbbell step-up's face-on clip reads hanging bells at 1.15-1.3.",
   },
 
