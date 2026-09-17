@@ -892,28 +892,54 @@ export const exercisePoses = {
   // not 0.372: with the hip over the front foot at the top a rear foot 34cm
   // behind is out of the leg's reach (0.51 against 0.44). The old frames
   // kept the pelvis midway between the feet and the trunk at 6 throughout.
+  //
+  // THE BOX IS BENCH HIGH. The rear foot used to sit 12 cm off the floor on
+  // a low block -- the Active Life clip's bench is 45 cm, and the foot was
+  // put low because a 34 cm reach back to a high bench was out of the leg's
+  // range at the top. A second clip, side on and bodyweight on a 20-inch
+  // box (Pike Fitness "Bulgarian Split Squat", O0rhrqTTzu0, three reps in
+  // 17 s; MoveNet on 92 frames at 0.2 s, scores 0.7-0.9 except the bottom's
+  // rear knee), measured as fractions of the front leg's length: the rear
+  // ankle sits 0.65-0.72 up and 0.6-0.65 behind the front ankle; at the top
+  // the front knee is 170-178 and the rear 86-94; at the bottom the hip is
+  // 0.68 up with the front knee 85-90, the trunk 20-24 (the keypoint trunk
+  // reads high), the rear knee folded with the thigh hanging near vertical
+  // (its keypoint scores 0.2-0.5 there and is not quoted). So the rear
+  // ankle stands at 0.40, 0.615 -- 0.64 back and 0.72 up -- on a box whose
+  // top is 50 cm off the floor, the foot's dorsum on the box (foot angle
+  // 200) with the ankle at the box's FRONT edge so the shin hangs in front
+  // of it; and the bottom is the Pike clip's, thigh 55 / shin 37 (knee 88,
+  // the hip 0.68 up), where the Active Life clip's 70 / 31 (hip 0.6 up)
+  // would put the hip below the box top and the rear leg out of any fold.
+  // Solved: rear knee 76 / 63 / 57, the rear knee 44 / 35 / 23 cm up, the
+  // toe on the box top.
   splitSquat: pose(
     "side",
-    ([[6, 8, 2], [14, 43, 19], [22, 70, 31]] as const).map(([torso, thigh, shin]) => {
+    ([[6, 8, 2], [14, 32, 20], [22, 55, 37]] as const).map(([torso, thigh, shin]) => {
       const front: Limb = { upper: 180 - thigh, lower: 180 + shin, end: 90 };
       const ankle = { x: 0.60, y: FLOOR };
       const knee = along(ankle, front.lower + 180, P.shin);
       const hip = along(knee, front.upper + 180, P.thigh);
       const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
+      // Front foot flat on the floor, rear foot up on the box behind, its
+      // dorsum down on the box top.
+      const rear: Limb = { ...plantedLegs(pelvis, torso, "side", [ankle, { x: 0.40, y: 0.615 }], FORWARD)[1], end: 200 };
       return {
         pelvis,
         torso,
         neck: torso > 10 ? torso - 10 : torso,
         arms: HANG,
-        // Front foot flat on the floor, rear foot up on a box behind.
-        legs: [front, plantedLegs(pelvis, torso, "side", [ankle, { x: 0.42, y: 0.868 }], FORWARD)[1]] as [Limb, Limb],
+        legs: [front, rear] as [Limb, Limb],
       };
     }),
     [
       { kind: "floor" },
-      // The box top sits a sole and an ankle below the ankle joint; any
-      // higher and the shin's round sinks into it.
-      { kind: "slab", at: "ankle1", width: 0.17, height: 0.042, dy: 0.058, box: true },
+      // The 20-inch box behind: its top a foot's length under the ankle (the
+      // toes rest on it), its front face a hand behind the ankle so the shin
+      // hangs clear of it. In the world build the ankle sits 1 cm inside the
+      // face and the toe 3 cm; at dx -0.105 the whole foot hung 3-5 cm in
+      // front of the box, touching nothing.
+      { kind: "slab", at: "ankle1", width: 0.25, height: 0.042, dx: -0.065, dy: 0.086, box: true },
       { kind: "bell", at: "hand0", each: true },
     ],
     "neutral",
