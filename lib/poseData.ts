@@ -435,9 +435,15 @@ export const exercisePoses = {
     );
   })(),
 
+  // Grip width from a second, face-on clip (Fit Father Project "Barbell
+  // Back Squat | Exercise Demo", KB_r0K3Ce2E; batch 21): the wrists
+  // 1.72-1.9 shoulder widths apart on the bar, the elbows 1.55-1.78. The
+  // NASM clip is three-quarters on with the hands behind the head and
+  // could not give it; the grip stood at 2.52 (spread 0.10), now 1.8 (0.04),
+  // the elbow folding to 35-38 -- inside check-poses' floor.
   squat: pose(
     "side",
-    SQUAT_FRAMES.map(([x, y, torso]) => squatting(stand({ x, y }, torso, napeArms({ x, y }, torso, 0.10)))),
+    SQUAT_FRAMES.map(([x, y, torso]) => squatting(stand({ x, y }, torso, napeArms({ x, y }, torso, 0.04)))),
     // The bar is drawn at the grip, and the grip is ON the traps -- so the bar
     // visibly rides the upper back, where a back squat actually carries it.
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
@@ -562,7 +568,13 @@ export const exercisePoses = {
           : trail === "hanging"
             ? { upper: 200, lower: 205, end: 160 }
             : { ...reach(hips[1]!, { x: 0.60, y: 0.62 }, P.thigh, P.shin, -1), end: 90 };
-      return { pelvis, torso, neck: torso > 10 ? torso - 15 : 0, arms: wide(HANG), legs: [leadLeg, trailLeg] as [Limb, Limb] };
+      // Width from a second, face-on clip (Fit Father Project "Dumbbell
+      // Step-up - How To", 9ZknEYboBOQ; batch 21): standing with the bells
+      // at the sides the wrists are 1.15-1.3 shoulder widths apart, the
+      // elbows 1.0-1.15. `wide()`'s 1.82 before. 1.5 here: the nearest this
+      // build's bell clears its thigh (at the clip's width the bell's inner
+      // head sits inside the thigh -- see `wide`).
+      return { pelvis, torso, neck: torso > 10 ? torso - 15 : 0, arms: wide(HANG, 0.013), legs: [leadLeg, trailLeg] as [Limb, Limb] };
     }),
     [
       { kind: "floor" },
@@ -1853,7 +1865,12 @@ export const exercisePoses = {
         // The bar hangs from the shoulder: a few degrees ahead of plumb
         // standing so it clears the thigh, plumb at the bottom where the
         // shoulder is already out over it.
-        arms: wide(sideArms(180 - armAhead, 183 - armAhead)),
+        // Grip width from a second, face-on clip (Hybrid Fitness "Movement
+        // Demo - The Conventional Deadlift", 1nvAUJVmFZY; batch 21): through
+        // the pull the wrists are 1.2-1.45 shoulder widths apart, the elbows
+        // 1.15-1.25 -- just outside the shins (feet 0.5 apart). `wide()`'s
+        // 1.82 before; 1.3 now.
+        arms: wide(sideArms(180 - armAhead, 183 - armAhead), -0.004),
         legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
       };
     }),
@@ -4809,9 +4826,14 @@ export const exercisePoses = {
   //
   // Tempo from the three reps, to the 0.15 s frames: pull 0.75 s, 0.3 at
   // the top, lower 1.05, 0.9-1.0 hanging; reps 2.9-3.1 s apart.
+  //
+  // Grip width from a second, face-on clip (Ryan Hurst "Chin Up Demo",
+  // mTRT9O5r8Wg; batch 21): hanging, the wrists 1.05-1.18 shoulder widths
+  // apart, the elbows inside them at 0.55-0.67. The girdle's 1.33 before;
+  // 1.1 now.
   chinUp: pose(
     "side",
-    pullUpFrames(0.0),
+    pullUpFrames(-0.02),
     [{ kind: "bar", at: "grip", length: 0.44, plates: false }],
     "underhand",
     1,
@@ -5703,9 +5725,13 @@ export const exercisePoses = {
   // walks the keys and back, so one traversal is one step and the return
   // is the next -- the legs' roles do not swap, which is why the middle key
   // is kept symmetric enough to read either way.
+  // Width from a second, face-on clip (Barbell Logic "How To Do A Farmer's
+  // Walk", 8OtwXwrJizk, kettlebells; batch 21): the wrists 1.45-1.55
+  // shoulder widths apart walking, the elbows 1.2-1.3. `wide()`'s 1.82
+  // before; 1.5 now.
   carry: pose(
     "side",
-    carryStride(wide(HANG)),
+    carryStride(wide(HANG, 0.013)),
     [{ kind: "floor", y: 0.972 }, { kind: "bell", at: "hand0", each: true }],
     "neutral",
     1,
