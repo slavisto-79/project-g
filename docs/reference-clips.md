@@ -15,7 +15,7 @@ clips are used with is `docs/animation-from-clip.md`.
 | sharing a pose that was authored from a clip, unconfirmed | 0 |
 | without a clip yet | 0 |
 | poses with a clip | 153 of 154 (153 in use) |
-| second clips, read for what the first could not settle | 9 |
+| second clips, read for what the first could not settle | 10 |
 
 Poses without a clip yet: `idle`.
 
@@ -170,7 +170,7 @@ Poses without a clip yet: `idle`.
 | Split Squat | `splitSquatStatic` | authored from the clip | [Split Squat - OPEX Exercise Library](https://www.youtube.com/watch?v=Py2Qeg-D5T0) (OPEX Fitness, side) | #268 |
 | Sprint Intervals | `run` | authored from the clip | [Slow motion running - side view](https://www.youtube.com/watch?v=Jd8Jijb7jZY) (EMU Running Science Laboratory, side) | #360 |
 | Standing Hip Abduction | `hipAbduction` | authored from the clip | [Standing Band Hip Abduction](https://www.youtube.com/watch?v=CRpDEFu-a9c) (OPEX Fitness, front) | #357, #407 |
-| Step-Up | `stepUp` | authored from the clip | [Step Up - OPEX Exercise Library](https://www.youtube.com/watch?v=RRuWVDefORg) (OPEX Fitness, three-quarter) | #296 |
+| Step-Up | `stepUp` | authored from the clip | [Step Up - OPEX Exercise Library](https://www.youtube.com/watch?v=RRuWVDefORg) (OPEX Fitness, three-quarter) | #296, #411 |
 | Stiff-Leg Deadlift | `stiffLegDeadlift` | authored from the clip | [BB Stiff Legged Deadlift](https://www.youtube.com/watch?v=u3krqJlu7uc) (Theory of Motion Exercise Library, side) | #261 |
 | Straight-Arm Pulldown | `straightArmPulldown` | authored from the clip | [Standing Cable Straight Arm Pulldown](https://www.youtube.com/watch?v=nAkTIeJ_Aus) (OPEX Fitness, side) | #328 |
 | Suitcase Carry | `suitcaseCarry` | authored from the clip | [Single Arm Farmers Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=28BIZccT5fs) (OPEX Fitness, front) | #295 |
@@ -231,7 +231,7 @@ Poses without a clip yet: `idle`.
 | `overheadCarry` | [Dual Kettlebell Overhead Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=dwGP7RAYtxY) | OPEX Fitness | front | 2.5 s of walking toward the camera | #295 | 2026-09-10 | Overhead Carry |  | The arms only; the stride is the farmer's carry's, from its side-view clip. |
 | `frontRackCarry` | [Front Rack Kettlebell Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=0OzaglIheOc) | OPEX Fitness | front | 3.5 s of walking toward the camera | #295 | 2026-09-10 | Front Rack Carry |  | The arms only; the stride is the farmer's carry's. |
 | `suitcaseCarry` | [Single Arm Farmers Carry - OPEX Exercise Library](https://www.youtube.com/watch?v=28BIZccT5fs) | OPEX Fitness | front | 5 s of walking toward the camera | #295 | 2026-09-10 | Suitcase Carry |  | The arms only; the stride is the farmer's carry's. |
-| `stepUp` | [Step Up - OPEX Exercise Library](https://www.youtube.com/watch?v=RRuWVDefORg) | OPEX Fitness | three-quarter | four step-ups in 19 s | #296 | 2026-09-10 | Step-Up |  | Three-quarters on with the arms hanging behind the hips: the wrist keypoints score 0.1-0.7 and their width swings 0.2-2.1 shoulder widths frame to frame, so the clip cannot settle the hanging arms' width (batch 20 `wide()` review; the pose keeps 1.82). The dumbbell step-up's face-on clip (9ZknEYboBOQ, batch 21) reads hanging bells at 1.15-1.3 shoulder widths; this bodyweight pose keeps its free hang (the deadlift clip reads free-hanging arms at 1.5-1.8). |
+| `stepUp` | [Step Up - OPEX Exercise Library](https://www.youtube.com/watch?v=RRuWVDefORg) | OPEX Fitness | three-quarter | four step-ups in 19 s | #296, #411 | 2026-09-10 | Step-Up | [Box Step Ups / Bodyweight Alternating Box Step Ups Demo](https://www.youtube.com/watch?v=rPrKLs6xCGA) (Triangle CrossFit, front, #411): hanging-arm width | Three-quarters on with the arms hanging behind the hips: the wrist keypoints score 0.1-0.7 and their width swings 0.2-2.1 shoulder widths frame to frame, so the clip cannot settle the hanging arms' width (batch 20 `wide()` review; the pose keeps 1.82). The dumbbell step-up's face-on clip (9ZknEYboBOQ, batch 21) reads hanging bells at 1.15-1.3 shoulder widths; this bodyweight pose kept its free hang until its own face-on clip (#411, below) read 1.3-1.4. |
 | `overheadTricepsExtension` | [Single Dumbbell Overhead Tricep Extension - OPEX Exercise Library](https://www.youtube.com/watch?v=7h3lG2WnLXg) | OPEX Fitness | side | three reps in 8 s | #297 | 2026-09-10 | Overhead Triceps Extension |  |  |
 | `pecDeck` | [Chest Fly Machine](https://www.youtube.com/watch?v=X3Nj2ZPwW04) | OPEX Fitness | three-quarter | three reps in 14 s | #298 | 2026-09-10 | Pec Deck |  | The machine's arms are not drawn; the seat is. |
 | `boxJump` | [Box Jump Step Down - OPEX Exercise Library](https://www.youtube.com/watch?v=W5QzqIbEWvk) | OPEX Fitness | side | three jumps in 10 s | #299 | 2026-09-10 | Box Jump |  | Up by a jump, down by a step: the first looping movement. |

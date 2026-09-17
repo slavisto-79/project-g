@@ -518,10 +518,24 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "four step-ups in 19 s",
-    prs: [296],
+    prs: [296, 411],
     date: "2026-09-10",
     exercises: ["Step-Up"],
-    notes: "Three-quarters on with the arms hanging behind the hips: the wrist keypoints score 0.1-0.7 and their width swings 0.2-2.1 shoulder widths frame to frame, so the clip cannot settle the hanging arms' width (batch 20 `wide()` review; the pose keeps 1.82). The dumbbell step-up's face-on clip (9ZknEYboBOQ, batch 21) reads hanging bells at 1.15-1.3 shoulder widths; this bodyweight pose keeps its free hang (the deadlift clip reads free-hanging arms at 1.5-1.8).",
+    secondClips: [
+      {
+        videoId: "rPrKLs6xCGA",
+        title: "Box Step Ups / Bodyweight Alternating Box Step Ups Demo",
+        channel: "Triangle CrossFit",
+        view: "front",
+        span: "alternating step-ups in 11 s, face on",
+        prs: [411],
+        date: "2026-09-17",
+        read: "hanging-arm width",
+        notes:
+          "With the arms hanging between steps the wrists are 1.3-1.4 shoulder widths apart, the elbows 1.1-1.3 (wrist scores 0.55-0.8); in the drive the arms swing out to 1.5-2.5, which the hang does not draw. The pose went from wide()'s 1.82 to 1.35. Ferrari Wellness's Body weight Box Step Up (49whOAgy1cU) was tried too: the lifter is far from a three-quarter camera and MoveNet collapses the shoulders -- not readable.",
+      },
+    ],
+    notes: "Three-quarters on with the arms hanging behind the hips: the wrist keypoints score 0.1-0.7 and their width swings 0.2-2.1 shoulder widths frame to frame, so the clip cannot settle the hanging arms' width (batch 20 `wide()` review; the pose keeps 1.82). The dumbbell step-up's face-on clip (9ZknEYboBOQ, batch 21) reads hanging bells at 1.15-1.3 shoulder widths; this bodyweight pose kept its free hang until its own face-on clip (#411, below) read 1.3-1.4.",
   },
 
   overheadTricepsExtension: {
