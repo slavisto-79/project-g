@@ -2579,7 +2579,15 @@ export const exercisePoses = {
         arms: sideArms(93, 95),
         // Shoulders stay on the bench and the feet stay planted; only the hip
         // travels, which is what makes it a thrust and not a squat lying down.
-        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.645, y: 0.735 }, { x: 0.629, y: 0.735 }], FORWARD, [88, 93]),
+        //
+        // The feet 4.5 cm nearer the hips (batch 22e): the side-on clip
+        // (AEE-n_NEzb4) holds the knee at 84-93 at the top with the shin
+        // plumb; the first clip, filmed from above, read ~110, and ours was
+        // 109 / 97 / 107. Now 90 at the top, 76 half way, 83 at the bottom
+        // (hers 66-71), the shin 9 back of plumb at the top -- this figure's
+        // ankle sits 1 cm off the floor, so a plumb shin would need the knee
+        // at 98.
+        legs: plantedLegs(pelvis, torso, "side", [{ x: 0.600, y: 0.735 }, { x: 0.584, y: 0.735 }], FORWARD, [88, 93]),
       };
     }),
     [

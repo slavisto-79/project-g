@@ -186,7 +186,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
         date: "2026-09-18",
         read: "bench height",
         notes:
-          "Her feet stand on a plate 0.16 legs (hip-knee plus knee-ankle) off the floor, so the bench is read from that support: its pad top 0.51 legs above it, the shoulder 0.68 (on the edge all rep), the trunk 8 above level at the top (7-13). Ours: the pad 0.50 legs above the floor the feet stand on, the shoulder 0.64, the trunk 8 -- the bench (46-47 cm) is kept. Her knee at the top is 84-93; ours is 109, from the first clip's ~110.",
+          "Her feet stand on a plate 0.16 legs (hip-knee plus knee-ankle) off the floor, so the bench is read from that support: its pad top 0.51 legs above it, the shoulder 0.68 (on the edge all rep), the trunk 8 above level at the top (7-13). Ours: the pad 0.50 legs above the floor the feet stand on, the shoulder 0.64, the trunk 8 -- the bench (46-47 cm) is kept. Her knee at the top is 84-93, the first clip's ~110 read from above; #419 moved our feet 4.5 cm nearer the hips: knee 90 at the top (was 109), 83 at the bottom (was 107; hers 66-71), the shin 9 back of plumb at the top.",
       },
     ],
     notes: "The OPEX clip in the batch list was a floor thrust with no bench, so this one was used instead. Bench height checked (batch 22): an ordinary flat bench, filmed from above at an angle, so no number is read off this frame; measured on a second, side-on clip (below) -- kept at 46-47 cm.",
