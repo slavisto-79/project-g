@@ -1985,7 +1985,8 @@ export const exercisePoses = {
   // degrees ahead of plumb at the top (plumber, the bar runs into a heavy
   // thigh) and 10 behind at the pins, which puts the bar 0.25 trunk lengths
   // ahead of the ankle as hers is -- and 0.29 over the knee, a little higher
-  // than her 0.17-0.23. The pins are drawn as the rack's crosswise support.
+  // than her 0.17-0.23. The pins are drawn as a power rack's (the slab's
+  // `pins`); until batch 22 a flat bench was laid crosswise under the bar.
   //
   // Tempo from the three reps, to the 0.2 s frames: down in 1.0-1.6 s, a
   // dead stop of 0.8-1.4 on the pins, up in 0.4-0.6, 0.6-0.8 at the top.
@@ -2010,7 +2011,7 @@ export const exercisePoses = {
         legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
       };
     }),
-    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }, { kind: "slab", x: 0.555, y: 0.672, width: 0.9, height: 0.03, across: true }],
+    [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }, { kind: "slab", x: 0.555, y: 0.672, width: 0.9, height: 0.03, across: true, pins: true }],
     "overhand",
     1,
     { tempo: { down: 1400, bottom: 1000, up: 500, top: 700 } },
@@ -3623,13 +3624,26 @@ export const exercisePoses = {
   // Tempo from the two full reps, to the 0.25 s frames: down in 2.75-3.0 s,
   // about 0.25 at the bottom, up in 1.0, 0.5 at the top; tops 4.25-4.5 s
   // apart.
+  //
+  // THE BENCH WAS 15 CM TOO LOW. Measured again for its height (batch 22):
+  // the wrists on the bench edge sit 0.43-0.50 leg lengths (hip-knee plus
+  // knee-ankle) above the ankles on the floor, median 0.46; the hands were
+  // at 0.30, on a 30 cm bench. A flat bench is 43-45 cm, and at 0.46 this
+  // figure's is. Re-solved with the hands there: at the top the trunk 19
+  // back and the straight arm 23 back of plumb (the clip's 19-27 and
+  // 18-23), which lifts the hip to 0.54 legs over the heels (the clip's
+  // 0.49-0.53) and the shoulder to 1.04 (1.03-1.10), the legs sloping 34;
+  // half way 29 / 17, elbow 126; at the bottom the trunk 14 (13-15) with
+  // the elbow at 90 (88-97). Given up: the bottom hip, 0.35 legs up against
+  // the clip's 0.17-0.22 -- sinking it that far folds this figure's elbow
+  // past 60, the same trade the low bench made at 0.17 / elbow 89.
   benchDip: (() => {
     const heel = { x: 0.24, y: 0.915 };
     const rad = (d: number) => (d * Math.PI) / 180;
     // The hip at the top of a straight leg sloping `slope` down to the heel.
     const hipAt_ = (slope: number): Point => ({ x: heel.x + (0.44 * Math.cos(rad(slope))) / ASPECT, y: heel.y - 0.44 * Math.sin(rad(slope)) });
-    const topShoulder = shoulderAt(hipAt_(25), 23, 0, "side");
-    const hand = { x: topShoulder.x + (0.2895 * Math.sin(rad(20))) / ASPECT, y: topShoulder.y + 0.2895 * Math.cos(rad(20)) };
+    const topShoulder = shoulderAt(hipAt_(33.8), 19, 0, "side");
+    const hand = { x: topShoulder.x + (0.2895 * Math.sin(rad(23))) / ASPECT, y: topShoulder.y + 0.2895 * Math.cos(rad(23)) };
     const figure = (slope: number, torso: number): Figure => {
       const pelvis = hipAt_(slope);
       return {
@@ -3642,7 +3656,7 @@ export const exercisePoses = {
     };
     return pose(
       "side",
-      [figure(25, 23), figure(17, 18), figure(10, 14)],
+      [figure(33.8, 19), figure(29, 17), figure(21, 14)],
       [{ kind: "floor" }, { kind: "slab", x: hand.x + 0.05, y: hand.y + 0.045, width: 0.3, height: 0.05 }],
       "overhand",
       -1,
@@ -5537,8 +5551,17 @@ export const exercisePoses = {
       // -0.028: the world build's splay is along x, which for a figure
       // lying along x is the BODY axis, and it stretched the top forearm
       // 1.3 cm toward the feet.
-      { pelvis: { x: 0.5, y: 0.617 }, torso: 258, neck: 262, arms: [{ upper: 60, lower: 112, forward: 32, spread: -0.028 }, { upper: 180, lower: 180, end: 180, forward: 90, spread: -0.028 }], legs: [{ upper: 78, lower: 80, end: 90 }, { upper: 100, lower: 118, end: 120 }] },
-      { pelvis: { x: 0.5, y: 0.620 }, torso: 258.7, neck: 262.7, arms: [{ upper: 60, lower: 112, forward: 32, spread: -0.028 }, { upper: 180, lower: 180, end: 180, forward: 90, spread: -0.028 }], legs: [{ upper: 78, lower: 80, end: 90 }, { upper: 100, lower: 118, end: 120 }] },
+      //
+      // THE BENCH WAS A TABLE: 81 cm. "A bench top 0.40 up" was read as 40 cm
+      // but is 0.40 of the frame -- 83. The clip's bench is an ordinary flat
+      // bench, and its frame (batch 22) has the top side of the body LEVEL,
+      // ankle, hip and shoulder at 196 / 203 / 192 px, with the pad's top at
+      // 0.56-0.64 of the top leg's length off the floor. So the body lies
+      // level (the spine's line at 0, not 12 down to the head), the elbow on
+      // the floor under a plumb upper arm, which puts the top ankle 61 cm up
+      // and the pad, 8 cm under it, at 53 cm -- 0.58 of this figure's leg.
+      { pelvis: { x: 0.5, y: 0.666 }, torso: 270, neck: 274, arms: [{ upper: 60, lower: 112, forward: 32, spread: -0.028 }, { upper: 180, lower: 180, end: 180, forward: 90, spread: -0.028 }], legs: [{ upper: 90, lower: 92, end: 90 }, { upper: 100, lower: 118, end: 120 }] },
+      { pelvis: { x: 0.5, y: 0.669 }, torso: 270.7, neck: 274.7, arms: [{ upper: 60, lower: 112, forward: 32, spread: -0.028 }, { upper: 180, lower: 180, end: 180, forward: 90, spread: -0.028 }], legs: [{ upper: 90, lower: 92, end: 90 }, { upper: 100, lower: 118, end: 120 }] },
     ],
     [
       { kind: "floor", mat: true, y: 0.93 },
@@ -6310,8 +6333,17 @@ export const exercisePoses = {
     // 1.0-1.1 shoulder widths apart at the top, 1.5-1.7 half way, 1.15-1.25
     // at the shoulders; the pose had the girdle's 1.33 top and bottom.
     ([[0.2895, 0, 0, -0.024, FORWARD], [0.21, 0.02, 65, 0.02, BACK], [0, 0.076, 15, -0.012, BACK]] as const).map(([up, ahead, flare, spread, bend]) => {
-      const pelvis = { x: 0.42, y: 0.7 };
-      const feet: [Point, Point] = [{ x: 0.6, y: 0.915 }, { x: 0.588, y: 0.915 }];
+      // The seat 47 cm off the floor, from 36 (batch 22). The clip's hips
+      // sit 1.28-1.38 shin lengths over the ankles with the shins plumb (the
+      // knees at 0.99); the camera in front and above puts the hips, 45 cm
+      // further off than the knees, about 0.15 too high, which leaves them
+      // 1.15 up -- over the knees, on an ordinary flat bench. Ours were at
+      // 0.96, under the knees, on a 36 cm seat.
+      const pelvis = { x: 0.42, y: 0.643 };
+      // The feet drawn back 2 cm with it, so the shins stand plumb as hers
+      // do: the knee 106 (her "about 100"), 115 with the feet left where
+      // the low seat had them.
+      const feet: [Point, Point] = [{ x: 0.58, y: 0.915 }, { x: 0.568, y: 0.915 }];
       const hands = [0, 1].map((side) => {
         const sh = shoulderAt(pelvis, 0, side as 0 | 1, "side");
         return { x: sh.x + ahead / ASPECT, y: sh.y - up };
@@ -7197,8 +7229,20 @@ function bridgeFrames(
 // `press` is the barbell bench's own shape, from its reference clip: elbows
 // flared out of the side plane, a wide grip, and the feet planted wide on
 // the floor either side of the bench with the knees near a right angle.
+//
+// The body -- and with it the pad, which rides the pelvis, and the bar,
+// whose heights the callers give as they were measured -- sits BENCH_DROP
+// lower than it was authored. The pad top was 56 cm off the floor on this
+// figure; a flat bench is 44.5 cm (a Rogue utility bench, 17.5"), about
+// 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's
+// pad measures 0.525 of the lifter's leg (batch 22). On this 91 cm leg that
+// is 48 cm, 8 lower; the feet stay on the floor and the knees fold to meet it.
+// (Declared in here: a module-level const below the pose table would still
+// be in its temporal dead zone when the table is built.)
 function bench(barX: number, barY: number, press?: { flare: number; spread: number; legSpread: number; feetX: number }): Figure {
-  const pelvis = { x: 0.560, y: 0.600 };
+  const BENCH_DROP = 0.04;
+  const pelvis = { x: 0.560, y: 0.600 + BENCH_DROP };
+  barY += BENCH_DROP;
   const torso = 272;
   const feetX = press?.feetX ?? 0.688;
   // The far shoulder sits a shade lower in a side view, so the far hand
