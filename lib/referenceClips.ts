@@ -244,9 +244,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 11 s",
-    prs: [268],
+    prs: [268, 422],
     date: "2026-09-09",
     exercises: ["Split Squat"],
+    notes: "Batch 23 stage 2: the bottom's front thigh 87 (82 before): the front knee 85, the clip's, with the rear knee 13 cm up.",
   },
   walkingLunge: {
     videoId: "6wZoPedlpok",
@@ -254,9 +255,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "two steps in 6.4 s",
-    prs: [269],
+    prs: [269, 422],
     date: "2026-09-09",
     exercises: ["Walking Lunge"],
+    notes: "Batch 23 stage 2: the bottom's front thigh is the clip's 86 -- it was held at 78 so the rear knee cleared the floor, which the old long thigh made necessary; on the new split the knee is 70 (hers 62-70) and the rear knee 10 cm up, as before.",
   },
   legPress: {
     videoId: "B8KqmwdomoU",
@@ -610,9 +612,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "eight switches in 9 s",
-    prs: [301],
+    prs: [301, 422],
     date: "2026-09-10",
     exercises: ["Jumping Lunge"],
+    notes: "Batch 23 stage 2: the front thigh 84 (the clip's 72-84; 78 before), knee 79, the rear knee 10 cm up.",
   },
 
   skaterBound: {
@@ -1240,11 +1243,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three lunges in 9 s",
-    prs: [382],
+    prs: [382, 422],
     date: "2026-09-14",
     exercises: ["Barbell Walking Lunge"],
     notes:
-      "Borrowed the dumbbell reverse lunge before. Bar on the back; step forward into a lunge, rear leg through to feet together, repeat. Bottom: front knee 70-72 with the shin 28 forward, rear knee 70-74 just off the floor, trunk 15 forward, hips dropping about half a leg length, step about three quarters of one. Plates hide the head; the legs read cleanly. Ours, walked in place as a loop (stand, lunge one leg, stand, lunge the other): front knee 74, rear 84 (0.7 cm off the floor), trunk 15, hips 22 cm down. Tempo at 0.2 s: stand 0.6 s, step and lower 1.4, bottom 0.2-0.4, rise 1.2, about 3.4 s a stride; loop 1700 / 1800 per half with holds shared in.",
+      "Borrowed the dumbbell reverse lunge before. Bar on the back; step forward into a lunge, rear leg through to feet together, repeat. Bottom: front knee 70-72 with the shin 28 forward, rear knee 70-74 just off the floor, trunk 15 forward, hips dropping about half a leg length, step about three quarters of one. Plates hide the head; the legs read cleanly. Ours, walked in place as a loop (stand, lunge one leg, stand, lunge the other): front knee 74, rear 84 (0.7 cm off the floor), trunk 15, hips 22 cm down. Tempo at 0.2 s: stand 0.6 s, step and lower 1.4, bottom 0.2-0.4, rise 1.2, about 3.4 s a stride; loop 1700 / 1800 per half with holds shared in. Batch 23 stage 2: the bottom pelvis 2 cm lower for the new split: the rear knee 2 cm off the floor again, the front knee 71 (hers 70-72).",
   },
   singleLegCalfRaise: {
     videoId: "a6YrB_aULZY",
@@ -1881,11 +1884,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "three reps in 10.8 s",
-    prs: [332],
+    prs: [332, 422],
     date: "2026-09-12",
     exercises: ["Curtsy Lunge"],
     notes:
-      "Read as RATIOS of the standing hip height, because his proportions are not the model's -- his thigh is 0.58 of his hip height and ours 0.50. The hip drops 47% of that height (ours 30%); the TRAILING KNEE arrives at the floor, level with the standing ankle, where ours stopped 22% up; the trailing heel lifts to 14% with the knee BELOW it; the trailing foot finishes 1.5 shoulder widths past the standing foot from a stance of 0.72; and the trunk leaves vertical by 15 degrees AWAY from the crossing leg. A front camera cannot read a knee angle in this movement -- the standing shin travels forward, out of the film plane -- so no knee angle is quoted.",
+      "Read as RATIOS of the standing hip height, because his proportions are not the model's -- his thigh is 0.58 of his hip height and ours 0.50. The hip drops 47% of that height (ours 30%); the TRAILING KNEE arrives at the floor, level with the standing ankle, where ours stopped 22% up; the trailing heel lifts to 14% with the knee BELOW it; the trailing foot finishes 1.5 shoulder widths past the standing foot from a stance of 0.72; and the trunk leaves vertical by 15 degrees AWAY from the crossing leg. A front camera cannot read a knee angle in this movement -- the standing shin travels forward, out of the film plane -- so no knee angle is quoted. Batch 23 stage 2: the bottom pelvis 4 cm lower for the new split: the trailing knee 3 cm off the floor, as the clip's arrives at it.",
   },
 
   // --- Batch 10: the cable family ----------------------------------------
@@ -2051,7 +2054,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 11.7 s",
-    prs: [318, 409],
+    prs: [318, 409, 422],
     date: "2026-09-11",
     exercises: ["Bodyweight Reverse Lunge", "Dumbbell Lunge"],
     secondClips: [
@@ -2068,7 +2071,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
           "Wrists 1.33-1.4 shoulder widths apart standing with the bells, 1.45-1.55 in the lunge, elbows 1.15-1.3 (wrist scores 0.6-0.89). The pose went from wide()'s 1.82 to 1.5 -- the top of the clip's range, where this build's bell still clears its thigh. The Live Lean TV clip tried first (UoQcIFYTN_o) was not readable.",
       },
     ],
-    notes: "Barbell Walking Lunge borrows this pose; the split stance is held throughout rather than stepped, which is the library convention for the lunge family. Second clip tried for the hanging-arm width (Live Lean TV \"Alternating Dumbbell Reverse Lunge\", UoQcIFYTN_o, face on): the lifter is small in the frame and MoveNet collapses the shoulders in every crop tried; not readable (batch 21). The dumbbell step-up's face-on clip reads hanging bells at 1.15-1.3.",
+    notes: "Barbell Walking Lunge borrows this pose; the split stance is held throughout rather than stepped, which is the library convention for the lunge family. Second clip tried for the hanging-arm width (Live Lean TV \"Alternating Dumbbell Reverse Lunge\", UoQcIFYTN_o, face on): the lifter is small in the frame and MoveNet collapses the shoulders in every crop tried; not readable (batch 21). The dumbbell step-up's face-on clip reads hanging bells at 1.15-1.3. Batch 23 stage 2: on the new thigh / shin split the rear knee rose to 7 cm at the bottom; the bottom pelvis 3 cm lower puts it at 4 again, the front knee 74 (hers 69-77), the rear 84 (81-88).",
   },
 
   gobletSquat: {
