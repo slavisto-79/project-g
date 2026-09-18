@@ -3498,10 +3498,19 @@ export const exercisePoses = {
   // easiest variant is the one people are told to control.
   // It used to be the flat push-up's frames shifted about, which locked out
   // at 135, folded the knees to 151 and left the bench 5 cm under the palms.
+  //
+  // THE BENCH, raised to the flat bench it is (batch 22c): 34 cm before, 47
+  // now -- the same Rogue bench as the bench dip clip, whose level camera
+  // reads its pad at 0.525 of a leg. This clip's camera is high and nearer
+  // the head end, so the wrists and shoulders (near) drop in the frame: it
+  // read the wrists 0.29-0.36 legs over the toe-side ankles and the body at
+  // 31, both short. With the hands on the pad the solve keeps the clip's
+  // elbows (179 / 111 / 61) and a straight body (hip 168), and the body
+  // rises at 43 / 39 / 30 instead of 38 / 33 / 24.
   inclinePushUp: pose(
     "side",
     pressUpFrames(
-      { x: 0.400, y: 0.720 },
+      { x: 0.400, y: 0.655 },
       { x: 0.800, y: 0.855 },
       P.thigh + P.shin,
       [172, 110, 60],

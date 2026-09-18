@@ -853,10 +853,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "four reps in 12 s",
-    prs: [315],
+    prs: [315, 417],
     date: "2026-09-11",
     exercises: ["Incline Push-Up"],
-    notes: "Bench height checked (batch 22): the wrists sit on the pad edge 0.29-0.36 legs over the ankles on the toes, ours 0.30, and the body's 31-degree rise matches; kept at 34 cm.",
+    notes: "Bench height (batch 22c, #417): raised from 34 cm to 47. It is the same Rogue flat bench as the bench dip clip, whose level camera reads the pad at 0.525 of a leg; this clip's camera is high and nearer the head end, which drops the near wrists and shoulders in the frame -- the wrists read 0.29-0.36 legs over the ankles and the body 31, both short. The solve keeps her elbows (179 / 111 / 61) and a straight body; the body rises at 43 / 39 / 30.",
   },
 
   declinePushUp: {
