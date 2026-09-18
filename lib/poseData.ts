@@ -985,7 +985,7 @@ export const exercisePoses = {
   // feet, both feet flat, the trunk at 4 throughout and the arms hanging.
   splitSquatStatic: pose(
     "side",
-    ([[10, 34, -18, 150], [15, 58, 2, 158], [16, 82, 8, 165]] as const).map(([torso, thigh, shinKneeFwd, rearFoot]) => {
+    ([[10, 34, -18, 150], [15, 58, 2, 158], [16, 87, 8, 165]] as const).map(([torso, thigh, shinKneeFwd, rearFoot]) => {
       const front: Limb = { upper: 180 - thigh, lower: 180 + shinKneeFwd, end: 90 };
       const ankle = { x: 0.62, y: FLOOR };
       const knee = along(ankle, front.lower + 180, P.shin);
@@ -1016,15 +1016,17 @@ export const exercisePoses = {
   // high, trunk 10; a 0.2 s touch, then 0.8 s up and through to feet
   // together for 0.6 s. The figure cannot travel, so the step is drawn in
   // place: feet together -> the front foot lands ahead -> the lunge, and the
-  // return retraces it. Front leg explicit (thigh 2/40/78, shin 2 fwd / 14
+  // return retraces it. Front leg explicit (thigh 2/40/86, shin 2 fwd / 14
   // back / 24 fwd), pelvis walked back from the front foot; rear leg solved
   // to an ankle hung off a fixed toe with the heel rising (foot 50/80
-  // degrees off the floor); front thigh 78 rather than the clip's 86 so the
-  // rear knee's round clears the floor. Hands together at the chest, as the
-  // clip. `lunge` (the loaded lunges) is untouched.
+  // degrees off the floor). The bottom's front thigh is the clip's 86: it
+  // was held at 78 so the rear knee's round cleared the floor, which the
+  // old, long thigh made necessary; on batch 23's split the rear knee sits
+  // 10 cm up at 86. Hands together at the chest, as the clip. `lunge` (the
+  // loaded lunges) is untouched.
   walkingLunge: pose(
     "side",
-    ([[2, 2, 2, 0.37, 0], [4, 40, -14, 0.62, 140], [10, 78, 24, 0.62, 170]] as const).map(([torso, thigh, shinKneeFwd, ankleX, rearFoot]) => {
+    ([[2, 2, 2, 0.37, 0], [4, 40, -14, 0.62, 140], [10, 86, 24, 0.62, 170]] as const).map(([torso, thigh, shinKneeFwd, ankleX, rearFoot]) => {
       const front: Limb = { upper: 180 - thigh, lower: 180 + shinKneeFwd, end: 90 };
       const ankle = { x: ankleX, y: FLOOR };
       const knee = along(ankle, front.lower + 180, P.shin);
@@ -1071,7 +1073,7 @@ export const exercisePoses = {
   // 1.0 s stand and 0.75 s tall -- the pose had no tempo at all.
   lunge: pose(
     "side",
-    [0.520, 0.630, 0.700].map((y) => {
+    [0.520, 0.630, 0.715].map((y) => { // the bottom 3 cm lower for batch 23's thigh / shin split: rear knee 4 cm up again, front knee 74
       const pelvis = { x: 0.49, y };
       // The rear foot stands on its toes: the toe is planted and the ankle
       // hangs off it, up and a little forward.
@@ -1119,7 +1121,7 @@ export const exercisePoses = {
   barbellWalkingLunge: (() => {
     const standing = stand({ x: 0.5, y: 0.494 }, 6, napeArms({ x: 0.5, y: 0.494 }, 6, 0.1));
     const bottom = (frontSide: 0 | 1): Figure => {
-      const pelvis = { x: 0.49, y: 0.715 };
+      const pelvis = { x: 0.49, y: 0.725 }; // 2 cm lower for batch 23's split: rear knee 2 cm off the floor, front knee 71
       const torso = 15;
       const rearToe = { x: 0.293, y: FLOOR };
       const rearAnkle = along(rearToe, REAR_FOOT - 180, 0.069);
@@ -1771,7 +1773,7 @@ export const exercisePoses = {
       // forward. (Upper arm 65 forward with the forearm folded up put the
       // hands 7 cm ABOVE the shoulders.)
       const arms: [Limb, Limb] = [{ upper: 165, lower: 36, spread: -0.08 }, { upper: 165, lower: 36, spread: -0.08 }];
-      const front: Limb = { upper: 102, lower: 197, end: 90 }; // thigh 78 forward, shin 17, knee 85
+      const front: Limb = { upper: 96, lower: 197, end: 90 }; // thigh 84 forward (the clip's 72-84; 78 before batch 23's split), shin 17, knee 79
       const rear: Limb = { upper: 190, lower: 280, end: 165 }; // knee 3 cm off the floor, shin back and up, toes down
       const lunge = (ankle: Point): Point => {
         const knee = along(ankle, front.lower + 180, P.shin);
@@ -6323,7 +6325,7 @@ export const exercisePoses = {
         return { pelvis, torso: -8, arms: bothArms(138, 204), legs: plantedLegs(pelvis, -8, "front", [{ x: 0.540, y: FLOOR }, { x: 0.585, y: 0.899 }], [1, 1], [90, 270]) };
       })(),
       (() => {
-        const pelvis = { x: 0.644, y: 0.707 };
+        const pelvis = { x: 0.644, y: 0.727 }; // 4 cm lower for batch 23's split: the trailing knee 3 cm off the floor
         return { pelvis, torso: -15, arms: bothArms(138, 204), legs: plantedLegs(pelvis, -15, "front", [{ x: 0.540, y: FLOOR }, { x: 0.710, y: 0.868 }], [1, 1], [90, 270]) };
       })(),
     ],
