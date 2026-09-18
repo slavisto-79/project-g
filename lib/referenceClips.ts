@@ -172,10 +172,24 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "My PT Hub",
     view: "side",
     span: "shoulders on a bench, three reps",
-    prs: [264],
+    prs: [264, 418],
     date: "2026-09-09",
     exercises: ["Barbell Hip Thrust"],
-    notes: "The OPEX clip in the batch list was a floor thrust with no bench, so this one was used instead. Bench height checked (batch 22): an ordinary flat bench, filmed from above at an angle, so no number is read off the frame; ours is 46 cm -- kept.",
+    secondClips: [
+      {
+        videoId: "AEE-n_NEzb4",
+        title: "Hip Thrust (Side View)",
+        channel: "LeiFit_BBL",
+        view: "side",
+        span: "reps at 0.3-13.5 s, the camera level with the bench",
+        prs: [418],
+        date: "2026-09-18",
+        read: "bench height",
+        notes:
+          "Her feet stand on a plate 0.16 legs (hip-knee plus knee-ankle) off the floor, so the bench is read from that support: its pad top 0.51 legs above it, the shoulder 0.68 (on the edge all rep), the trunk 8 above level at the top (7-13). Ours: the pad 0.50 legs above the floor the feet stand on, the shoulder 0.64, the trunk 8 -- the bench (46-47 cm) is kept. Her knee at the top is 84-93; ours is 109, from the first clip's ~110.",
+      },
+    ],
+    notes: "The OPEX clip in the batch list was a floor thrust with no bench, so this one was used instead. Bench height checked (batch 22): an ordinary flat bench, filmed from above at an angle, so no number is read off this frame; measured on a second, side-on clip (below) -- kept at 46-47 cm.",
   },
   sumoDeadlift: {
     videoId: "OKMDYjnK8m8",
