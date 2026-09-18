@@ -181,8 +181,15 @@ const P = {
   upperArm: 0.152,
   forearm: 0.138,
   hand: 0.048,
-  thigh: 0.225,
-  shin: 0.215,
+  // Thigh and shin split to put the knee where a body's is (batch 23):
+  // the shin runs to the FOOT'S GROUND POINT, not the anatomical ankle --
+  // that sits inside the shoe's collar, and the feet are authored on the
+  // floor -- so the sum (the hip's height over the floor, 0.44) stays and
+  // only the split moves. At 0.225 / 0.215 a standing knee sat 44 cm up
+  // under a hip at 89: knee / hip 0.49, where a body's is 0.54
+  // (0.285 / 0.530 of stature, Drillis-Contini). Now 47.6 cm, 0.535.
+  thigh: 0.207,
+  shin: 0.233,
   foot: 0.072,
 };
 
