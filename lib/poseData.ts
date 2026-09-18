@@ -3637,26 +3637,43 @@ export const exercisePoses = {
   // the elbow at 90 (88-97). Given up: the bottom hip, 0.35 legs up against
   // the clip's 0.17-0.22 -- sinking it that far folds this figure's elbow
   // past 60, the same trade the low bench made at 0.17 / elbow 89.
+  //
+  // THE BOTTOM, re-solved (batch 22b). With the heels where they were the
+  // bottom could only reach 0.35 legs: a straight leg pivoting on a fixed
+  // heel carries the hip TOWARD the bench as it drops, and an in-plane arm
+  // then folds the elbow past 60. The clip's own offsets settle it (side
+  // on, level camera; in leg lengths from the wrist): the shoulder stays
+  // 0.22-0.26 in front of the wrist at the top and 0.24-0.30 at the bottom,
+  // the hip 0.46-0.51 in front at the top and 0.35-0.41 at the bottom, the
+  // elbow right over the wrist -- the lifter's feet are further out, and
+  // the elbows go back AND out, which foreshortens the upper arm to a side
+  // camera (her projected elbow reads 92-99). So the heels stand 4 cm
+  // further from the bench, the top trunk at 22 (her 19-27, arm 26 back),
+  // and the bottom sinks to the clip's 0.21 legs with the trunk at 12 (her
+  // 12 from these offsets, 13-15 in the first read): shoulder 0.24 in front
+  // of the wrist, hip 0.39, the elbow 69 in the plane and flared 30 out of
+  // it, so it points back and out as hers does. The hand stays where the
+  // bench's edge is.
   benchDip: (() => {
-    const heel = { x: 0.24, y: 0.915 };
+    const heel = { x: 0.22, y: 0.915 };
     const rad = (d: number) => (d * Math.PI) / 180;
     // The hip at the top of a straight leg sloping `slope` down to the heel.
     const hipAt_ = (slope: number): Point => ({ x: heel.x + (0.44 * Math.cos(rad(slope))) / ASPECT, y: heel.y - 0.44 * Math.sin(rad(slope)) });
-    const topShoulder = shoulderAt(hipAt_(33.8), 19, 0, "side");
-    const hand = { x: topShoulder.x + (0.2895 * Math.sin(rad(23))) / ASPECT, y: topShoulder.y + 0.2895 * Math.cos(rad(23)) };
-    const figure = (slope: number, torso: number): Figure => {
+    // On the edge of the 44 cm pad (the wrists 0.46 legs over the heels).
+    const hand = { x: 0.6246, y: 0.7051 };
+    const figure = (slope: number, torso: number, flare: number): Figure => {
       const pelvis = hipAt_(slope);
       return {
         pelvis,
         torso,
         neck: torso - 20,
-        arms: reachingArms(pelvis, torso, "side", [hand, hand], FORWARD).map((arm) => ({ ...arm, end: 250 })) as [Limb, Limb],
+        arms: reachingArms(pelvis, torso, "side", [hand, hand], FORWARD).map((arm) => ({ ...arm, end: 250, flare })) as [Limb, Limb],
         legs: lyingLegs(270 - slope, 270 - slope, 360 - slope),
       };
     };
     return pose(
       "side",
-      [figure(33.8, 19), figure(29, 17), figure(21, 14)],
+      [figure(33.4, 22, 0), figure(22.5, 17, 15), figure(12.6, 12, 30)],
       [{ kind: "floor" }, { kind: "slab", x: hand.x + 0.05, y: hand.y + 0.045, width: 0.3, height: 0.05 }],
       "overhand",
       -1,
