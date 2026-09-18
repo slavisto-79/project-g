@@ -172,7 +172,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "My PT Hub",
     view: "side",
     span: "shoulders on a bench, three reps",
-    prs: [264, 418],
+    prs: [264, 418, 419],
     date: "2026-09-09",
     exercises: ["Barbell Hip Thrust"],
     secondClips: [
