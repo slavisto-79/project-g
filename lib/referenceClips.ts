@@ -84,7 +84,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "National Academy of Sports Medicine (NASM)",
     view: "three-quarter",
     span: "three reps in 11.8 s",
-    prs: [254, 407, 408],
+    prs: [254, 407, 408, 421],
     date: "2026-09-08",
     exercises: ["Barbell Back Squat"],
     secondClips: [
@@ -101,7 +101,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
           "Wrists 1.72-1.9 shoulder widths apart on the bar, elbows 1.55-1.78 (frames with wrist scores above 0.5). The pose's grip went from 2.52 to 1.8 (napeArms spread 0.10 -> 0.04); the elbow folds to 35-38, inside check-poses' floor.",
       },
     ],
-    notes: "Stance and toe angle read face on; depth to parallel; SQUAT_FRAMES are shared by the goblet and bodyweight squats. Width (#407, the reachingArms review): the wrists sit behind the head; keypoints score 0.1-0.4 and swing 0.5-2.9, so the grip width cannot be read.",
+    notes: "Stance and toe angle read face on; depth to parallel; SQUAT_FRAMES are shared by the goblet and bodyweight squats. Width (#407, the reachingArms review): the wrists sit behind the head; keypoints score 0.1-0.4 and swing 0.5-2.9, so the grip width cannot be read. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. The pelvises are now computed from the clip's shin and thigh angles on the new split (thigh level at the bottom, as the clip) instead of the numbers solved on the old one, which left it 8 below level.",
   },
   trapBarDeadlift: {
     videoId: "ZJPZQklCSLs",
@@ -197,10 +197,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "four reps in 16 s",
-    prs: [265],
+    prs: [265, 421],
     date: "2026-09-09",
     exercises: ["Sumo Deadlift"],
-    notes: "The plates hide the knees at the bottom; knee angles were read off the overlays.",
+    notes: "The plates hide the knees at the bottom; knee angles were read off the overlays. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. Angles kept, the pelvis moved by the split's difference: the feet had lifted 2.3 cm.",
   },
   frontSquat: {
     videoId: "Q1Ypb8ZNzI4",
@@ -208,9 +208,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "PureGym",
     view: "side",
     span: "the first 8 s, two reps before the cut to a close-up",
-    prs: [266],
+    prs: [266, 421],
     date: "2026-09-09",
     exercises: ["Barbell Front Squat"],
+    notes: "Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. The legs are the clip's angles, so the pelvis moves by the split's difference and the feet stay on the floor (they lifted 2.8 cm); the standing key straightened a degree (179 / 181) for the standing-knee check.",
   },
   splitSquat: {
     videoId: "Fmjj7wFJWRE",
@@ -585,10 +586,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three jumps in 10 s",
-    prs: [299],
+    prs: [299, 421],
     date: "2026-09-10",
     exercises: ["Box Jump"],
-    notes: "Up by a jump, down by a step: the first looping movement.",
+    notes: "Up by a jump, down by a step: the first looping movement. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. The step-down's reaching leg is set by the angles it was solved to (knee 158): the moved pelvis put its old target at full reach and snapped it straight.",
   },
 
   broadJump: {
@@ -1153,11 +1154,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "three reps in 10.5 s",
-    prs: [389],
+    prs: [389, 421],
     date: "2026-09-16",
     exercises: ["Dumbbell Front Squat"],
     notes:
-      "Borrowed the goblet squat (one bell hugged at the chest) before. The legs and trunk reuse the barbell front squat's frames, which the clip confirms: hip crease level with the knee at the bottom (0.45 of standing hip height against the frames' 0.49), trunk 25-28 as projected three-quarters on (the frames' 32). New is the rack: a dumbbell on each shoulder, the upper arm about 40 forward of plumb through the whole rep, the forearm folded back so the wrist sits level with the shoulder just in front (elbow 18-28 projected, drawn 36). Tempo at 0.2 s: down 1.6 s, 0.2-0.4 at the bottom, up 0.8-1.0, 0.6-0.8 standing.",
+      "Borrowed the goblet squat (one bell hugged at the chest) before. The legs and trunk reuse the barbell front squat's frames, which the clip confirms: hip crease level with the knee at the bottom (0.45 of standing hip height against the frames' 0.49), trunk 25-28 as projected three-quarters on (the frames' 32). New is the rack: a dumbbell on each shoulder, the upper arm about 40 forward of plumb through the whole rep, the forearm folded back so the wrist sits level with the shoulder just in front (elbow 18-28 projected, drawn 36). Tempo at 0.2 s: down 1.6 s, 0.2-0.4 at the bottom, up 0.8-1.0, 0.6-0.8 standing. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. As the barbell front squat: angles kept, the pelvis moved, the feet on the floor.",
   },
   sideLunge: {
     videoId: "MvpBUsQrt_4",
@@ -1203,11 +1204,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Renaissance Periodization",
     view: "three-quarter",
     span: "four presses in 12 s",
-    prs: [385],
+    prs: [385, 421],
     date: "2026-09-15",
     exercises: ["Machine Shoulder Press"],
     notes:
-      "Borrowed the standing barbell overhead press before. OPEX's clip of this machine is dark and never shows the arms overhead in the triage frames. One continuous shot from three-quarters in front. Ratios across the body: wrists 1.9-2.2 shoulder widths apart throughout; elbows 2.0-2.3 at the bottom (wrists level with the shoulders), 2.3-2.6 half way (just above the shoulders), 1.5-1.7 at the top with the arms straight (164-180). Not settled: the bottom elbow angle (projected 15-50) and the exact recline (16-20 as projected). Ours: wrists 2.05, elbows 2.16 / 2.57 / 1.52, elbow 41 / 87 / 178, pad 18 back. Tempo at 0.2 s: up 0.6-0.8 s, 0.4-0.6 at the top, down 1.0-1.2, 0.6-1.2 at the bottom; tops 3.0-3.6 s apart. Handles drawn one per hand.",
+      "Borrowed the standing barbell overhead press before. OPEX's clip of this machine is dark and never shows the arms overhead in the triage frames. One continuous shot from three-quarters in front. Ratios across the body: wrists 1.9-2.2 shoulder widths apart throughout; elbows 2.0-2.3 at the bottom (wrists level with the shoulders), 2.3-2.6 half way (just above the shoulders), 1.5-1.7 at the top with the arms straight (164-180). Not settled: the bottom elbow angle (projected 15-50) and the exact recline (16-20 as projected). Ours: wrists 2.05, elbows 2.16 / 2.57 / 1.52, elbow 41 / 87 / 178, pad 18 back. Tempo at 0.2 s: up 0.6-0.8 s, 0.4-0.6 at the top, down 1.0-1.2, 0.6-1.2 at the bottom; tops 3.0-3.6 s apart. Handles drawn one per hand. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. As the machine chest press: the seat rises 3.6 cm with the shin.",
   },
   machineChestPress: {
     videoId: "dYF2d_I24uE",
@@ -1215,11 +1216,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Jacob Price",
     view: "three-quarter",
     span: "four presses in 17 s",
-    prs: [384],
+    prs: [384, 421],
     date: "2026-09-15",
     exercises: ["Machine Chest Press"],
     notes:
-      "Borrowed the lying barbell bench press before. OPEX's machine clips are all incline variants. One continuous shot from three-quarters in front. Settled: back pad reclined about 10, knees 93-98, near elbow 155-166 at full reach, hands 0.34-0.36 trunk lengths below the shoulders there and 0.17-0.21 at the chest. Not settled: the elbow width at the chest -- the upper arm points half at the camera and its projected length swings by a third, so the bottom is drawn with a 50-degree flare (elbow 68) rather than read. Tempo at 0.25 s: out 1.0 s, 0.5-0.75 at reach, back 1.0, 1.0-1.5 at the chest; presses 4.0 s apart. Handles drawn as one short bar at the grip.",
+      "Borrowed the lying barbell bench press before. OPEX's machine clips are all incline variants. One continuous shot from three-quarters in front. Settled: back pad reclined about 10, knees 93-98, near elbow 155-166 at full reach, hands 0.34-0.36 trunk lengths below the shoulders there and 0.17-0.21 at the chest. Not settled: the elbow width at the chest -- the upper arm points half at the camera and its projected length swings by a third, so the bottom is drawn with a 50-degree flare (elbow 68) rather than read. Tempo at 0.25 s: out 1.0 s, 0.5-0.75 at reach, back 1.0, 1.0-1.5 at the chest; presses 4.0 s apart. Handles drawn as one short bar at the grip. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. The legs are angles under a fixed seat: the seat (the pelvis) rises and comes forward 3.6 cm with the longer shin -- a seat set to the legs -- where the feet had sunk 3 cm into the floor.",
   },
   doorwayRow: {
     videoId: "aa0yCQqbYaM",
@@ -1657,11 +1658,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 11 s",
-    prs: [349],
+    prs: [349, 421],
     date: "2026-09-13",
     exercises: ["Pistol Squat"],
     notes:
-      "MoveNet trades the left and right legs whenever they cross, so legs are told apart by behaviour (the folding knee is the support) and the trunk is read from shoulder-over-hip height, not the hip keypoint's jumping x. Standing, the free foot hangs just off the floor, knee 132-138; a fifth of the way down it is long at 40-47 forward of plumb, half way 60-75, level at the bottom (85-94) with the knee 153-157 and the heel just off the floor. Bottom: hip at 0.27 of standing height over the ankle, support knee 53-55, trunk 34-41. Arms forward 7-15 under level throughout. 1.3 s down, 0.25 s bottom, 1.0 s up, about 1 s standing. Our leg cannot reach her 0.27 without folding the knee to 46; the bottom takes knee 50 at 0.32.",
+      "MoveNet trades the left and right legs whenever they cross, so legs are told apart by behaviour (the folding knee is the support) and the trunk is read from shoulder-over-hip height, not the hip keypoint's jumping x. Standing, the free foot hangs just off the floor, knee 132-138; a fifth of the way down it is long at 40-47 forward of plumb, half way 60-75, level at the bottom (85-94) with the knee 153-157 and the heel just off the floor. Bottom: hip at 0.27 of standing height over the ankle, support knee 53-55, trunk 34-41. Arms forward 7-15 under level throughout. 1.3 s down, 0.25 s bottom, 1.0 s up, about 1 s standing. Our leg cannot reach her 0.27 without folding the knee to 46; the bottom takes knee 50 at 0.32. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. The pelvises re-solved so the support leg keeps the clip's angles (knee 103 / 69 / 50, the shin 26 forward at the bottom); on the new split the old pelvises left the shin at 16.",
   },
 
   wallSit: {
@@ -2076,10 +2077,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "three reps in 11.2 s",
-    prs: [317, 400],
+    prs: [317, 400, 421],
     date: "2026-09-11",
     exercises: ["Goblet Squat"],
-    notes: "Confirms the shared squat frames (parallel bottom, same hip drop) rather than correcting them; a three-quarter camera cannot settle the trunk angle. What it settled was the tempo and the fact that the bell stays ON the chest.",
+    notes: "Confirms the shared squat frames (parallel bottom, same hip drop) rather than correcting them; a three-quarter camera cannot settle the trunk angle. What it settled was the tempo and the fact that the bell stays ON the chest. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. Shares the squat's computed pelvises: the clip's angles kept.",
   },
 
   hinge: {
@@ -2088,7 +2089,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 13.8 s",
-    prs: [316, 408],
+    prs: [316, 408, 421],
     date: "2026-09-11",
     exercises: ["Conventional Deadlift"],
     secondClips: [
@@ -2105,7 +2106,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
           "Through the pull the wrists are 1.2-1.45 shoulder widths apart and the elbows 1.15-1.25, just outside the shins (feet 0.5 apart); standing free before the lift the hands hang 1.5-1.8 apart. The pose's grip went from wide()'s 1.82 to 1.3.",
       },
     ],
-    notes: "The clip lowers the bar to just off the floor rather than setting it down.",
+    notes: "The clip lowers the bar to just off the floor rather than setting it down. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. The top key's thigh is 3.5 back (4 before), under the standing-knee check's 4 degrees.",
   },
 
   kneePushUp: {

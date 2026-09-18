@@ -89,13 +89,20 @@ function lyingLegs(upper: number, lower: number, end?: number): [Limb, Limb] {
 // 9cm behind the mid-foot to 2cm ahead -- because the hips sat back only
 // 6cm; they now sit back 11.8cm and the bar path is vertical from the
 // second frame down.
-const SQUAT_FRAMES = [
-  [0.528, 0.492, 5], [0.466, 0.569, 27], [0.452, 0.656, 35], [0.449, 0.748, 36],
-] as const;
+// Each pelvis COMPUTED from those angles -- [shin forward, thigh below level,
+// trunk] -- up from the near ankle, rather than written out: the numbers
+// were solved against the old thigh / shin split (0.225 / 0.215) and put
+// the thigh 8 degrees below level and the shin at 29 once batch 23 split
+// the leg as a body's is. On the old split this reproduces the old frames
+// to the third place.
+const SQUAT_FRAMES = ([[6, 86, 5], [20, 45, 27], [28, 22, 35], [32, 0, 36]] as const).map(([shin, thighBelow, torso]) => {
+  const hip = along(along(FEET[0], shin, P.shin), 270 + thighBelow, P.thigh);
+  return [hip.x - hipAt({ x: 0, y: 0 }, 0, 0, "side").x, hip.y, torso] as const;
+});
 // The front squat's upright descent (see `frontSquat`): [pelvis x, pelvis y,
 // trunk, thigh, shin] per key, shared by the dumbbell front squat.
 const FRONT_SQUAT_FRAMES = [
-  [0.523, 0.490, 3, 178, 182], [0.455, 0.567, 15, 134, 196], [0.446, 0.639, 26, 115, 204], [0.441, 0.717, 32, 96, 208],
+  [0.523, 0.490, 3, 179, 181], [0.455, 0.567, 15, 134, 196], [0.446, 0.639, 26, 115, 204], [0.441, 0.717, 32, 96, 208],
 ] as const;
 // The same clip's timing: a second down, a beat at the bottom, a second up,
 // and a longer beat standing before the next rep.
@@ -114,6 +121,18 @@ function squatting(figure: Figure): Figure {
     neck: Math.round(figure.torso * 0.6),
     legs: figure.legs.map((leg) => ({ ...leg, spread: 0.15, turn: 15 })) as [Limb, Limb],
   };
+}
+
+// Legs authored as ANGLES against the old thigh / shin split (0.225 / 0.215,
+// before batch 23 moved the knee up): the same angles on the new split put
+// the foot somewhere else -- up off the floor or down through it. This keeps
+// the angles (they are the clip's) and the near foot where they put it, and
+// moves the pelvis instead, by the difference the split makes.
+function keepFoot(figure: Figure): Figure {
+  const leg = figure.legs[0]!;
+  const thighShift = along({ x: 0, y: 0 }, leg.upper, 0.225 - P.thigh);
+  const shinShift = along({ x: 0, y: 0 }, leg.lower, 0.215 - P.shin);
+  return { ...figure, pelvis: { x: figure.pelvis.x + thighShift.x + shinShift.x, y: figure.pelvis.y + thighShift.y + shinShift.y } };
 }
 
 // Hands gripping a bar that lies ACROSS THE TRAPS: the target sits on the
@@ -618,12 +637,12 @@ export const exercisePoses = {
     "side",
     FRONT_SQUAT_FRAMES.map(
       ([x, y, torso, upper, lower]) =>
-        squatting({
+        keepFoot(squatting({
           pelvis: { x, y },
           torso,
           arms: sideArms(93, 95),
           legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
-        }),
+        })),
     ),
     [{ kind: "floor" }, { kind: "bar", at: "grip", length: 0.17 }],
     "overhand",
@@ -653,12 +672,12 @@ export const exercisePoses = {
   dumbbellFrontSquat: pose(
     "side",
     FRONT_SQUAT_FRAMES.map(([x, y, torso, upper, lower]) =>
-      squatting({
+      keepFoot(squatting({
         pelvis: { x, y },
         torso,
         arms: [{ upper: 140, lower: 345, spread: 0.04 }, { upper: 140, lower: 345, spread: 0.04 }],
         legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
-      }),
+      })),
     ),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true }],
     "neutral",
@@ -1494,7 +1513,10 @@ export const exercisePoses = {
         const hip0 = hipAt(pelvis, torso, 0, "side");
         return {
           pelvis, torso, neck: 12, arms,
-          legs: [{ ...reach(hip0, { x: 0.46, y: 0.76 }, P.thigh, P.shin, -1), end: 110 }, { upper: 125, lower: 205, end: 90 }] as [Limb, Limb],
+          // The reaching leg as the angles it was solved to (knee 158), not
+          // the point: batch 23's thigh / shin split moves the pelvis, and
+          // the point came to lie at full reach and snapped the leg straight.
+          legs: [{ upper: 178.4, lower: 200.8, end: 110 }, { upper: 125, lower: 205, end: 90 }] as [Limb, Limb],
         };
       })();
       const landedInFront = (() => {
@@ -1886,7 +1908,7 @@ export const exercisePoses = {
   // them. That is what keeps the hip travelling the right way.
   hinge: pose(
     "side",
-    ([[4, 0, 4, 12], [17, 0, 57, 10], [25, 4, 76, 6], [46, 13, 80, 2]] as const).map(([thighBack, shinAhead, torso, armAhead]) => {
+    ([[3.5, 0, 4, 12], [17, 0, 57, 10], [25, 4, 76, 6], [46, 13, 80, 2]] as const).map(([thighBack, shinAhead, torso, armAhead]) => {
       const upper = 180 - thighBack;
       const lower = 180 + shinAhead;
       // Up the planted leg: ankle -> knee -> hip, then back off the girdle's
@@ -2299,7 +2321,7 @@ export const exercisePoses = {
   sumoDeadlift: pose(
     "side",
     ([[0.518, 0.490, 4, 178, 180, -13], [0.442, 0.531, 32, 145, 182, -8], [0.387, 0.638, 62, 110, 182, -14]] as const).map(
-      ([x, y, torso, upper, lower, armBack]) => ({
+      ([x, y, torso, upper, lower, armBack]) => keepFoot({
         pelvis: { x, y },
         torso,
         neck: torso > 30 ? torso - 20 : torso,
@@ -3790,13 +3812,13 @@ export const exercisePoses = {
           const sh = shoulderAt(pelvis, torso, side as 0 | 1, "side");
           return { x: sh.x + ahead / ASPECT, y: sh.y + below };
         }) as [Point, Point];
-        return {
+        return keepFoot({
           pelvis,
           torso,
           neck: 10,
           arms: reachingArms(pelvis, torso, "side", hands, BACK).map((arm) => ({ ...arm, flare, spread: 0.02 })) as [Limb, Limb],
           legs: [{ upper: 88, lower: 173, end: 90 }, { upper: 88, lower: 173, end: 90 }],
-        };
+        });
       }),
       [
         { kind: "floor", y: FLOOR },
@@ -3973,13 +3995,13 @@ export const exercisePoses = {
           const sh = shoulderAt(pelvis, torso, side as 0 | 1, "side");
           return { x: sh.x + ahead / ASPECT, y: sh.y - up };
         }) as [Point, Point];
-        return {
+        return keepFoot({
           pelvis,
           torso,
           neck: 18,
           arms: reachingArms(pelvis, torso, "side", hands, bend).map((arm) => ({ ...arm, flare, spread: 0.06 })) as [Limb, Limb],
           legs: [{ upper: 88, lower: 173, end: 90 }, { upper: 88, lower: 173, end: 90 }],
-        };
+        });
       }),
       [
         { kind: "floor", y: FLOOR },
@@ -5924,7 +5946,10 @@ export const exercisePoses = {
   // bottom, 1.0 s up and about a second standing -- the same in all three.
   pistolSquat: pose(
     "side",
-    ([[0.500, 0.494, 3, 160, 205, 110], [0.472, 0.595, 25, 135, 130, 60], [0.450, 0.705, 35, 115, 107, 30], [0.440, 0.790, 37, 90, 115, 20]] as const).map(([x, y, torso, up, low, end]) => {
+    // Pelvises re-solved for batch 23's thigh / shin split so the support
+    // leg keeps the clip's angles (knee 103 / 69 / 50, the shin 26 forward at
+    // the bottom): on the new split the old pelvises left the shin at 16.
+    ([[0.500, 0.494, 3, 160, 205, 110], [0.487, 0.590, 25, 135, 130, 60], [0.468, 0.693, 35, 115, 107, 30], [0.457, 0.770, 37, 90, 115, 20]] as const).map(([x, y, torso, up, low, end]) => {
       const pelvis = { x, y };
       return {
         pelvis,
@@ -6461,7 +6486,7 @@ export const exercisePoses = {
     "side",
     ([[206, 294], [154, 279], [104, 274]] as const).map(([thigh, torso]) => {
       const knee = { x: 0.545, y: 0.905 };
-      const pelvis = { x: knee.x - (0.225 * Math.sin((thigh * Math.PI) / 180)) / ASPECT, y: knee.y + 0.225 * Math.cos((thigh * Math.PI) / 180) };
+      const pelvis = { x: knee.x - (P.thigh * Math.sin((thigh * Math.PI) / 180)) / ASPECT, y: knee.y + P.thigh * Math.cos((thigh * Math.PI) / 180) };
       // Hands on the wheel's handles, as low as the wheel allows, and as far
       // ahead as a long arm (elbow about 165) reaches.
       const handY = 0.885;
@@ -6511,7 +6536,7 @@ export const exercisePoses = {
     "side",
     ([[185, 360], [158, 327], [98, 280]] as const).map(([thigh, torso], key) => {
       const knee = { x: 0.62, y: 0.905 };
-      const pelvis = { x: knee.x - (0.225 * Math.sin((thigh * Math.PI) / 180)) / ASPECT, y: knee.y + 0.225 * Math.cos((thigh * Math.PI) / 180) };
+      const pelvis = { x: knee.x - (P.thigh * Math.sin((thigh * Math.PI) / 180)) / ASPECT, y: knee.y + P.thigh * Math.cos((thigh * Math.PI) / 180) };
       const legs: [Limb, Limb] = [{ upper: thigh, lower: 70, end: 160 }, { upper: thigh + 3, lower: 73, end: 163 }];
       if (key < 2) {
         return { pelvis, torso, neck: torso, arms: sideArms(key ? 151 : 176, key ? 166 : 190), legs };
@@ -6568,7 +6593,7 @@ export const exercisePoses = {
     "side",
     ([[208, 327], [200, 283], [193, 239]] as const).map(([thigh, torso]) => {
       const knee = { x: 0.50, y: 0.905 };
-      const pelvis = { x: knee.x - (0.225 * Math.sin((thigh * Math.PI) / 180)) / (850 / 567), y: knee.y + 0.225 * Math.cos((thigh * Math.PI) / 180) };
+      const pelvis = { x: knee.x - (P.thigh * Math.sin((thigh * Math.PI) / 180)) / (850 / 567), y: knee.y + P.thigh * Math.cos((thigh * Math.PI) / 180) };
       return {
         pelvis,
         torso,

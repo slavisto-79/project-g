@@ -119,9 +119,10 @@ for (const [name, pose] of Object.entries(exercisePoses)) {
   // it inside 3.4, and that is not the exercise. A bicycle crunch joins them
   // at 4.0 for the same reason once it actually rotates: one leg is held long
   // just off the floor while the OPPOSITE elbow reaches down the body toward
-  // the tucked knee, and the two together are the silhouette. It measures
-  // 3.8.
-  const widthCap = name === "plank" ? 5.0 : name === "proneRaise" ? 4.5 : name === "proneYTW" ? 5.6 : name === "reverseSnowAngel" ? 7.1 : name === "hollowHold" || name === "bicycleCrunch" ? 4.0 : 3.4;
+  // the tucked knee, and the two together are the silhouette. It measured
+  // 3.8, and 4.2 once batch 23 shortened the thigh to its real length: the
+  // tucked knee comes 3 cm lower, and the silhouette with it.
+  const widthCap = name === "plank" ? 5.0 : name === "proneRaise" ? 4.5 : name === "proneYTW" ? 5.6 : name === "reverseSnowAngel" ? 7.1 : name === "hollowHold" ? 4.0 : name === "bicycleCrunch" ? 4.3 : 3.4;
   if (W / H > widthCap) note(`${name}: lying flat at ${(W / H).toFixed(1)}:1 wide`);
 }
 
