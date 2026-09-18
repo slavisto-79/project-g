@@ -197,10 +197,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "four reps in 16 s",
-    prs: [265, 421, 423],
+    prs: [265, 421, 423, 424],
     date: "2026-09-09",
     exercises: ["Sumo Deadlift"],
-    notes: "The plates hide the knees at the bottom; knee angles were read off the overlays. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. Angles kept, the pelvis moved by the split's difference: the feet had lifted 2.3 cm. Batch 23 stage 3: the bottom's trunk 63 and arms 4 back (62 / 14 before; the clip's trunk 52-62): the legs kept at their angles lifted the plates 2.3 cm; this puts the bar where it was.",
+    notes: "The plates hide the knees at the bottom; knee angles were read off the overlays. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. Angles kept, the pelvis moved by the split's difference: the feet had lifted 2.3 cm. Batch 23 stage 3: the bottom's trunk 63 and arms 4 back (62 / 14 before; the clip's trunk 52-62): the legs kept at their angles lifted the plates 2.3 cm; this puts the bar where it was. Sumo trunk: the bottom's trunk 58, inside the clip's 52-62, instead of 63: the pelvis 4 cm lower and the thigh 104.5 (110 before), arms 7 back, the pelvis solved so the feet stay planted; the bar keeps its height (26.6 cm) and its place on the toe line, the plates on the floor.",
   },
   frontSquat: {
     videoId: "Q1Ypb8ZNzI4",

@@ -2324,10 +2324,10 @@ export const exercisePoses = {
   // are 42cm out and the bar passes between them, on the toe line.
   sumoDeadlift: pose(
     "side",
-    // The bottom's trunk 63 and arms 4 back (62 / 14 before batch 23): the
-    // split's longer shin, legs kept at their angles, lifted the hips and
-    // the plates 2.3 cm; this puts the bar where it was.
-    ([[0.518, 0.490, 4, 178, 180, -13], [0.442, 0.531, 32, 145, 182, -8], [0.387, 0.638, 63, 110, 182, -4]] as const).map(
+    // The bottom's trunk 58, inside the clip's 52-62: the hips 4 cm lower,
+    // thigh 104.5 (14.5 below level), arms 7 back. The bar stays where it was
+    // before batch 23, on the toe line, with the plates on the floor.
+    ([[0.518, 0.490, 4, 178, 180, -13], [0.442, 0.531, 32, 145, 182, -8], [0.383, 0.659, 58, 104.5, 182, -7]] as const).map(
       ([x, y, torso, upper, lower, armBack]) => keepFoot({
         pelvis: { x, y },
         torso,
