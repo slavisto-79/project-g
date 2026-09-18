@@ -47,7 +47,7 @@ export type PoseProp =
   // post: an upright a hand grips from the side -- a door frame's edge. Narrow
   // across the body as well as along it, and in a side view it stands at
   // `depth` across the view (world x), beside the body, not through the feet.
-  | { kind: "slab"; x: number; y: number; width: number; height: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; depth?: number; post?: boolean; box?: boolean }
+  | { kind: "slab"; x: number; y: number; width: number; height: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; depth?: number; post?: boolean; box?: boolean; pins?: boolean }
   // A cable running from a pulley (the anchor, fixed in the world) to the
   // hands; the world build draws the whole machine around the anchor.
   // rope: a battle rope, not a cable -- it runs from a floor anchor to ONE
@@ -119,7 +119,7 @@ export type PoseProp3D =
   // the way a bench is placed for hands or feet on its edge.
   // `lever`: a padded roller against a limb. Width is its length across the
   // body, height its diameter, and it is held up by its arm, not the floor.
-  | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; post?: boolean; box?: boolean }
+  | { kind: "slab"; center: Vec3; width: number; height: number; dir?: Vec3; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; post?: boolean; box?: boolean; pins?: boolean }
   // center is the grip (where the cable ends), anchor the pulley.
   // towel: a towel looped round a fixed point (a door handle), one end in
   // each hand -- drawn for any exercise, since the towel IS the equipment.
@@ -717,6 +717,7 @@ function propsTo3d(props: PoseProp[], view: View, hands: [Vec3, Vec3]): PoseProp
       ...(prop.tilt !== undefined ? { tilt: prop.tilt } : {}),
       ...(prop.post ? { post: true } : {}),
       ...(prop.box ? { box: true } : {}),
+      ...(prop.pins ? { pins: true } : {}),
     };
   });
 }
@@ -735,7 +736,9 @@ type PropSpec =
   // part of the figure.
   // box: a plyo box -- a plywood block from the floor up to the slab's top
   // surface, as long as `width`, instead of a bench pad on posts.
-  | { kind: "slab"; at?: string; x?: number; y?: number; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; depth?: number; post?: boolean; box?: boolean }
+  // pins: a power rack's safety pins, the slab's top the pin height -- two
+  // uprights each side of the bar and a pin across the depth between them.
+  | { kind: "slab"; at?: string; x?: number; y?: number; width: number; height: number; dx?: number; dy?: number; angle?: number; across?: boolean; lever?: boolean; sled?: boolean; tilt?: number; depth?: number; post?: boolean; box?: boolean; pins?: boolean }
   // anchor: the pulley, in authored coordinates (a high pulley sits above the
   // frame's top edge, which is fine -- it only has to be off the figure).
   // anchorAt: anchor the run on a JOINT instead of a fixed point -- a loop
@@ -809,6 +812,7 @@ function resolveProps(specs: PropSpec[], joints: Record<string, Point>, segments
         ...(spec.depth !== undefined ? { depth: spec.depth } : {}),
         ...(spec.post ? { post: true } : {}),
         ...(spec.box ? { box: true } : {}),
+        ...(spec.pins ? { pins: true } : {}),
       });
     }
   }

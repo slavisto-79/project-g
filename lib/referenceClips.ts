@@ -119,10 +119,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "foot-end",
     span: "three reps in 5.5 s",
-    prs: [257, 258, 407],
+    prs: [257, 258, 407, 415],
     date: "2026-09-08",
     exercises: ["Barbell Bench Press"],
-    notes: "Foot-end camera: bar path, tempo and grip width; the chest-touch depth came from the skinned chest surface. Width (#407, the reachingArms review): from the foot end the wrists read 1.85-2.3 shoulder widths apart, elbows 1.5-2.3 (the camera magnifies the bar); the pose's 2.26 kept.",
+    notes: "Foot-end camera: bar path, tempo and grip width; the chest-touch depth came from the skinned chest surface. Width (#407, the reachingArms review): from the foot end the wrists read 1.85-2.3 shoulder widths apart, elbows 1.5-2.3 (the camera magnifies the bar); the pose's 2.26 kept. Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle).",
   },
 
   // --- Batch 2: hinges and squats ---------------------------------------
@@ -175,7 +175,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [264],
     date: "2026-09-09",
     exercises: ["Barbell Hip Thrust"],
-    notes: "The OPEX clip in the batch list was a floor thrust with no bench, so this one was used instead.",
+    notes: "The OPEX clip in the batch list was a floor thrust with no bench, so this one was used instead. Bench height checked (batch 22): an ordinary flat bench, filmed from above at an angle, so no number is read off the frame; ours is 46 cm -- kept.",
   },
   sumoDeadlift: {
     videoId: "OKMDYjnK8m8",
@@ -422,10 +422,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "head-end",
     span: "three reps in 9 s",
-    prs: [281, 407],
+    prs: [281, 407, 415],
     date: "2026-09-09",
     exercises: ["Skull Crusher"],
-    notes: "Width (#407, the reachingArms review): from the head end the wrists read 0.6-0.9 shoulder widths apart and the elbows 0.55-0.8 -- a camera at the head magnifies the bar, so at most that; the pose had 1.34, now 0.8.",
+    notes: "Width (#407, the reachingArms review): from the head end the wrists read 0.6-0.9 shoulder widths apart and the elbows 0.55-0.8 -- a camera at the head magnifies the bar, so at most that; the pose had 1.34, now 0.8. Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle).",
   },
   dip: {
     videoId: "VNa0hX_y6Fk",
@@ -444,9 +444,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "head-end",
     span: "three reps in 11.5 s",
-    prs: [283],
+    prs: [283, 415],
     date: "2026-09-09",
     exercises: ["Dumbbell Fly"],
+    notes: "Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle).",
   },
 
   // --- Batch 5: core and carries ----------------------------------------
@@ -478,9 +479,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "a 7 s hold",
-    prs: [293],
+    prs: [293, 415],
     date: "2026-09-10",
     exercises: ["Copenhagen Plank"],
+    notes: "Bench height (batch 22): the bench was 81 cm -- 'a bench top 0.40 up' was 0.40 of the frame, not 40 cm. The clip's bench is an ordinary flat bench, and its frame has the top side of the body level (ankle, hip, shoulder at 196 / 203 / 192 px) with the pad 0.56-0.64 of the top leg off the floor. The body now lies level on the forearm (12 down to the head before), the top ankle 61 cm up, the pad 53 cm (0.58 legs).",
   },
   pallofPress: {
     videoId: "syYBcVbEAFk",
@@ -854,6 +856,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     prs: [315],
     date: "2026-09-11",
     exercises: ["Incline Push-Up"],
+    notes: "Bench height checked (batch 22): the wrists sit on the pad edge 0.29-0.36 legs over the ankles on the toes, ours 0.30, and the body's 31-degree rise matches; kept at 34 cm.",
   },
 
   declinePushUp: {
@@ -964,11 +967,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 9 s",
-    prs: [399],
+    prs: [399, 415],
     date: "2026-09-16",
     exercises: ["Dumbbell Bench Press"],
     notes:
-      "Borrowed the barbell bench press before, whose bar stops on the chest. The dumbbells come lower: at the bottom the wrists are 0.0-0.17 trunk lengths above the shoulder line (the bar's 0.32) and the elbows 0.35-0.45 below it, past the bench, the wrists over the shoulders; at the top the elbow is 155-176 with the wrists 1.0-1.3 above. Not used: the bottom elbow angle, a projection of a flared upper arm pointing at the camera (reads 0-20). Ours: the bench's path with the bottom 5.8 cm lower and the hands 4.7 cm toward the feet (an in-plane fold cannot put the elbow under a plumb wrist), flare 20 / 40 / 60; elbow 178 / 74 / 45, elbows 11 cm below the shoulder line and 2.34 shoulder widths apart at the bottom. Tempo at 0.15 s: down 0.75-0.9 s, 0.5-0.75 at the bottom, up 0.45-0.6, 0.6-0.8 locked out; reps 2.9 s apart.",
+      "Borrowed the barbell bench press before, whose bar stops on the chest. The dumbbells come lower: at the bottom the wrists are 0.0-0.17 trunk lengths above the shoulder line (the bar's 0.32) and the elbows 0.35-0.45 below it, past the bench, the wrists over the shoulders; at the top the elbow is 155-176 with the wrists 1.0-1.3 above. Not used: the bottom elbow angle, a projection of a flared upper arm pointing at the camera (reads 0-20). Ours: the bench's path with the bottom 5.8 cm lower and the hands 4.7 cm toward the feet (an in-plane fold cannot put the elbow under a plumb wrist), flare 20 / 40 / 60; elbow 178 / 74 / 45, elbows 11 cm below the shoulder line and 2.34 shoulder widths apart at the bottom. Tempo at 0.15 s: down 0.75-0.9 s, 0.5-0.75 at the bottom, up 0.45-0.6, 0.6-0.8 locked out; reps 2.9 s apart. Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle). This clip's side view puts the lying hips 0.66-0.70 legs over the ankles (feet drawn toward the camera, so an upper bound); ours were 0.72.",
   },
   hammerCurl: {
     videoId: "RIEMoYL_h1Y",
@@ -1000,11 +1003,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 8.5 s",
-    prs: [398],
+    prs: [398, 415],
     date: "2026-09-16",
     exercises: ["Neutral-Grip Dumbbell Press"],
     notes:
-      "Borrowed the barbell bench press (wide overhand, elbows flared 45, bar stopping on the chest) before. Side view: at the bottom the elbow closes to 16-32 with the wrists 0.17-0.20 trunk lengths above the shoulder line (the bar stops 0.32 above it) and the elbows 0.27-0.38 BELOW it, past the bench; at the top the elbow is 155-167 with the wrists 1.05-1.3 above. Ours: the bench's bar path with the bottom 3 cm lower, the flare cut to 0 / 10 / 20 so the elbows stay in beside the ribs, palms facing on twin dumbbells (neutral grip). Tempo at 0.15 s: down 0.75-0.9 s, 0.5-0.75 at the bottom, up 0.6, 0.6 locked out; reps 2.7 s apart.",
+      "Borrowed the barbell bench press (wide overhand, elbows flared 45, bar stopping on the chest) before. Side view: at the bottom the elbow closes to 16-32 with the wrists 0.17-0.20 trunk lengths above the shoulder line (the bar stops 0.32 above it) and the elbows 0.27-0.38 BELOW it, past the bench; at the top the elbow is 155-167 with the wrists 1.05-1.3 above. Ours: the bench's bar path with the bottom 3 cm lower, the flare cut to 0 / 10 / 20 so the elbows stay in beside the ribs, palms facing on twin dumbbells (neutral grip). Tempo at 0.15 s: down 0.75-0.9 s, 0.5-0.75 at the bottom, up 0.6, 0.6 locked out; reps 2.7 s apart. Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle).",
   },
   chinUp: {
     videoId: "QGSYnup3-u4",
@@ -1076,11 +1079,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Renaissance Periodization",
     view: "head-end",
     span: "four reps in 12 s",
-    prs: [394],
+    prs: [394, 415],
     date: "2026-09-16",
     exercises: ["Close-Grip Bench Press"],
     notes:
-      "Borrowed the barbell bench press (76 cm grip, elbows flared 45 at the chest) before. This clip gives the grip: wrists 1.04-1.18 shoulder widths apart at lockout -- shoulder width, as the cue says -- and the elbows barely wider on the way down (1.2-1.35). OPEX's own \"Close Grip Bench Press\" (CGqKy5wiY8o) was measured too, on the same camera and set as the bench clip whose geometry this pose reuses: its grip is only a tenth narrower than that one's (1.95 against 2.15 shoulder widths, ours draws the bench at 2.26), a moderate grip rather than the cue's, so the width is this clip's and the tempo is OPEX's (down 0.7-0.8 s, a touch, up 0.5, 0.6 locked out). Ours: wrists 1.10, elbows 1.05 / 1.16 / 1.26, elbow 180 / 80 / 52, the bench's own bar path.",
+      "Borrowed the barbell bench press (76 cm grip, elbows flared 45 at the chest) before. This clip gives the grip: wrists 1.04-1.18 shoulder widths apart at lockout -- shoulder width, as the cue says -- and the elbows barely wider on the way down (1.2-1.35). OPEX's own \"Close Grip Bench Press\" (CGqKy5wiY8o) was measured too, on the same camera and set as the bench clip whose geometry this pose reuses: its grip is only a tenth narrower than that one's (1.95 against 2.15 shoulder widths, ours draws the bench at 2.26), a moderate grip rather than the cue's, so the width is this clip's and the tempo is OPEX's (down 0.7-0.8 s, a touch, up 0.5, 0.6 locked out). Ours: wrists 1.10, elbows 1.05 / 1.16 / 1.26, elbow 180 / 80 / 52, the bench's own bar path. Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle).",
   },
   heelsElevatedGobletSquat: {
     videoId: "YWrs2r_mYg0",
@@ -1274,7 +1277,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     date: "2026-09-14",
     exercises: ["Concentration Curl"],
     notes:
-      "Borrowed the standing barbell curl before. Seated, knees apart, leaning forward (about 35, from the trunk's projected length against shoulder width). Working upper arm plumb, elbow braced on the inner thigh just above the knee, still all rep: arm long elbow 159-169, curled 13-24 with the forearm straight up. Free hand on its knee, elbow about 100. Ours: trunk 35, working arm swung 20 in so the elbow sits inside the knee, elbow 178 / 91 / 32 (the fold limit stops the curl short of hers), free hand solved onto its knee (elbow 86). Tempo at 0.25 s, a slow demo: up 2.25-2.75 s, top 1.75-2.0, down 1.5, bottom 2.0-2.5.",
+      "Borrowed the standing barbell curl before. Seated, knees apart, leaning forward (about 35, from the trunk's projected length against shoulder width). Working upper arm plumb, elbow braced on the inner thigh just above the knee, still all rep: arm long elbow 159-169, curled 13-24 with the forearm straight up. Free hand on its knee, elbow about 100. Ours: trunk 35, working arm swung 20 in so the elbow sits inside the knee, elbow 178 / 91 / 32 (the fold limit stops the curl short of hers), free hand solved onto its knee (elbow 86). Tempo at 0.25 s, a slow demo: up 2.25-2.75 s, top 1.75-2.0, down 1.5, bottom 2.0-2.5. Seat height checked (batch 22): the hips 1.17-1.20 shins over the ankles with the shins plumb, about 1.05-1.10 once the camera's lift is taken off; ours 1.05 on a 40 cm seat -- kept.",
   },
   preacherCurl: {
     videoId: "w1qaVGYTtKk",
@@ -1334,11 +1337,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "three reps in 12 s",
-    prs: [374, 407],
+    prs: [374, 407, 415],
     date: "2026-09-14",
     exercises: ["Seated Dumbbell Press"],
     notes:
-      "Borrowed the standing barbell overhead press before. Seated tall on a flat bench, no backrest. Bottom: bells at the shoulders, wrists level with them and 1.15-1.24 shoulder widths apart, elbows under them 0.52-0.59 trunk lengths down, elbow 15-30. Half way: elbows out 1.9-2.0 shoulder widths apart, 0.17-0.35 up, elbow 88-105, wrists 0.72-0.88 up. Top: arms straight (160-180), wrists 1.03-1.09 up, a shoulder width apart. Ours: bottom elbow 32, elbows 0.55 down; half 95, elbows 2.3 apart and 0.37 up, wrists 0.86 up; top 179, wrists 1.18 up. The cue said 'back supported'; the clip has no backrest, so the cue now says sit tall. Tempo at 0.2 s: down 1.8-2.0 s, 0.4 at the bottom, up 1.0, 0.6-0.8 at the top. Width per key (#407, the reachingArms review): wrists 1.0-1.1 shoulder widths apart at the top, 1.5-1.7 half way, 1.15-1.25 at the shoulders; the pose had 1.33 / 1.57 / 1.33, now 1.05 / 1.57 / 1.19.",
+      "Borrowed the standing barbell overhead press before. Seated tall on a flat bench, no backrest. Bottom: bells at the shoulders, wrists level with them and 1.15-1.24 shoulder widths apart, elbows under them 0.52-0.59 trunk lengths down, elbow 15-30. Half way: elbows out 1.9-2.0 shoulder widths apart, 0.17-0.35 up, elbow 88-105, wrists 0.72-0.88 up. Top: arms straight (160-180), wrists 1.03-1.09 up, a shoulder width apart. Ours: bottom elbow 32, elbows 0.55 down; half 95, elbows 2.3 apart and 0.37 up, wrists 0.86 up; top 179, wrists 1.18 up. The cue said 'back supported'; the clip has no backrest, so the cue now says sit tall. Tempo at 0.2 s: down 1.8-2.0 s, 0.4 at the bottom, up 1.0, 0.6-0.8 at the top. Width per key (#407, the reachingArms review): wrists 1.0-1.1 shoulder widths apart at the top, 1.5-1.7 half way, 1.15-1.25 at the shoulders; the pose had 1.33 / 1.57 / 1.33, now 1.05 / 1.57 / 1.19. Seat height (batch 22): the seat was 36 cm with the hips under the knees (0.96 shins over the ankles). The clip's hips sit 1.28-1.38 shins over the ankles with the shins plumb (knees at 0.99); the camera in front and above lifts the hips, 45 cm further off than the knees, by about 0.15, which leaves them 1.15 up, over the knees. The seat is 47 cm now, the feet 2 cm back so the shins stand plumb: knee 106 (hers about 100).",
   },
   dumbbellFloorPress: {
     videoId: "jjlekYs1cfQ",
@@ -1358,7 +1361,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Testosterone Nation",
     view: "side",
     span: "three reps in 11 s",
-    prs: [372, 409],
+    prs: [372, 409, 415],
     date: "2026-09-14",
     exercises: ["Rack Pull"],
     secondClips: [
@@ -1376,7 +1379,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
       },
     ],
     notes:
-      "Borrowed the conventional deadlift (bar to the floor) before. Bar on pins just above the knee: wrists 0.17-0.23 trunk lengths over the knee, 0.24-0.28 ahead of the ankle; shins plumb, knee 150-164, hip 97-113, trunk 42-58 from vertical. Top: hip and knee 171-180. Half way: trunk ~34, hip 128, knee 163. Elbows 166-179. Ours: pins trunk 54, hip 105, knee 159, bar 0.25 ahead of the ankle and 0.29 over the knee; half 34/128/162; top 0/177/175. Tempo at 0.2 s: down 1.0-1.6 s, dead stop 0.8-1.4 on the pins, up 0.4-0.6, 0.6-0.8 at the top. 360p source. Second clip tried for the grip (Kettlebell Kings \"Rack Pull Demo\", TdqIS3CXXN4): side on, dark; the wrist keypoints score 0.2-0.5 and their width swings 0.3-6 -- not readable (batch 21). The grip stays at wide()'s 1.82; the deadlift's face-on clip reads 1.2-1.45.",
+      "Borrowed the conventional deadlift (bar to the floor) before. Bar on pins just above the knee: wrists 0.17-0.23 trunk lengths over the knee, 0.24-0.28 ahead of the ankle; shins plumb, knee 150-164, hip 97-113, trunk 42-58 from vertical. Top: hip and knee 171-180. Half way: trunk ~34, hip 128, knee 163. Elbows 166-179. Ours: pins trunk 54, hip 105, knee 159, bar 0.25 ahead of the ankle and 0.29 over the knee; half 34/128/162; top 0/177/175. Tempo at 0.2 s: down 1.0-1.6 s, dead stop 0.8-1.4 on the pins, up 0.4-0.6, 0.6-0.8 at the top. 360p source. Second clip tried for the grip (Kettlebell Kings \"Rack Pull Demo\", TdqIS3CXXN4): side on, dark; the wrist keypoints score 0.2-0.5 and their width swings 0.3-6 -- not readable (batch 21). The grip stays at wide()'s 1.82; the deadlift's face-on clip reads 1.2-1.45. Drawing (batch 22): the pins were a flat bench laid crosswise under the bar. A slab with `pins` is a power rack -- four uprights just inside the collars, 20 cm in front of the bar and 80 cm behind it so the lifter stands inside, a pin front to back each side at the slab's top, the bar coming to rest on them. The pose is unchanged.",
   },
   hackSquat: {
     videoId: "rYgNArpwE7E",
@@ -1422,11 +1425,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 14 s",
-    prs: [368],
+    prs: [368, 415],
     date: "2026-09-13",
     exercises: ["Bench Dip"],
     notes:
-      "Borrowed the parallel-bar dip before. Hands on a flat bench's edge behind, legs straight (knee 171-180), heels on the floor. Top: elbow 175-179, upper arm 18-23 back of plumb, trunk 19-27 back, hip 141-146, legs sloping 25-30. Bottom: elbow 88-97, upper arm near level (8-14 below), trunk 13-15 back, hip 115-117, legs 7-9, hips 0.36-0.44 trunk lengths under the hands. Ours: top elbow 179, trunk 23, legs 25; bottom elbow 89, upper arm 17 below level, trunk 14, legs 10 (at her 8 the figure's elbow bends to 81), hips 0.26 under the hands. Tempo at 0.25 s: down 2.75-3.0 s, ~0.25 at the bottom, up 1.0, 0.5 at the top.",
+      "Borrowed the parallel-bar dip before. Hands on a flat bench's edge behind, legs straight (knee 171-180), heels on the floor. Top: elbow 175-179, upper arm 18-23 back of plumb, trunk 19-27 back, hip 141-146, legs sloping 25-30. Bottom: elbow 88-97, upper arm near level (8-14 below), trunk 13-15 back, hip 115-117, legs 7-9, hips 0.36-0.44 trunk lengths under the hands. Ours: top elbow 179, trunk 23, legs 25; bottom elbow 89, upper arm 17 below level, trunk 14, legs 10 (at her 8 the figure's elbow bends to 81), hips 0.26 under the hands. Tempo at 0.25 s: down 2.75-3.0 s, ~0.25 at the bottom, up 1.0, 0.5 at the top. Bench height (batch 22): the wrists on the bench edge sit 0.43-0.50 legs over the ankles (median 0.46) and the pad's top 0.525 legs off the floor, level camera; ours had the hands at 0.30 on a 30 cm bench. Re-solved with the hands on a 44 cm pad: top trunk 19 / arm 23 back (hers 19-27 / 18-23), hips 0.54 legs up (0.49-0.53), shoulders 1.04 (1.03-1.10), legs 34; bottom trunk 14 (13-15), elbow 90 (88-97). Given up: the bottom hip, 0.35 legs up against her 0.17-0.22.",
   },
   nordicCurl: {
     videoId: "UoR6civMWF8",

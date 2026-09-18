@@ -2385,6 +2385,42 @@ export class PoseViewer3D {
           this.held.push(this.anchored(post, i, "slab"));
           continue;
         }
+        if (prop.pins && floorY !== undefined) {
+          // A power rack set for a rack pull: the slab's top is the pins'
+          // height, where the bar comes to rest. Four uprights -- two each
+          // side of the bar, just inside its collars like the bench rack's --
+          // one 20 cm in front of the bar and one 80 cm behind it, so the
+          // lifter stands INSIDE the rack and the rear posts clear the hips at
+          // the bottom. A pin runs front to back between each pair, a base
+          // along the floor, and a crossmember joins the two sides at the top.
+          // It was a flat bench laid crosswise under the bar.
+          const pinTop = prop.height / 2;
+          const base = floorY - prop.center[1];
+          const top = base + 0.95;
+          const front = 0.1, rear = -0.4;
+          const group = new THREE.Group();
+          for (const x of [-0.36, 0.36]) {
+            for (const z of [front, rear]) {
+              const upright = new THREE.Mesh(new THREE.BoxGeometry(0.035, top - base, 0.035), this.iron);
+              upright.position.set(x, (top + base) / 2, z);
+              group.add(upright);
+            }
+            const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, front - rear + 0.06, 12), this.chrome);
+            pin.rotation.x = Math.PI / 2;
+            pin.position.set(x, pinTop - 0.012, (front + rear) / 2);
+            const foot = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.03, front - rear + 0.12), this.iron);
+            foot.position.set(x, base + 0.015, (front + rear) / 2);
+            group.add(pin, foot);
+          }
+          for (const z of [front, rear]) {
+            const cross = new THREE.Mesh(new THREE.BoxGeometry(0.72 + 0.035, 0.035, 0.035), this.iron);
+            cross.position.set(0, top - 0.0175, z);
+            group.add(cross);
+          }
+          this.scene.add(group);
+          this.held.push(this.anchored(group, i, "slab"));
+          continue;
+        }
         if (prop.box && floorY !== undefined) {
           // A plyo box: a plywood block standing on the floor, its top the
           // slab's top surface, as long as the slab along the movement and
