@@ -197,10 +197,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "four reps in 16 s",
-    prs: [265, 421],
+    prs: [265, 421, 423],
     date: "2026-09-09",
     exercises: ["Sumo Deadlift"],
-    notes: "The plates hide the knees at the bottom; knee angles were read off the overlays. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. Angles kept, the pelvis moved by the split's difference: the feet had lifted 2.3 cm.",
+    notes: "The plates hide the knees at the bottom; knee angles were read off the overlays. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. Angles kept, the pelvis moved by the split's difference: the feet had lifted 2.3 cm. Batch 23 stage 3: the bottom's trunk 63 and arms 4 back (62 / 14 before; the clip's trunk 52-62): the legs kept at their angles lifted the plates 2.3 cm; this puts the bar where it was.",
   },
   frontSquat: {
     videoId: "Q1Ypb8ZNzI4",
@@ -684,10 +684,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Fitness Pain Free",
     view: "side",
     span: "two reps in 14 s",
-    prs: [307],
+    prs: [307, 423],
     date: "2026-09-11",
     exercises: ["Power Clean"],
-    notes: "Kettlebell Clean and Hang Clean were later given poses of their own (`kettlebellClean`, `clean`).",
+    notes: "Kettlebell Clean and Hang Clean were later given poses of their own (`kettlebellClean`, `clean`). Batch 23 stage 3: the start's trunk 55 (50 before; the clip's 47-55): on the new thigh / shin split the start's hip sat 2.7 cm higher and held the plates off the floor; the bar is now 1 cm lower than it was.",
   },
 
   kettlebellClean: {
@@ -1674,11 +1674,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "MedBridge",
     view: "side",
     span: "one sit held about 14 s",
-    prs: [348],
+    prs: [348, 423],
     date: "2026-09-13",
     exercises: ["Wall Sit"],
     notes:
-      "The video cuts between a side camera and a front one; numbers are from the side camera (thigh projects 0.15 of the frame there, 0.09 face on). Held: knee 101-104, shin plumb, trunk 3, the hip 0.13 trunk lengths above the knee (thigh 14 degrees under level), hands resting on the thighs (28 degrees forward of plumb, elbows 155). Standing she is half a trunk length clear of the wall with the hips over the ankles; she slides back and down in 2.5 s and up in 2.5 s. OPEX's face-on Wall Sit (CoGaiX4P_BQ) agrees on the thigh: knees 0.1 trunk lengths under the hips. The 14 s hold is a prescription; the card holds 4 s.",
+      "The video cuts between a side camera and a front one; numbers are from the side camera (thigh projects 0.15 of the frame there, 0.09 face on). Held: knee 101-104, shin plumb, trunk 3, the hip 0.13 trunk lengths above the knee (thigh 14 degrees under level), hands resting on the thighs (28 degrees forward of plumb, elbows 155). Standing she is half a trunk length clear of the wall with the hips over the ankles; she slides back and down in 2.5 s and up in 2.5 s. OPEX's face-on Wall Sit (CoGaiX4P_BQ) agrees on the thigh: knees 0.1 trunk lengths under the hips. The 14 s hold is a prescription; the card holds 4 s. Batch 23 stage 3: the wall at 0.3215 (0.31): the new thigh / shin split left the back 3.5 cm off it.",
   },
 
   bodyweightSquat: {

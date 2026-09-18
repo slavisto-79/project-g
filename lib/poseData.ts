@@ -1300,7 +1300,9 @@ export const exercisePoses = {
       { kind: "floor" },
       // The wall is the exercise, and it stays put: it rode the shoulder, so
       // a standing key would have carried it along.
-      { kind: "slab", x: 0.31, y: 0.55, width: 0.045, height: 0.62 },
+      // 0.31 before batch 23: the thigh / shin split left the back 3.5 cm
+      // off it.
+      { kind: "slab", x: 0.3215, y: 0.55, width: 0.045, height: 0.62 },
     ],
     "neutral",
     1,
@@ -2322,7 +2324,10 @@ export const exercisePoses = {
   // are 42cm out and the bar passes between them, on the toe line.
   sumoDeadlift: pose(
     "side",
-    ([[0.518, 0.490, 4, 178, 180, -13], [0.442, 0.531, 32, 145, 182, -8], [0.387, 0.638, 62, 110, 182, -14]] as const).map(
+    // The bottom's trunk 63 and arms 4 back (62 / 14 before batch 23): the
+    // split's longer shin, legs kept at their angles, lifted the hips and
+    // the plates 2.3 cm; this puts the bar where it was.
+    ([[0.518, 0.490, 4, 178, 180, -13], [0.442, 0.531, 32, 145, 182, -8], [0.387, 0.638, 63, 110, 182, -4]] as const).map(
       ([x, y, torso, upper, lower, armBack]) => keepFoot({
         pelvis: { x, y },
         torso,
@@ -2773,7 +2778,10 @@ export const exercisePoses = {
         // the trunk 50 -- that is what puts the hands on a bar resting on the
         // floor (0.13 up, as the old clean's) with the trunk as upright as
         // the clip has it.
-        pull(100, 200, 50),
+        // Trunk 55 at the start (50 before; the clip's 47-55): on batch 23's
+        // thigh / shin split the start's hip sat 2.7 cm higher and held the
+        // plates 6 cm off the floor.
+        pull(100, 200, 55),
         // Past the knee: the bar dragged up the thigh, the trunk still over it.
         pull(140, 188, 45),
         // The extension: tall, on the toes, the bar just past the hip with the
