@@ -685,10 +685,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Fitness Pain Free",
     view: "side",
     span: "two reps in 14 s",
-    prs: [307, 423],
+    prs: [307, 423, 436],
     date: "2026-09-11",
     exercises: ["Power Clean"],
-    notes: "Kettlebell Clean and Hang Clean were later given poses of their own (`kettlebellClean`, `clean`). Batch 23 stage 3: the start's trunk 55 (50 before; the clip's 47-55): on the new thigh / shin split the start's hip sat 2.7 cm higher and held the plates off the floor; the bar is now 1 cm lower than it was.",
+    notes: "Kettlebell Clean and Hang Clean were later given poses of their own (`kettlebellClean`, `clean`). Batch 23 stage 3: the start's trunk 55 (50 before; the clip's 47-55): on the new thigh / shin split the start's hip sat 2.7 cm higher and held the plates off the floor; the bar is now 1 cm lower than it was. Clip audit: pull() used sideLegs, whose five-degree far-leg offset put the far toe 1.6 cm into the floor at the start (and 1.1 cm half way up); lyingLegs now. The floor is pinned, so the bar and plates are where they were.",
   },
 
   kettlebellClean: {
@@ -733,10 +733,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Abbotsford",
     view: "three-quarter",
     span: "ten reps in 13 s",
-    prs: [311],
+    prs: [311, 436],
     date: "2026-09-11",
     exercises: ["Jump Squat"],
-    notes: "Near-side view: the angles are projections, +-5. The arms reach forward at the bottom as a counterbalance.",
+    notes: "Near-side view: the angles are projections, +-5. The arms reach forward at the bottom as a counterbalance. Clip audit: the bottom's far toe sat 1.2 cm in the floor -- sideLegs bends the far leg five degrees further; lyingLegs (equal legs, as the other jumps) now, both feet on the floor.",
   },
 
   depthJump: {

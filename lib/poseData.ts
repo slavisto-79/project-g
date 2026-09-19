@@ -1708,7 +1708,9 @@ export const exercisePoses = {
         stand({ x: 0.5, y: 0.494 }, 2, HANG),
         // The bottom: thigh 82 forward and shin 27, so the knee closes to 71
         // and the hip sits below the knee; trunk 42.
-        { pelvis: overAnkle(98, 207, 42), torso: 42, neck: 25, arms: reachOut, legs: sideLegs(98, 207, 90) },
+        // (lyingLegs, as the other jumps: sideLegs' five-degree far-leg
+        // offset put the far toe 1.2 cm into the floor.)
+        { pelvis: overAnkle(98, 207, 42), torso: 42, neck: 25, arms: reachOut, legs: lyingLegs(98, 207, 90) },
         // Airborne: the body one line, the toes pointed, the arms swung back
         // to the sides. The hip is 17 cm above standing and the feet 12 cm
         // off the floor (at 0.414 the extended legs left only 2.9 cm of air).
@@ -2791,7 +2793,9 @@ export const exercisePoses = {
         const pelvis = overAnkle(FEET[0], thigh, shin, torso);
         // 22 ahead of plumb, not the hinge's 12: the bar has to clear a heavy
         // thigh and shin on the way past the knee.
-        return { pelvis, torso, neck: Math.round(torso * 0.6), arms: sideArms(158, 161), legs: sideLegs(thigh, shin, 90) };
+        // (lyingLegs: sideLegs' five-degree far-leg offset put the far toe
+        // 1.6 cm into the floor at the start.)
+        return { pelvis, torso, neck: Math.round(torso * 0.6), arms: sideArms(158, 161), legs: lyingLegs(thigh, shin, 90) };
       };
       return [
         // The start: hips LOW (thigh 80 forward, the shin 20 over the toes),
