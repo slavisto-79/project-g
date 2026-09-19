@@ -429,9 +429,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "five reps in 9 s",
-    prs: [280],
+    prs: [280, 433],
     date: "2026-09-09",
     exercises: ["Dumbbell Lateral Raise"],
+    notes: "Clip audit: the clip's forearm 100-109 is measured from HANGING; it was authored as 100 in the from-up convention, 10 below level, and the hands finished 4 cm under the shoulders. 76 from up (104 from hanging) puts the hands 8 cm over the shoulders at the top with the elbow 169 (hers 166-174); the middle key 135/130 keeps the same soft bend.",
   },
   skullCrusher: {
     videoId: "eluOhtYkm-0",

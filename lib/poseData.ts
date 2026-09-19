@@ -4220,8 +4220,11 @@ export const exercisePoses = {
   // vertical -- level or a shade above -- with the forearm 100-109, so the
   // hands ride a little higher than the elbows (elbow 166-174); a rep is a
   // 0.75 s raise, a touch at the top, a 1.2 s lowering and a beat at the
-  // bottom. Frames [upper, forearm] 172/172 -> 135/140 -> 88/100. The old
-  // frames stopped 3 degrees under level and had no tempo.
+  // bottom. Frames [upper, forearm] 172/172 -> 135/130 -> 88/76. The old
+  // frames stopped 3 degrees under level and had no tempo. (The clip's
+  // forearm 100-109 is from HANGING; authored as 100 from up it was 10 below
+  // level and the hands finished 4 cm under the shoulders. 76 from up is
+  // 104 from hanging: the hands 8 cm over the shoulders, elbow 169.)
   // Arnold press, from a reference clip measured with the pose lab (OPEX
   // "Standing Arnold Dumbbell Press", hHmFzFaSn7U, square FRONT view -- the
   // right one, since the whole difference from a shoulder press is what the
@@ -4261,7 +4264,7 @@ export const exercisePoses = {
 
   lateralRaise: pose(
     "front",
-    ([[172, 172], [135, 140], [88, 100]] as const).map(([upper, lower]) => standFront(0.497, 0, bothArms(upper, lower))),
+    ([[172, 172], [135, 130], [88, 76]] as const).map(([upper, lower]) => standFront(0.497, 0, bothArms(upper, lower))),
     [{ kind: "floor" }, { kind: "bell", at: "hand0", each: true, size: 0.05 }],
     "neutral",
     1,
