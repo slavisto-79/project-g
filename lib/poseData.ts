@@ -1742,13 +1742,17 @@ export const exercisePoses = {
       };
       return [
         stand({ x: 0.5, y: 0.494 }, 2, sideArms(172, 160)),
-        // The dip: knees 110 (thigh 40, shin 30 forward), trunk 25, the arms
-        // swung back; the hip 8 cm down.
-        { pelvis: overAnkle(FEET[0], 140, 210, 25), torso: 25, neck: 15, arms: sideArms(215, 200), legs: sideLegs(140, 210, 90) },
-        // The apex: hip 20 cm up, the thighs pulled to level (85 forward) with
-        // the shins folded back under them (knee 55), the toes down; the
-        // hands drawn in at the chest.
-        { pelvis: { x: 0.5, y: 0.294 }, torso: 15, neck: 9, arms: sideArms(150, 60), legs: sideLegs(95, 220, 240) },
+        // The dip: the hip 8 cm down, the clip's 8-10 (read from the raw
+        // keypoints, surer than its "about 110" knee): knee 128 (thigh 30,
+        // shin 22 forward), trunk 25, the arms swung back. Knee 110 dropped
+        // the hip 15 cm.
+        { pelvis: overAnkle(FEET[0], 150, 202, 25), torso: 25, neck: 15, arms: sideArms(215, 200), legs: sideLegs(150, 202, 90) },
+        // The apex: hip 22 cm up, the clip's 20-25 (y 0.294 was 0.2 units,
+        // 40 cm); the thighs 23 below level -- the clip's knee 32 px under the
+        // hip against 80 standing, asin 0.4, not "near level" -- with the
+        // shins folded back under them (knee 60), the toes down; the hands
+        // drawn in at the chest.
+        { pelvis: { x: 0.5, y: 0.384 }, torso: 15, neck: 9, arms: sideArms(150, 60), legs: sideLegs(113, 233, 250) },
       ];
     })(),
     [{ kind: "floor", y: GROUND }],

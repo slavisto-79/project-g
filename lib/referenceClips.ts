@@ -672,10 +672,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Bristol - The Future of Personal Training",
     view: "side",
     span: "three jumps in 8.5 s",
-    prs: [306],
+    prs: [306, 430],
     date: "2026-09-11",
     exercises: ["Tuck Jump"],
-    notes: "Read as raw keypoints (heights, knee under hip). The video sits behind YouTube's consent page.",
+    notes: "Read as raw keypoints (heights, knee under hip). The video sits behind YouTube's consent page. Clip audit: the apex hip sat 40 cm up against the clip's 20-25 -- pelvis y 0.294 is 0.2 units, 40 cm, for a comment that said 20; now 22 cm. The apex thighs 23 below level: the clip's knee 32 px under the hip against 80 standing is asin 0.4, which the old comment read as near level. The dip 8 cm down, the clip's 8-10 (knee 128; the old knee 110 dropped the hip 15 cm).",
   },
 
   powerClean: {
