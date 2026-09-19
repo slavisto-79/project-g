@@ -640,7 +640,7 @@ export const exercisePoses = {
         keepFoot(squatting({
           pelvis: { x, y },
           torso,
-          arms: sideArms(93, 95),
+          arms: sideArms(135, 350),
           legs: [{ upper, lower, end: 90 }, { upper, lower, end: 90 }] as [Limb, Limb],
         })),
     ),
@@ -2605,7 +2605,11 @@ export const exercisePoses = {
         torso,
         // Chin tucked, face forward -- not trailing off the bench.
         neck: torso + 54,
-        arms: sideArms(93, 95),
+        // The hands hold the bar on the hips: reached to it every key, the
+        // elbows down toward the floor. (Batch 15 overwrote these arms with a
+        // straight reach at shoulder height, and before that they were a
+        // fixed pair that stayed at the floor while the bar rose.)
+        arms: reachingArms(pelvis, torso, "side", [{ x, y: y - 0.048 }, { x, y: y - 0.048 }], BACK),
         // Shoulders stay on the bench and the feet stay planted; only the hip
         // travels, which is what makes it a thrust and not a squat lying down.
         //
@@ -5965,7 +5969,7 @@ export const exercisePoses = {
         pelvis,
         torso,
         neck: torso > 20 ? torso - 12 : torso,
-        arms: sideArms(93, 95),
+        arms: sideArms(100, 97),
         legs: [plantedLegs(pelvis, torso, "side", FEET, FORWARD)[0]!, { upper: up, lower: low, end }] as [Limb, Limb],
       };
     }),
@@ -6444,7 +6448,7 @@ export const exercisePoses = {
         torso: 354,
         // Hands a little higher, so the thigh pad they rest on clears the
         // thighs it presses on instead of cutting into them.
-        arms: sideArms(93, 95),
+        arms: sideArms(118, 120),
         legs: plantedLegs(pelvis, 354, "side", [{ x: ax, y: ay }, { x: ax - 0.012, y: ay + 0.008 }], FORWARD, [end, end + 4]),
       };
     }),

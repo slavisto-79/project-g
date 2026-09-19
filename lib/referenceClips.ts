@@ -172,7 +172,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "My PT Hub",
     view: "side",
     span: "shoulders on a bench, three reps",
-    prs: [264, 418, 419],
+    prs: [264, 418, 419, 426],
     date: "2026-09-09",
     exercises: ["Barbell Hip Thrust"],
     secondClips: [
@@ -189,7 +189,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
           "Her feet stand on a plate 0.16 legs (hip-knee plus knee-ankle) off the floor, so the bench is read from that support: its pad top 0.51 legs above it, the shoulder 0.68 (on the edge all rep), the trunk 8 above level at the top (7-13). Ours: the pad 0.50 legs above the floor the feet stand on, the shoulder 0.64, the trunk 8 -- the bench (46-47 cm) is kept. Her knee at the top is 84-93, the first clip's ~110 read from above; #419 moved our feet 4.5 cm nearer the hips: knee 90 at the top (was 109), 83 at the bottom (was 107; hers 66-71), the shin 9 back of plumb at the top.",
       },
     ],
-    notes: "The OPEX clip in the batch list was a floor thrust with no bench, so this one was used instead. Bench height checked (batch 22): an ordinary flat bench, filmed from above at an angle, so no number is read off this frame; measured on a second, side-on clip (below) -- kept at 46-47 cm.",
+    notes: "The OPEX clip in the batch list was a floor thrust with no bench, so this one was used instead. Bench height checked (batch 22): an ordinary flat bench, filmed from above at an angle, so no number is read off this frame; measured on a second, side-on clip (below) -- kept at 46-47 cm. Arms (clip audit): PR 363 overwrote them with a straight reach at shoulder height, and the pair before stayed at the floor while the bar rose 31 cm; the hands now reach to the bar on the hips in every key, elbows down.",
   },
   sumoDeadlift: {
     videoId: "OKMDYjnK8m8",
@@ -208,10 +208,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "PureGym",
     view: "side",
     span: "the first 8 s, two reps before the cut to a close-up",
-    prs: [266, 421],
+    prs: [266, 421, 426],
     date: "2026-09-09",
     exercises: ["Barbell Front Squat"],
-    notes: "Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. The legs are the clip's angles, so the pelvis moves by the split's difference and the feet stay on the floor (they lifted 2.8 cm); the standing key straightened a degree (179 / 181) for the standing-knee check.",
+    notes: "Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. The legs are the clip's angles, so the pelvis moves by the split's difference and the feet stay on the floor (they lifted 2.8 cm); the standing key straightened a degree (179 / 181) for the standing-knee check. Arms restored (clip audit): PR 363 (glute bridge) overwrote this pose's arms with a straight reach at shoulder height; back to the clip's rack, 135/350 (elbow 35, hands on the front delts).",
   },
   splitSquat: {
     videoId: "Fmjj7wFJWRE",
@@ -1661,11 +1661,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 11 s",
-    prs: [349, 421],
+    prs: [349, 421, 426],
     date: "2026-09-13",
     exercises: ["Pistol Squat"],
     notes:
-      "MoveNet trades the left and right legs whenever they cross, so legs are told apart by behaviour (the folding knee is the support) and the trunk is read from shoulder-over-hip height, not the hip keypoint's jumping x. Standing, the free foot hangs just off the floor, knee 132-138; a fifth of the way down it is long at 40-47 forward of plumb, half way 60-75, level at the bottom (85-94) with the knee 153-157 and the heel just off the floor. Bottom: hip at 0.27 of standing height over the ankle, support knee 53-55, trunk 34-41. Arms forward 7-15 under level throughout. 1.3 s down, 0.25 s bottom, 1.0 s up, about 1 s standing. Our leg cannot reach her 0.27 without folding the knee to 46; the bottom takes knee 50 at 0.32. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. The pelvises re-solved so the support leg keeps the clip's angles (knee 103 / 69 / 50, the shin 26 forward at the bottom); on the new split the old pelvises left the shin at 16.",
+      "MoveNet trades the left and right legs whenever they cross, so legs are told apart by behaviour (the folding knee is the support) and the trunk is read from shoulder-over-hip height, not the hip keypoint's jumping x. Standing, the free foot hangs just off the floor, knee 132-138; a fifth of the way down it is long at 40-47 forward of plumb, half way 60-75, level at the bottom (85-94) with the knee 153-157 and the heel just off the floor. Bottom: hip at 0.27 of standing height over the ankle, support knee 53-55, trunk 34-41. Arms forward 7-15 under level throughout. 1.3 s down, 0.25 s bottom, 1.0 s up, about 1 s standing. Our leg cannot reach her 0.27 without folding the knee to 46; the bottom takes knee 50 at 0.32. Thigh / shin split (batch 23): the figure's knee sat 44 cm up under a hip at 89 (knee / hip 0.49, a body's 0.54); the thigh went 0.225 -> 0.207 and the shin to the foot's ground point 0.215 -> 0.233, the sum unchanged. The pelvises re-solved so the support leg keeps the clip's angles (knee 103 / 69 / 50, the shin 26 forward at the bottom); on the new split the old pelvises left the shin at 16. Arms restored (clip audit): PR 363 overwrote them with 93/95 (3 under level); back to 100/97, the clip's 7-15 under level.",
   },
 
   wallSit: {
@@ -1871,11 +1871,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "five reps in 8.4 s",
-    prs: [333],
+    prs: [333, 426],
     date: "2026-09-12",
     exercises: ["Seated Calf Raise"],
     notes:
-      "What it settles beyond argument: the machine puts the ball of the foot on a RAISED PLATE and the heel drops below plate level, which is where the calf is stretched -- ours had the foot flat on the floor, so that half of the range did not exist. It also holds the knee at 83 to 89 degrees in all 37 frames, mean 86. What it CANNOT settle is any travel distance: its hip keypoint rises 8 cm over a rep, which a seated hip on a fixed seat cannot do, so the whole skeleton estimate drifts in phase with the lift and its scale is untrustworthy here. The heel range is therefore authored from the plate geometry and capped by keeping the knee inside the clip's own band at the start.",
+      "What it settles beyond argument: the machine puts the ball of the foot on a RAISED PLATE and the heel drops below plate level, which is where the calf is stretched -- ours had the foot flat on the floor, so that half of the range did not exist. It also holds the knee at 83 to 89 degrees in all 37 frames, mean 86. What it CANNOT settle is any travel distance: its hip keypoint rises 8 cm over a rep, which a seated hip on a fixed seat cannot do, so the whole skeleton estimate drifts in phase with the lift and its scale is untrustworthy here. The heel range is therefore authored from the plate geometry and capped by keeping the knee inside the clip's own band at the start. Arms restored (clip audit): PR 363 overwrote them with a straight reach at shoulder height; back to 118/120, the hands on the thigh pad.",
   },
 
   curtsyLunge: {
