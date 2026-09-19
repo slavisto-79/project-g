@@ -1233,9 +1233,12 @@ export const exercisePoses = {
         const hipS = hipAt(pelvis, torso, stance, "front");
         const foot = { x: hipS.x + dir * 0.008, y: FLOOR };
         const stanceLeg: Limb = { ...reach(hipS, foot, P.thigh, P.shin, OUT[stance]), end: stance === 0 ? 90 : 270 };
-        // The free leg angled 20 toward the stance side, its shin swung 70
-        // behind: the foot ends up behind the stance ankle, 15 cm up.
-        const freeLeg: Limb = { upper: 180 - dir * 20, lower: 180, forward: -70, end: 180 };
+        // The free leg angled 20 toward the stance side and its shin 20 more,
+        // swung 30 behind: the foot crosses behind the stance ankle, 15 cm up,
+        // the clip's 13-15. (Straight down and swung 70 behind put it 37 cm
+        // up; the clip's frontal knee of 80-115 is that shin crossing over,
+        // not a fold.)
+        const freeLeg: Limb = { upper: 180 - dir * 20, lower: 180 - dir * 20, forward: -30, end: 180 };
         const legs = (stance === 0 ? [stanceLeg, freeLeg] : [freeLeg, stanceLeg]) as [Limb, Limb];
         // Hands together in front of the chest, the forearms crossing.
         const arms: [Limb, Limb] = [{ upper: 200, lower: 290 }, { upper: 160, lower: 70 }];

@@ -624,10 +624,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Exercise Library",
     view: "front",
     span: "nine bounds in 12 s",
-    prs: [302],
+    prs: [302, 431],
     date: "2026-09-10",
     exercises: ["Skater Bound"],
-    notes: "Frontal keypoints read directly (hip travel, lean, free-foot height), not the lab's sagittal table.",
+    notes: "Frontal keypoints read directly (hip travel, lean, free-foot height), not the lab's sagittal table. Clip audit: the free foot rode 37 cm up against the clip's 13-15 (a shin hanging straight in the frontal plane, swung 70 behind). The thigh and shin now angle 20 each toward the stance side with the shin 30 behind: the foot crosses behind the stance ankle 15 cm up. The clip's frontal knee of 80-115 is that shin crossing over, not a fold.",
   },
 
   kettlebellSnatch: {
