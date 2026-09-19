@@ -1653,15 +1653,17 @@ export const exercisePoses = {
         // Standing tall on the box.
         { pelvis: overAnkle(onBox, 180, 180, 2), torso: 2, neck: 0, arms, legs: lyingLegs(180, 180, 90) },
         // Stepping off: the near foot has left the edge and hangs in front,
-        // the far foot still on the box, the hip starting to fall.
-        { pelvis: { x: 0.54, y: 0.30 }, torso: 8, neck: 5, arms, legs: [{ upper: 160, lower: 175, end: 120 }, { upper: 185, lower: 182, end: 90 }] as [Limb, Limb] },
-        // The landing: both feet on the floor in front of the box, knee 130,
-        // trunk 20, the arms swung back ready to drive.
-        { pelvis: overAnkle(floorFeet[0], 140, 205, 20), torso: 20, neck: 12, arms: sideArms(215, 200), legs: sideLegs(140, 205, 90) },
+        // the far foot still on the box (solved to its top: authored by angle
+        // it sat 16 cm inside the box), the hip starting to fall.
+        { pelvis: { x: 0.54, y: 0.30 }, torso: 8, neck: 5, arms, legs: [{ upper: 160, lower: 175, end: 120 }, { ...reach(hipAt({ x: 0.54, y: 0.30 }, 8, 1, "side"), onBox, P.thigh, P.shin, -1), end: 90 }] as [Limb, Limb] },
+        // The landing: both feet on the floor in front of the box, knee 130
+        // and trunk 10, the clip's (128-133 / 8-11; sideLegs(140, 205) was
+        // 115, the trunk 20), the arms swung back ready to drive.
+        { pelvis: overAnkle(floorFeet[0], 155, 205, 10), torso: 10, neck: 6, arms: sideArms(215, 200), legs: sideLegs(155, 205, 90) },
         // The rebound: off the floor again, the toes pointed, the arms up.
         { pelvis: { x: 0.42, y: 0.345 }, torso: -2, neck: -1, arms: sideArms(60, 45), legs: sideLegs(178, 180, 140) },
         // The second landing, the same absorb.
-        { pelvis: overAnkle(floorFeet[0], 140, 205, 20), torso: 20, neck: 12, arms: sideArms(150, 130), legs: sideLegs(140, 205, 90) },
+        { pelvis: overAnkle(floorFeet[0], 155, 205, 10), torso: 10, neck: 6, arms: sideArms(150, 130), legs: sideLegs(155, 205, 90) },
         // Stepping back up: the far foot on the box, the hip rising.
         { pelvis: { x: 0.52, y: 0.33 }, torso: 15, neck: 9, arms, legs: [{ upper: 195, lower: 195, end: 120 }, { ...reach(hipAt({ x: 0.52, y: 0.33 }, 15, 1, "side"), { x: 0.60, y: boxTop }, P.thigh, P.shin, -1), end: 90 }] as [Limb, Limb] },
       ];

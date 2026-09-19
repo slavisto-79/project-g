@@ -744,10 +744,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Catalyst Athletics",
     view: "side",
     span: "two reps out of a 1:20 tutorial",
-    prs: [312],
+    prs: [312, 429],
     date: "2026-09-11",
     exercises: ["Depth Jump"],
-    notes: "A step off the box, not a jump down; the contact before the rebound is 0.2-0.4 s.",
+    notes: "A step off the box, not a jump down; the contact before the rebound is 0.2-0.4 s. Clip audit: the step-off key drew the far leg by angle, and its foot sat 16 cm inside the box; it is solved to the box top now. The landings are the clip's absorb, knee 130 and trunk 10 (hers 128-133 / 8-11): sideLegs(140, 205) was 115 with the trunk at 20, against a comment that said 130.",
   },
 
   arnoldPress: {
