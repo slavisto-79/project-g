@@ -485,10 +485,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "a 9 s hold",
-    prs: [285],
+    prs: [285, 435],
     date: "2026-09-09",
     exercises: ["Side Plank"],
-    notes: "Copenhagen Plank (feet on a bench) borrows this floor side plank.",
+    notes: "Copenhagen Plank (feet on a bench) borrows this floor side plank. Clip audit: the top foot floated 4-5 cm over the bottom one (ankles 14.5 cm apart); the top leg now 109 / 112, so its shoe rests on the bottom one, the ankles a shoe's width (10 cm) apart.",
   },
   // --- Batch 6: the borrowed exercises get their own poses ----------------
   copenhagenPlank: {
