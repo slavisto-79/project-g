@@ -523,9 +523,11 @@ export const exercisePoses = {
       // the leg, where the solver locks the knee) above the trailing ankle
       // on the floor at the start, above the lead ankle on the box at the
       // top -- a hair less and the solver folds the knee 36 degrees.
-      [{ x: 0.44, y: 0.50 }, 25, "floor"],
+      // (Lead knee 75 at the start, the clip's 73-80 -- it was 85; knees 162
+      // standing on the box, 157-175 -- they were locked.)
+      [{ x: 0.46, y: 0.505 }, 25, "floor"],
       [{ x: 0.57, y: 0.33 }, 12, "hanging"],
-      [{ x: 0.62, y: 0.221 }, 2, "box"],
+      [{ x: 0.62, y: 0.2235 }, 2, "box"],
     ] as const).map(([pelvis, torso, trail]) => {
       const lead = { x: 0.62, y: 0.658 };
       const hips = [0, 1].map((side) => hipAt(pelvis, torso, side as 0 | 1, "side"));
@@ -942,8 +944,9 @@ export const exercisePoses = {
       const hip = along(knee, front.upper + 180, P.thigh);
       const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
       // Front foot flat on the floor, rear foot up on the box behind, its
-      // dorsum down on the box top.
-      const rear: Limb = { ...plantedLegs(pelvis, torso, "side", [ankle, { x: 0.40, y: 0.615 }], FORWARD)[1], end: 200 };
+      // dorsum down on the box top. (The box foot 4 cm further back: the
+      // rear knee 86 at the top, the clip's 86-94; at 0.40 it was 76.)
+      const rear: Limb = { ...plantedLegs(pelvis, torso, "side", [ankle, { x: 0.38, y: 0.615 }], FORWARD)[1], end: 200 };
       return {
         pelvis,
         torso,
@@ -1077,11 +1080,16 @@ export const exercisePoses = {
   // 1.0 s stand and 0.75 s tall -- the pose had no tempo at all.
   lunge: pose(
     "side",
-    [0.520, 0.630, 0.715].map((y) => { // the bottom 3 cm lower for batch 23's thigh / shin split: rear knee 4 cm up again, front knee 74
-      const pelvis = { x: 0.49, y };
+    // The bottom 3 cm lower for batch 23's thigh / shin split. The clip
+    // audit carried the hip forward over the front foot as it sinks and the
+    // rear toe 6 cm nearer: front shin 25 forward and thigh level (the
+    // clip's 21-27, the knee 0.016 under the hip; they were 13 and 3 above),
+    // front knee 68, rear knee 84 (69-77 / 81-88).
+    ([[0.49, 0.520], [0.505, 0.630], [0.52, 0.71]] as const).map(([x, y]) => {
+      const pelvis = { x, y };
       // The rear foot stands on its toes: the toe is planted and the ankle
       // hangs off it, up and a little forward.
-      const rearToe = { x: 0.293, y: FLOOR };
+      const rearToe = { x: 0.325, y: FLOOR };
       const rearAnkle = along(rearToe, REAR_FOOT - 180, 0.069);
       return {
         pelvis,
@@ -1293,10 +1301,11 @@ export const exercisePoses = {
       const hip = { x: knee.x - (P.thigh * Math.cos(rad)) / ASPECT, y: knee.y - P.thigh * Math.sin(rad) };
       const torso = 3;
       const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
-      // The hand on the top of the thigh, three quarters of the way to the knee.
+      // The hand on the top of the thigh, four fifths of the way to the knee:
+      // elbow 155, the clip's (three quarters of the way bent it to 137).
       const onThigh = [0, 1].map((side) => {
         const h = hipAt(pelvis, torso, side as 0 | 1, "side");
-        return { x: h.x + (knee.x - hip.x) * 0.75, y: h.y + (knee.y - hip.y) * 0.75 - 0.05 };
+        return { x: h.x + (knee.x - hip.x) * 0.8, y: h.y + (knee.y - hip.y) * 0.8 - 0.043 };
       }) as [Point, Point];
       return [
         stand({ x: 0.5, y: 0.494 }, 2, HANG),
@@ -1380,7 +1389,8 @@ export const exercisePoses = {
   // the figure read as someone lying on a bench kicking their heels up.
   legCurl: pose(
     "side",
-    [90, 45, -30].map((shin) => ({
+    // Extended: knee 172, inside the clip's 142-174 (shin 90 left it at 178).
+    [84, 45, -30].map((shin) => ({
       pelvis: { x: 0.47, y: 0.62 },
       torso: 266,
       neck: 318,
@@ -1602,7 +1612,8 @@ export const exercisePoses = {
         stand({ x: 0.36, y: 0.494 }, 2, sideArms(8, 10), undefined, startFeet),
         // The dip: trunk 65, thigh 54 and shin 42 forward (knee 84), the arms
         // swung back and up.
-        { pelvis: overAnkle(startFeet[0], 126, 222, 65), torso: 65, neck: 39, arms: sideArms(250, 240), legs: sideLegs(126, 222, 90) },
+        // (Trunk 78, the clip's 77-84; it was 65.)
+        { pelvis: overAnkle(startFeet[0], 126, 222, 78), torso: 78, neck: 50, arms: sideArms(250, 240), legs: sideLegs(126, 222, 90) },
         // Take-off: the body one line 35 forward, the toes leaving the floor,
         // the arms thrown forward-up. (At 40 the hip stood so far ahead of
         // the feet that it travelled BACKWARDS into the landing.)
@@ -1791,7 +1802,7 @@ export const exercisePoses = {
       // hands 7 cm ABOVE the shoulders.)
       const arms: [Limb, Limb] = [{ upper: 165, lower: 36, spread: -0.08 }, { upper: 165, lower: 36, spread: -0.08 }];
       const front: Limb = { upper: 96, lower: 197, end: 90 }; // thigh 84 forward (the clip's 72-84; 78 before batch 23's split), shin 17, knee 79
-      const rear: Limb = { upper: 190, lower: 280, end: 165 }; // knee 3 cm off the floor, shin back and up, toes down
+      const rear: Limb = { upper: 190, lower: 286, end: 165 }; // shin 106 from plumb, the clip's 105-115 (280 was 100) // knee 3 cm off the floor, shin back and up, toes down
       const lunge = (ankle: Point): Point => {
         const knee = along(ankle, front.lower + 180, P.shin);
         const hip = along(knee, front.upper + 180, P.thigh);
