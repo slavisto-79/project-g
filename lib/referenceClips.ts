@@ -429,10 +429,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "five reps in 9 s",
-    prs: [280, 433],
+    prs: [280, 433, 439],
     date: "2026-09-09",
     exercises: ["Dumbbell Lateral Raise"],
-    notes: "Clip audit: the clip's forearm 100-109 is measured from HANGING; it was authored as 100 in the from-up convention, 10 below level, and the hands finished 4 cm under the shoulders. 76 from up (104 from hanging) puts the hands 8 cm over the shoulders at the top with the elbow 169 (hers 166-174); the middle key 135/130 keeps the same soft bend.",
+    notes: "Clip audit: the clip's forearm 100-109 is measured from HANGING; it was authored as 100 in the from-up convention, 10 below level, and the hands finished 4 cm under the shoulders. 76 from up (104 from hanging) puts the hands 8 cm over the shoulders at the top with the elbow 169 (hers 166-174); the middle key 135/130 keeps the same soft bend. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
   skullCrusher: {
     videoId: "eluOhtYkm-0",
@@ -485,10 +485,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "a 9 s hold",
-    prs: [285, 435],
+    prs: [285, 435, 439],
     date: "2026-09-09",
     exercises: ["Side Plank"],
-    notes: "Copenhagen Plank (feet on a bench) borrows this floor side plank. Clip audit: the top foot floated 4-5 cm over the bottom one (ankles 14.5 cm apart); the top leg now 109 / 112, so its shoe rests on the bottom one, the ankles a shoe's width (10 cm) apart.",
+    notes: "Copenhagen Plank (feet on a bench) borrows this floor side plank. Clip audit: the top foot floated 4-5 cm over the bottom one (ankles 14.5 cm apart); the top leg now 109 / 112, so its shoe rests on the bottom one, the ankles a shoe's width (10 cm) apart. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
   // --- Batch 6: the borrowed exercises get their own poses ----------------
   copenhagenPlank: {
@@ -497,10 +497,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "a 7 s hold",
-    prs: [293, 415],
+    prs: [293, 415, 439],
     date: "2026-09-10",
     exercises: ["Copenhagen Plank"],
-    notes: "Bench height (batch 22): the bench was 81 cm -- 'a bench top 0.40 up' was 0.40 of the frame, not 40 cm. The clip's bench is an ordinary flat bench, and its frame has the top side of the body level (ankle, hip, shoulder at 196 / 203 / 192 px) with the pad 0.56-0.64 of the top leg off the floor. The body now lies level on the forearm (12 down to the head before), the top ankle 61 cm up, the pad 53 cm (0.58 legs).",
+    notes: "Bench height (batch 22): the bench was 81 cm -- 'a bench top 0.40 up' was 0.40 of the frame, not 40 cm. The clip's bench is an ordinary flat bench, and its frame has the top side of the body level (ankle, hip, shoulder at 196 / 203 / 192 px) with the pad 0.56-0.64 of the top leg off the floor. The body now lies level on the forearm (12 down to the head before), the top ankle 61 cm up, the pad 53 cm (0.58 legs). Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
   pallofPress: {
     videoId: "syYBcVbEAFk",
@@ -625,10 +625,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Exercise Library",
     view: "front",
     span: "nine bounds in 12 s",
-    prs: [302, 431],
+    prs: [302, 431, 439],
     date: "2026-09-10",
     exercises: ["Skater Bound"],
-    notes: "Frontal keypoints read directly (hip travel, lean, free-foot height), not the lab's sagittal table. Clip audit: the free foot rode 37 cm up against the clip's 13-15 (a shin hanging straight in the frontal plane, swung 70 behind). The thigh and shin now angle 20 each toward the stance side with the shin 30 behind: the foot crosses behind the stance ankle 15 cm up. The clip's frontal knee of 80-115 is that shin crossing over, not a fold.",
+    notes: "Frontal keypoints read directly (hip travel, lean, free-foot height), not the lab's sagittal table. Clip audit: the free foot rode 37 cm up against the clip's 13-15 (a shin hanging straight in the frontal plane, swung 70 behind). The thigh and shin now angle 20 each toward the stance side with the shin 30 behind: the foot crosses behind the stance ankle 15 cm up. The clip's frontal knee of 80-115 is that shin crossing over, not a fold. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
 
   kettlebellSnatch: {
@@ -757,10 +757,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "four reps in 14 s",
-    prs: [314],
+    prs: [314, 439],
     date: "2026-09-11",
     exercises: ["Arnold Press"],
-    notes: "Front view: the hand path is the lift. The mannequin has no forearm twist, so the palm rotation is not drawn.",
+    notes: "Front view: the hand path is the lift. The mannequin has no forearm twist, so the palm rotation is not drawn. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
 
   pecDeck: {
@@ -803,10 +803,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "three reps in 11 s",
-    prs: [287],
+    prs: [287, 439],
     date: "2026-09-09",
     exercises: ["Cable Woodchopper"],
-    notes: "Pallof Press (a straight-out press against the cable) borrows this chop.",
+    notes: "Pallof Press (a straight-out press against the cable) borrows this chop. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
   carry: {
     videoId: "K4R8uc1x_OA",
@@ -1170,11 +1170,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "MGHOrthopaedics",
     view: "front",
     span: "four lunges, alternating sides, in 13 s (of 28)",
-    prs: [388],
+    prs: [388, 439],
     date: "2026-09-16",
     exercises: ["Lateral Lunge"],
     notes:
-      "Borrowed the cossack squat's pose before. Feet together, step out to one side, sit into that hip, push back to the middle. Hip height as a fraction of the standing hip-to-ankle height: the hips drop 0.33 (the cossack pose drops 0.41); the ankles land 1.17 apart (cossack 1.04); the trunk leans 9-14 over the bent knee (cossack 6 the other way); the long leg stays straight (172-180). The bent knee reads 122-136 face on, opened by the thigh pointing forward; ours solves to 86 in the plane. Ours: drop 0.33, ankles 1.17, lean 12. The clip alternates sides; the library counts per side, so the pose does one. Tempo at 0.2 s: step out 0.6 s, sink 0.8, 0.4 at the bottom, back to the middle 0.8-1.0, 0.4 standing; about 3.1 s a side.",
+      "Borrowed the cossack squat's pose before. Feet together, step out to one side, sit into that hip, push back to the middle. Hip height as a fraction of the standing hip-to-ankle height: the hips drop 0.33 (the cossack pose drops 0.41); the ankles land 1.17 apart (cossack 1.04); the trunk leans 9-14 over the bent knee (cossack 6 the other way); the long leg stays straight (172-180). The bent knee reads 122-136 face on, opened by the thigh pointing forward; ours solves to 86 in the plane. Ours: drop 0.33, ankles 1.17, lean 12. The clip alternates sides; the library counts per side, so the pose does one. Tempo at 0.2 s: step out 0.6 s, sink 0.8, 0.4 at the bottom, back to the middle 0.8-1.0, 0.4 standing; about 3.1 s a side. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
   diamondPushUp: {
     videoId: "Bhuscxybjf4",
@@ -1531,11 +1531,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Viking Strength Systems",
     view: "front",
     span: "two throws at a wall in 16 s",
-    prs: [359],
+    prs: [359, 439],
     date: "2026-09-13",
     exercises: ["Rotational Med Ball Throw"],
     notes:
-      "Facing the camera, the wall to one side; distances scaled by her shoulder width (0.15 of the frame). Load: ball just above the back hip, back knee 139-150, front 165-171. Release: hands 0.06-0.10 of the frame under the shoulders, 1.5 shoulder widths across from the hips' centre, elbows 141-155, trunk leaning 10-15 toward the wall. The shoulders turn past side-on (projected width +0.15 through zero to -0.04..-0.09), hips to ~100 degrees: our trunk has no twist about its long axis, so the turn is carried by the arms and lean and the far arm stays folded (97). Throw 0.2-0.4 s, follow-through held ~1 s, return 0.7 s, load ~1 s.",
+      "Facing the camera, the wall to one side; distances scaled by her shoulder width (0.15 of the frame). Load: ball just above the back hip, back knee 139-150, front 165-171. Release: hands 0.06-0.10 of the frame under the shoulders, 1.5 shoulder widths across from the hips' centre, elbows 141-155, trunk leaning 10-15 toward the wall. The shoulders turn past side-on (projected width +0.15 through zero to -0.04..-0.09), hips to ~100 degrees: our trunk has no twist about its long axis, so the turn is carried by the arms and lean and the far arm stays folded (97). Throw 0.2-0.4 s, follow-through held ~1 s, return 0.7 s, load ~1 s. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
 
   medBallSlam: {
@@ -1557,11 +1557,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "five reps in 10 s",
-    prs: [357, 407],
+    prs: [357, 407, 439],
     date: "2026-09-13",
     exercises: ["Standing Hip Abduction"],
     notes:
-      "Square front view; the working leg's projected length holds 0.31-0.33 of the frame all the way out, so it moves in the film plane. A first capture cropped the working ankle out of frame at the top (score 0.1): widen the crop to the side the leg goes. Top: leg 53-61 from plumb, knee 177-180; the working hip hikes 10-13 and the trunk leans away 6-9 more than at rest. Hands on the hips, elbows 84-112. 0.6 s out, a moment at the top, 0.75 s back, ~0.5 s standing -- 2.0 s a rep. Width (#407, the reachingArms review): hands on the hip crests 1.30-1.37 shoulder widths apart, elbows 1.95-2.1; the pose had 1.89, now 1.35.",
+      "Square front view; the working leg's projected length holds 0.31-0.33 of the frame all the way out, so it moves in the film plane. A first capture cropped the working ankle out of frame at the top (score 0.1): widen the crop to the side the leg goes. Top: leg 53-61 from plumb, knee 177-180; the working hip hikes 10-13 and the trunk leans away 6-9 more than at rest. Hands on the hips, elbows 84-112. 0.6 s out, a moment at the top, 0.75 s back, ~0.5 s standing -- 2.0 s a rep. Width (#407, the reachingArms review): hands on the hip crests 1.30-1.37 shoulder widths apart, elbows 1.95-2.1; the pose had 1.89, now 1.35. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
 
   oneArmRow: {
@@ -1793,11 +1793,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "six step cycles in 8.4 s",
-    prs: [339, 428],
+    prs: [339, 428, 439],
     date: "2026-09-12",
     exercises: ["Banded Lateral Walk"],
     notes:
-      "A square front view -- the shoulder separation holds 0.172 to 0.183 of the frame throughout. The body TRAVELS: the hip crosses 1.10 of the frame in 8.4 s because the feet alternate, lead out then trail in, six times. The step is 1.04 shoulder widths and the stance swings between 0.71 closed and 1.73 open, which differ by exactly one step -- that is what says the trail foot closes the whole gap the lead opened. The stepping foot lifts 3 cm. A full cycle takes 1.44 s, the mean of five gaps. What the clip CANNOT settle is the knee: a front camera cannot read a knee bending toward the lens and reports 146 to 180 with no pattern, so the squat depth is set from the hip HEIGHT instead, 2.25 shoulder widths above the ankle. Floor fix (clip audit): with no foot angle a front-view foot follows the shin, and the knees bent out stood both feet on their toes, the ankles 8 cm up. Flat feet now (ends 90 / 270), planted ankles 1.2 cm; the pelvis at 0.543 puts the hip 2.25 shoulder widths over the ankle, the clip's (0.552 read 2.38 on tiptoe and 2.20 flat); the step lift 3 cm, the clip's (LIFT 0.033 was 6.6 cm).",
+      "A square front view -- the shoulder separation holds 0.172 to 0.183 of the frame throughout. The body TRAVELS: the hip crosses 1.10 of the frame in 8.4 s because the feet alternate, lead out then trail in, six times. The step is 1.04 shoulder widths and the stance swings between 0.71 closed and 1.73 open, which differ by exactly one step -- that is what says the trail foot closes the whole gap the lead opened. The stepping foot lifts 3 cm. A full cycle takes 1.44 s, the mean of five gaps. What the clip CANNOT settle is the knee: a front camera cannot read a knee bending toward the lens and reports 146 to 180 with no pattern, so the squat depth is set from the hip HEIGHT instead, 2.25 shoulder widths above the ankle. Floor fix (clip audit): with no foot angle a front-view foot follows the shin, and the knees bent out stood both feet on their toes, the ankles 8 cm up. Flat feet now (ends 90 / 270), planted ankles 1.2 cm; the pelvis at 0.543 puts the hip 2.25 shoulder widths over the ankle, the clip's (0.552 read 2.38 on tiptoe and 2.20 flat); the step lift 3 cm, the clip's (LIFT 0.033 was 6.6 cm). Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
 
   // --- Batch 11: the leftovers, picked by measured defect -----------------
@@ -1885,11 +1885,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "three reps in 10.8 s",
-    prs: [332, 422],
+    prs: [332, 422, 439],
     date: "2026-09-12",
     exercises: ["Curtsy Lunge"],
     notes:
-      "Read as RATIOS of the standing hip height, because his proportions are not the model's -- his thigh is 0.58 of his hip height and ours 0.50. The hip drops 47% of that height (ours 30%); the TRAILING KNEE arrives at the floor, level with the standing ankle, where ours stopped 22% up; the trailing heel lifts to 14% with the knee BELOW it; the trailing foot finishes 1.5 shoulder widths past the standing foot from a stance of 0.72; and the trunk leaves vertical by 15 degrees AWAY from the crossing leg. A front camera cannot read a knee angle in this movement -- the standing shin travels forward, out of the film plane -- so no knee angle is quoted. Batch 23 stage 2: the bottom pelvis 4 cm lower for the new split: the trailing knee 3 cm off the floor, as the clip's arrives at it.",
+      "Read as RATIOS of the standing hip height, because his proportions are not the model's -- his thigh is 0.58 of his hip height and ours 0.50. The hip drops 47% of that height (ours 30%); the TRAILING KNEE arrives at the floor, level with the standing ankle, where ours stopped 22% up; the trailing heel lifts to 14% with the knee BELOW it; the trailing foot finishes 1.5 shoulder widths past the standing foot from a stance of 0.72; and the trunk leaves vertical by 15 degrees AWAY from the crossing leg. A front camera cannot read a knee angle in this movement -- the standing shin travels forward, out of the film plane -- so no knee angle is quoted. Batch 23 stage 2: the bottom pelvis 4 cm lower for the new split: the trailing knee 3 cm off the floor, as the clip's arrives at it. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too. The trailing leg is authored with depth now: the shin swung behind, the foot 45 cm back on its toes, knee 5.5 cm over the floor, ankle 12.5 cm up (the clip 14% of hip height); in the plane alone it crossed in front of the standing leg.",
   },
 
   // --- Batch 10: the cable family ----------------------------------------
@@ -1971,10 +1971,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "four reps in 12.1 s",
-    prs: [325],
+    prs: [325, 439],
     date: "2026-09-11",
     exercises: ["Cable Lateral Raise"],
-    notes: "Low pulleys, which the pose already had. What it corrected was the finish: the clip takes the hand ABOVE the shoulder, ours stopped 5 cm below it.",
+    notes: "Low pulleys, which the pose already had. What it corrected was the finish: the clip takes the hand ABOVE the shoulder, ours stopped 5 cm below it. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
 
   cableFly: {
@@ -1983,10 +1983,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "four reps in 12.4 s",
-    prs: [324],
+    prs: [324, 439],
     date: "2026-09-11",
     exercises: ["Cable Chest Fly"],
-    notes: "A front camera cannot see an arm reaching forward, so the elbow angle in this clip is a projection and is not used; what it settles is the HAND PATH -- one height, wide to together -- and the pulley height.",
+    notes: "A front camera cannot see an arm reaching forward, so the elbow angle in this clip is a projection and is not used; what it settles is the HAND PATH -- one height, wide to together -- and the pulley height. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
 
   lateralLunge: {
@@ -1995,10 +1995,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "four reps in 15.7 s",
-    prs: [323],
+    prs: [323, 439],
     date: "2026-09-11",
     exercises: ["Cossack Squat"],
-    notes: "The pose STEPS OUT from a narrow stance, which Lateral Lunge did while it shared it; the clip holds one wide stance throughout and shifts side to side, which is the cossack. What transferred is the depth, the dead-straight trailing leg, the hands and the tempo. Lateral Lunge has its own pose now (sideLunge).",
+    notes: "The pose STEPS OUT from a narrow stance, which Lateral Lunge did while it shared it; the clip holds one wide stance throughout and shifts side to side, which is the cossack. What transferred is the depth, the dead-straight trailing leg, the hands and the tempo. Lateral Lunge has its own pose now (sideLunge). Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
   },
 
   proneRaise: {
