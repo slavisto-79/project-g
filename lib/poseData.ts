@@ -699,7 +699,7 @@ export const exercisePoses = {
   // soft (164-174).
   //
   // Authored from the ankle up with the clip's own joint angles, the ankle
-  // on a 3 cm plate under the heels and the foot pitched toes-down onto the
+  // on a 6 cm wedge under the heels and the foot pitched toes-down onto the
   // floor. A narrower stance than the squat's own, so both heels land on
   // the plate. Measured after: knee 170 / 101 / 51, trunk 0 / 16 / 24, hip
   // 1.00 / 0.76 / 0.39 of standing height, the toes 6 mm over the floor.
@@ -708,7 +708,8 @@ export const exercisePoses = {
   // bottom (0.6-0.9 on the first), up in 1.2-1.5, 0.3-0.6 standing; tops
   // 3.9 s apart.
   heelsElevatedGobletSquat: (() => {
-    // The heels on a 3 cm plate, the toes on the floor.
+    // The heels on a 6 cm wedge (0.03 units; the comments said 3 cm, the
+    // units read as hundredths), the toes on the floor.
     const ankle = { x: 0.535, y: FLOOR - 0.03 };
     // [trunk, thigh, shin] as world angles, facing forward (+x)
     const keys = [[0, 176, 186], [16, 133, 213], [24, 96, 227]] as const;
