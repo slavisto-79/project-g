@@ -3293,7 +3293,7 @@ export const exercisePoses = {
     // bar has to clear the head's envelope, and this figure's head sits
     // closer to its shoulders than the lifter's.
     ([[356, 340], [340, 280], [322, 222]] as const).map(([upper, lower]) => ({
-      ...bench(0.397, 0.304),
+      ...bench(0.397, 0.304, undefined, 0.66), // feet 0.66: knee 93, the clip's (0.688 left it at 100)
       // The EZ bar's inner grip: from the head end the wrists read 0.6-0.9
       // shoulder widths apart and the elbows 0.55-0.8 (a camera at the head
       // magnifies the bar, so the truth is at most that); 0.8 here, from
@@ -3816,7 +3816,7 @@ export const exercisePoses = {
     // so a soft elbow at the bottom tilts the forearm a little headward --
     // the price of a fly on a side-authored figure.
     ([[355, 10, 8], [352, 335, 45], [350, 325, 78]] as const).map(([upper, lower, abduct]) => ({
-      ...bench(0.397, 0.304),
+      ...bench(0.397, 0.304, undefined, 0.66), // feet 0.66: knee 93, the clip's (0.688 left it at 100)
       arms: [{ upper, lower, abduct }, { upper: upper + 5, lower: lower + 5, abduct }] as [Limb, Limb],
     })),
     [
@@ -7418,12 +7418,14 @@ function bridgeFrames(
 // is 48 cm, 8 lower; the feet stay on the floor and the knees fold to meet it.
 // (Declared in here: a module-level const below the pose table would still
 // be in its temporal dead zone when the table is built.)
-function bench(barX: number, barY: number, press?: { flare: number; spread: number; legSpread: number; feetX: number }): Figure {
+// `feetAt` places the feet alone, for poses that take bench()'s body but
+// draw their own arms (the skull crusher, the fly).
+function bench(barX: number, barY: number, press?: { flare: number; spread: number; legSpread: number; feetX: number }, feetAt?: number): Figure {
   const BENCH_DROP = 0.04;
   const pelvis = { x: 0.560, y: 0.600 + BENCH_DROP };
   barY += BENCH_DROP;
   const torso = 272;
-  const feetX = press?.feetX ?? 0.688;
+  const feetX = feetAt ?? press?.feetX ?? 0.688;
   // The far shoulder sits a shade lower in a side view, so the far hand
   // gets its own target or the lockout frame is out of its reach.
   const arms = reachingArms(pelvis, torso, "side", [{ x: barX, y: barY }, { x: barX - 0.016, y: barY }], BACK);
