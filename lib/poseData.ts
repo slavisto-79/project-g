@@ -5605,12 +5605,15 @@ export const exercisePoses = {
     [
       // A hold: the second key is a breath -- the hips sag 2mm and the
       // trunk steepens the half-degree that keeps the elbow planted.
+      // The top leg 109 / 112, steep enough that its shoe rests on the
+      // bottom one: the ankles 10 cm apart, a shoe's width. At 106 / 109 the
+      // top foot floated 4-5 cm over the bottom one.
       // The top arm is authored 7 degrees toward the head: the world build's
       // splay carries the hand toward the feet (+x here) and the guessed
       // depth a little forward, and plumb-in-the-plane came out 11 degrees
       // off plumb in the world.
-      { pelvis: { x: 0.4744, y: 0.7312 }, torso: 284.8, neck: 286, arms: [{ upper: 353, lower: 353 }, { upper: 180, lower: 180, end: 180, forward: 90 }], legs: [{ upper: 106, lower: 109, end: 96 }, { upper: 103.8, lower: 105.8, end: 96 }] },
-      { pelvis: { x: 0.4744, y: 0.7332 }, torso: 285.25, neck: 286.5, arms: [{ upper: 353, lower: 353 }, { upper: 180, lower: 180, end: 180, forward: 90 }], legs: [{ upper: 106, lower: 109, end: 96 }, { upper: 103.8, lower: 105.8, end: 96 }] },
+      { pelvis: { x: 0.4744, y: 0.7312 }, torso: 284.8, neck: 286, arms: [{ upper: 353, lower: 353 }, { upper: 180, lower: 180, end: 180, forward: 90 }], legs: [{ upper: 109, lower: 112, end: 96 }, { upper: 103.8, lower: 105.8, end: 96 }] },
+      { pelvis: { x: 0.4744, y: 0.7332 }, torso: 285.25, neck: 286.5, arms: [{ upper: 353, lower: 353 }, { upper: 180, lower: 180, end: 180, forward: 90 }], legs: [{ upper: 109, lower: 112, end: 96 }, { upper: 103.8, lower: 105.8, end: 96 }] },
     ],
     [{ kind: "floor", mat: true, y: 0.93 }],
     "overhand",
