@@ -992,7 +992,9 @@ export const exercisePoses = {
       const hip = along(knee, front.upper + 180, P.thigh);
       const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
       // The rear toe stays put; the ankle hangs off it at the foot's angle.
-      const toe = { x: 0.326, y: FLOOR + 0.02 };
+      // On the floor line: it sat 0.02 under it, and the ground, pinned to
+      // the lowest point, lifted the whole figure 4.5 cm off the floor.
+      const toe = { x: 0.326, y: FLOOR };
       const rearAnkle = along(toe, rearFoot + 180, 0.069);
       const rear: Limb = { ...reach(hipAt(pelvis, torso, 1, "side"), rearAnkle, P.thigh, P.shin, -1), end: rearFoot };
       // Hands behind the head, elbows swung out to the sides (the clip's
@@ -1022,7 +1024,8 @@ export const exercisePoses = {
   // degrees off the floor). The bottom's front thigh is the clip's 86: it
   // was held at 78 so the rear knee's round cleared the floor, which the
   // old, long thigh made necessary; on batch 23's split the rear knee sits
-  // 10 cm up at 86. Hands together at the chest, as the clip. `lunge` (the
+  // 6 cm up at 86 (the rear toe on the floor line: 0.02 under it lifted
+  // the whole figure 4.5 cm). Hands together at the chest, as the clip. `lunge` (the
   // loaded lunges) is untouched.
   walkingLunge: pose(
     "side",
@@ -1034,7 +1037,7 @@ export const exercisePoses = {
       const pelvis = { x: hip.x - hipAt({ x: 0, y: 0 }, torso, 0, "side").x, y: hip.y };
       const rear: Limb = rearFoot
         ? (() => {
-            const rearAnkle = along({ x: 0.389, y: FLOOR + 0.02 }, rearFoot + 180, 0.069);
+            const rearAnkle = along({ x: 0.389, y: FLOOR }, rearFoot + 180, 0.069);
             return { ...reach(hipAt(pelvis, torso, 1, "side"), rearAnkle, P.thigh, P.shin, -1), end: rearFoot };
           })()
         : { upper: 178, lower: 182, end: 90 };
