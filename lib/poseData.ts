@@ -6035,12 +6035,14 @@ export const exercisePoses = {
   //
   // Tempo, which it did not have: 1.3 s down, a quarter second at the
   // bottom, 1.0 s up and about a second standing -- the same in all three.
+  // (The bottom's free shin 125: the heel 2 cm off the floor, the clip's
+  // "just off" -- at 115 the foot rode 14 cm up.)
   pistolSquat: pose(
     "side",
     // Pelvises re-solved for batch 23's thigh / shin split so the support
     // leg keeps the clip's angles (knee 103 / 69 / 50, the shin 26 forward at
     // the bottom): on the new split the old pelvises left the shin at 16.
-    ([[0.500, 0.494, 3, 160, 205, 110], [0.487, 0.590, 25, 135, 130, 60], [0.468, 0.693, 35, 115, 107, 30], [0.457, 0.770, 37, 90, 115, 20]] as const).map(([x, y, torso, up, low, end]) => {
+    ([[0.500, 0.494, 3, 160, 205, 110], [0.487, 0.590, 25, 135, 130, 60], [0.468, 0.693, 35, 115, 107, 30], [0.457, 0.770, 37, 90, 125, 20]] as const).map(([x, y, torso, up, low, end]) => {
       const pelvis = { x, y };
       return {
         pelvis,
