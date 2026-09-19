@@ -806,10 +806,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "three reps in 11 s",
-    prs: [287, 439],
+    prs: [287, 439, 444],
     date: "2026-09-09",
     exercises: ["Cable Woodchopper"],
-    notes: "Pallof Press (a straight-out press against the cable) borrows this chop. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
+    notes: "Pallof Press (a straight-out press against the cable) borrows this chop. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too. Clip audit angles: the bottom 4 cm higher with the hands: knees 154 / 143, the clip's 145-155 (they folded to 135 / 127).",
   },
   carry: {
     videoId: "K4R8uc1x_OA",
@@ -852,9 +852,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "four reaches in 17 s",
-    prs: [290],
+    prs: [290, 444],
     date: "2026-09-10",
     exercises: ["Dead Bug"],
+    notes: "Clip audit angles: the thighs 12 toward the feet with the knee 87, the clip's 9-15 / 74-87 (they were 5 and 90).",
   },
   hollowHold: {
     videoId: "EsnM8eBtazU",
@@ -1459,11 +1460,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Abbotsford",
     view: "side",
     span: "three reps in 14 s",
-    prs: [367],
+    prs: [367, 444],
     date: "2026-09-13",
     exercises: ["Nordic Hamstring Curl"],
     notes:
-      "Borrowed the lying machine leg curl before. Heels hooked under a dumbbell rack's low bar (drawn as an ankle roller). Kneeling tall: hip 171-176, thigh 1-7 behind plumb, trunk plumb, shins 16-24 up behind the knees throughout, arms along the sides. Half way: thigh 20-23 forward, trunk 28-38, hip 165-174, knee 90-95. Catch: thigh 81-83 forward, trunk 78-83, hip 175-179, knee 158-162, hands on the floor under the chest, elbows 77-81 (ours 77; the hands sit 0.61 trunk lengths back of the shoulders against her 0.39-0.48 -- her arms are shorter against her trunk). Tempo at 0.2 s: down 2.0-2.2 s (slow, then a fall into the hands), 0.2-0.4 on the hands, up 1.0-1.2, kneeling 1.2-1.4; tops 4.6 s apart. Her way up bends the hips (146-159); ours returns along the way down.",
+      "Borrowed the lying machine leg curl before. Heels hooked under a dumbbell rack's low bar (drawn as an ankle roller). Kneeling tall: hip 171-176, thigh 1-7 behind plumb, trunk plumb, shins 16-24 up behind the knees throughout, arms along the sides. Half way: thigh 20-23 forward, trunk 28-38, hip 165-174, knee 90-95. Catch: thigh 81-83 forward, trunk 78-83, hip 175-179, knee 158-162, hands on the floor under the chest, elbows 77-81 (ours 77; the hands sit 0.61 trunk lengths back of the shoulders against her 0.39-0.48 -- her arms are shorter against her trunk). Tempo at 0.2 s: down 2.0-2.2 s (slow, then a fall into the hands), 0.2-0.4 on the hands, up 1.0-1.2, kneeling 1.2-1.4; tops 4.6 s apart. Her way up bends the hips (146-159); ours returns along the way down. Clip audit angles: the catch's thigh 2 under level, knee 158, the clip's 158-162 (it was 152).",
   },
   vUp: {
     videoId: "4X3xVPrSNNg",
@@ -1534,11 +1535,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Viking Strength Systems",
     view: "front",
     span: "two throws at a wall in 16 s",
-    prs: [359, 439],
+    prs: [359, 439, 444],
     date: "2026-09-13",
     exercises: ["Rotational Med Ball Throw"],
     notes:
-      "Facing the camera, the wall to one side; distances scaled by her shoulder width (0.15 of the frame). Load: ball just above the back hip, back knee 139-150, front 165-171. Release: hands 0.06-0.10 of the frame under the shoulders, 1.5 shoulder widths across from the hips' centre, elbows 141-155, trunk leaning 10-15 toward the wall. The shoulders turn past side-on (projected width +0.15 through zero to -0.04..-0.09), hips to ~100 degrees: our trunk has no twist about its long axis, so the turn is carried by the arms and lean and the far arm stays folded (97). Throw 0.2-0.4 s, follow-through held ~1 s, return 0.7 s, load ~1 s. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too.",
+      "Facing the camera, the wall to one side; distances scaled by her shoulder width (0.15 of the frame). Load: ball just above the back hip, back knee 139-150, front 165-171. Release: hands 0.06-0.10 of the frame under the shoulders, 1.5 shoulder widths across from the hips' centre, elbows 141-155, trunk leaning 10-15 toward the wall. The shoulders turn past side-on (projected width +0.15 through zero to -0.04..-0.09), hips to ~100 degrees: our trunk has no twist about its long axis, so the turn is carried by the arms and lean and the far arm stays folded (97). Throw 0.2-0.4 s, follow-through held ~1 s, return 0.7 s, load ~1 s. Front-view legs (PR 438): face on, every foot pointed out sideways and every knee bowed sideways in the drawing plane, the whole leg turned out 90 degrees. The 3D build now points the foot where the body faces and bends the knee toward the toes, hip and ankle unchanged, so heights and floor contact are too. Clip audit angles: the load's pelvis 1.4 cm lower, the back knee 147, the clip's 139-150 (it was 155).",
   },
 
   medBallSlam: {
@@ -1744,11 +1745,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three stride cycles in 3.75 s",
-    prs: [343],
+    prs: [343, 444],
     date: "2026-09-13",
     exercises: ["Sled Push"],
     notes:
-      "She crosses the frame, so the crop FOLLOWED her, centred on a position read off two probe frames; at a fixed full-frame crop MoveNet found only part of her. The sled does not hide the legs -- ankles score 0.61 to 0.94. One leg drives out to 166-177 while the other folds to 72-84, the recovering foot lifting 0.42 trunk lengths, trading every step. The elbows hold 161 to 179, the arm forward and 24 degrees below horizontal. The trunk leans 67 degrees off vertical. A full stride cycle takes 1.1 s. The projected trunk grows from 0.228 to 0.316 of the frame over the clip because she walks toward the camera, not because of any yaw.",
+      "She crosses the frame, so the crop FOLLOWED her, centred on a position read off two probe frames; at a fixed full-frame crop MoveNet found only part of her. The sled does not hide the legs -- ankles score 0.61 to 0.94. One leg drives out to 166-177 while the other folds to 72-84, the recovering foot lifting 0.42 trunk lengths, trading every step. The elbows hold 161 to 179, the arm forward and 24 degrees below horizontal. The trunk leans 67 degrees off vertical. A full stride cycle takes 1.1 s. The projected trunk grows from 0.228 to 0.316 of the frame over the clip because she walks toward the camera, not because of any yaw. Clip audit angles: the hip 60 cm up, the clip's 1.22 trunk lengths (it was 66); the drive foot further back so that knee stays near straight (164, the clip's 166-177); the recovering ankle 21 cm up, the clip's 0.42 trunk lengths (it was 27).",
   },
 
   battleRopes: {
