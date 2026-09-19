@@ -6451,14 +6451,17 @@ export const exercisePoses = {
   // becomes the lowest point of the body and an unpinned floor would sink
   // with it and leave the plate hanging in the air.
   //
-  // The knee is NOT changed and was already right: the clip holds 83 to 89
-  // degrees in every one of its 37 frames, mean 86, and ours runs 85 / 81 /
-  // 80. Knees bent at ninety is the point of the seated version.
-  //
-  // Nor is the shin, and here the clip is left alone deliberately: its shin
-  // sits 16 to 31 degrees back from vertical because that machine's plate is
-  // tucked under the seat, which is a fact about the machine and not about
-  // the lift.
+  // The knee: the clip holds 83 to 89 degrees in every one of its 37
+  // frames, mean 86 -- knees bent at ninety is the point of the seated
+  // version. After the thigh / shin split ours ran 85 / 73 / 72: the foot
+  // turned 76 degrees about the ball (end 62 -> 138), which lifted the heel
+  // 9 cm below the ball to 14 above it, past the clip's 5 below to 10.5
+  // above, and the ankle rose into the hip. Now the ball of the foot is ONE
+  // fixed point on the plate and the foot turns the clip's 49 degrees about
+  // it (end 75 / 100 / 124: the heel 5 cm under the ball to 11 over it), and
+  // the seat sits 6 cm further back: knees 92 / 85 / 84, the shin 12-19
+  // back of vertical -- toward the clip's 16-31, that machine's plate being
+  // tucked under its seat.
   //
   // Tempo, which it did not have: a brisk 1.65 s period, the same to within
   // 0.15 s across four gaps. At 0.3 s per frame the pauses at either end are
@@ -6527,8 +6530,10 @@ export const exercisePoses = {
 
   seatedCalfRaise: pose(
     "side",
-    ([[0.5743, 0.9088, 62], [0.5695, 0.8625, 100], [0.5846, 0.8215, 138]] as const).map(([ax, ay, end]) => {
-      const pelvis = { x: 0.42, y: 0.70 };
+    // The foot turns about the ball, fixed on the plate: [foot angle].
+    ([75, 100, 124] as const).map((end) => {
+      const { x: ax, y: ay } = along({ x: 0.6167, y: 0.875 }, end + 180, P.foot);
+      const pelvis = { x: 0.39, y: 0.70 };
       return {
         pelvis,
         torso: 354,
@@ -6863,7 +6868,9 @@ export const exercisePoses = {
         neck: crouchTorso + 20,
         arms: reachingArms(crouchPelvis, crouchTorso, "side", hands, FORWARD),
         // Feet under the hips, up on the toes.
-        legs: plantedLegs(crouchPelvis, crouchTorso, "side", [0, 1].map((side) => ({ x: hipAt(crouchPelvis, crouchTorso, side as 0 | 1, "side").x, y: FLOOR - 0.046 })) as [Point, Point], BACK, [225, 230]),
+        // The feet 3.5 cm behind the hips: the hip angle 39 and the knee 123,
+        // the clip's 36-56 / 121-136 (under the hips it folded to 30).
+        legs: plantedLegs(crouchPelvis, crouchTorso, "side", [0, 1].map((side) => ({ x: hipAt(crouchPelvis, crouchTorso, side as 0 | 1, "side").x + 0.035, y: FLOOR - 0.046 })) as [Point, Point], BACK, [225, 230]),
       };
       // Chest down: the pelvis a hip's radius over the floor (as `proneRaise`),
       // placed so the shoulders sit 0.15 ahead of the planted hands -- which
@@ -6882,12 +6889,16 @@ export const exercisePoses = {
       // The press out of it leads with the chest: a quarter second after the
       // chest leaves the floor the shoulders are 0.40 trunk lengths up, the
       // hips still down and the elbows at 104-113.
-      const pressTorso = 300;
+      // The body slides back toward the feet as it presses (the hands stay):
+      // pivoting on the hips in place, the elbows only opened to 74; 8 cm back
+      // they open to 108.
+      const pressTorso = 296;
+      const pressPelvis = { x: chestPelvis.x - 0.08 / ASPECT, y: chestPelvis.y };
       const press = {
-        pelvis: chestPelvis,
+        pelvis: pressPelvis,
         torso: pressTorso,
         neck: 312,
-        arms: reachingArms(chestPelvis, pressTorso, "side", hands, FORWARD),
+        arms: reachingArms(pressPelvis, pressTorso, "side", hands, FORWARD),
         legs: lyingLegs(92, 90, 230),
       };
       const jump = {
