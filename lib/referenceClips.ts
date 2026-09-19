@@ -300,9 +300,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "National Academy of Sports Medicine (NASM)",
     view: "side",
     span: "three reps after a 6 s hinge down",
-    prs: [273],
+    prs: [273, 441],
     date: "2026-09-09",
     exercises: ["Barbell Row"],
+    notes: "Clip audit angles: the hang with the hands forward of the shoulders near full reach -- upper arm 20 ahead of plumb, elbow 163 (the clip's 11-23 / 160-172); it hung plumb and locked at 180.",
   },
   pullUp: {
     videoId: "jgFel4wZl3I",
@@ -949,11 +950,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three rows in 12.2 s",
-    prs: [403],
+    prs: [403, 441],
     date: "2026-09-16",
     exercises: ["Band Row"],
     notes:
-      "Borrowed the seated cable row before; this stands, the band on a rack at the height of the lower ribs. Trunk within 5 of vertical, knees soft (160-175); the hands travel level, 0.45 trunk lengths under the shoulders, from 0.8-0.9 trunk lengths ahead (upper arm 45-55 up from plumb, elbow 150-165) to 0.25 ahead with the elbows 15-25 behind plumb, folded to 65-70. Tempo at 0.2 s: pull 0.6-0.8 s, 0.8 at the ribs, release 0.8-1.0, 0.6-0.8 reaching; 3 s a rep.",
+      "Borrowed the seated cable row before; this stands, the band on a rack at the height of the lower ribs. Trunk within 5 of vertical, knees soft (160-175); the hands travel level, 0.45 trunk lengths under the shoulders, from 0.8-0.9 trunk lengths ahead (upper arm 45-55 up from plumb, elbow 150-165) to 0.25 ahead with the elbows 15-25 behind plumb, folded to 65-70. Tempo at 0.2 s: pull 0.6-0.8 s, 0.8 at the ribs, release 0.8-1.0, 0.6-0.8 reaching; 3 s a rep. Clip audit angles: the hands 21-22 cm under the shoulders through the pull (the clip's 0.45 trunk lengths; they were 28-33), the top elbow 67 (65-70; it was 60), knees soft at 163 (160-175; they were locked).",
   },
   dumbbellShoulderPress: {
     videoId: "OM23fjJB3-0",
@@ -1035,7 +1036,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "three reps in 11 s",
-    prs: [397, 408],
+    prs: [397, 408, 441],
     date: "2026-09-16",
     exercises: ["Chin-Up"],
     secondClips: [
@@ -1053,7 +1054,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
       },
     ],
     notes:
-      "Borrowed the pull-up (overhand) before -- the grip is a property of the pose, not the exercise, so the fists drew overhand. Underhand. Dead hang with the elbow 160-179 and the shoulder 3.4-4.1 shoulder widths under the bar; at the top the elbow closes to 17-28 with the nose 0.3-1.0 shoulder widths over the bar and the shoulder within 0.35 of it. The hang, the path and the top match the pull-up pose, which is kept: what changes is the grip and the hands a shade closer. The grip width itself is not read from this clip (the shoulders project 17-25 px three-quarters on). Tempo at 0.15 s: pull 0.75 s, 0.3 at the top, lower 1.05, 0.9-1.0 hanging; reps 2.9-3.1 s apart.",
+      "Borrowed the pull-up (overhand) before -- the grip is a property of the pose, not the exercise, so the fists drew overhand. Underhand. Dead hang with the elbow 160-179 and the shoulder 3.4-4.1 shoulder widths under the bar; at the top the elbow closes to 17-28 with the nose 0.3-1.0 shoulder widths over the bar and the shoulder within 0.35 of it. The hang, the path and the top match the pull-up pose, which is kept: what changes is the grip and the hands a shade closer. The grip width itself is not read from this clip (the shoulders project 17-25 px three-quarters on). Tempo at 0.15 s: pull 0.75 s, 0.3 at the top, lower 1.05, 0.9-1.0 hanging; reps 2.9-3.1 s apart. Clip audit angles: the top pulled higher and closer than the pull-up's (shoulder 0.045 under and 0.045 behind the bar, not 0.026 / 0.08): elbow 30, the clip's 17-28, with check-poses' fold limit at 28; it was 41.",
   },
   negativePullUp: {
     videoId: "jBSMDqs7OzM",
@@ -1061,11 +1062,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "PureGym",
     view: "three-quarter",
     span: "two negatives in 12.6 s",
-    prs: [397],
+    prs: [397, 441],
     date: "2026-09-16",
     exercises: ["Negative Pull-Up"],
     notes:
-      "Borrowed the pull-up before, which pulls up and drops down at the same speed. The positions are the pull-up's; what the clip gives is the tempo. Starts at the top (elbow 6-33, nose over the bar) and lowers under control to a dead hang (elbow 172-180) in 3.2-3.6 s, twice; a step back up from a box and a 0.6 s pull to the top between them. Bulldog Gear's clip (EkpJkHpJXmM) was measured too: one negative of about 8 s, 'as slowly as you can' taken literally. The pose runs the pull-up's keys top-first: 0.4 s at the top, 3.5 s down, 0.5 s hanging, 0.6 s back up (the cue's jump, which the clip does off a box).",
+      "Borrowed the pull-up before, which pulls up and drops down at the same speed. The positions are the pull-up's; what the clip gives is the tempo. Starts at the top (elbow 6-33, nose over the bar) and lowers under control to a dead hang (elbow 172-180) in 3.2-3.6 s, twice; a step back up from a box and a 0.6 s pull to the top between them. Bulldog Gear's clip (EkpJkHpJXmM) was measured too: one negative of about 8 s, 'as slowly as you can' taken literally. The pose runs the pull-up's keys top-first: 0.4 s at the top, 3.5 s down, 0.5 s hanging, 0.6 s back up (the cue's jump, which the clip does off a box). Clip audit angles: the chin-up's higher top, elbow 30 (the clip's 6-33; it was 41).",
   },
   tBarRow: {
     videoId: "hYo72r8Ivso",
@@ -1195,11 +1196,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Nicolas Sart",
     view: "side",
     span: "four reps in 24 s",
-    prs: [386],
+    prs: [386, 441],
     date: "2026-09-15",
     exercises: ["Towel Row"],
     notes:
-      "Borrowed the inverted row (under a bar, near horizontal) before. The clip loops the towel round wall bars, not a door handle; the body and the pull are the same. A rigid body turning about the ankles: hanging 23-27 behind vertical with the elbow 169-178 and knee 170-177; up to 7-10 back with the elbow 66-76. The hands sit over the ankles and drift a couple of centimetres forward and down as the towel swings, so each key's hands are taken from the clip rather than fixed. Ours: trunk 25 / 15 / 8, elbow 180 / 79 / 60, hip 164-169 (clip 171-178). Tempo at 0.25 s: pull 1.0 s, 0.75-1.0 up, back 1.0-1.5, 0.5-0.75 hanging; tops 3.65-3.85 s apart.",
+      "Borrowed the inverted row (under a bar, near horizontal) before. The clip loops the towel round wall bars, not a door handle; the body and the pull are the same. A rigid body turning about the ankles: hanging 23-27 behind vertical with the elbow 169-178 and knee 170-177; up to 7-10 back with the elbow 66-76. The hands sit over the ankles and drift a couple of centimetres forward and down as the towel swings, so each key's hands are taken from the clip rather than fixed. Ours: trunk 25 / 15 / 8, elbow 180 / 79 / 60, hip 164-169 (clip 171-178). Tempo at 0.25 s: pull 1.0 s, 0.75-1.0 up, back 1.0-1.5, 0.5-0.75 hanging; tops 3.65-3.85 s apart. Clip audit angles: the top's hand 3 cm lower, elbow 68 (the clip's 66-76; it was 60).",
   },
 
   // --- Batch 17: exercises that borrowed a different movement's pose ------
@@ -1233,11 +1234,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Gymless Fitness",
     view: "side",
     span: "three reps in 7 s",
-    prs: [383],
+    prs: [383, 441],
     date: "2026-09-15",
     exercises: ["Doorway Row"],
     notes:
-      "Borrowed the inverted row before. One hand on the door frame (the library has the movement per side), the other at the waist. Filmed upright and cut off at the knees, so the ankles are extrapolated from the thigh and knee angles and the feet are not seen. Near side: hanging back, trunk 20 behind vertical, knee 162, elbow 156-168; upright at the top, trunk 0-2, knee 168-173, elbow 57-73 (the forearm foreshortens at the top, so that is the projected angle). A clean full-body clip of the two-handed version (Nomads Playbook, eCojBl6k_HE) was triaged and not used. Ours: trunk 20 / 10 / 0, elbow 160 / 99 / 73, knee 162 at the hang and straight above it, hand fixed on a post beside the body. Tempo at 0.2 s: pull 0.6 s, 0.6-0.8 at the frame, back in 0.6-0.8, 0.4-0.6 hanging, tops 2.3 s apart.",
+      "Borrowed the inverted row before. One hand on the door frame (the library has the movement per side), the other at the waist. Filmed upright and cut off at the knees, so the ankles are extrapolated from the thigh and knee angles and the feet are not seen. Near side: hanging back, trunk 20 behind vertical, knee 162, elbow 156-168; upright at the top, trunk 0-2, knee 168-173, elbow 57-73 (the forearm foreshortens at the top, so that is the projected angle). A clean full-body clip of the two-handed version (Nomads Playbook, eCojBl6k_HE) was triaged and not used. Ours: trunk 20 / 10 / 0, elbow 160 / 99 / 73, knee 162 at the hang and straight above it, hand fixed on a post beside the body. Tempo at 0.2 s: pull 0.6 s, 0.6-0.8 at the frame, back in 0.6-0.8, 0.4-0.6 hanging, tops 2.3 s apart. Clip audit angles: the legs by their angles instead of plantedLegs, which snapped the knees straight: 162 / 166 / 171 (the clip's 168-173 at the top).",
   },
   barbellWalkingLunge: {
     videoId: "bdbJ_aRjw-4",
@@ -1293,11 +1294,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "two slow reps in 20 s",
-    prs: [378],
+    prs: [378, 441],
     date: "2026-09-14",
     exercises: ["Concentration Curl"],
     notes:
-      "Borrowed the standing barbell curl before. Seated, knees apart, leaning forward (about 35, from the trunk's projected length against shoulder width). Working upper arm plumb, elbow braced on the inner thigh just above the knee, still all rep: arm long elbow 159-169, curled 13-24 with the forearm straight up. Free hand on its knee, elbow about 100. Ours: trunk 35, working arm swung 20 in so the elbow sits inside the knee, elbow 178 / 91 / 32 (the fold limit stops the curl short of hers), free hand solved onto its knee (elbow 86). Tempo at 0.25 s, a slow demo: up 2.25-2.75 s, top 1.75-2.0, down 1.5, bottom 2.0-2.5. Seat height checked (batch 22): the hips 1.17-1.20 shins over the ankles with the shins plumb, about 1.05-1.10 once the camera's lift is taken off; ours 1.05 on a 40 cm seat -- kept.",
+      "Borrowed the standing barbell curl before. Seated, knees apart, leaning forward (about 35, from the trunk's projected length against shoulder width). Working upper arm plumb, elbow braced on the inner thigh just above the knee, still all rep: arm long elbow 159-169, curled 13-24 with the forearm straight up. Free hand on its knee, elbow about 100. Ours: trunk 35, working arm swung 20 in so the elbow sits inside the knee, elbow 178 / 91 / 32 (the fold limit stops the curl short of hers), free hand solved onto its knee (elbow 86). Tempo at 0.25 s, a slow demo: up 2.25-2.75 s, top 1.75-2.0, down 1.5, bottom 2.0-2.5. Seat height checked (batch 22): the hips 1.17-1.20 shins over the ankles with the shins plumb, about 1.05-1.10 once the camera's lift is taken off; ours 1.05 on a 40 cm seat -- kept. Clip audit angles: the start's working elbow 165 (the clip's 159-169; it was 178). The free hand stays on the knee: opening that elbow to the clip's ~100 would put the hand inside the knee.",
   },
   preacherCurl: {
     videoId: "w1qaVGYTtKk",

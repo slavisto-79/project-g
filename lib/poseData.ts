@@ -250,8 +250,8 @@ function hangingFigure(torso: number, thigh: number, shin: number): Figure {
 // [trunk lean, shoulder below the bar, shoulder behind the bar, thigh, shin]
 // -- the face passes BEHIND the bar on the way up, so the shoulder sits
 // 10 cm back of it mid-pull and 8 cm at the top, where the chin is over.
-function pullUpFrames(spread: number): Figure[] {
-  return ([[2, 0.290, 0.02, 185, 195], [8, 0.132, 0.10, 188, 198], [15, 0.026, 0.08, 192, 202]] as const).map(([torso, below, behind, upper, lower]) => {
+function pullUpFrames(spread: number, top: [number, number] = [0.026, 0.08]): Figure[] {
+  return ([[2, 0.290, 0.02, 185, 195], [8, 0.132, 0.10, 188, 198], [15, top[0], top[1], 192, 202]] as const).map(([torso, below, behind, upper, lower]) => {
     const bar = { x: 0.512, y: 0.186 };
     const shoulder = { x: bar.x - behind / ASPECT, y: bar.y + below };
     const rad = (torso * Math.PI) / 180;
@@ -4749,7 +4749,10 @@ export const exercisePoses = {
   // (past horizontal) with the head up at 82 and no tempo.
   bentRow: pose(
     "side",
-    ([[0.14, 0.253], [0.16, 0.17], [0.18, 0.10]] as const).map(([along, out]) => {
+    // The hang: the hands forward of the shoulders, near full reach -- upper
+    // arm 20 ahead of plumb, elbow 163, the clip's 11-23 / 160-172 (at
+    // [0.14, 0.253] the arm hung plumb and locked straight).
+    ([[0.01, 0.2865], [0.16, 0.17], [0.18, 0.10]] as const).map(([along, out]) => {
       const torso = 60;
       const pelvis = { x: 0.480, y: 0.513 };
       const rad = (torso * Math.PI) / 180;
@@ -4874,8 +4877,10 @@ export const exercisePoses = {
   // the ribs, release 0.8-1.0, 0.6-0.8 reaching; 3 s a rep.
   bandRow: pose(
     "side",
-    ([[132, 108], [165, 95], [205, 85]] as const).map(([upper, lower]) =>
-      stand({ x: 0.5, y: 0.492 }, 2, sideArms(upper, lower).map((arm) => ({ ...arm, spread: -0.03 })) as [Limb, Limb]),
+    // Hands 21-22 cm under the shoulders through the pull (the clip's 0.45
+    // trunk lengths; they were 28-33), the top elbow 67 (65-70; it was 60).
+    ([[132, 95], [150, 80], [205, 92]] as const).map(([upper, lower]) =>
+      stand({ x: 0.5, y: 0.496 }, 2, sideArms(upper, lower).map((arm) => ({ ...arm, spread: -0.03 })) as [Limb, Limb]),
     ),
     [
       { kind: "floor" },
@@ -5005,7 +5010,10 @@ export const exercisePoses = {
   // 1.1 now.
   chinUp: pose(
     "side",
-    pullUpFrames(-0.02),
+    // The top pulled higher and closer than the pull-up's (shoulder 0.045
+    // under the bar and 0.045 behind it, not 0.026 / 0.08): elbow 30, the
+    // clip's 17-28 (check-poses stops a fold at 28); it was 41.
+    pullUpFrames(-0.02, [0.045, 0.045]),
     [{ kind: "bar", at: "grip", length: 0.44, plates: false }],
     "underhand",
     1,
@@ -5029,7 +5037,8 @@ export const exercisePoses = {
   // the cue's jump, which the clip does off a box that is not drawn.
   negativePullUp: pose(
     "side",
-    pullUpFrames(0.06).reverse(),
+    // The chin-up's higher top: elbow 30, the clip's 6-33 (it was 41).
+    pullUpFrames(0.06, [0.045, 0.045]).reverse(),
     [{ kind: "bar", at: "grip", length: 0.44, plates: false }],
     "overhand",
     1,
@@ -5125,7 +5134,10 @@ export const exercisePoses = {
           pelvis,
           torso,
           arms: [{ ...working, spread: 0.06 }, { upper: torso + 185, lower: torso + 140 }],
-          legs: plantedLegs(pelvis, torso, "side", feet, FORWARD),
+          // The legs by their angles: plantedLegs snapped the knees straight
+          // (above 99% of the leg); now 162 / 166 / 171, the clip's 168-173 at
+          // the top.
+          legs: [{ upper: thigh, lower: shin, end: 90 }, { upper: thigh, lower: shin, end: 90 }] as [Limb, Limb],
         };
       }),
       [{ kind: "floor" }, { kind: "slab", x: hand.x + 0.032, y: 0.475, width: 0.09, height: 0.91, post: true, depth: 0.172 }],
@@ -5173,7 +5185,7 @@ export const exercisePoses = {
     return pose(
       "side",
       // [torso, thigh, shin, hands]
-      ([[335, 154, 159, hung], [345, 169, 173, { x: 0.552, y: 0.386 }], [352, 183, 184, { x: 0.553, y: 0.394 }]] as const).map(([torso, thigh, shin, hand]): Figure => {
+      ([[335, 154, 159, hung], [345, 169, 173, { x: 0.552, y: 0.386 }], [352, 183, 184, { x: 0.553, y: 0.410 }]] as const).map(([torso, thigh, shin, hand]): Figure => {
         const pelvis = pelvisFor(torso, thigh, shin);
         return {
           pelvis,
@@ -5286,7 +5298,8 @@ export const exercisePoses = {
   // down in 1.5, 2.0-2.5 with the arm long.
   concentrationCurl: pose(
     "side",
-    ([[178], [90], [30]] as const).map(([lower]) => {
+    // The start's elbow 165, the clip's 159-169 (it was 178).
+    ([[165], [90], [30]] as const).map(([lower]) => {
       const pelvis = { x: 0.42, y: 0.68 };
       const torso = 35;
       const feet: [Point, Point] = [{ x: 0.6, y: 0.915 }, { x: 0.588, y: 0.915 }];
