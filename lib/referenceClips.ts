@@ -1792,11 +1792,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "front",
     span: "six step cycles in 8.4 s",
-    prs: [339],
+    prs: [339, 428],
     date: "2026-09-12",
     exercises: ["Banded Lateral Walk"],
     notes:
-      "A square front view -- the shoulder separation holds 0.172 to 0.183 of the frame throughout. The body TRAVELS: the hip crosses 1.10 of the frame in 8.4 s because the feet alternate, lead out then trail in, six times. The step is 1.04 shoulder widths and the stance swings between 0.71 closed and 1.73 open, which differ by exactly one step -- that is what says the trail foot closes the whole gap the lead opened. The stepping foot lifts 3 cm. A full cycle takes 1.44 s, the mean of five gaps. What the clip CANNOT settle is the knee: a front camera cannot read a knee bending toward the lens and reports 146 to 180 with no pattern, so the squat depth is set from the hip HEIGHT instead, 2.25 shoulder widths above the ankle.",
+      "A square front view -- the shoulder separation holds 0.172 to 0.183 of the frame throughout. The body TRAVELS: the hip crosses 1.10 of the frame in 8.4 s because the feet alternate, lead out then trail in, six times. The step is 1.04 shoulder widths and the stance swings between 0.71 closed and 1.73 open, which differ by exactly one step -- that is what says the trail foot closes the whole gap the lead opened. The stepping foot lifts 3 cm. A full cycle takes 1.44 s, the mean of five gaps. What the clip CANNOT settle is the knee: a front camera cannot read a knee bending toward the lens and reports 146 to 180 with no pattern, so the squat depth is set from the hip HEIGHT instead, 2.25 shoulder widths above the ankle. Floor fix (clip audit): with no foot angle a front-view foot follows the shin, and the knees bent out stood both feet on their toes, the ankles 8 cm up. Flat feet now (ends 90 / 270), planted ankles 1.2 cm; the pelvis at 0.543 puts the hip 2.25 shoulder widths over the ankle, the clip's (0.552 read 2.38 on tiptoe and 2.20 flat); the step lift 3 cm, the clip's (LIFT 0.033 was 6.6 cm).",
   },
 
   // --- Batch 11: the leftovers, picked by measured defect -----------------
