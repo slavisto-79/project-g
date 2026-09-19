@@ -1732,11 +1732,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "four burpees in 10.75 s",
-    prs: [344],
+    prs: [344, 446],
     date: "2026-09-13",
     exercises: ["Burpee"],
     notes:
-      "Measured in the lifter's own trunk lengths (hip to shoulder, 0.271 of the crop standing). The bottom is chest to floor in all three reps it is seen in -- hip and shoulder down at the wrists' height for two frames running, elbows 59-73 -- not a plank. With the hands planted the crouch is high: knees 121-136, hip angle 36-56, heels up, the hip within 0.08 trunk lengths of standing. The press out leads with the chest (shoulders 0.40 up, hips still down, elbows 104-113). At the apex the wrists are 0.32 above the shoulders with the elbows bent 72-91 and the hip 0.28 over standing. 3.25 s a burpee, apex to apex. He turns toward the camera in flight, so the plane the arms rise in is not quotable -- only their height and bend.",
+      "Measured in the lifter's own trunk lengths (hip to shoulder, 0.271 of the crop standing). The bottom is chest to floor in all three reps it is seen in -- hip and shoulder down at the wrists' height for two frames running, elbows 59-73 -- not a plank. With the hands planted the crouch is high: knees 121-136, hip angle 36-56, heels up, the hip within 0.08 trunk lengths of standing. The press out leads with the chest (shoulders 0.40 up, hips still down, elbows 104-113). At the apex the wrists are 0.32 above the shoulders with the elbows bent 72-91 and the hip 0.28 over standing. 3.25 s a burpee, apex to apex. He turns toward the camera in flight, so the plane the arms rise in is not quotable -- only their height and bend. Clip audit angles: the crouch's feet 3.5 cm behind the hips, hip angle 39 and knee 123 (the clip's 36-56 / 121-136; it folded to 30); the press slides the body 8 cm back toward the feet as the chest rises, elbow 108 (the clip's 104-113; pivoting on the hips in place gave 74).",
   },
 
   sledPush: {
@@ -1876,11 +1876,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "five reps in 8.4 s",
-    prs: [333, 426],
+    prs: [333, 426, 446],
     date: "2026-09-12",
     exercises: ["Seated Calf Raise"],
     notes:
-      "What it settles beyond argument: the machine puts the ball of the foot on a RAISED PLATE and the heel drops below plate level, which is where the calf is stretched -- ours had the foot flat on the floor, so that half of the range did not exist. It also holds the knee at 83 to 89 degrees in all 37 frames, mean 86. What it CANNOT settle is any travel distance: its hip keypoint rises 8 cm over a rep, which a seated hip on a fixed seat cannot do, so the whole skeleton estimate drifts in phase with the lift and its scale is untrustworthy here. The heel range is therefore authored from the plate geometry and capped by keeping the knee inside the clip's own band at the start. Arms restored (clip audit): PR 363 overwrote them with a straight reach at shoulder height; back to 118/120, the hands on the thigh pad.",
+      "What it settles beyond argument: the machine puts the ball of the foot on a RAISED PLATE and the heel drops below plate level, which is where the calf is stretched -- ours had the foot flat on the floor, so that half of the range did not exist. It also holds the knee at 83 to 89 degrees in all 37 frames, mean 86. What it CANNOT settle is any travel distance: its hip keypoint rises 8 cm over a rep, which a seated hip on a fixed seat cannot do, so the whole skeleton estimate drifts in phase with the lift and its scale is untrustworthy here. The heel range is therefore authored from the plate geometry and capped by keeping the knee inside the clip's own band at the start. Arms restored (clip audit): PR 363 overwrote them with a straight reach at shoulder height; back to 118/120, the hands on the thigh pad. Clip audit angles: the knee ran 85 / 73 / 72 against the clip's 83-89 -- the foot turned 76 degrees about the ball, the heel 9 cm under it to 14 over (the clip's 5 under to 10.5 over), and the ankle rose into the hip. Now the ball of the foot is one fixed point on the plate, the foot turns the clip's 49 degrees about it (heel 5 under to 11 over), and the seat is 6 cm further back: knees 92 / 85 / 84, the shin 12-19 back of vertical.",
   },
 
   curtsyLunge: {
