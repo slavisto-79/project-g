@@ -3880,7 +3880,12 @@ export const exercisePoses = {
       torso: 354,
       neck: 4,
       arms: [{ upper: 180, lower: 150, end: 180, abduct: -90, yaw }, { upper: 180, lower: 150, end: 180, abduct: -90, yaw }] as [Limb, Limb],
-      legs: [{ upper: 100, lower: 203, end: 90 }, { upper: 100, lower: 203, end: 90 }] as [Limb, Limb],
+      // Knee 95, the shin near plumb and the feet under the knees. The clip's
+      // ~140 is a three-quarter camera's: the thigh points partly at the lens
+      // and projects short, which opens the drawn knee; a true 140 at this
+      // seat would hang the ankles 14 cm off the floor. (It was 77, the feet
+      // tucked back under the seat.)
+      legs: [{ upper: 100, lower: 185, end: 90 }, { upper: 100, lower: 185, end: 90 }] as [Limb, Limb],
     })),
     [
       { kind: "floor" },

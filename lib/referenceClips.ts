@@ -768,10 +768,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "three reps in 14 s",
-    prs: [298],
+    prs: [298, 432],
     date: "2026-09-10",
     exercises: ["Pec Deck"],
-    notes: "The machine's arms are not drawn; the seat is.",
+    notes: "The machine's arms are not drawn; the seat is. Clip audit: the knee was 77, the feet tucked back under the seat, against the clip's ~140. That reading is a three-quarter camera's -- the thigh points partly at the lens and projects short, opening the drawn knee -- and a true 140 at this seat would hang the ankles 14 cm off the floor. Knee 95 now, the shin near plumb and the feet under the knees.",
   },
 
   hangingRaise: {
