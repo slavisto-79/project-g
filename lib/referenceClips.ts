@@ -443,10 +443,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "head-end",
     span: "three reps in 9 s",
-    prs: [281, 407, 415],
+    prs: [281, 407, 415, 447],
     date: "2026-09-09",
     exercises: ["Skull Crusher"],
-    notes: "Width (#407, the reachingArms review): from the head end the wrists read 0.6-0.9 shoulder widths apart and the elbows 0.55-0.8 -- a camera at the head magnifies the bar, so at most that; the pose had 1.34, now 0.8. Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle).",
+    notes: "Width (#407, the reachingArms review): from the head end the wrists read 0.6-0.9 shoulder widths apart and the elbows 0.55-0.8 -- a camera at the head magnifies the bar, so at most that; the pose had 1.34, now 0.8. Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle). Clip audit angles: the feet at 0.66, knee 93, the clip value (at bench() default 0.688, after the leg split, it was 100). bench() takes the foot position on its own now, without the press options that would also change the arms.",
   },
   dip: {
     videoId: "VNa0hX_y6Fk",
@@ -465,10 +465,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "head-end",
     span: "three reps in 11.5 s",
-    prs: [283, 415],
+    prs: [283, 415, 447],
     date: "2026-09-09",
     exercises: ["Dumbbell Fly"],
-    notes: "Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle).",
+    notes: "Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle). Clip audit angles: the feet at 0.66, knee 93, the clip value (at bench() default 0.688, after the leg split, it was 100).",
   },
 
   // --- Batch 5: core and carries ----------------------------------------
