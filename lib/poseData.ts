@@ -5637,7 +5637,9 @@ export const exercisePoses = {
         // Legs: thigh straight up (5 toward the feet), shin level; the near
         // leg reaches out to 8 degrees above the floor, the knee opening
         // from 90 to 172.
-        legs: [{ upper: lerp(5, 82), lower: lerp(95, 90), end: lerp(125, 100) }, { upper: 5, lower: 95, end: 125 }] as [Limb, Limb],
+        // (Thighs 12 toward the feet, knee 87: the clip's 9-15 / 74-87; they
+        // were 5 and 90.)
+        legs: [{ upper: lerp(12, 82), lower: lerp(105, 90), end: lerp(135, 100) }, { upper: 12, lower: 105, end: 135 }] as [Limb, Limb],
       };
     }),
     [{ kind: "floor", mat: true, y: 0.792 }],
@@ -5779,7 +5781,9 @@ export const exercisePoses = {
       // as the pelvis drops: 2.7 cm of drop is a quarter squat here.
       [{ x: 0.667, y: 0.150 }, { x: 0.593, y: 0.150 }, 5, 0.518, BACK],
       [{ x: 0.560, y: 0.520 }, { x: 0.486, y: 0.520 }, 0, 0.530, BACK],
-      [{ x: 0.500, y: 0.575 }, { x: 0.425, y: 0.600 }, 352, 0.545, DOWN],
+      // (The bottom 4 cm higher, the hands with it: knees 154 / 143, the
+      // clip's 145-155; at 0.545 they folded to 135 / 127.)
+      [{ x: 0.500, y: 0.554 }, { x: 0.425, y: 0.579 }, 352, 0.524, DOWN],
     ] as const).map(([near, far, torso, py, elbows]) => {
       const pelvis = { x: 0.5, y: py };
       return {
@@ -5908,7 +5912,7 @@ export const exercisePoses = {
     // Tempo, which it did not have: the throw takes 0.2-0.4 s, she holds the
     // follow-through about a second, returns in 0.7 and loads for about a
     // second before the next.
-    ([[{ x: 0.575, y: 0.47 }, 357, OUT, { x: 0.52, y: 0.506 }], [{ x: 0.43, y: 0.40 }, 354, BACK, { x: 0.5, y: 0.503 }], [{ x: 0.32, y: 0.37 }, 349, BACK, { x: 0.49, y: 0.506 }]] as const).map(
+    ([[{ x: 0.575, y: 0.47 }, 357, OUT, { x: 0.52, y: 0.513 }], [{ x: 0.43, y: 0.40 }, 354, BACK, { x: 0.5, y: 0.503 }], [{ x: 0.32, y: 0.37 }, 349, BACK, { x: 0.49, y: 0.506 }]] as const).map(
       ([hands, torso, elbows, pelvis]) => {
         return {
           pelvis,
@@ -6628,7 +6632,9 @@ export const exercisePoses = {
   // off; the renderer returns along the way down.
   nordicCurl: pose(
     "side",
-    ([[185, 360], [158, 327], [98, 280]] as const).map(([thigh, torso], key) => {
+    // (The catch's thigh 2 under level: knee 158, the clip's 158-162; at 98
+    // it was 152.)
+    ([[185, 360], [158, 327], [92, 280]] as const).map(([thigh, torso], key) => {
       const knee = { x: 0.62, y: 0.905 };
       const pelvis = { x: knee.x - (P.thigh * Math.sin((thigh * Math.PI) / 180)) / ASPECT, y: knee.y + P.thigh * Math.cos((thigh * Math.PI) / 180) };
       const legs: [Limb, Limb] = [{ upper: thigh, lower: 70, end: 160 }, { upper: thigh + 3, lower: 73, end: 163 }];
@@ -7180,15 +7186,18 @@ export const exercisePoses = {
     "side",
     [0, 1].map((phase) => {
       const torso = 67;
-      const pelvis = { x: 0.46, y: 0.631 };
+      // Hip 60 cm up, the clip's 1.22 trunk lengths (0.631 held it at 66); the
+      // drive foot 0.228 back so that knee stays near straight (164, the
+      // clip's 166-177), the recovering ankle 21 cm up (0.42 trunk lengths).
+      const pelvis = { x: 0.46, y: 0.66 };
       // Each foot off ITS OWN hip -- the far hip sits a girdle-depth away,
       // and one shared hip left the far driving leg 40 degrees short of the
       // near one. The driving foot is planted far behind on a near-straight
       // leg -- 0.211 rather than 0.212, because at 0.212 the IK crosses its
       // straightening band and snaps the knee to a locked 180, which the clip
       // never shows; the recovering foot is lifted, just behind the hip.
-      const drive = (side: 0 | 1): Point => ({ x: hipAt(pelvis, torso, side, "side").x - 0.211, y: FLOOR });
-      const recover = (side: 0 | 1): Point => ({ x: hipAt(pelvis, torso, side, "side").x - 0.110, y: FLOOR - 0.103 });
+      const drive = (side: 0 | 1): Point => ({ x: hipAt(pelvis, torso, side, "side").x - 0.228, y: FLOOR });
+      const recover = (side: 0 | 1): Point => ({ x: hipAt(pelvis, torso, side, "side").x - 0.110, y: FLOOR - 0.078 });
       const feet: [Point, Point] = phase === 0 ? [recover(0), drive(1)] : [drive(0), recover(1)];
       const ends: [number, number] = phase === 0 ? [150, 110] : [110, 150];
       // The arms locked out to the posts: elbow 166, pointing forward and 24
