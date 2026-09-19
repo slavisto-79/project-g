@@ -6981,8 +6981,10 @@ export const exercisePoses = {
       [0.656, 0.460, 0, 0],
       [0.656, 0.576, 0, 1],
     ] as const).map(([leadX, trailX, leadUp, trailUp]) => {
-      const pelvis = { x: 0.5, y: 0.552 };
-      const LIFT = 0.033; // the stepping foot clears the floor by 3 cm
+      // Hip 2.25 shoulder widths over the ankle, the clip's (0.552 read 2.38
+      // with the feet on their toes, 7 cm up; flat, it read 2.20).
+      const pelvis = { x: 0.5, y: 0.543 };
+      const LIFT = 0.015; // the stepping foot clears the floor by 3 cm (0.033 was 6.6)
       return {
         pelvis,
         torso: 6,
@@ -6992,7 +6994,9 @@ export const exercisePoses = {
         legs: plantedLegs(pelvis, 6, "front", [
           { x: leadX, y: FLOOR - leadUp * LIFT },
           { x: trailX, y: FLOOR - trailUp * LIFT },
-        ], OUT),
+          // Flat feet: without an end a front-view foot follows the shin, and
+          // the knees bent out stood both feet on their toes, ankles 8 cm up.
+        ], OUT, [90, 270]),
       };
     }),
     [
