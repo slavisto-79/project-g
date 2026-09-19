@@ -289,9 +289,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "TylerPath",
     view: "three-quarter",
     span: "three reps between the cuts",
-    prs: [272],
+    prs: [272, 440],
     date: "2026-09-09",
     exercises: ["Barbell Overhead Press"],
+    notes: "Clip audit angles: the rack's flare 10, not 45 -- flared out of the plane the racked elbow read 38 from the side and the upper arm sat on the trunk line; now elbow 29 and the upper arm 28 ahead (the clip's 27-35 / 25-35).",
   },
   bentRow: {
     videoId: "bm0_q9bR_HA",
@@ -721,10 +722,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Fitness Pain Free",
     view: "side",
     span: "three reps in 10 s",
-    prs: [310],
+    prs: [310, 440],
     date: "2026-09-11",
     exercises: ["Push Jerk"],
-    notes: "The second dip -- dropping under a locked-out bar -- is what separates it from the push press.",
+    notes: "The second dip -- dropping under a locked-out bar -- is what separates it from the push press. Clip audit angles: dip knee 126 (the clip's 124-133; it was 118), the drive's trunk 12 back (it was 3), the catch knee 109 (99-110; it was 121) with the trunk 19 forward (18-20; it was 12).",
   },
 
   jumpSquat: {
@@ -972,11 +973,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "RADCENTRE",
     view: "side",
     span: "six presses in 14 s (the side-view half of the clip)",
-    prs: [401],
+    prs: [401, 440],
     date: "2026-09-16",
     exercises: ["Band Chest Press"],
     notes:
-      "Borrowed the barbell bench press before -- lying on a bench, where the cue stands. Standing, the band anchored behind at shoulder height. Start: the hands at the chest, 0.2-0.3 trunk lengths ahead of the shoulders and 0.5 below them, elbow 55-70 with the upper arm 25-30 behind plumb; pressed: elbow 164-172, the hands 0.95-1.2 ahead and 0.1-0.2 below the shoulders, the upper arm 15-20 below level; trunk within 5-10 of vertical, knees soft (167-175). Tempo at 0.2 s: press 0.6-0.8 s, 0.6-0.8 pressed, return 0.6-0.8, 0.4-0.6 at the chest; 2.5 s a rep.",
+      "Borrowed the barbell bench press before -- lying on a bench, where the cue stands. Standing, the band anchored behind at shoulder height. Start: the hands at the chest, 0.2-0.3 trunk lengths ahead of the shoulders and 0.5 below them, elbow 55-70 with the upper arm 25-30 behind plumb; pressed: elbow 164-172, the hands 0.95-1.2 ahead and 0.1-0.2 below the shoulders, the upper arm 15-20 below level; trunk within 5-10 of vertical, knees soft (167-175). Tempo at 0.2 s: press 0.6-0.8 s, 0.6-0.8 pressed, return 0.6-0.8, 0.4-0.6 at the chest; 2.5 s a rep. Clip audit angles: the first key's upper arm 27 behind plumb (the clip's 25-30; it was 34); knees soft at 163 (the clip's 167-175; the leg solver snaps straight above 99% of the leg, so 180 or 163 are what it gives here).",
   },
 
   // --- Batch 19: machines, grips and tempos the shared pose could not show --
@@ -1022,11 +1023,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 8.5 s",
-    prs: [398, 415],
+    prs: [398, 415, 440],
     date: "2026-09-16",
     exercises: ["Neutral-Grip Dumbbell Press"],
     notes:
-      "Borrowed the barbell bench press (wide overhand, elbows flared 45, bar stopping on the chest) before. Side view: at the bottom the elbow closes to 16-32 with the wrists 0.17-0.20 trunk lengths above the shoulder line (the bar stops 0.32 above it) and the elbows 0.27-0.38 BELOW it, past the bench; at the top the elbow is 155-167 with the wrists 1.05-1.3 above. Ours: the bench's bar path with the bottom 3 cm lower, the flare cut to 0 / 10 / 20 so the elbows stay in beside the ribs, palms facing on twin dumbbells (neutral grip). Tempo at 0.15 s: down 0.75-0.9 s, 0.5-0.75 at the bottom, up 0.6, 0.6 locked out; reps 2.7 s apart. Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle).",
+      "Borrowed the barbell bench press (wide overhand, elbows flared 45, bar stopping on the chest) before. Side view: at the bottom the elbow closes to 16-32 with the wrists 0.17-0.20 trunk lengths above the shoulder line (the bar stops 0.32 above it) and the elbows 0.27-0.38 BELOW it, past the bench; at the top the elbow is 155-167 with the wrists 1.05-1.3 above. Ours: the bench's bar path with the bottom 3 cm lower, the flare cut to 0 / 10 / 20 so the elbows stay in beside the ribs, palms facing on twin dumbbells (neutral grip). Tempo at 0.15 s: down 0.75-0.9 s, 0.5-0.75 at the bottom, up 0.6, 0.6 locked out; reps 2.7 s apart. Bench height (batch 22): the pad top was 56 cm off the floor; a flat bench is 44.5 cm (Rogue, 17.5\"), about 0.52 of a leg (hip-knee plus knee-ankle), and the OPEX bench dip clip's pad measures 0.525 of the lifter's leg. Every flat-bench press shares `bench()`, whose body, pad and bar now sit 8 cm lower (the pad at 48 cm on this 91 cm leg); the feet stay on the floor and the knees fold to 93 (the clip's near right angle). Clip audit angles: the top 0.6 cm under the barbell bench's lockout, elbow 159 (the clip's 155-167; it was locked at 180).",
   },
   chinUp: {
     videoId: "QGSYnup3-u4",
@@ -1767,11 +1768,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 12.6 s",
-    prs: [341],
+    prs: [341, 440],
     date: "2026-09-13",
     exercises: ["Landmine Press"],
     notes:
-      "Pressed with ONE hand while the other hangs, matching the library's unilateral flag; ours cupped the bar with both. Shoulder-to-wrist over a straight arm runs 40% with the bar at the shoulder (elbow 40), 67% at half the extension, 94% locked out (elbow 149), the arm sweeping from 118 degrees off vertical to 56. The trunk leans 8 degrees at the shoulder and 20 locked out. Period 4.2 s: 1.05 s up, 0.7 s locked, 1.75 s down, 0.7 s at the shoulder. The clip offers only 480p.",
+      "Pressed with ONE hand while the other hangs, matching the library's unilateral flag; ours cupped the bar with both. Shoulder-to-wrist over a straight arm runs 40% with the bar at the shoulder (elbow 40), 67% at half the extension, 94% locked out (elbow 149), the arm sweeping from 118 degrees off vertical to 56. The trunk leans 8 degrees at the shoulder and 20 locked out. Period 4.2 s: 1.05 s up, 0.7 s locked, 1.75 s down, 0.7 s at the shoulder. The clip offers only 480p. Clip audit angles: the lockout at 0.96 of the arm's reach, elbow 148 (the clip's 149; 0.88 left it at 123).",
   },
 
   bicycleCrunch: {

@@ -3124,7 +3124,9 @@ export const exercisePoses = {
   // 0.75 at the bottom, up 0.6, 0.6 locked out; reps 2.7 s apart.
   neutralGripDumbbellPress: pose(
     "side",
-    ([[0.397, 0.304, 0], [0.418, 0.425, 10], [0.44, 0.543, 20]] as const).map(([barX, barY, flare]) =>
+    // The top 0.6 cm under the bench's lockout: elbow 159, the clip's 155-167
+    // (the barbell's height locked it at 180).
+    ([[0.397, 0.307, 0], [0.418, 0.425, 10], [0.44, 0.543, 20]] as const).map(([barX, barY, flare]) =>
       bench(barX, barY, { flare, spread: 0.02, legSpread: 0.12, feetX: 0.640 }),
     ),
     [
@@ -3938,17 +3940,18 @@ export const exercisePoses = {
     (() => {
       const rack = sideArms(135, 350);
       const locked = sideArms(5, 355).map((arm) => ({ ...arm, spread: 0.06, flare: 45 })) as [Limb, Limb];
-      const dip = { x: 0.5, y: 0.554 };
-      // The catch: under the bar, the knees folded to 110 and the trunk a
-      // little forward -- the pelvis 5.5 cm below standing.
-      const under = { x: 0.5, y: 0.549 };
+      const dip = { x: 0.5, y: 0.539 }; // knee 126, the clip's 124-133 (0.554 folded it to 118)
+      // The catch: under the bar, the knees folded to 109 (the clip's
+      // 99-110; 0.549 left them at 121) and the trunk 19 forward (18-20).
+      const under = { x: 0.5, y: 0.574 };
       return [
         stand({ x: 0.5, y: 0.494 }, 3, rack),
         { pelvis: dip, torso: 5, neck: 3, arms: rack, legs: plantedLegs(dip, 5, "side", FEET, FORWARD) },
-        // The drive: tall on the toes, the bar still on the shoulders.
-        { pelvis: { x: 0.5, y: 0.454 }, torso: -3, neck: -2, arms: rack, legs: sideLegs(178, 180, 120) },
+        // The drive: tall on the toes, the bar still on the shoulders, the
+        // trunk 12 back as the clip's (it was 3).
+        { pelvis: { x: 0.5, y: 0.454 }, torso: -12, neck: -6, arms: rack, legs: sideLegs(178, 180, 120) },
         // The catch: the arms already locked overhead, the knees re-bent.
-        { pelvis: under, torso: 12, neck: 7, arms: locked, legs: plantedLegs(under, 12, "side", FEET, FORWARD) },
+        { pelvis: under, torso: 19, neck: 11, arms: locked, legs: plantedLegs(under, 19, "side", FEET, FORWARD) },
         stand({ x: 0.5, y: 0.494 }, 0, locked),
       ];
     })(),
@@ -4177,8 +4180,12 @@ export const exercisePoses = {
   bandChestPress: pose(
     "side",
     // [hand ahead of the shoulder, hand below it]
-    ([[0.06, 0.12], [0.17, 0.08], [0.285, 0.03]] as const).map(([ahead, below]): Figure => {
-      const pelvis = { x: 0.5, y: 0.492 };
+    // (The first key 0.075 ahead: the upper arm 27 behind plumb, the clip's
+    // 25-30; at 0.06 it was 34.)
+    ([[0.075, 0.12], [0.17, 0.08], [0.285, 0.03]] as const).map(([ahead, below]): Figure => {
+      // 0.496: knees soft at 163 (the clip's 167-175; the solver snaps to
+      // straight above 99% of the leg, and 0.492 stood them at 180).
+      const pelvis = { x: 0.5, y: 0.496 };
       const torso = 355;
       const hands = [0, 1].map((side) => {
         const sh = shoulderAt(pelvis, torso, side as 0 | 1, "side");
@@ -4205,13 +4212,16 @@ export const exercisePoses = {
 
   overheadPress: pose(
     "side",
-    ([[355, 150, 5, 350], [358, 95, 0, 352], [0, 5, 355, 0]] as const).map(([torso, upper, lower, neck]) => {
+    // The rack's flare is 10, not the press's 45: flared out of the plane,
+    // the racked elbow read 38 from the side and the upper arm sat ON the
+    // trunk line; the clip's are 27-35 and 25-35 ahead. Now 29 and 28.
+    ([[355, 150, 358, 350, 10], [358, 95, 0, 352, 45], [0, 5, 355, 0, 45]] as const).map(([torso, upper, lower, neck, flare]) => {
       const pelvis = { x: 0.5, y: 0.492 };
       return {
         pelvis,
         torso,
         neck,
-        arms: sideArms(upper, lower).map((arm) => ({ ...arm, spread: 0.06, flare: 45 })) as [Limb, Limb],
+        arms: sideArms(upper, lower).map((arm) => ({ ...arm, spread: 0.06, flare })) as [Limb, Limb],
         legs: plantedLegs(pelvis, torso, "side", FEET, FORWARD),
       };
     }),
@@ -6080,7 +6090,9 @@ export const exercisePoses = {
   // both measurable gaps -- a slow, controlled eccentric.
   landminePress: pose(
     "side",
-    ([[0.25, 118, 8], [0.58, 68, 14], [0.88, 56, 20]] as const).map(([reachOf, armAngle, torso]) => {
+    // Lockout at 0.96 of the arm's reach: elbow 148, the clip's 149 (0.88
+    // left it at 123).
+    ([[0.25, 118, 8], [0.58, 68, 14], [0.96, 56, 20]] as const).map(([reachOf, armAngle, torso]) => {
       const pelvis = { x: 0.5, y: 0.494 };
       const wrist = along(shoulderAt(pelvis, torso, 0, "side"), armAngle, (P.upperArm + P.forearm) * reachOf);
       const [press] = reachingArms(pelvis, torso, "side", [wrist, wrist], BACK);
