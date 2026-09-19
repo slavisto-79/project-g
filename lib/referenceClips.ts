@@ -162,9 +162,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Onnit",
     view: "side",
     span: "nine swings in 14.3 s",
-    prs: [263],
+    prs: [263, 442],
     date: "2026-09-09",
     exercises: ["Kettlebell Swing"],
+    notes: "Clip audit angles: the top's knees soft at 165, the clip's 160-167 (they were 177), the ankle kept under the hip.",
   },
   hipThrust: {
     videoId: "TSz4XEoFSFw",
@@ -699,10 +700,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Functional Bodybuilding",
     view: "side",
     span: "six reps in 9 s",
-    prs: [308],
+    prs: [308, 442],
     date: "2026-09-11",
     exercises: ["Kettlebell Clean"],
-    notes: "Near-side view; the swing-through key keeps the bell out of the thighs, as the snatch's.",
+    notes: "Near-side view; the swing-through key keeps the bell out of the thighs, as the snatch's. Clip audit angles: the hinge's thigh 20 forward and knee 150 (the clip's 17-27 / 143-157; it was 12); the rack's elbow 30 from the side (the clip's 9-30, with check-poses' fold limit at 28; it was 42).",
   },
 
   pushPress: {
@@ -900,11 +901,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 12.4 s",
-    prs: [402],
+    prs: [402, 442],
     date: "2026-09-16",
     exercises: ["Dumbbell Romanian Deadlift"],
     notes:
-      "Borrowed the barbell RDL before, which stops at the knee. Deeper: the trunk reads 88-98 from vertical at the bottom (the barbell clip 83-91), the hands end 0.19-0.27 hip heights above the floor -- mid-shin -- plumb over the ankles; the knee 150-158 with the shin vertical and the thigh 20-28 back; standing the trunk reads 2-11 back. Tempo at 0.2 s: lower 1.6-1.8 s, 0.4 at the bottom, stand 0.8-1.0, 1.0-1.2 standing.",
+      "Borrowed the barbell RDL before, which stops at the knee. Deeper: the trunk reads 88-98 from vertical at the bottom (the barbell clip 83-91), the hands end 0.19-0.27 hip heights above the floor -- mid-shin -- plumb over the ankles; the knee 150-158 with the shin vertical and the thigh 20-28 back; standing the trunk reads 2-11 back. Tempo at 0.2 s: lower 1.6-1.8 s, 0.4 at the bottom, stand 0.8-1.0, 1.0-1.2 standing. Clip audit angles: the bottom's trunk 95 with the arms near plumb, the bells 23 cm off the floor (the clip's 88-98 and 0.19-0.27 hip heights; trunk 90 with the arms 22 back left them at 31).",
   },
   dumbbellStepUp: {
     videoId: "Zp7RG4jFScw",
@@ -1822,11 +1823,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "four reps in 14.8 s",
-    prs: [337],
+    prs: [337, 442],
     date: "2026-09-12",
     exercises: ["Single-Leg Romanian Deadlift", "Single-Leg Deadlift"],
     notes:
-      "Read as fractions of the standing hip height. The hip travels 28% of it BACK -- from 11% in front of the standing ankle to 17% behind -- while the shoulder goes the other way; ours walked the pelvis 20% FORWARD. The standing knee holds 173 to 153, twenty degrees, against our fifty four. The trunk reaches 104 off vertical and the hip gives up only 3% of its height. The FREE LEG is taken by angle, not position: its ankle projects 0.370 of the frame from the hip where a straight leg of hers is 0.481, so it swings a fifth of its length out of the film plane -- but the clip does settle that it hangs plumb at the top, reaches 57 degrees behind plumb at the halfway point, and finishes level with the hip, knee near straight at 158.",
+      "Read as fractions of the standing hip height. The hip travels 28% of it BACK -- from 11% in front of the standing ankle to 17% behind -- while the shoulder goes the other way; ours walked the pelvis 20% FORWARD. The standing knee holds 173 to 153, twenty degrees, against our fifty four. The trunk reaches 104 off vertical and the hip gives up only 3% of its height. The FREE LEG is taken by angle, not position: its ankle projects 0.370 of the frame from the hip where a straight leg of hers is 0.481, so it swings a fifth of its length out of the film plane -- but the clip does settle that it hangs plumb at the top, reaches 57 degrees behind plumb at the halfway point, and finishes level with the hip, knee near straight at 158. Clip audit angles: the top's standing knee 176.5 toward the clip's 173 -- check-poses lets a standing knee bend at most 4 -- it was locked at 180; the free leg 190 / 216 so the stance foot stays the lowest point.",
   },
 
   inclineCurl: {

@@ -2114,7 +2114,10 @@ export const exercisePoses = {
   // than the barbell clip's 0.3.
   dumbbellRomanianDeadlift: pose(
     "side",
-    ([[0.523, 0.491, 4, 176, 184, -10], [0.497, 0.495, 32, 168, 182, 0], [0.467, 0.506, 62, 158, 180, 12], [0.460, 0.515, 90, 153, 182, 22]] as const).map(
+    // The bottom: trunk 95 and the arms near plumb, the bells 23 cm up (the
+    // clip's 88-98 and 0.19-0.27 hip heights; 90 with the arms 22 back left
+    // them at 31).
+    ([[0.523, 0.491, 4, 176, 184, -10], [0.497, 0.495, 32, 168, 182, 0], [0.467, 0.506, 62, 158, 180, 12], [0.460, 0.515, 95, 153, 182, 8]] as const).map(
       ([x, y, torso, upper, lower, armBack]) => ({
         pelvis: { x, y },
         torso,
@@ -2179,7 +2182,7 @@ export const exercisePoses = {
   // (userData.swing), so at the top it points forward, not down.
   kettlebellSwing: pose(
     "side",
-    ([[0.531, 0.490, -8, 183, 180, 105, 110], [0.492, 0.506, 35, 160, 188, 175, 175], [0.479, 0.534, 80, 147, 195, 235, 235]] as const).map(
+    ([[0.531, 0.490, -8, 173, 188, 105, 110], [0.492, 0.506, 35, 160, 188, 175, 175], [0.479, 0.534, 80, 147, 195, 235, 235]] as const).map(
       ([x, y, torso, upper, lower, armUpper, armLower]) => ({
         pelvis: { x, y },
         torso,
@@ -2241,13 +2244,14 @@ export const exercisePoses = {
       const hinge = (() => {
         const torso = 55;
         return {
-          pelvis: overFoot(168, 190, torso), torso, neck: 38,
+          pelvis: overFoot(160, 190, torso), torso, neck: 38,
           // The working hand on the midline (spread -0.085 cancels the arm's
           // splay), swung back between the legs.
           // (At 230/214 the bell grazed 1 cm into the near thigh on the way
           // down; 234/217 swings it clear behind the legs.)
           arms: [{ upper: 234, lower: 217, spread: -0.085 }, idle] as [Limb, Limb],
-          legs: [leg(168, 190), leg(168, 190)] as [Limb, Limb],
+          // Thigh 20 forward, knee 150: the clip's 17-27 / 143-157 (168 was 12).
+          legs: [leg(160, 190), leg(160, 190)] as [Limb, Limb],
         };
       })();
       return [
@@ -2258,7 +2262,7 @@ export const exercisePoses = {
         { pelvis: overFoot(173, 187, 35), torso: 35, neck: 24, arms: [{ upper: 183, lower: 183, spread: -0.085 }, { upper: 195, lower: 200, spread: 0.06 }] as [Limb, Limb], legs: [leg(173, 187), leg(173, 187)] as [Limb, Limb] },
         // The rack: tall, the elbow tight to the ribs (170) with the forearm
         // folded up across the chest, the bell standing on the forearm.
-        stand({ x: 0.50, y: 0.494 }, 3, [{ upper: 170, lower: 32, spread: -0.085 }, idle]),
+        stand({ x: 0.50, y: 0.494 }, 3, [{ upper: 170, lower: 20, spread: -0.085 }, idle]) /* rack elbow 30 from the side, the clip's 9-30 (check-poses stops a fold at 28); 32 left it at 42 */,
       ];
     })(),
     // One bell on the working hand, swung: it points along the arm, so at the
@@ -2572,7 +2576,10 @@ export const exercisePoses = {
   // gaps -- a slow lift, which is what a balance movement wants.
   singleLegHinge: pose(
     "side",
-    ([[6, -6, 4, 190, 212], [7, 10, 54, 226, 248], [4, 23, 104, 261, 279]] as const).map(
+    // (The top: the standing knee 176.5 toward the clip's 173 -- check-poses
+    // lets a standing knee bend 4 -- thigh 2.5 ahead, not 6, which locked it;
+    // the free leg 190 / 216 so the stance foot is the lowest point.)
+    ([[6, -2.5, 4, 190, 216], [7, 10, 54, 226, 248], [4, 23, 104, 261, 279]] as const).map(
       ([shinAhead, thighBack, torso, up, low]) => {
         // Up the planted leg: ankle -> knee -> hip, then back off the
         // girdle's half-depth to the pelvis the build hangs the hip on.
