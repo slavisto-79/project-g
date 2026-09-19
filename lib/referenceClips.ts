@@ -220,7 +220,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "The Active Life",
     view: "side",
     span: "two reps after a 14 s setup",
-    prs: [267, 414],
+    prs: [267, 414, 443],
     date: "2026-09-09",
     exercises: ["Bulgarian Split Squat", "Dumbbell Bulgarian Split Squat"],
     secondClips: [
@@ -237,7 +237,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
           "As fractions of the front leg's length: the rear ankle 0.65-0.72 up and 0.6-0.65 behind the front ankle; top: front knee 170-178, rear 86-94; bottom: hip 0.68 up, front knee 85-90, trunk 20-24 (reads high), the rear knee folded with the thigh near vertical (scores 0.2-0.5 there, not quoted). The pose's rear foot went from 12 cm up to a box 50 cm high with the ankle at its front edge, foot angle 200; the bottom from thigh 70 / shin 31 (hip 0.6 up, below the box top) to 55 / 37 (knee 88, hip 0.68 up). Solved rear knee 76 / 63 / 57.",
       },
     ],
-    notes: "The bench in this clip is 45 cm high; the pose kept the rear foot 12 cm up until #414 (a reach-back limit at the time), when the second clip below set the box at 50 cm and the bottom depth with it.",
+    notes: "The bench in this clip is 45 cm high; the pose kept the rear foot 12 cm up until #414 (a reach-back limit at the time), when the second clip below set the box at 50 cm and the bottom depth with it. Clip audit angles: the box foot 4 cm further back, the rear knee 86 at the top, the clip's 86-94 (it was 76).",
   },
   splitSquatStatic: {
     videoId: "Py2Qeg-D5T0",
@@ -555,7 +555,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "three-quarter",
     span: "four step-ups in 19 s",
-    prs: [296, 411],
+    prs: [296, 411, 443],
     date: "2026-09-10",
     exercises: ["Step-Up"],
     secondClips: [
@@ -572,7 +572,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
           "With the arms hanging between steps the wrists are 1.3-1.4 shoulder widths apart, the elbows 1.1-1.3 (wrist scores 0.55-0.8); in the drive the arms swing out to 1.5-2.5, which the hang does not draw. The pose went from wide()'s 1.82 to 1.35. Ferrari Wellness's Body weight Box Step Up (49whOAgy1cU) was tried too: the lifter is far from a three-quarter camera and MoveNet collapses the shoulders -- not readable.",
       },
     ],
-    notes: "Three-quarters on with the arms hanging behind the hips: the wrist keypoints score 0.1-0.7 and their width swings 0.2-2.1 shoulder widths frame to frame, so the clip cannot settle the hanging arms' width (batch 20 `wide()` review; the pose keeps 1.82). The dumbbell step-up's face-on clip (9ZknEYboBOQ, batch 21) reads hanging bells at 1.15-1.3 shoulder widths; this bodyweight pose kept its free hang until its own face-on clip (#411, below) read 1.3-1.4.",
+    notes: "Three-quarters on with the arms hanging behind the hips: the wrist keypoints score 0.1-0.7 and their width swings 0.2-2.1 shoulder widths frame to frame, so the clip cannot settle the hanging arms' width (batch 20 `wide()` review; the pose keeps 1.82). The dumbbell step-up's face-on clip (9ZknEYboBOQ, batch 21) reads hanging bells at 1.15-1.3 shoulder widths; this bodyweight pose kept its free hang until its own face-on clip (#411, below) read 1.3-1.4. Clip audit angles: the start's lead knee 75 (the clip's 73-80; it was 85); knees 162 standing on the box (157-175; they were locked).",
   },
 
   overheadTricepsExtension: {
@@ -604,10 +604,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "Flow High Performance",
     view: "side",
     span: "one jump in 6 s",
-    prs: [300],
+    prs: [300, 443],
     date: "2026-09-10",
     exercises: ["Broad Jump"],
-    notes: "One rep, so the tempo is a single sample. The loop glides back to the start.",
+    notes: "One rep, so the tempo is a single sample. The loop glides back to the start. Clip audit angles: the dip's trunk 78, the clip's 77-84 (it was 65).",
   },
 
   jumpingLunge: {
@@ -616,10 +616,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "eight switches in 9 s",
-    prs: [301, 422],
+    prs: [301, 422, 443],
     date: "2026-09-10",
     exercises: ["Jumping Lunge"],
-    notes: "Batch 23 stage 2: the front thigh 84 (the clip's 72-84; 78 before), knee 79, the rear knee 10 cm up.",
+    notes: "Batch 23 stage 2: the front thigh 84 (the clip's 72-84; 78 before), knee 79, the rear knee 10 cm up. Clip audit angles: the rear shin 106 from plumb, the clip's 105-115 (it was 100).",
   },
 
   skaterBound: {
@@ -1678,11 +1678,11 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "MedBridge",
     view: "side",
     span: "one sit held about 14 s",
-    prs: [348, 423],
+    prs: [348, 423, 443],
     date: "2026-09-13",
     exercises: ["Wall Sit"],
     notes:
-      "The video cuts between a side camera and a front one; numbers are from the side camera (thigh projects 0.15 of the frame there, 0.09 face on). Held: knee 101-104, shin plumb, trunk 3, the hip 0.13 trunk lengths above the knee (thigh 14 degrees under level), hands resting on the thighs (28 degrees forward of plumb, elbows 155). Standing she is half a trunk length clear of the wall with the hips over the ankles; she slides back and down in 2.5 s and up in 2.5 s. OPEX's face-on Wall Sit (CoGaiX4P_BQ) agrees on the thigh: knees 0.1 trunk lengths under the hips. The 14 s hold is a prescription; the card holds 4 s. Batch 23 stage 3: the wall at 0.3215 (0.31): the new thigh / shin split left the back 3.5 cm off it.",
+      "The video cuts between a side camera and a front one; numbers are from the side camera (thigh projects 0.15 of the frame there, 0.09 face on). Held: knee 101-104, shin plumb, trunk 3, the hip 0.13 trunk lengths above the knee (thigh 14 degrees under level), hands resting on the thighs (28 degrees forward of plumb, elbows 155). Standing she is half a trunk length clear of the wall with the hips over the ankles; she slides back and down in 2.5 s and up in 2.5 s. OPEX's face-on Wall Sit (CoGaiX4P_BQ) agrees on the thigh: knees 0.1 trunk lengths under the hips. The 14 s hold is a prescription; the card holds 4 s. Batch 23 stage 3: the wall at 0.3215 (0.31): the new thigh / shin split left the back 3.5 cm off it. Clip audit angles: the hand four fifths of the way down the thigh, elbow 155, the clip's (three quarters bent it to 137).",
   },
 
   bodyweightSquat: {
@@ -2046,10 +2046,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "four reps in 12.4 s",
-    prs: [319],
+    prs: [319, 443],
     date: "2026-09-11",
     exercises: ["Lying Leg Curl", "Seated Leg Curl"],
-    notes: "MoveNet scores only 0.26-0.71 on this one (small figure, gym clutter, the two legs confused when curled), so the range was read from the clusters the whole clip agrees on rather than per-frame angles. Nordic Hamstring Curl is ALSO mapped to this pose and should not be: it is a kneeling bodyweight movement with no machine.",
+    notes: "MoveNet scores only 0.26-0.71 on this one (small figure, gym clutter, the two legs confused when curled), so the range was read from the clusters the whole clip agrees on rather than per-frame angles. Nordic Hamstring Curl is ALSO mapped to this pose and should not be: it is a kneeling bodyweight movement with no machine. Clip audit angles: the extended knee 172, inside the clip's 142-174 (it was 178).",
   },
 
   lunge: {
@@ -2058,7 +2058,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "OPEX Fitness",
     view: "side",
     span: "three reps in 11.7 s",
-    prs: [318, 409, 422],
+    prs: [318, 409, 422, 443],
     date: "2026-09-11",
     exercises: ["Bodyweight Reverse Lunge", "Dumbbell Lunge"],
     secondClips: [
@@ -2075,7 +2075,7 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
           "Wrists 1.33-1.4 shoulder widths apart standing with the bells, 1.45-1.55 in the lunge, elbows 1.15-1.3 (wrist scores 0.6-0.89). The pose went from wide()'s 1.82 to 1.5 -- the top of the clip's range, where this build's bell still clears its thigh. The Live Lean TV clip tried first (UoQcIFYTN_o) was not readable.",
       },
     ],
-    notes: "Barbell Walking Lunge borrows this pose; the split stance is held throughout rather than stepped, which is the library convention for the lunge family. Second clip tried for the hanging-arm width (Live Lean TV \"Alternating Dumbbell Reverse Lunge\", UoQcIFYTN_o, face on): the lifter is small in the frame and MoveNet collapses the shoulders in every crop tried; not readable (batch 21). The dumbbell step-up's face-on clip reads hanging bells at 1.15-1.3. Batch 23 stage 2: on the new thigh / shin split the rear knee rose to 7 cm at the bottom; the bottom pelvis 3 cm lower puts it at 4 again, the front knee 74 (hers 69-77), the rear 84 (81-88).",
+    notes: "Barbell Walking Lunge borrows this pose; the split stance is held throughout rather than stepped, which is the library convention for the lunge family. Second clip tried for the hanging-arm width (Live Lean TV \"Alternating Dumbbell Reverse Lunge\", UoQcIFYTN_o, face on): the lifter is small in the frame and MoveNet collapses the shoulders in every crop tried; not readable (batch 21). The dumbbell step-up's face-on clip reads hanging bells at 1.15-1.3. Batch 23 stage 2: on the new thigh / shin split the rear knee rose to 7 cm at the bottom; the bottom pelvis 3 cm lower puts it at 4 again, the front knee 74 (hers 69-77), the rear 84 (81-88). Clip audit angles: the hip carried forward over the front foot as it sinks and the rear toe 6 cm nearer: the bottom's front shin 25 forward with the thigh level (the clip's 21-27, knee 0.016 under the hip; they were 13 and 3 above), front knee 68 and rear knee 84 (69-77 / 81-88).",
   },
 
   gobletSquat: {
