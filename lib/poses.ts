@@ -579,6 +579,30 @@ function build3d(figure: Figure, view: View, facing: 1 | -1 = 1): { bones: PoseB
       knee[1] = h[1] + pick[1];
       knee[2] = h[2] + pick[2];
     }
+    if (view === "front" && !leg.forward) {
+      // (A leg with `forward` already says where its shin goes in depth.)
+      // Face on, the authored bend lies in the drawing plane, so the knee
+      // bowed out SIDEWAYS -- the whole leg turned out 90 degrees, a ballet
+      // second position. Keep the hip and the ankle where they are and put
+      // the knee where a knee goes: bent toward the toes (+z, the way the
+      // body faces), the two bones their lengths.
+      const h = hip[side]!;
+      const u: Vec3 = [ankle[0] - h[0], ankle[1] - h[1], ankle[2] - h[2]];
+      const d = Math.hypot(u[0], u[1], u[2]);
+      if (d > 1e-6 && d < P.thigh + P.shin - 1e-6) {
+        const n: Vec3 = [u[0] / d, u[1] / d, u[2] / d];
+        const along = facing * n[2];
+        const w0: Vec3 = [-along * n[0], -along * n[1], facing - along * n[2]];
+        const wl = Math.hypot(w0[0], w0[1], w0[2]);
+        if (wl > 1e-6) {
+          const a = (P.thigh * P.thigh - P.shin * P.shin + d * d) / (2 * d);
+          const r = Math.sqrt(Math.max(0, P.thigh * P.thigh - a * a));
+          knee[0] = h[0] + n[0] * a + (w0[0] / wl) * r;
+          knee[1] = h[1] + n[1] * a + (w0[1] / wl) * r;
+          knee[2] = h[2] + n[2] * a + (w0[2] / wl) * r;
+        }
+      }
+    }
     const splay = view === "front" && side === 1 ? 90 : -90;
     const footAngle = leg.end ?? leg.lower + splay;
     bones.push({ part: "thigh", side, a: hip[side]!, b: knee });
@@ -588,6 +612,17 @@ function build3d(figure: Figure, view: View, facing: 1 | -1 = 1): { bones: PoseB
     // midline; the 2D drawing keeps the foot in its plane.
     const yaw = view === "side" && leg.turn ? (out * leg.turn * Math.PI) / 180 : 0;
     const foot = (length: number): Vec3 => {
+      if (view === "front") {
+        // Face on, the drawing plane holds no "forward": walked in it, every
+        // foot pointed out sideways, along the girdle. The angle's vertical
+        // part is kept (so heights and floor contact are unchanged) and its
+        // horizontal part turned to point where the body faces (+z), yawed
+        // out by the leg's `turn` as a side view does.
+        const a = (footAngle * Math.PI) / 180;
+        const reachOut = Math.abs(Math.sin(a)) * length;
+        const t = ((leg.turn ?? 0) * Math.PI) / 180;
+        return [ankle[0] + out * Math.sin(t) * reachOut, ankle[1] + Math.cos(a) * length, ankle[2] + facing * Math.cos(t) * reachOut];
+      }
       const p = walk(ankle, footAngle, length);
       if (!yaw) return p;
       const dz = p[2] - ankle[2];
