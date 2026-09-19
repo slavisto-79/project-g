@@ -661,10 +661,10 @@ export const REFERENCE_CLIPS: Partial<Record<PoseName, ReferenceClip>> = {
     channel: "CrossFit",
     view: "three-quarter",
     span: "nine seconds on the spot",
-    prs: [305],
+    prs: [305, 434],
     date: "2026-09-11",
     exercises: ["High Knees"],
-    notes: "Near-side view: the angles are projections, +-5.",
+    notes: "Near-side view: the angles are projections, +-5. Clip audit: the stance knee soft at 165, the clip's 160-170 (it was locked at 180), the pelvis 0.458 so the ball of the foot stays on the floor; the elbows 50 and the upper arms 20 either side of plumb, the clip's 40-65 and +-20 (they were 90, swinging 45 forward and 35 back).",
   },
 
   tuckJump: {

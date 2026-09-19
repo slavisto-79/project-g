@@ -1825,19 +1825,23 @@ export const exercisePoses = {
     (() => {
       const torso = 5;
       const up: Limb = { upper: 90, lower: 180, end: 200 }; // thigh level, shin plumb, toes down
-      const stance: Limb = { upper: 180, lower: 180, end: 120 }; // straight, on the ball of the foot
-      const fwdArm: Limb = { upper: 135, lower: 45 }; // elbow 90, the hand at chest height in front
-      const backArm: Limb = { upper: 215, lower: 125 }; // elbow 90, the hand by the hip
+      // Soft, on the ball of the foot: knee 165, the clip's 160-170 (it was
+      // locked at 180).
+      const stance: Limb = { upper: 175, lower: 190, end: 120 };
+      // Elbows 50 and the upper arms 20 either side of plumb, the clip's
+      // 40-65 and +-20 (they were 90, swinging 45 forward and 35 back).
+      const fwdArm: Limb = { upper: 160, lower: 30 };
+      const backArm: Limb = { upper: 200, lower: 70 };
       // On the ball of the foot the toes touch the floor 3.6 cm below the
-      // ankle, so the pelvis rides at 0.454, 4 cm above a flat-footed stand.
+      // ankle, so the pelvis rides at 0.458, above a flat-footed stand.
       const kneeUp = (side: 0 | 1): Figure => ({
-        pelvis: { x: 0.5, y: 0.454 },
+        pelvis: { x: 0.5, y: 0.458 },
         torso,
         neck: 0,
         arms: (side === 0 ? [backArm, fwdArm] : [fwdArm, backArm]) as [Limb, Limb],
         legs: (side === 0 ? [up, stance] : [stance, up]) as [Limb, Limb],
       });
-      return [kneeUp(0), stand({ x: 0.5, y: 0.50 }, torso, [{ upper: 180, lower: 90 }, { upper: 180, lower: 90 }], 0), kneeUp(1)];
+      return [kneeUp(0), stand({ x: 0.5, y: 0.50 }, torso, [{ upper: 180, lower: 50 }, { upper: 180, lower: 50 }], 0), kneeUp(1)];
     })(),
     [{ kind: "floor", y: GROUND }],
     "neutral",
