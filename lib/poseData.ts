@@ -6361,16 +6361,21 @@ export const exercisePoses = {
     "front",
     [
       standFront(0.497, 0, bothArms(138, 204), [{ x: 0.540, y: FLOOR }, { x: 0.460, y: FLOOR }]),
+      // The trailing leg is authored with depth: the thigh crossing over,
+      // the shin swung BEHIND (`forward`) so the foot lands 45 cm back on its
+      // toes, the knee over the floor (5.5 cm) and the ankle 12.5 cm up, the
+      // clip's 14% of hip height. Drawn only in the plane it crossed in FRONT
+      // of the standing leg once front-view knees bent toward the toes.
       // Both feet flat (explicit ends): left to the shin, the crossed leg's
       // foot tilted with it and its toes went 6cm through the floor, which
       // then sat 6cm under the standing frame.
       (() => {
         const pelvis = { x: 0.567, y: 0.602 };
-        return { pelvis, torso: -8, arms: bothArms(138, 204), legs: plantedLegs(pelvis, -8, "front", [{ x: 0.540, y: FLOOR }, { x: 0.585, y: 0.899 }], [1, 1], [90, 270]) };
+        return { pelvis, torso: -8, arms: bothArms(138, 204), legs: [plantedLegs(pelvis, -8, "front", [{ x: 0.540, y: FLOOR }, { x: 0.585, y: 0.899 }], [1, 1], [90, 270])[0]!, { upper: 170, lower: 170, forward: -75, end: 230 }] as [Limb, Limb] };
       })(),
       (() => {
         const pelvis = { x: 0.644, y: 0.727 }; // 4 cm lower for batch 23's split: the trailing knee 3 cm off the floor
-        return { pelvis, torso: -15, arms: bothArms(138, 204), legs: plantedLegs(pelvis, -15, "front", [{ x: 0.540, y: FLOOR }, { x: 0.710, y: 0.868 }], [1, 1], [90, 270]) };
+        return { pelvis, torso: -15, arms: bothArms(138, 204), legs: [plantedLegs(pelvis, -15, "front", [{ x: 0.540, y: FLOOR }, { x: 0.710, y: 0.868 }], [1, 1], [90, 270])[0]!, { upper: 150, lower: 150, forward: -100, end: 235 }] as [Limb, Limb] };
       })(),
     ],
     [{ kind: "floor" }],
